@@ -128,7 +128,7 @@ static void display(void) {
 
     echk("af_drawbuf", af_drawbuf(&ctx, &buf, &vert, AF_TRIANGLE_FAN));
 
-    glFlush();
+    echk("af_flush", af_flush(&ctx));
 }
 
 int main(int argc, char** argv) {

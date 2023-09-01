@@ -91,8 +91,8 @@ static void display(void) {
             0.0f, 0.0f, -0.5f,  0.0f
     };
     echk(
-            "af_setparam",
-            af_setparam(&ctx, "u_projection", &projection, proj));
+        "af_setparam",
+        af_setparam(&ctx, "u_projection", &projection, proj));
 
     echk("af_clear", af_clear(&ctx, clear));
 
@@ -104,8 +104,8 @@ static void display(void) {
                 0.0f, -2.0f,  0.0f, 1.0f
         };
         echk(
-                "af_setparam",
-                af_setparam(&ctx, "u_model_view", &modelview, mv));
+            "af_setparam",
+            af_setparam(&ctx, "u_model_view", &modelview, mv));
         echk("af_draw", af_draw(&ctx, &drawlist));
     }
 
@@ -121,8 +121,8 @@ static void display(void) {
         mv[12] += p;
 
         echk(
-                "af_setparam",
-                af_setparam(&ctx, "u_model_view", &modelview, mv));
+            "af_setparam",
+            af_setparam(&ctx, "u_model_view", &modelview, mv));
         echk("af_draw", af_draw(&ctx, &drawlist));
     }
 

@@ -13,7 +13,7 @@ CFLAGS += -Iinclude
 CFLAGS += -std=c89 -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
 
 CFLAGS += $(shell pkg-config --cflags afeirsa)
-LDLIBS += $(shell pkg-config --libs afeirsa) -lglut
+LDLIBS += $(shell pkg-config --libs afeirsa) -lglut -lGLU -lm
 
 ifdef DEBUG
 	CFLAGS += -g -O0 -D_DEBUG
@@ -24,6 +24,8 @@ endif
 .DEFAULT_GOAL := all
 .PHONY: all
 all: $(OUT)
+
+$(OUT): $(OBJECTS)
 
 $(OBJECTS): $(HEADERS)
 

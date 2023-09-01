@@ -1,138 +1,130 @@
 /*
  * SPDX-License-Identifier: LGPL-3.0-or-later
- * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+afeirsa@pm.me>
+ * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#include <afeirsa/afeirsa.h>
-#include <afeirsa/afgl.h>
+#include <agacore.h>
 
-#ifdef AF_NSGL
-# define GL_SILENCE_DEPRECATION 1
-# include <GLUT/glut.h>
-# undef GL_SILENCE_DEPRECATION
-#endif
+static GLUquadric* sphere;
 
-#ifdef AF_GLXABI
-# include <GL/glut.h>
-#endif
+struct aga_ctx ctx;
 
-#include <stdio.h>
-#include <stdlib.h>
-
-static void echk(const char* proc, enum af_err e) {
-	const char* n;
-	switch(e) {
-		default:;
-			AF_FALLTHROUGH;
-			/* FALLTHRU */
-		case AF_ERR_NONE: return;
-
-		case AF_ERR_UNKNOWN: n = "unknown"; break;
-   		case AF_ERR_BAD_PARAM: n = "bad parameter"; break;
-		case AF_ERR_BAD_CTX: n = "bad context"; break;
-		case AF_ERR_BAD_OP: n = "bad operation"; break;
-		case AF_ERR_NO_GL: n = "no opengl"; break;
-		case AF_ERR_MEM: n = "out of memory"; break;
-	}
-
-	fprintf(stderr, "%s: %s\n", proc, n);
-	abort();
-}
-
-struct vertex {
-	float pos[3];
-	float col[4];
-	float uv[2];
-	float norm[3];
-};
-
-static af_uchar_t pattern(void) {
-	static af_uchar_t state = 1;
-	static af_uchar_t count = 0;
-
-	af_uchar_t res = state;
-	{
-		af_uchar_t p = (res & 3);
-		res *= state % (p ? p : 17);
-
-		p += state;
-		{
-			af_uchar_t q = 41;
-			res -= (p % q);
-			res += (p + q);
-		}
-		res += !(count % p) * p;
-	}
-	state += res;
-
-	count++;
-	return res;
-}
-
-static const struct af_param modelview = {
-    AF_PARAM_MODELVIEW, AF_FLOAT, 16 };
-
-static const struct af_param projection = {
-    AF_PARAM_PROJECTION, AF_FLOAT, 16 };
-
-const float clear[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-struct af_ctx ctx;
 struct af_drawlist drawlist;
 struct af_buf buf;
-struct af_vert vert;
 struct af_buf tex;
 
-static void display(void) {
-    float proj[] = {
-            1.5f, 0.0f,  0.0f,  0.0f,
-            0.0f, 2.5f,  0.0f,  0.0f,
-            0.0f, 0.0f, -1.0f, -1.0f,
-            0.0f, 0.0f, -0.5f,  0.0f
-    };
-    echk(
-        "af_setparam",
-        af_setparam(&ctx, "u_projection", &projection, proj));
+static af_bool_t did_click = AF_FALSE;
+static int last_button = -1;
+static int click_pos[2] = { -1, -1 };
 
-    echk("af_clear", af_clear(&ctx, clear));
+enum dir {
+	FOR, BAC, LEF, RIT
+};
+static af_bool_t move[4] = {0};
 
-    {
-        float mv[] = {
-                15.0f,  0.0f,  0.0f, 0.0f,
-                0.0f,  0.0f, 15.0f, 0.0f,
-                0.0f, -1.0f,  0.0f, 0.0f,
-                0.0f, -2.0f,  0.0f, 1.0f
-        };
-        echk(
-            "af_setparam",
-            af_setparam(&ctx, "u_model_view", &modelview, mv));
-        echk("af_draw", af_draw(&ctx, &drawlist));
-    }
-
-    {
-        float mv[] = {
-                1.0f, 0.0f,  0.0f, 0.0f,
-                0.0f, 1.0f,  0.0f, 0.0f,
-                0.0f, 0.0f,  1.0f, 0.0f,
-                -1.0f, 0.0f, -4.0f, 1.0f
-        };
-        float p = 0;
-
-        mv[12] += p;
-
-        echk(
-            "af_setparam",
-            af_setparam(&ctx, "u_model_view", &modelview, mv));
-        echk("af_draw", af_draw(&ctx, &drawlist));
-    }
-
-    echk("af_drawbuf", af_drawbuf(&ctx, &buf, &vert, AF_TRIANGLE_FAN));
-
-    echk("af_flush", af_flush(&ctx));
+static void key(unsigned char k, af_bool_t s) {
+	if(k == 'w') move[FOR] = s;
+	if(k == 's') move[BAC] = s;
+	if(k == 'a') move[LEF] = s;
+	if(k == 'd') move[RIT] = s;
 }
 
-int main(int argc, char** argv) {
-	struct vertex vertices[] = {
+static void key_up(unsigned char k, int x, int y) {
+	(void) x, (void) y, key(k, AF_FALSE);
+}
+
+static void key_down(unsigned char k, int x, int y) {
+	(void) x, (void) y, key(k, AF_TRUE);
+}
+
+static void click(int button, int state, int x, int y) {
+	last_button = button;
+	if(state == GLUT_UP) return;
+
+	if(button == 3) ctx.cam.dist -= ctx.settings.zoom_speed;
+	if(button == 4) ctx.cam.dist += ctx.settings.zoom_speed;
+
+	did_click = AF_TRUE;
+	click_pos[0] = x;
+	click_pos[1] = y;
+}
+
+static void motion(int x, int y) {
+	static int old_x = -1, old_y = -1;
+
+	if(last_button != GLUT_RIGHT_BUTTON) return;
+
+	if(did_click) {
+		did_click = AF_FALSE;
+		old_x = click_pos[0];
+		old_y = click_pos[1];
+	}
+
+	ctx.cam.yaw += ctx.settings.sensitivity * (float) (x - old_x);
+	ctx.cam.pitch += ctx.settings.sensitivity * (float) (y - old_y);
+
+	aga_af_chk("aga_setcam", aga_setcam(&ctx));
+
+	old_x = x;
+	old_y = y;
+}
+
+static void display(void) {
+	const float clear[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	if(move[FOR]) ctx.cam.pos.decomp.z += 0.1f;
+	if(move[BAC]) ctx.cam.pos.decomp.z -= 0.1f;
+	if(move[LEF]) ctx.cam.pos.decomp.x += 0.1f;
+	if(move[RIT]) ctx.cam.pos.decomp.x -= 0.1f;
+	aga_af_chk("aga_setcam", aga_setcam(&ctx));
+
+    aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
+
+    {
+        glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            glTranslatef(0.0f, 0.0f, -4.0f);
+        aga_af_chk("af_draw", af_draw(&ctx.af_ctx, &drawlist));
+    }
+
+	{
+		glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glTranslatef(
+				-ctx.cam.pos.decomp.x,
+				-ctx.cam.pos.decomp.y,
+				-ctx.cam.pos.decomp.z);
+		glColor3f(1.0f, 1.0f, 1.0f);
+		glutSolidTeapot(1.0f);
+	}
+
+	{
+		glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glScalef(10.0f, 1.0f, 10.0f);
+			glTranslatef(0.0f, -4.0f, 0.0f);
+			glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+		aga_af_chk("af_draw", af_draw(&ctx.af_ctx, &drawlist));
+	}
+
+	{
+		static double r = 0.0;
+		glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glRotated((r += 0.5), 1.0, 1.0, 1.0);
+
+		glColor3d(sin(r / 50.0), cos(r / 50.0), 0.1);
+		gluSphere(sphere, 50.0, 20, 20);
+	}
+
+    aga_af_chk("af_flush", af_flush(&ctx.af_ctx));
+
+    glutSwapBuffers();
+    glutPostRedisplay();
+}
+
+int main(void) {
+	struct aga_vertex vertices[] = {
 		{
 			{ -1.0f,  1.0f, 0.0f },
 			{  1.0f,  0.0f, 0.0f, 0.7f },
@@ -159,15 +151,8 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	struct af_vert_element vert_elements[] = {
-		{ AF_MEMBSIZE(struct vertex, pos ), AF_VERT_POS  },
-		{ AF_MEMBSIZE(struct vertex, col ), AF_VERT_COL  },
-		{ AF_MEMBSIZE(struct vertex, uv  ), AF_VERT_UV   },
-		{ AF_MEMBSIZE(struct vertex, norm), AF_VERT_NORM },
-	};
-
+    af_size_t i;
 	af_uchar_t texdata[64 * 64 * 4];
-	af_size_t i;
 
 	struct af_drawop drawops[2];
 
@@ -175,46 +160,60 @@ int main(int argc, char** argv) {
 	drawops[0].data.settex = &tex;
 
 	drawops[1].type = AF_DRAWBUF;
-	drawops[1].data.drawbuf.vert = &vert;
+	drawops[1].data.drawbuf.vert = &ctx.vert;
 	drawops[1].data.drawbuf.buf = &buf;
 	drawops[1].data.drawbuf.primitive = AF_TRIANGLE_FAN;
 
-	for(i = 0; i < AF_ARRLEN(texdata); ++i) {
-		texdata[i] = pattern();
-	}
+    srand(time(0));
+    for(i = 0; i < sizeof(texdata); ++i) texdata[i] = rand();
 
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_SINGLE);
-    glutInitWindowSize(640, 480);
-    glutCreateWindow("Aft Gang Aglay");
-    glutDisplayFunc(display);
+	/* TODO: Load defaults from file */
+	ctx.settings.sensitivity = 0.25f;
+	ctx.settings.zoom_speed = 0.5f;
 
-    echk("af_mkctx", af_mkctx(&ctx, AF_FIDELITY_FAST));
+	ctx.settings.width = 640;
+	ctx.settings.height = 480;
+	ctx.settings.fov = 60.0f;
 
-	echk(
-		"af_mkvert",
-		af_mkvert(&ctx, &vert, vert_elements, AF_ARRLEN(vert_elements)));
+	aga_af_chk("aga_init", aga_init(&ctx));
+	ctx.cam.dist = 3.0f;
 
-	echk("af_mkbuf", af_mkbuf(&ctx, &buf, AF_BUF_VERT));
-	echk("af_upload", af_upload(&ctx, &buf, vertices, sizeof(vertices)));
+	sphere = gluNewQuadric();
+	gluQuadricTexture(sphere, GL_TRUE);
 
-	echk("af_mkbuf", af_mkbuf(&ctx, &tex, AF_BUF_TEX));
+	glutPositionWindow(0, 0);
+
+	glutIgnoreKeyRepeat(1);
+	glutDisplayFunc(display);
+	glutMotionFunc(motion);
+	glutMouseFunc(click);
+	glutKeyboardUpFunc(key_up);
+	glutKeyboardFunc(key_down);
+
+	aga_af_chk(
+		"af_mkbuf", af_mkbuf(&ctx.af_ctx, &buf, AF_BUF_VERT));
+	aga_af_chk(
+		"af_upload", af_upload(&ctx.af_ctx, &buf, vertices, sizeof(vertices)));
+
+	aga_af_chk(
+		"af_mkbuf", af_mkbuf(&ctx.af_ctx, &tex, AF_BUF_TEX));
 	tex.tex_width = 64;
-	echk("af_upload", af_upload(&ctx, &tex, texdata, sizeof(texdata)));
+	aga_af_chk(
+		"af_upload", af_upload(&ctx.af_ctx, &tex, texdata, sizeof(texdata)));
 
-	echk(
+	aga_af_chk(
 		"af_mkdrawlist",
-		af_mkdrawlist(&ctx, &drawlist, drawops, AF_ARRLEN(drawops)));
+		af_mkdrawlist(&ctx.af_ctx, &drawlist, drawops, AF_ARRLEN(drawops)));
 
 	puts((const char*) glGetString(GL_VERSION));
 
     glutMainLoop();
 
-	echk("af_killdrawlist", af_killdrawlist(&ctx, &drawlist));
-	echk("af_killbuf", af_killbuf(&ctx, &tex));
-	echk("af_killvert", af_killvert(&ctx, &vert));
-	echk("af_killbuf", af_killbuf(&ctx, &buf));
-	echk("af_killctx", af_killctx(&ctx));
+	aga_af_chk("af_killdrawlist", af_killdrawlist(&ctx.af_ctx, &drawlist));
+	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex));
+	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &buf));
+
+	aga_af_chk("aga_kill", aga_kill(&ctx));
 
 	return 0;
 }

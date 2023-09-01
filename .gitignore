@@ -1,0 +1,12 @@
+*.o
+*.a
+*.so
+*.dylib
+
+src/*
+!src/*.c
+!src/*.mk
+
+.idea
+.vs
+.vscode

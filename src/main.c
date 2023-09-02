@@ -103,7 +103,29 @@ static void display(void) {
 		gluSphere(sphere, 50.0, 20, 20);
 	}
 
-    aga_af_chk("af_flush", af_flush(&ctx.af_ctx));
+	{
+		static float r = 0.0f;
+		glDisable(GL_TEXTURE_2D);
+
+		glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glTranslatef(-3.0f, 0.0f, -1.0f);
+			glScalef(0.01f, 0.01f, 0.01f);
+			glRotatef((r += 1.0f), 0.0f, 0.0f, 1.0f);
+
+		glColor3f(1.0f, 1.0f, 1.0f);
+		glLineWidth(5.0f);
+		glutStrokeCharacter(GLUT_STROKE_ROMAN, '#');
+		glutStrokeCharacter(GLUT_STROKE_ROMAN, 'W');
+		glutStrokeCharacter(GLUT_STROKE_ROMAN, 'O');
+		glutStrokeCharacter(GLUT_STROKE_ROMAN, 'O');
+		glutStrokeCharacter(GLUT_STROKE_ROMAN, 'T');
+		glutStrokeCharacter(GLUT_STROKE_ROMAN, '!');
+
+		glEnable(GL_TEXTURE_2D);
+	}
+
+	aga_af_chk("af_flush", af_flush(&ctx.af_ctx));
 
     glutSwapBuffers();
     glutPostRedisplay();

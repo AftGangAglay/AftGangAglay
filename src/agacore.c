@@ -17,9 +17,10 @@ enum af_err aga_init(struct aga_ctx* ctx, int* argcp, char** argvp) {
 	AF_PARAM_CHK(argcp);
 	AF_PARAM_CHK(argvp);
 
-	glutInitDisplayMode(GLUT_DOUBLE);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitWindowSize((int) ctx->settings.width, (int) ctx->settings.height);
 	glutInit(argcp, argvp);
+	if(!glutGet(GLUT_DISPLAY_MODE_POSSIBLE)) return AF_ERR_BAD_OP;
 	ctx->win = glutCreateWindow("Aft Gang Aglay");
 
 	AF_CHK(af_mkctx(&ctx->af_ctx, AF_FIDELITY_FAST));
@@ -87,4 +88,9 @@ void aga_af_chk(const char* proc, enum af_err e) {
 void aga_errno_chk(const char* proc) {
 	perror(proc);
 	abort();
+}
+
+void aga_boundf(float* f, float min, float max) {
+	if(*f < min) *f = min;
+	if(*f > max) *f = max;
 }

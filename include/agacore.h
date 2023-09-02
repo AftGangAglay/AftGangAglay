@@ -42,6 +42,7 @@ struct aga_ctx {
 		/* Input */
 		float sensitivity;
 		float zoom_speed;
+		float min_zoom, max_zoom;
 
 		/* Display */
 		float fov;
@@ -56,5 +57,7 @@ enum af_err aga_setcam(struct aga_ctx* ctx);
 
 void aga_af_chk(const char* proc, enum af_err e);
 void aga_errno_chk(const char* proc);
+
+void aga_boundf(float* f, float min, float max);
 
 #endif

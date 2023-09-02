@@ -17,32 +17,9 @@ static af_bool_t did_click = AF_FALSE;
 static int last_button = -1;
 static int click_pos[2] = { -1, -1 };
 
-enum dir {
-	FOR, BAC, LEF, RIT
-};
-static af_bool_t move[4] = {0};
-
-static void key(unsigned char k, af_bool_t s) {
-	if(k == 'w') move[FOR] = s;
-	if(k == 's') move[BAC] = s;
-	if(k == 'a') move[LEF] = s;
-	if(k == 'd') move[RIT] = s;
-}
-
-static void key_up(unsigned char k, int x, int y) {
-	(void) x, (void) y, key(k, AF_FALSE);
-}
-
-static void key_down(unsigned char k, int x, int y) {
-	(void) x, (void) y, key(k, AF_TRUE);
-}
-
 static void click(int button, int state, int x, int y) {
 	last_button = button;
 	if(state == GLUT_UP) return;
-
-	if(button == 3) ctx.cam.dist -= ctx.settings.zoom_speed;
-	if(button == 4) ctx.cam.dist += ctx.settings.zoom_speed;
 
 	did_click = AF_TRUE;
 	click_pos[0] = x;
@@ -52,18 +29,33 @@ static void click(int button, int state, int x, int y) {
 static void motion(int x, int y) {
 	static int old_x = -1, old_y = -1;
 
-	if(last_button != GLUT_RIGHT_BUTTON) return;
-
 	if(did_click) {
 		did_click = AF_FALSE;
 		old_x = click_pos[0];
 		old_y = click_pos[1];
 	}
 
-	ctx.cam.yaw += ctx.settings.sensitivity * (float) (x - old_x);
-	ctx.cam.pitch += ctx.settings.sensitivity * (float) (y - old_y);
+	{
+		float dx = (float) (x - old_x);
+		float dy = (float) (y - old_y);
+		switch(last_button) {
+			default: return;
+			case GLUT_RIGHT_BUTTON: {
+				ctx.cam.yaw += ctx.settings.sensitivity * dx;
+				ctx.cam.pitch += ctx.settings.sensitivity * dy;
+				break;
+			}
+			case GLUT_LEFT_BUTTON: {
+				ctx.cam.dist += ctx.settings.zoom_speed * dy;
+				aga_boundf(
+					&ctx.cam.dist,
+					ctx.settings.min_zoom, ctx.settings.max_zoom);
+				break;
+			}
+		}
 
-	aga_af_chk("aga_setcam", aga_setcam(&ctx));
+		aga_af_chk("aga_setcam", aga_setcam(&ctx));
+	}
 
 	old_x = x;
 	old_y = y;
@@ -71,12 +63,6 @@ static void motion(int x, int y) {
 
 static void display(void) {
 	const float clear[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-	if(move[FOR]) ctx.cam.pos.decomp.z += 0.1f;
-	if(move[BAC]) ctx.cam.pos.decomp.z -= 0.1f;
-	if(move[LEF]) ctx.cam.pos.decomp.x += 0.1f;
-	if(move[RIT]) ctx.cam.pos.decomp.x -= 0.1f;
-	aga_af_chk("aga_setcam", aga_setcam(&ctx));
 
     aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
 
@@ -201,7 +187,9 @@ int main(int argc, char** argv) {
 
 	/* TODO: Load defaults from file */
 	ctx.settings.sensitivity = 0.25f;
-	ctx.settings.zoom_speed = 0.5f;
+	ctx.settings.zoom_speed = 0.1f;
+	ctx.settings.min_zoom = 2.0f;
+	ctx.settings.max_zoom = 10.0f;
 
 	ctx.settings.width = 640;
 	ctx.settings.height = 480;
@@ -213,14 +201,9 @@ int main(int argc, char** argv) {
 	sphere = gluNewQuadric();
 	gluQuadricTexture(sphere, GL_TRUE);
 
-	glutPositionWindow(0, 0);
-
-	glutIgnoreKeyRepeat(1);
 	glutDisplayFunc(display);
 	glutMotionFunc(motion);
 	glutMouseFunc(click);
-	glutKeyboardUpFunc(key_up);
-	glutKeyboardFunc(key_down);
 
 	aga_af_chk(
 		"af_mkbuf", af_mkbuf(&ctx.af_ctx, &buf, AF_BUF_VERT));
@@ -238,6 +221,8 @@ int main(int argc, char** argv) {
 		af_mkdrawlist(&ctx.af_ctx, &drawlist, drawops, AF_ARRLEN(drawops)));
 
 	puts((const char*) glGetString(GL_VERSION));
+
+	aga_setcam(&ctx);
 
     glutMainLoop();
 

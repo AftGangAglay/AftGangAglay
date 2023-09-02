@@ -1,5 +1,5 @@
-# SPDX-License-Identifier: LGPL-3.0-or-later
-# Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+afeirsa@pm.me>
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
 OUT = src/libafeirsa.a
 

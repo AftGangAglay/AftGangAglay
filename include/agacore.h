@@ -17,10 +17,10 @@
 #include <math.h>
 
 struct aga_vertex {
-    float pos[3];
-    float col[4];
-    float uv[2];
-    float norm[3];
+	float pos[3];
+	float col[4];
+	float uv[2];
+	float norm[3];
 };
 
 struct aga_cam {
@@ -31,10 +31,10 @@ struct aga_cam {
 };
 
 struct aga_ctx {
-    struct af_ctx af_ctx;
+	struct af_ctx af_ctx;
 	int win;
 
-    struct af_vert vert;
+	struct af_vert vert;
 
 	struct aga_cam cam;
 

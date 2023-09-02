@@ -4,6 +4,7 @@
  */
 
 #include <agacore.h>
+#include <agapcx.h>
 
 static GLUquadric* sphere;
 
@@ -64,14 +65,14 @@ static void motion(int x, int y) {
 static void display(void) {
 	const float clear[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-    aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
+	aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
 
-    {
-        glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-            glTranslatef(0.0f, 0.0f, -4.0f);
-        aga_af_chk("af_draw", af_draw(&ctx.af_ctx, &drawlist));
-    }
+	{
+		glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glTranslatef(0.0f, 0.0f, -4.0f);
+		aga_af_chk("af_draw", af_draw(&ctx.af_ctx, &drawlist));
+	}
 
 	{
 		glMatrixMode(GL_MODELVIEW);
@@ -127,8 +128,8 @@ static void display(void) {
 
 	aga_af_chk("af_flush", af_flush(&ctx.af_ctx));
 
-    glutSwapBuffers();
-    glutPostRedisplay();
+	glutSwapBuffers();
+	glutPostRedisplay();
 }
 
 int main(int argc, char** argv) {
@@ -246,7 +247,7 @@ int main(int argc, char** argv) {
 
 	aga_setcam(&ctx);
 
-    glutMainLoop();
+	glutMainLoop();
 
 	aga_af_chk("af_killdrawlist", af_killdrawlist(&ctx.af_ctx, &drawlist));
 	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex));

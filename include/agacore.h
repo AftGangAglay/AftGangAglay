@@ -11,16 +11,6 @@
 #include <afeirsa/afeirsa.h>
 #include <afeirsa/afgl.h>
 
-#ifdef AF_NSGL
-# define GL_SILENCE_DEPRECATION 1
-# include <GLUT/glut.h>
-# undef GL_SILENCE_DEPRECATION
-#endif
-
-#ifdef AF_GLXABI
-# include <GL/glut.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -42,6 +32,7 @@ struct aga_cam {
 
 struct aga_ctx {
     struct af_ctx af_ctx;
+	int win;
 
     struct af_vert vert;
 
@@ -58,7 +49,7 @@ struct aga_ctx {
 	} settings;
 };
 
-enum af_err aga_init(struct aga_ctx* ctx);
+enum af_err aga_init(struct aga_ctx* ctx, int* argcp, char** argvp);
 enum af_err aga_kill(struct aga_ctx* ctx);
 
 enum af_err aga_setcam(struct aga_ctx* ctx);

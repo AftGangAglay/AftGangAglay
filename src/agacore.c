@@ -12,15 +12,15 @@ const static struct af_vert_element vert_elements[] = {
         { AF_MEMBSIZE(struct aga_vertex, norm), AF_VERT_NORM },
 };
 
-enum af_err aga_init(struct aga_ctx* ctx) {
-	int _ = 0;
-    AF_PARAM_CHK(ctx);
+enum af_err aga_init(struct aga_ctx* ctx, int* argcp, char** argvp) {
+	AF_PARAM_CHK(ctx);
+	AF_PARAM_CHK(argcp);
+	AF_PARAM_CHK(argvp);
 
-	/* NOTE: This might be a bad idea for dist but works for now. */
-	glutInit(&_, 0);
 	glutInitDisplayMode(GLUT_DOUBLE);
 	glutInitWindowSize((int) ctx->settings.width, (int) ctx->settings.height);
-	glutCreateWindow("Aft Gang Aglay");
+	glutInit(argcp, argvp);
+	ctx->win = glutCreateWindow("Aft Gang Aglay");
 
 	AF_CHK(af_mkctx(&ctx->af_ctx, AF_FIDELITY_FAST));
     AF_CHK(af_mkvert(
@@ -34,6 +34,8 @@ enum af_err aga_init(struct aga_ctx* ctx) {
 
 enum af_err aga_kill(struct aga_ctx* ctx) {
 	AF_CTX_CHK(ctx);
+
+	glutDestroyWindow(ctx->win);
 
 	AF_CHK(af_killvert(&ctx->af_ctx, &ctx->vert));
 	AF_CHK(af_killctx(&ctx->af_ctx));

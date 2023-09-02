@@ -123,7 +123,7 @@ static void display(void) {
     glutPostRedisplay();
 }
 
-int main(void) {
+int main(int argc, char** argv) {
 	struct aga_vertex vertices[] = {
 		{
 			{ -1.0f,  1.0f, 0.0f },
@@ -175,7 +175,7 @@ int main(void) {
 	ctx.settings.height = 480;
 	ctx.settings.fov = 60.0f;
 
-	aga_af_chk("aga_init", aga_init(&ctx));
+	aga_af_chk("aga_init", aga_init(&ctx, &argc, argv));
 	ctx.cam.dist = 3.0f;
 
 	sphere = gluNewQuadric();

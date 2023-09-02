@@ -151,8 +151,8 @@ int main(int argc, char** argv) {
 		}
 	};
 
-    af_size_t i;
-	af_uchar_t texdata[64 * 64 * 4];
+	enum _ { texdim = 128 };
+	af_uchar_t texdata[texdim * texdim * 4];
 
 	struct af_drawop drawops[2];
 
@@ -164,8 +164,40 @@ int main(int argc, char** argv) {
 	drawops[1].data.drawbuf.buf = &buf;
 	drawops[1].data.drawbuf.primitive = AF_TRIANGLE_FAN;
 
-    srand(time(0));
-    for(i = 0; i < sizeof(texdata); ++i) texdata[i] = rand();
+	{
+		af_size_t i;
+
+		af_uchar_t* file;
+		long len;
+		size_t r;
+
+		{
+			FILE* f = fopen("res/arse.pcx", "r");
+			int res;
+
+			if(!f) aga_errno_chk("fopen");
+
+			res = fseek(f, 0, SEEK_END);
+			if(res == -1) aga_errno_chk("fseek");
+
+			len = ftell(f);
+			if(len == -1) aga_errno_chk("ftell");
+
+			rewind(f);
+
+			if(!(file = malloc((size_t) len))) aga_errno_chk("malloc");
+
+			r = fread(file, sizeof(af_uchar_t), (size_t) len, f);
+			if(r < (size_t) len && ferror(f)) aga_errno_chk("fread");
+
+			res = fclose(f);
+			if(res == -1) aga_errno_chk("fclose");
+		}
+
+		srand(time(0));
+		for(i = 0; i < sizeof(texdata); ++i) texdata[i] = rand();
+	}
+
 
 	/* TODO: Load defaults from file */
 	ctx.settings.sensitivity = 0.25f;
@@ -197,7 +229,7 @@ int main(int argc, char** argv) {
 
 	aga_af_chk(
 		"af_mkbuf", af_mkbuf(&ctx.af_ctx, &tex, AF_BUF_TEX));
-	tex.tex_width = 64;
+	tex.tex_width = texdim;
 	aga_af_chk(
 		"af_upload", af_upload(&ctx.af_ctx, &tex, texdata, sizeof(texdata)));
 

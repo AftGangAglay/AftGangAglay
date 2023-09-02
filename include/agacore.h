@@ -55,5 +55,6 @@ enum af_err aga_kill(struct aga_ctx* ctx);
 enum af_err aga_setcam(struct aga_ctx* ctx);
 
 void aga_af_chk(const char* proc, enum af_err e);
+void aga_errno_chk(const char* proc);
 
 #endif

@@ -83,3 +83,8 @@ void aga_af_chk(const char* proc, enum af_err e) {
     fprintf(stderr, "%s: %s\n", proc, n);
     abort();
 }
+
+void aga_errno_chk(const char* proc) {
+	perror(proc);
+	abort();
+}

@@ -4,7 +4,7 @@
  */
 
 #include <agacore.h>
-#include <agapcx.h>
+#include <agaimg.h>
 
 static GLUquadric* sphere;
 
@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
 	};
 
 	enum _ { texdim = 128 };
-	af_uchar_t texdata[texdim * texdim * 4];
+	af_uint32_t texdata[texdim * texdim];
 
 	struct af_drawop drawops[2];
 
@@ -177,42 +177,9 @@ int main(int argc, char** argv) {
 		struct aga_img img;
 		af_size_t i;
 
-		af_uchar_t* file;
-		long len;
-		size_t r;
+		aga_af_chk("aga_tiff2img", aga_tiff2img(&img, "res/arse.tiff"));
 
-		{
-			static const char path[] = "res/arse.pcx";
-			FILE* f = fopen(path, "r");
-			int res;
-
-			if(!f) aga_errno_chk("fopen");
-
-			res = fseek(f, 0, SEEK_END);
-			if(res == -1) aga_errno_chk("fseek");
-
-			len = ftell(f);
-			if(len == -1) aga_errno_chk("ftell");
-
-			rewind(f);
-
-			if(!len) aga_fatal("`%s' was 0 bytes", path);
-			if(!(file = malloc((size_t) len))) aga_errno_chk("malloc");
-
-			r = fread(file, sizeof(af_uchar_t), (size_t) len, f);
-			if(r < (size_t) len && ferror(f)) aga_errno_chk("fread");
-
-			res = fclose(f);
-			if(res == -1) aga_errno_chk("fclose");
-		}
-
-		img.type = AGA_RGBA;
-		aga_af_chk("aga_pcx2img", aga_pcx2img(&img, file, r));
-
-		printf("%zu %zu\n", img.width, img.height);
-
-		srand(time(0));
-		for(i = 0; i < sizeof(texdata); ++i) texdata[i] = img.data[i];
+		for(i = 0; i < AF_ARRLEN(texdata); ++i) texdata[i] = img.data[i];
 	}
 
 

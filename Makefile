@@ -13,7 +13,7 @@ CFLAGS += -Iinclude
 CFLAGS += -std=c89 -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
 
 CFLAGS += $(shell pkg-config --cflags afeirsa)
-LDLIBS += $(shell pkg-config --libs afeirsa) -lm
+LDLIBS += $(shell pkg-config --libs afeirsa) -ltiff -lm
 
 ifdef DEBUG
 	CFLAGS += -g -O0 -D_DEBUG

@@ -22,16 +22,16 @@ struct aga_ega_palette {
 } AGA_PACKED;
 
 enum aga_palette_mode {
-	AGA_PAL_MONO,
+	AGA_PAL_GRAY,
 	AGA_PAL_COL
 } AGA_PACKED;
 
-struct aga_pcx_header {
+struct aga_pcx_hdr {
 	af_uint8_t magic;
 	af_uint8_t ver;
 
 	af_bool_t rle;
-	af_uint8_t color_planes;
+	af_uint8_t bits_per_plane;
 
 	af_uint16_t min_x;
 	af_uint16_t min_y;
@@ -45,7 +45,7 @@ struct aga_pcx_header {
 
 	af_uchar_t reserved0;
 
-	af_uchar_t pixel_planes;
+	af_uchar_t color_planes;
 
 	af_uint16_t bytes_per_line;
 	enum aga_palette_mode palette_mode;
@@ -55,5 +55,19 @@ struct aga_pcx_header {
 
 	af_uchar_t reserved1[54];
 } AGA_PACKED;
+
+enum aga_img_type {
+	AGA_RGB = 3,
+	AGA_RGBA = 4
+};
+
+struct aga_img {
+	enum aga_img_type type;
+	af_uchar_t* data;
+	af_size_t width, height;
+};
+
+enum af_err aga_pcx2img(
+		struct aga_img* img, const af_uchar_t* pcx, af_size_t size);
 
 #endif

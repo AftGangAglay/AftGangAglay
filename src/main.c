@@ -174,6 +174,7 @@ int main(int argc, char** argv) {
 	drawops[1].data.drawbuf.primitive = AF_TRIANGLE_FAN;
 
 	{
+		struct aga_img img;
 		af_size_t i;
 
 		af_uchar_t* file;
@@ -181,7 +182,8 @@ int main(int argc, char** argv) {
 		size_t r;
 
 		{
-			FILE* f = fopen("res/arse.pcx", "r");
+			static const char path[] = "res/arse.pcx";
+			FILE* f = fopen(path, "r");
 			int res;
 
 			if(!f) aga_errno_chk("fopen");
@@ -194,6 +196,7 @@ int main(int argc, char** argv) {
 
 			rewind(f);
 
+			if(!len) aga_fatal("`%s' was 0 bytes", path);
 			if(!(file = malloc((size_t) len))) aga_errno_chk("malloc");
 
 			r = fread(file, sizeof(af_uchar_t), (size_t) len, f);
@@ -203,8 +206,13 @@ int main(int argc, char** argv) {
 			if(res == -1) aga_errno_chk("fclose");
 		}
 
+		img.type = AGA_RGBA;
+		aga_af_chk("aga_pcx2img", aga_pcx2img(&img, file, r));
+
+		printf("%zu %zu\n", img.width, img.height);
+
 		srand(time(0));
-		for(i = 0; i < sizeof(texdata); ++i) texdata[i] = rand();
+		for(i = 0; i < sizeof(texdata); ++i) texdata[i] = img.data[i];
 	}
 
 

@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <time.h>
 #include <math.h>
 
@@ -57,6 +58,7 @@ enum af_err aga_setcam(struct aga_ctx* ctx);
 
 void aga_af_chk(const char* proc, enum af_err e);
 void aga_errno_chk(const char* proc);
+void aga_fatal(const char* fmt, ...);
 
 void aga_boundf(float* f, float min, float max);
 

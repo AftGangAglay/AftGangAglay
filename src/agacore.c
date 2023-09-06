@@ -90,6 +90,15 @@ void aga_errno_chk(const char* proc) {
 	abort();
 }
 
+void aga_fatal(const char* fmt, ...) {
+	va_list l;
+	va_start(l, fmt);
+	vprintf(fmt, l);
+	va_end(l);
+	putchar('\n');
+	abort();
+}
+
 void aga_boundf(float* f, float min, float max) {
 	if(*f < min) *f = min;
 	if(*f > max) *f = max;

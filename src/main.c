@@ -6,12 +6,14 @@
 #include <agacore.h>
 #include <agaimg.h>
 
+#include <SGML.h>
+
 static GLUquadric* sphere;
 
 struct aga_ctx ctx;
 
-struct af_drawlist drawlist;
 struct af_buf buf;
+
 struct af_buf tex1;
 struct af_buf tex2;
 
@@ -68,11 +70,15 @@ static void display(void) {
 
 	aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
 
+	aga_af_chk("af_settex", af_settex(&ctx.af_ctx, &tex1));
 	{
 		glMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
 			glTranslatef(0.0f, 0.0f, -4.0f);
-		aga_af_chk("af_draw", af_draw(&ctx.af_ctx, &drawlist));
+
+		aga_af_chk(
+			"af_draw",
+			af_drawbuf(&ctx.af_ctx, &buf, &ctx.vert, AF_TRIANGLE_FAN));
 	}
 
 	{
@@ -86,13 +92,17 @@ static void display(void) {
 		glutSolidTeapot(1.0f);
 	}
 
+	aga_af_chk("af_settex", af_settex(&ctx.af_ctx, &tex2));
 	{
 		glMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
 			glScalef(10.0f, 1.0f, 10.0f);
 			glTranslatef(0.0f, -4.0f, 0.0f);
 			glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-		aga_af_chk("af_draw", af_draw(&ctx.af_ctx, &drawlist));
+
+		aga_af_chk(
+			"af_draw",
+			af_drawbuf(&ctx.af_ctx, &buf, &ctx.vert, AF_TRIANGLE_FAN));
 	}
 
 	{
@@ -161,18 +171,7 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	struct af_drawop drawops[2];
 	struct aga_img img;
-
-	drawops[0].type = AF_SETTEX;
-	drawops[0].data.settex = &tex1;
-
-	drawops[1].type = AF_DRAWBUF;
-	drawops[1].data.drawbuf.vert = &ctx.vert;
-	drawops[1].data.drawbuf.buf = &buf;
-	drawops[1].data.drawbuf.primitive = AF_TRIANGLE_FAN;
-
-	aga_af_chk("aga_tiff2img", aga_tiff2img(&img, "res/arse.tiff"));
 
 	/* TODO: Load defaults from file */
 	ctx.settings.sensitivity = 0.25f;
@@ -194,18 +193,15 @@ int main(int argc, char** argv) {
 	glutMotionFunc(motion);
 	glutMouseFunc(click);
 
-	aga_af_chk(
-		"af_mkbuf", af_mkbuf(&ctx.af_ctx, &buf, AF_BUF_VERT));
+	aga_af_chk("af_mkbuf", af_mkbuf(&ctx.af_ctx, &buf, AF_BUF_VERT));
 	aga_af_chk(
 		"af_upload", af_upload(&ctx.af_ctx, &buf, vertices, sizeof(vertices)));
 
+	aga_af_chk("aga_tiff2img", aga_tiff2img(&img, "res/arse.tiff"));
+	aga_af_chk("aga_teximg", aga_teximg(&ctx.af_ctx, &img, &tex1));
 
-	aga_af_chk(
-		"aga_teximg", aga_teximg(&ctx.af_ctx, &img, &tex1));
-
-	aga_af_chk(
-		"af_mkdrawlist",
-		af_mkdrawlist(&ctx.af_ctx, &drawlist, drawops, AF_ARRLEN(drawops)));
+	aga_af_chk("aga_tiff2img", aga_tiff2img(&img, "res/test.tiff"));
+	aga_af_chk("aga_teximg", aga_teximg(&ctx.af_ctx, &img, &tex2));
 
 	puts((const char*) glGetString(GL_VERSION));
 
@@ -213,8 +209,8 @@ int main(int argc, char** argv) {
 
 	glutMainLoop();
 
-	aga_af_chk("af_killdrawlist", af_killdrawlist(&ctx.af_ctx, &drawlist));
 	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex1));
+	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex2));
 	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &buf));
 
 	aga_af_chk("aga_kill", aga_kill(&ctx));

@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
+include vendor/www.mk
+
 OUT = src/libafeirsa.a
 
 SOURCES = $(wildcard src/*.c)
@@ -15,6 +17,9 @@ CFLAGS += -std=c89 -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
 CFLAGS += $(shell pkg-config --cflags afeirsa)
 LDLIBS += $(shell pkg-config --libs afeirsa) -ltiff -lm
 
+CFLAGS += $(WWW_IFLAGS)
+LDLIBS += $(LIBWWW)
+
 ifdef DEBUG
 	CFLAGS += -g -O0 -D_DEBUG
 else
@@ -25,7 +30,7 @@ endif
 .PHONY: all
 all: $(OUT)
 
-$(OUT): $(OBJECTS)
+$(OUT): $(OBJECTS) $(LIBWWW)
 
 $(OBJECTS): $(HEADERS)
 

@@ -1,0 +1,11 @@
+            Vendored (3rd party) code.
+Licence information can be found in each subfolder of this directory.
+
+Era-accurate LibWWW version pulled from here:
+https://www.w3.org/History/1992/WWWLibrary_2.11.tar.Z
+With a large part of the codebase stripped out such as build scripts and
+irrelevant platform code.
+
+A full era-accurate LibWWW build would require FreeWAIS but the relevant link:
+ftp://ftp.cnidr.org/pub/NIDR.tools/freewais/
+Seems to have been purged from the internet.

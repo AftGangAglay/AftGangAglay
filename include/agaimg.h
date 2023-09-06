@@ -6,8 +6,7 @@
 #ifndef AGA_PCX_H
 #define AGA_PCX_H
 
-#include <afeirsa/aftypes.h>
-#include <afeirsa/afdefs.h>
+#include <afeirsa/afeirsa.h>
 
 #define AGA_IMG_COMP 4
 
@@ -18,5 +17,7 @@ struct aga_img {
 };
 
 enum af_err aga_tiff2img(struct aga_img* img, const char* path);
+enum af_err aga_teximg(
+		struct af_ctx* ctx, struct aga_img* img, struct af_buf* tex);
 
 #endif

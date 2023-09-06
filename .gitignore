@@ -5,7 +5,6 @@
 
 src/*
 !src/*.c
-!src/*.mk
 
 .idea
 .vs

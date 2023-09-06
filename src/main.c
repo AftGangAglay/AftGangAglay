@@ -12,7 +12,8 @@ struct aga_ctx ctx;
 
 struct af_drawlist drawlist;
 struct af_buf buf;
-struct af_buf tex;
+struct af_buf tex1;
+struct af_buf tex2;
 
 static af_bool_t did_click = AF_FALSE;
 static int last_button = -1;
@@ -160,28 +161,18 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	enum _ { texdim = 128 };
-	af_uint32_t texdata[texdim * texdim];
-
 	struct af_drawop drawops[2];
+	struct aga_img img;
 
 	drawops[0].type = AF_SETTEX;
-	drawops[0].data.settex = &tex;
+	drawops[0].data.settex = &tex1;
 
 	drawops[1].type = AF_DRAWBUF;
 	drawops[1].data.drawbuf.vert = &ctx.vert;
 	drawops[1].data.drawbuf.buf = &buf;
 	drawops[1].data.drawbuf.primitive = AF_TRIANGLE_FAN;
 
-	{
-		struct aga_img img;
-		af_size_t i;
-
-		aga_af_chk("aga_tiff2img", aga_tiff2img(&img, "res/arse.tiff"));
-
-		for(i = 0; i < AF_ARRLEN(texdata); ++i) texdata[i] = img.data[i];
-	}
-
+	aga_af_chk("aga_tiff2img", aga_tiff2img(&img, "res/arse.tiff"));
 
 	/* TODO: Load defaults from file */
 	ctx.settings.sensitivity = 0.25f;
@@ -208,11 +199,9 @@ int main(int argc, char** argv) {
 	aga_af_chk(
 		"af_upload", af_upload(&ctx.af_ctx, &buf, vertices, sizeof(vertices)));
 
+
 	aga_af_chk(
-		"af_mkbuf", af_mkbuf(&ctx.af_ctx, &tex, AF_BUF_TEX));
-	tex.tex_width = texdim;
-	aga_af_chk(
-		"af_upload", af_upload(&ctx.af_ctx, &tex, texdata, sizeof(texdata)));
+		"aga_teximg", aga_teximg(&ctx.af_ctx, &img, &tex1));
 
 	aga_af_chk(
 		"af_mkdrawlist",
@@ -225,7 +214,7 @@ int main(int argc, char** argv) {
 	glutMainLoop();
 
 	aga_af_chk("af_killdrawlist", af_killdrawlist(&ctx.af_ctx, &drawlist));
-	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex));
+	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex1));
 	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &buf));
 
 	aga_af_chk("aga_kill", aga_kill(&ctx));

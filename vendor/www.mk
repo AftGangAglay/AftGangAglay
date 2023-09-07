@@ -7,7 +7,7 @@
 WWW_ROOT = vendor/WWW
 
 LIBWWW = vendor/libwww.a
-WWW_IFLAGS = -I$(WWW_ROOT)/Library/Implementation
+WWW_IFLAGS = -isystem $(WWW_ROOT)/Library/Implementation
 
 WWW_SOURCEROOT = $(WWW_ROOT)/Library/Implementation
 WWW_SOURCES = $(wildcard $(WWW_SOURCEROOT)/*.c)

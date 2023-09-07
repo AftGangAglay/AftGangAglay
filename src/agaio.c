@@ -57,7 +57,6 @@ enum af_err aga_fmap(const char* path, af_uchar_t** ptr, af_size_t* size) {
 enum af_err aga_funmap(af_uchar_t* ptr, af_size_t size) {
 	AF_PARAM_CHK(ptr);
 
-	printf("%p %zu\n", (void*) ptr, size);
 	if(munmap(ptr, size) == -1) aga_errno_chk("munmap");
 
 	return AF_ERR_NONE;

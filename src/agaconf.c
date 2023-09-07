@@ -12,92 +12,178 @@
 /* Very nasty dependency to leak - keep it contained! */
 #include <SGML.h>
 
+/*
+ * NOTE: These need to be in `strcmp' order (effectively alphabetical for us)
+ */
+enum aga_sgml_node {
+	AGA_NODE_ITEM,
+	AGA_NODE_ROOT,
+
+	AGA_ELEMENT_COUNT
+};
+
+enum aga_sgml_item_attribs {
+	AGA_ITEM_NAME,
+	AGA_ITEM_TYPE,
+
+	AGA_ITEM_ATTRIB_COUNT
+};
+
+#define AGA_CONF_MAX_DEPTH (1024)
+
+struct aga_sgml_structured {
+	const HTStructuredClass* class;
+	const char* file;
+
+	struct aga_conf_node* stack[1024];
+	af_size_t depth;
+};
+
 /* For whatever reason these are missing from the header */
 void SGML_write(HTStream* context, const char* str, int l);
 void SGML_free(HTStream* context);
 
-void test_free(HTStructured* me) {
-	(void) me;
+enum af_err aga_sgml_push(
+		struct aga_sgml_structured* s, struct aga_conf_node* node) {
+
+	AF_PARAM_CHK(s);
+	AF_PARAM_CHK(node);
+
+	AF_VERIFY(s->depth <= AGA_CONF_MAX_DEPTH, AF_ERR_MEM); /* AF_ERR_STACK */
+
+	s->stack[s->depth++] = node;
+
+	return AF_ERR_NONE;
 }
 
-void test_abort(HTStructured* me, HTError e) {
-	(void) me, (void) e;
-	aga_fatal("SGML parsing failed");
+void aga_sgml_nil(void) {}
+void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
+
+	struct aga_conf_node* node = me->stack[me->depth - 1];
+
+	node->data.string = realloc(node->data.string, ++node->scratch + 1);
+	if(!node->data.string) aga_errno_chk("realloc");
+
+	node->data.string[node->scratch - 1] = c;
+	node->data.string[node->scratch] = 0;
 }
 
-void test_put_character(HTStructured* me, char ch) {
-	(void) me;
-	printf("PUTC: %c\n", ch);
-}
+void aga_sgml_start_element(
+		struct aga_sgml_structured* me, int element_number,
+		const BOOL* attribute_present, const char** attribute_value) {
 
-void test_put_string(HTStructured* me, const char* str) {
-	(void) me;
-	printf("PUTS: %s\n", str);
-}
+	struct aga_conf_node* parent = me->stack[me->depth - 1];
+	struct aga_conf_node* node;
 
-void test_write(HTStructured* me, const char* str, int len) {
-	(void) me, (void) len;
-	printf("WRITE: %s\n", str);
-}
+	parent->children = realloc(
+		parent->children, ++parent->len * sizeof(struct aga_conf_node));
 
-void test_start_element(
-		HTStructured* me, int element_number, const BOOL* attribute_present,
-		const char** attribute_value) {
+	if(!parent->children) aga_errno_chk("malloc");
 
-	(void) me;
-	printf(
-		"START ELEMENT: %i %s\n",
-		element_number, attribute_present ? "TRUE" : "FALSE");
+	node = &parent->children[parent->len - 1];
+	af_memset(node, 0, sizeof(struct aga_conf_node));
 
-	if(attribute_present) {
-		while(*attribute_value) {
-			printf("\tATTRIB: %s\n", *attribute_value);
-			attribute_value++;
+	aga_af_chk("aga_sgml_push", aga_sgml_push(me, node));
+
+	switch(element_number) {
+		default: aga_fatal("SGML_new: unknown element %i\n", element_number);
+		case AGA_NODE_ITEM: {
+			if(!attribute_present[AGA_ITEM_NAME]) {
+				fprintf(
+					stderr,
+					"warn: <item> element without name attrib in `%s'\n",
+					me->file);
+				node->name = "ERR";
+			}
+			else {
+				const char* value = attribute_value[AGA_ITEM_NAME];
+				af_size_t len = af_strlen(value);
+				if(!(node->name = malloc(len + 1))) aga_errno_chk("malloc");
+				af_memcpy(node->name, value, len + 1);
+			}
+
+			if(!attribute_present[AGA_ITEM_TYPE]) node->type = AGA_NONE;
+			else {
+				const char* typename = attribute_value[AGA_ITEM_TYPE];
+				if(af_streql(typename, "Int")) node->type = AGA_INTEGER;
+				else if(af_streql(typename, "String")) node->type = AGA_STRING;
+				else {
+					static const char fmt[] =
+						"warn: <item> element has unknown type `%s' in `%s'\n";
+					fprintf(stderr, fmt, typename, me->file);
+					node->type = AGA_NONE;
+				}
+			}
 		}
+		case AGA_NODE_ROOT: break; /* No attribs */
 	}
 }
 
-void test_end_element(HTStructured* me, int element_number) {
-	(void) me;
-	printf("END ELEMENT: %i\n", element_number);
+void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
+	struct aga_conf_node* node = me->stack[me->depth - 1];
+
+	(void) element_number;
+
+	/* TODO: lstrip+rstrip string data to get rid of all the guff */
+
+	if(node->type == AGA_INTEGER) {
+		char* string = node->data.string;
+		long res = strtol(node->data.string, 0, 0);
+		free(string);
+		node->data.integer = res;
+	}
+
+	me->depth--;
 }
 
-void test_put_entity(HTStructured* me, int entity_number) {
-	(void) me;
-	printf("PUT ENTITY: %i\n", entity_number);
-}
-
-enum af_err aga_test_sgml(const char* path) {
+enum af_err aga_mkconf(const char* path, struct aga_conf_node* root) {
 	HTStream* s;
 	HTStructuredClass class = {
-		"aga-test-parser",
-		test_free,
-		test_abort,
-		test_put_character,
-		test_put_string,
-		test_write,
-		test_start_element,
-		test_end_element,
-		test_put_entity
-	};
-	HTStructuredClass* classp = &class;
-	SGML_dtd dtd;
-	HTTag tags[] = {
-		{ "conf", 0, 0, SGML_MIXED },
-		{ "item", 0, 0, SGML_CDATA }
-	};
-	attr item_attributes[] = {
-		{ "name" },
-		{ "type" }
-	};
+		"",
 
-	tags[1].attributes = item_attributes;
-	tags[1].number_of_attributes = AF_ARRLEN(item_attributes);
+		(void(*)(HTStructured*)) aga_sgml_nil,
+		(void(*)(HTStructured*, HTError)) aga_sgml_nil,
+
+		(void(*)(HTStructured*, char)) aga_sgml_putc,
+
+		(void(*)(HTStructured*, const char*)) aga_sgml_nil,
+		(void(*)(HTStructured*, const char*, int)) aga_sgml_nil,
+
+		(void(*)(HTStructured*, int, const BOOLEAN*, const char**))
+			aga_sgml_start_element,
+
+		(void(*)(HTStructured*, int)) aga_sgml_end_element,
+
+		(void(*)(HTStructured*, int)) aga_sgml_nil
+	};
+	SGML_dtd dtd;
+	HTTag tags[AGA_ELEMENT_COUNT] = { 0 };
+	attr item_attributes[AGA_ITEM_ATTRIB_COUNT];
+	struct aga_sgml_structured structured = {
+		0, 0, { 0 }, 1
+	};
+	structured.file = path;
+	AF_CHK(aga_sgml_push(&structured, root));
+
+	structured.class = &class;
+
+	WWW_TraceFlag = 1;
+
+	tags[AGA_NODE_ROOT].name = "root";
+	tags[AGA_NODE_ROOT].contents = SGML_ELEMENT;
+
+	tags[AGA_NODE_ITEM].name = "item";
+	tags[AGA_NODE_ITEM].contents = SGML_CDATA;
+	tags[AGA_NODE_ITEM].attributes = item_attributes;
+	tags[AGA_NODE_ITEM].number_of_attributes = AF_ARRLEN(item_attributes);
+
+	item_attributes[AGA_ITEM_NAME].name = "name";
+	item_attributes[AGA_ITEM_TYPE].name = "type";
 
 	dtd.tags = tags;
 	dtd.number_of_tags = AF_ARRLEN(tags);
 
-	s = SGML_new(&dtd, (HTStructured*) &classp);
+	s = SGML_new(&dtd, (HTStructured*) &structured);
 
 	{
 		af_uchar_t* buf;
@@ -110,6 +196,21 @@ enum af_err aga_test_sgml(const char* path) {
 	}
 
 	SGML_free(s);
+
+	return AF_ERR_NONE;
+}
+
+void aga_free_node(struct aga_conf_node* node) {
+	af_size_t i;
+	for(i = 0; i < node->len; ++i) aga_free_node(&node->children[i]);
+	if(node->type == AGA_STRING) free(node->data.string);
+	free(node->children);
+}
+
+enum af_err aga_killconf(struct aga_conf_node* root) {
+	AF_PARAM_CHK(root);
+
+	aga_free_node(root);
 
 	return AF_ERR_NONE;
 }

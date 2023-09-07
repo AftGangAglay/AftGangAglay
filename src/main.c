@@ -206,7 +206,11 @@ int main(int argc, char** argv) {
 
 	aga_setcam(&ctx);
 
-	aga_test_sgml("res/test.sgml");
+	{
+		struct aga_conf_node root = { 0 };
+		aga_af_chk("aga_mkconf", aga_mkconf("res/test.sgml", &root));
+		aga_af_chk("aga_killconf", aga_killconf(&root));
+	}
 
 	glutMainLoop();
 

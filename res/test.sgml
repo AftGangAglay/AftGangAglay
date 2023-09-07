@@ -1,12 +1,14 @@
-<conf>
-    <z></z>
-    <item name="A" type="Text">
+<root>
+    <item name="A" type="String">
         Hello!
     </item>
-    <item name="B" type="Text">
+    <item name="B" type="String">
         Goodbye!
     </item>
     <item name="C" type="Int">
         4
+        <item>
+            hm
+        </item>
     </item>
-</conf>
+</root>

@@ -16,6 +16,9 @@ WWW_OBJECTS = $(WWW_SOURCES:.c=.o)
 
 WWW_CFLAGS = -std=c89 -ansi -D_SVID_SOURCE -w
 
+# `clang' treats this as an error and doesn't disable it with `-w'.
+WWW_CFLAGS += -Wno-incompatible-function-pointer-types
+
 all: $(LIBWWW)
 
 .NOTPARALLEL: $(LIBWWW)

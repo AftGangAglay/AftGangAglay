@@ -3,3 +3,4 @@
     - Perl
 - Track down FreeWAIS
 - Use libwww for networking gamecode
+- Possibly create standalone repo for forked WWW to keep our patches clean

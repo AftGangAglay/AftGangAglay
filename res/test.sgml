@@ -1,0 +1,12 @@
+<conf>
+    <z></z>
+    <item name="A" type="Text">
+        Hello!
+    </item>
+    <item name="B" type="Text">
+        Goodbye!
+    </item>
+    <item name="C" type="Int">
+        4
+    </item>
+</conf>

@@ -56,6 +56,14 @@ enum af_err aga_kill(struct aga_ctx* ctx);
 
 enum af_err aga_setcam(struct aga_ctx* ctx);
 
+/*
+ * NOTE: The use of `chk' is somewhat inconsistent in that the base `AF_'
+ * 		 Macros bubble up soft errors whereas the `aga_*_chk' family of
+ * 		 Functions are fatal. Just something to keep in mind when error
+ * 		 Handling. We may want to add a soft-error form of the errno handling
+ * 		 At some point, returning `AF_ERR_ERRNO' and having the user do a
+ * 		 `perror' or something.
+ */
 void aga_af_chk(const char* proc, enum af_err e);
 void aga_errno_chk(const char* proc);
 void aga_fatal(const char* fmt, ...);

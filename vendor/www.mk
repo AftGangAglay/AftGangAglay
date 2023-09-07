@@ -19,6 +19,12 @@ WWW_CFLAGS = -std=c89 -ansi -D_SVID_SOURCE -w
 # `clang' treats this as an error and doesn't disable it with `-w'.
 WWW_CFLAGS += -Wno-incompatible-function-pointer-types
 
+ifdef DEBUG
+	WWW_CFLAGS += -g -O0 -D_DEBUG -DDEBUG
+else
+	WWW_CFLAGS += -DNDEBUG -Ofast
+endif
+
 all: $(LIBWWW)
 
 .NOTPARALLEL: $(LIBWWW)

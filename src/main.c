@@ -5,8 +5,7 @@
 
 #include <agacore.h>
 #include <agaimg.h>
-
-#include <SGML.h>
+#include <agaconf.h>
 
 static GLUquadric* sphere;
 
@@ -206,6 +205,8 @@ int main(int argc, char** argv) {
 	puts((const char*) glGetString(GL_VERSION));
 
 	aga_setcam(&ctx);
+
+	aga_test_sgml("res/test.sgml");
 
 	glutMainLoop();
 

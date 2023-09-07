@@ -20,6 +20,10 @@ LDLIBS += $(shell pkg-config --libs afeirsa) -ltiff -lm
 CFLAGS += $(WWW_IFLAGS)
 LDLIBS += $(LIBWWW)
 
+ifndef WINDOWS
+	CFLAGS += -D_POSIX_SOURCE
+endif
+
 ifdef DEBUG
 	CFLAGS += -g -O0 -D_DEBUG
 else

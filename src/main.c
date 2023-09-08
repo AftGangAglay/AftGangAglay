@@ -184,6 +184,7 @@ int main(int argc, char** argv) {
 	ctx.settings.height = 480;
 	ctx.settings.fov = 60.0f;
 
+	ctx.settings.audio_enabled = AF_FALSE;
 	ctx.settings.audio_dev = "/dev/dsp1";
 
 	aga_af_chk("aga_init", aga_init(&ctx, &argc, argv));
@@ -216,7 +217,7 @@ int main(int argc, char** argv) {
 		aga_af_chk("aga_killconf", aga_killconf(&root));
 	}
 
-	{
+	if(ctx.settings.audio_enabled) {
 		af_uchar_t* pcm;
 		af_size_t len;
 		af_size_t pos = 0;

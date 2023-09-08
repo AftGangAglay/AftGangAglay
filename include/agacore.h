@@ -53,6 +53,7 @@ struct aga_ctx {
 		unsigned width, height;
 
 		/* Audio */
+		af_bool_t audio_enabled;
 		const char* audio_dev;
 	} settings;
 };

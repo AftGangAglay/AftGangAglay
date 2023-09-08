@@ -1,9 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
-# This is a reduced version of libwww as we aren't really running on a
-# period-accurate UNIX workstation (probably).
-
 WWW_ROOT = vendor/www
 
 LIBWWW = vendor/libwww.a
@@ -27,9 +24,7 @@ endif
 
 all: $(LIBWWW)
 
-.NOTPARALLEL: $(LIBWWW)
-$(LIBWWW): $(LIBWWW)($(WWW_OBJECTS))
-	ranlib $@
+$(LIBWWW): $(WWW_OBJECTS)
 
 $(WWW_OBJECTS): CFLAGS = $(WWW_CFLAGS)
 $(WWW_OBJECTS): $(WWW_SOURCES)

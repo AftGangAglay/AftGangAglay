@@ -6,7 +6,9 @@ https://www.w3.org/History/1992/WWWLibrary_2.11.tar.Z
 With a large part of the codebase stripped out such as build scripts and
 irrelevant platform code. Modifications to source are marked with a
 "NOTE: AGA Patch" comment.
-
 A full era-accurate LibWWW build would require FreeWAIS but the relevant link:
 ftp://ftp.cnidr.org/pub/NIDR.tools/freewais/
 Seems to have been purged from the internet.
+
+Python 0.9.1 from 1991 pulled from here:
+https://www.python.org/ftp/python/src/Python-0.9.1.tar.gz

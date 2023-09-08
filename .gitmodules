@@ -1,0 +1,6 @@
+[submodule "vendor/www"]
+	path = vendor/www
+	url = https://github.com/Th3T3chn0G1t/libwww93
+[submodule "vendor/python"]
+	path = vendor/python
+	url = https://github.com/Th3T3chn0G1t/python0.9.1

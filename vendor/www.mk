@@ -4,7 +4,7 @@
 # This is a reduced version of libwww as we aren't really running on a
 # period-accurate UNIX workstation (probably).
 
-WWW_ROOT = vendor/WWW
+WWW_ROOT = vendor/www
 
 LIBWWW = vendor/libwww.a
 WWW_IFLAGS = -isystem $(WWW_ROOT)/Library/Implementation

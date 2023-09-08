@@ -8,6 +8,7 @@
 #include <agaconf.h>
 #include <agasnd.h>
 #include <agaio.h>
+#include <agascript.h>
 
 static GLUquadric* sphere;
 
@@ -235,6 +236,12 @@ int main(int argc, char** argv) {
 		aga_af_chk(
 			"AGA_KILL_LARGE_FILE_STRATEGY",
 			AGA_KILL_LARGE_FILE_STRATEGY(pcm, len));
+	}
+
+	{
+		aga_af_chk(
+			"aga_test_script",
+			aga_test_script("res/test.py", "vendor/python/lib"));
 	}
 
 	glutMainLoop();

@@ -167,7 +167,11 @@ enum af_err aga_mkconf(const char* path, struct aga_conf_node* root) {
 
 	structured.class = &class;
 
+	/*
+	 * NOTE: If your SGML is misbehaving - give this a try.
+	 * 		 Should we have a way to set this at runtime?
 	WWW_TraceFlag = 1;
+	 */
 
 	tags[AGA_NODE_ROOT].name = "root";
 	tags[AGA_NODE_ROOT].contents = SGML_ELEMENT;

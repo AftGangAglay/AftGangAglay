@@ -31,6 +31,8 @@ enum af_err aga_init(struct aga_ctx* ctx, int* argcp, char** argvp) {
 	af_memset(&ctx->cam, 0, sizeof(struct aga_cam));
 	AF_CHK(aga_setcam(ctx));
 
+	AF_CHK(aga_mksnddev(ctx->settings.audio_dev, &ctx->snddev));
+
 	return AF_ERR_NONE;
 }
 
@@ -41,6 +43,8 @@ enum af_err aga_kill(struct aga_ctx* ctx) {
 
 	AF_CHK(af_killvert(&ctx->af_ctx, &ctx->vert));
 	AF_CHK(af_killctx(&ctx->af_ctx));
+
+	AF_CHK(aga_killsnddev(&ctx->snddev));
 
 	return AF_ERR_NONE;
 }

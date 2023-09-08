@@ -6,6 +6,8 @@
 #include <agacore.h>
 #include <agaimg.h>
 #include <agaconf.h>
+#include <agasnd.h>
+#include <agaio.h>
 
 static GLUquadric* sphere;
 
@@ -182,6 +184,8 @@ int main(int argc, char** argv) {
 	ctx.settings.height = 480;
 	ctx.settings.fov = 60.0f;
 
+	ctx.settings.audio_dev = "/dev/dsp1";
+
 	aga_af_chk("aga_init", aga_init(&ctx, &argc, argv));
 	ctx.cam.dist = 3.0f;
 
@@ -210,6 +214,26 @@ int main(int argc, char** argv) {
 		struct aga_conf_node root = { 0 };
 		aga_af_chk("aga_mkconf", aga_mkconf("res/test.sgml", &root));
 		aga_af_chk("aga_killconf", aga_killconf(&root));
+	}
+
+	{
+		af_uchar_t* pcm;
+		af_size_t len;
+		af_size_t pos = 0;
+		aga_af_chk(
+			"AGA_MK_LARGE_FILE_STRATEGY",
+			AGA_MK_LARGE_FILE_STRATEGY("res/nggyu-u8pcm-48k.raw", &pcm, &len));
+
+		while(pos < len) {
+			af_size_t cpy = AGA_MIN(sizeof(ctx.snddev.buf), len - pos);
+			af_memcpy(ctx.snddev.buf, &pcm[pos], cpy);
+			aga_af_chk("aga_flushsnd", aga_flushsnd(&ctx.snddev));
+			pos += cpy;
+		}
+
+		aga_af_chk(
+			"AGA_KILL_LARGE_FILE_STRATEGY",
+			AGA_KILL_LARGE_FILE_STRATEGY(pcm, len));
 	}
 
 	glutMainLoop();

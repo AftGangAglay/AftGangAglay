@@ -7,6 +7,7 @@
 #define AGA_CORE_H
 
 #include <agamath.h>
+#include <agasnd.h>
 
 #include <afeirsa/afeirsa.h>
 #include <afeirsa/afgl.h>
@@ -35,6 +36,8 @@ struct aga_ctx {
 	struct af_ctx af_ctx;
 	int win;
 
+	struct aga_snddev snddev;
+
 	struct af_vert vert;
 
 	struct aga_cam cam;
@@ -48,6 +51,9 @@ struct aga_ctx {
 		/* Display */
 		float fov;
 		unsigned width, height;
+
+		/* Audio */
+		const char* audio_dev;
 	} settings;
 };
 

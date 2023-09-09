@@ -7,3 +7,6 @@
 [submodule "vendor/afeirsa"]
 	path = vendor/afeirsa
 	url = https://github.com/Th3T3chn0G1t/Afeirsa
+[submodule "vendor/libtiff"]
+	path = vendor/libtiff
+	url = https://github.com/Th3T3chn0G1t/libtiff-3.4-beta18

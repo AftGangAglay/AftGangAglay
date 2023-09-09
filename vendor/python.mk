@@ -3,7 +3,7 @@
 
 PYTHON_ROOT = vendor/python
 
-LIBPYTHON = vendor/python/src/libpython.a
+LIBPYTHON = $(PYTHON_ROOT)/src/libpython.a
 PYTHON_IFLAGS = -isystem $(PYTHON_ROOT)/src
 
 all: $(LIBPYTHON)

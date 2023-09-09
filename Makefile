@@ -8,6 +8,7 @@
 
 include vendor/www.mk
 include vendor/python.mk
+include vendor/afeirsa.mk
 
 OUT = src/libafeirsa.a
 
@@ -20,11 +21,10 @@ OUT = src/main
 CFLAGS += -Iinclude
 CFLAGS += -std=c89 -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
 
-CFLAGS += $(shell pkg-config --cflags afeirsa)
-LDLIBS += $(shell pkg-config --libs afeirsa) -ltiff -lm
+LDLIBS += -ltiff -lm
 
-CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS)
-LDLIBS += $(LIBWWW) $(LIBPYTHON)
+CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS) $(AFEIRSA_IFLAGS) $(GLABI)
+LDLIBS += $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) # glabi appends its own ldlibs
 
 ifndef WINDOWS
 	CFLAGS += -D_POSIX_SOURCE

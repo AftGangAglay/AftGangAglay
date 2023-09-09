@@ -4,3 +4,6 @@
 [submodule "vendor/python"]
 	path = vendor/python
 	url = https://github.com/Th3T3chn0G1t/python0.9.1
+[submodule "vendor/afeirsa"]
+	path = vendor/afeirsa
+	url = https://github.com/Th3T3chn0G1t/Afeirsa

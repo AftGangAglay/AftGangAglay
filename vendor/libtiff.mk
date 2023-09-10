@@ -9,6 +9,12 @@ LIBTIFF_IFLAGS = -isystem $(LIBTIFF_ROOT)/libtiff
 LIBTIFF_CFLAGS = -std=c89 -ansi -D_SVID_SOURCE -w
 LIBTIFF_CFLAGS += -Wno-incompatible-function-pointer-types
 
+ifdef DEBUG
+	LIBTIFF_CFLAGS += -g -O0 -D_DEBUG
+else
+	LIBTIFF_CFLAGS += -DNDEBUG -Ofast
+endif
+
 all: $(LIBTIFF)
 
 $(LIBTIFF_ROOT)/Makefile:

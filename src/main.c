@@ -188,6 +188,8 @@ int main(int argc, char** argv) {
 	ctx.settings.audio_enabled = AF_FALSE;
 	ctx.settings.audio_dev = "/dev/dsp1";
 
+	ctx.settings.startup_script = "res/test.py";
+
 	aga_af_chk("aga_init", aga_init(&ctx, &argc, argv));
 	ctx.cam.dist = 3.0f;
 
@@ -236,12 +238,6 @@ int main(int argc, char** argv) {
 		aga_af_chk(
 			"AGA_KILL_LARGE_FILE_STRATEGY",
 			AGA_KILL_LARGE_FILE_STRATEGY(pcm, len));
-	}
-
-	{
-		aga_af_chk(
-			"aga_test_script",
-			aga_test_script("res/test.py", "vendor/python/lib"));
 	}
 
 	glutMainLoop();

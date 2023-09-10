@@ -11,6 +11,12 @@ all: $(LIBPYTHON)
 PYTHON_CFLAGS = -std=c89 -ansi -w
 PYTHON_CFLAGS += -Wno-incompatible-function-pointer-types
 
+ifdef DEBUG
+	PYTHON_CFLAGS += -g -O0 -D_DEBUG -DDEBUG
+else
+	PYTHON_CFLAGS += -DNDEBUG -Ofast
+endif
+
 $(LIBPYTHON):
 	$(MAKE) -C $(PYTHON_ROOT)/src CFLAGS="$(PYTHON_CFLAGS)"
 

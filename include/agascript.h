@@ -6,8 +6,17 @@
 #ifndef AGA_SCRIPT_H
 #define AGA_SCRIPT_H
 
+#include <afeirsa/aftypes.h>
 #include <afeirsa/aferr.h>
 
-enum af_err aga_test_script(const char* script, const char* pypath);
+struct aga_scripteng {
+	void** classes;
+	af_size_t len;
+};
+
+enum af_err aga_mkscripteng(
+		struct aga_scripteng* eng, const char* script, const char* pypath);
+
+enum af_err aga_killscripteng(struct aga_scripteng* eng);
 
 #endif

@@ -1,7 +1,16 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
-def foo():
-    print 'Hello, Python 0.9.1!'
+class fizz():
+    def __init__(self):
+        print('python class ' + __name__)
+    #
+    def update(self):
+        print('update!')
 
-foo()
+class buzz():
+    def __init__(self):
+        print('python class' + __name__)
+    #
+    def update(self):
+        print('update!')

@@ -8,6 +8,7 @@
 
 #include <agamath.h>
 #include <agasnd.h>
+#include <agascript.h>
 
 #include <afeirsa/afeirsa.h>
 #include <afeirsa/afgl.h>
@@ -43,9 +44,9 @@ struct aga_ctx {
 	int win;
 
 	struct aga_snddev snddev;
+	struct aga_scripteng scripteng;
 
 	struct af_vert vert;
-
 	struct aga_cam cam;
 
 	struct aga_settings {
@@ -61,6 +62,9 @@ struct aga_ctx {
 		/* Audio */
 		af_bool_t audio_enabled;
 		const char* audio_dev;
+
+		/* Script */
+		const char* startup_script;
 	} settings;
 };
 

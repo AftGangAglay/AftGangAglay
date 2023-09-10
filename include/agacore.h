@@ -18,6 +18,12 @@
 #include <time.h>
 #include <math.h>
 
+#ifdef AF_HAVE_GNU
+# if __has_attribute(noreturn)
+#  define AGA_NORETURN __attribute__((noreturn))
+# endif
+#endif
+
 struct aga_vertex {
 	float pos[3];
 	float col[4];
@@ -72,8 +78,8 @@ enum af_err aga_setcam(struct aga_ctx* ctx);
  * 		 `perror' or something.
  */
 void aga_af_chk(const char* proc, enum af_err e);
-void aga_errno_chk(const char* proc);
-void aga_fatal(const char* fmt, ...);
+AGA_NORETURN void aga_errno_chk(const char* proc);
+AGA_NORETURN void aga_fatal(const char* fmt, ...);
 
 void aga_boundf(float* f, float min, float max);
 

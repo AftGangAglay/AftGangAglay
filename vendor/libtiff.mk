@@ -6,7 +6,7 @@ LIBTIFF_ROOT = vendor/libtiff
 LIBTIFF = $(LIBTIFF_ROOT)/libtiff/libtiff.a
 LIBTIFF_IFLAGS = -isystem $(LIBTIFF_ROOT)/libtiff
 
-LIBTIFF_CFLAGS = -std=c89 -ansi -D_SVID_SOURCE -w -I..
+LIBTIFF_CFLAGS = -std=c89 -ansi -D_SVID_SOURCE -w
 LIBTIFF_CFLAGS += -Wno-incompatible-function-pointer-types
 
 all: $(LIBTIFF)
@@ -14,7 +14,7 @@ all: $(LIBTIFF)
 $(LIBTIFF_ROOT)/Makefile:
 	cd $(LIBTIFF_ROOT) && (./configure << yes)
 
-LIBTIFF_MAKE_FLAGS = CC="$(CC)" COPTS="$(LIBTIFF_CFLAGS)"
+LIBTIFF_MAKE_FLAGS = COPTS="$(LIBTIFF_CFLAGS)" CC="$(CC)"
 $(LIBTIFF): $(LIBTIFF_ROOT)/Makefile
 	$(MAKE) -C $(LIBTIFF_ROOT) $(LIBTIFF_MAKE_FLAGS)
 

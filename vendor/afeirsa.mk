@@ -11,8 +11,13 @@ AFEIRSA_IFLAGS = -isystem $(AFEIRSA_ROOT)/include $(PUBLIC_IFLAGS)
 
 all: $(LIBAFEIRSA)
 
+AFEIRSA_MAKE_FLAGS = GL10_COMPAT=1 NO_EXT=1
+ifdef DEBUG
+	AFEIRSA_MAKE_FLAGS += DEBUG=1
+endif
+
 $(LIBAFEIRSA):
-	$(MAKE) -C $(AFEIRSA_ROOT)
+	$(MAKE) -C $(AFEIRSA_ROOT) $(AFEIRSA_MAKE_FLAGS)
 
 clean: clean_afeirsa
 .PHONY: clean_afeirsa

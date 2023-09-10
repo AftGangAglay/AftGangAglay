@@ -70,7 +70,7 @@ void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
 
 void aga_sgml_start_element(
 		struct aga_sgml_structured* me, int element_number,
-		const BOOL* attribute_present, const char** attribute_value) {
+		const BOOL* attribute_present, char** attribute_value) {
 
 	struct aga_conf_node* parent = me->stack[me->depth - 1];
 	struct aga_conf_node* node;
@@ -93,7 +93,6 @@ void aga_sgml_start_element(
 					stderr,
 					"warn: <item> element without name attrib in `%s'\n",
 					me->file);
-				node->name = "ERR";
 			}
 			else {
 				const char* value = attribute_value[AGA_ITEM_NAME];
@@ -132,6 +131,8 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 		free(string);
 		node->data.integer = res;
 	}
+
+	if(node->type == AGA_NONE) free(node->data.string);
 
 	me->depth--;
 }
@@ -206,8 +207,14 @@ enum af_err aga_mkconf(const char* path, struct aga_conf_node* root) {
 
 void aga_free_node(struct aga_conf_node* node) {
 	af_size_t i;
-	for(i = 0; i < node->len; ++i) aga_free_node(&node->children[i]);
+
+	for(i = 0; i < node->len; ++i) {
+		aga_free_node(&node->children[i]);
+	}
+
 	if(node->type == AGA_STRING) free(node->data.string);
+
+	free(node->name);
 	free(node->children);
 }
 

@@ -17,6 +17,7 @@
 int setpythonpath(char* path);
 int setpythonargv(int argc, char** argv);
 int flushline(void);
+void donebuiltin(void);
 
 #ifdef _DEBUG
 /* The extra debug info this enables is a bit too verbose. */
@@ -80,9 +81,8 @@ enum af_err aga_mkscripteng(
 			 *		 globals anyway.
 			 */
 			eng->len = (af_size_t) len;
-			if(!(eng->classes = malloc(len * sizeof(object*)))) {
-				aga_errno_chk("malloc");
-			}
+			eng->classes = malloc(len * sizeof(struct aga_scriptclass));
+			AF_VERIFY(eng->classes, AF_ERR_MEM);
 
 			for(i = 0; i < len; ++i) {
 				object* key;
@@ -94,8 +94,19 @@ enum af_err aga_mkscripteng(
 
 				AF_VERIFY(value = dictlookup(dict, key_name), AF_ERR_UNKNOWN);
 
-				if(is_classobject(value)) eng->classes[i] = value;
+				if(is_classobject(value)) {
+					struct aga_scriptclass* class = &eng->classes[i];
+					af_size_t key_len = strlen(key_name);
+
+					class->class = value;
+
+					class->name = malloc(key_len + 1);
+					AF_VERIFY(class->name, AF_ERR_MEM);
+					af_memcpy(class->name, key_name, key_len + 1);
+				}
 			}
+
+			DECREF(keys);
 		}
 
 		AF_VERIFY(result, AF_ERR_UNKNOWN);
@@ -108,12 +119,16 @@ enum af_err aga_mkscripteng(
 }
 
 enum af_err aga_killscripteng(struct aga_scripteng* eng) {
+	af_size_t i;
+
 	AF_PARAM_CHK(eng);
 
+	for(i = 0; i < eng->len; ++i) free(eng->classes[i].name);
 	free(eng->classes);
 
 	flushline();
 	doneimport();
+	donebuiltin();
 
 	err_clear();
 

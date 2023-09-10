@@ -204,11 +204,13 @@ int main(int argc, char** argv) {
 	aga_af_chk(
 		"af_upload", af_upload(&ctx.af_ctx, &buf, vertices, sizeof(vertices)));
 
-	aga_af_chk("aga_tiff2img", aga_tiff2img(&img, "res/arse.tiff"));
-	aga_af_chk("aga_teximg", aga_teximg(&ctx.af_ctx, &img, &tex1));
+	aga_af_chk("aga_mkimg", aga_mkimg(&img, "res/arse.tiff"));
+	aga_af_chk("aga_mkteximg", aga_mkteximg(&ctx.af_ctx, &img, &tex1));
+	aga_af_chk("aga_killimg", aga_killimg(&img));
 
-	aga_af_chk("aga_tiff2img", aga_tiff2img(&img, "res/test.tiff"));
-	aga_af_chk("aga_teximg", aga_teximg(&ctx.af_ctx, &img, &tex2));
+	aga_af_chk("aga_mkimg", aga_mkimg(&img, "res/test.tiff"));
+	aga_af_chk("aga_mkteximg", aga_mkteximg(&ctx.af_ctx, &img, &tex2));
+	aga_af_chk("aga_killimg", aga_killimg(&img));
 
 	puts((const char*) glGetString(GL_VERSION));
 
@@ -242,6 +244,7 @@ int main(int argc, char** argv) {
 
 	glutMainLoop();
 
+	/* TODO: GLUT doesn't actually let us reach here. */
 	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex1));
 	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex2));
 	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &buf));

@@ -7,7 +7,7 @@
     </item>
     <item name="C" type="Int">
         4
-        <item>
+        <item type="Something">
             hm
         </item>
     </item>

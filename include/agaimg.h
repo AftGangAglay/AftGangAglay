@@ -16,8 +16,9 @@ struct aga_img {
 	af_size_t width, height;
 };
 
-enum af_err aga_tiff2img(struct aga_img* img, const char* path);
-enum af_err aga_teximg(
+enum af_err aga_mkimg(struct aga_img* img, const char* path);
+enum af_err aga_killimg(struct aga_img* img);
+enum af_err aga_mkteximg(
 		struct af_ctx* ctx, struct aga_img* img, struct af_buf* tex);
 
 #endif

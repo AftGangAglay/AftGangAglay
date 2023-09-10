@@ -10,7 +10,7 @@
 #include <tiff.h>
 #include <tiffio.h>
 
-enum af_err aga_tiff2img(struct aga_img* img, const char* path) {
+enum af_err aga_mkimg(struct aga_img* img, const char* path) {
 	TIFF* t;
 	int result;
 	af_uint32_t width, height;
@@ -32,7 +32,7 @@ enum af_err aga_tiff2img(struct aga_img* img, const char* path) {
 	img->height = height;
 
 	img->data = malloc(width * height * AGA_IMG_COMP);
-	if(!img->data) return AF_ERR_MEM;
+	AF_VERIFY(img->data, AF_ERR_MEM);
 
 	result = TIFFReadRGBAImage(t, width, height, img->data, 0);
 	AF_VERIFY(result == 1, AF_ERR_UNKNOWN);
@@ -42,7 +42,15 @@ enum af_err aga_tiff2img(struct aga_img* img, const char* path) {
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_teximg(
+enum af_err aga_killimg(struct aga_img* img) {
+	AF_PARAM_CHK(img);
+
+	free(img->data);
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_mkteximg(
 		struct af_ctx* ctx, struct aga_img* img, struct af_buf* tex) {
 
 	af_size_t img_size = img->width * img->height * AGA_IMG_COMP;

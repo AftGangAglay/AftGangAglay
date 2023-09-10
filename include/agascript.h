@@ -9,8 +9,13 @@
 #include <afeirsa/aftypes.h>
 #include <afeirsa/aferr.h>
 
+struct aga_scriptclass {
+	void* class;
+	char* name;
+};
+
 struct aga_scripteng {
-	void** classes;
+	struct aga_scriptclass* classes;
 	af_size_t len;
 };
 

@@ -65,6 +65,8 @@ struct aga_ctx {
 
 		/* Script */
 		const char* startup_script;
+		/* `:' separated list of search paths */
+		const char* python_path;
 	} settings;
 };
 

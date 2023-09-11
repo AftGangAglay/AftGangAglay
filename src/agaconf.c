@@ -87,7 +87,7 @@ void aga_sgml_start_element(
 	aga_af_chk("aga_sgml_push", aga_sgml_push(me, node));
 
 	switch(element_number) {
-		default: aga_fatal("SGML_new: unknown element %i\n", element_number);
+		default: aga_fatal("SGML_new: unknown element %i", element_number);
 		case AGA_NODE_ITEM: {
 			if(!attribute_present[AGA_ITEM_NAME]) {
 				fprintf(

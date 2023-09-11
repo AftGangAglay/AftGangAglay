@@ -161,6 +161,8 @@ static void display(void) {
 }
 
 int main(int argc, char** argv) {
+	af_size_t i;
+
 	struct aga_vertex vertices[] = {
 		{
 			{ -1.0f,  1.0f, 0.0f },
@@ -204,6 +206,7 @@ int main(int argc, char** argv) {
 	ctx.settings.audio_dev = "/dev/dsp1";
 
 	ctx.settings.startup_script = "res/test.py";
+	ctx.settings.python_path = "vendor/python/lib:res";
 
 	aga_af_chk("aga_init", aga_init(&ctx, &argc, argv));
 	ctx.cam.dist = 3.0f;
@@ -256,6 +259,19 @@ int main(int argc, char** argv) {
 		aga_af_chk(
 			"AGA_KILL_LARGE_FILE_STRATEGY",
 			AGA_KILL_LARGE_FILE_STRATEGY(pcm, len));
+	}
+
+	{
+		struct aga_scriptclass* fizz;
+		struct aga_scriptinst inst;
+		for(i = 0; i < ctx.scripteng.len; ++i) {
+			struct aga_scriptclass* class = &ctx.scripteng.classes[i];
+			char* name = class->name;
+			printf("- found script class `%s'\n", name);
+
+			if(af_streql(name, "fizz")) fizz = class;
+		}
+		aga_af_chk("aga_mkscriptinst", aga_mkscriptinst(fizz, &inst));
 	}
 
 	glutMainLoop();

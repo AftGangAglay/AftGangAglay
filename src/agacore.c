@@ -37,7 +37,8 @@ enum af_err aga_init(struct aga_ctx* ctx, int* argcp, char** argvp) {
 
 	/* TODO: Python path resolution in packaged builds. */
 	AF_CHK(aga_mkscripteng(
-		&ctx->scripteng, ctx->settings.startup_script, "vendor/python/lib"));
+		&ctx->scripteng, ctx->settings.startup_script,
+		ctx->settings.python_path));
 
 	return AF_ERR_NONE;
 }
@@ -106,9 +107,9 @@ void aga_errno_chk(const char* proc) {
 void aga_fatal(const char* fmt, ...) {
 	va_list l;
 	va_start(l, fmt);
-	vprintf(fmt, l);
+	vfprintf(stderr, fmt, l);
 	va_end(l);
-	putchar('\n');
+	putc('\n', stderr);
 	abort();
 }
 

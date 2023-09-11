@@ -18,6 +18,10 @@ int setpythonpath(char* path);
 int setpythonargv(int argc, char** argv);
 int flushline(void);
 void donebuiltin(void);
+void donesys(void);
+void donedict(void);
+void doneerrors(void);
+void freeaccel(void);
 
 #ifdef _DEBUG
 /* The extra debug info this enables is a bit too verbose. */
@@ -129,8 +133,13 @@ enum af_err aga_killscripteng(struct aga_scripteng* eng) {
 	flushline();
 	doneimport();
 	donebuiltin();
+	donesys();
+	donedict();
 
 	err_clear();
+	doneerrors();
+
+	freeaccel();
 
 	return AF_ERR_NONE;
 }

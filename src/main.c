@@ -23,6 +23,19 @@ static af_bool_t did_click = AF_FALSE;
 static int last_button = -1;
 static int click_pos[2] = { -1, -1 };
 
+static void key(unsigned char k, int x, int y) {
+	(void) x, (void) y;
+	if(k == '\033') {
+		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex1));
+		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex2));
+		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &buf));
+
+		aga_af_chk("aga_kill", aga_kill(&ctx));
+
+		exit(EXIT_SUCCESS);
+	}
+}
+
 static void click(int button, int state, int x, int y) {
 	last_button = button;
 	if(state == GLUT_UP) return;
@@ -199,6 +212,7 @@ int main(int argc, char** argv) {
 	glutDisplayFunc(display);
 	glutMotionFunc(motion);
 	glutMouseFunc(click);
+	glutKeyboardFunc(key);
 
 	aga_af_chk("af_mkbuf", af_mkbuf(&ctx.af_ctx, &buf, AF_BUF_VERT));
 	aga_af_chk(
@@ -243,13 +257,6 @@ int main(int argc, char** argv) {
 	}
 
 	glutMainLoop();
-
-	/* TODO: GLUT doesn't actually let us reach here. */
-	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex1));
-	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex2));
-	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &buf));
-
-	aga_af_chk("aga_kill", aga_kill(&ctx));
 
 	return 0;
 }

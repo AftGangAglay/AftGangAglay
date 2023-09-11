@@ -17,7 +17,7 @@ else
 	PYTHON_CFLAGS += -DNDEBUG -Ofast
 endif
 
-$(LIBPYTHON):
+$(LIBPYTHON): SUBMAKE
 	$(MAKE) -C $(PYTHON_ROOT)/src CFLAGS="$(PYTHON_CFLAGS)"
 
 clean: clean_python

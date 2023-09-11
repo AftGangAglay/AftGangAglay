@@ -21,7 +21,7 @@ $(LIBTIFF_ROOT)/Makefile:
 	cd $(LIBTIFF_ROOT) && (./configure << yes)
 
 LIBTIFF_MAKE_FLAGS = COPTS="$(LIBTIFF_CFLAGS)" CC="$(CC)"
-$(LIBTIFF): $(LIBTIFF_ROOT)/Makefile
+$(LIBTIFF): $(LIBTIFF_ROOT)/Makefile SUBMAKE
 	$(MAKE) -C $(LIBTIFF_ROOT) $(LIBTIFF_MAKE_FLAGS)
 
 clean: clean_libtiff

@@ -16,7 +16,7 @@ ifdef DEBUG
 	AFEIRSA_MAKE_FLAGS += DEBUG=1
 endif
 
-$(LIBAFEIRSA):
+$(LIBAFEIRSA): SUBMAKE
 	$(MAKE) -C $(AFEIRSA_ROOT) $(AFEIRSA_MAKE_FLAGS)
 
 clean: clean_afeirsa

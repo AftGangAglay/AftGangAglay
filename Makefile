@@ -6,6 +6,9 @@
 	$(AR) $(ARFLAGS) $@ $?
 	ranlib $@
 
+.PHONY: SUBMAKE
+SUBMAKE:
+
 include vendor/www.mk
 include vendor/python.mk
 include vendor/afeirsa.mk

@@ -58,8 +58,9 @@ enum af_err aga_sgml_push(
 
 void aga_sgml_nil(void) {}
 void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
-
 	struct aga_conf_node* node = me->stack[me->depth - 1];
+
+	if(node->type == AGA_NONE) return;
 
 	node->data.string = realloc(node->data.string, ++node->scratch + 1);
 	if(!node->data.string) aga_errno_chk("realloc");
@@ -131,8 +132,6 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 		free(string);
 		node->data.integer = res;
 	}
-
-	if(node->type == AGA_NONE) free(node->data.string);
 
 	me->depth--;
 }

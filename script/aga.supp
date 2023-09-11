@@ -3906,3 +3906,33 @@
    obj:/usr/lib/libGLX_nvidia.so.535.104.05
    obj:/usr/lib/libGLX_nvidia.so.535.104.05
 }
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:/usr/lib/libdrm.so.2.4.0
+   obj:*
+   obj:/usr/lib/libnvidia-glcore.so.535.104.05
+   obj:/usr/lib/libnvidia-glcore.so.535.104.05
+   obj:/usr/lib/libnvidia-glcore.so.535.104.05
+   obj:/usr/lib/libnvidia-glcore.so.535.104.05
+   obj:/usr/lib/libnvidia-glcore.so.535.104.05
+   obj:/usr/lib/libGLX_nvidia.so.535.104.05
+   obj:/usr/lib/libGLX_nvidia.so.535.104.05
+   obj:/usr/lib/libGLX_nvidia.so.535.104.05
+   fun:glXCreateNewContext
+   fun:glXCreateNewContext
+   fun:fghCreateNewContext
+   fun:fgPlatformOpenWindow
+   fun:fgOpenWindow
+   fun:fgCreateWindow
+   fun:glutCreateWindow
+   fun:aga_init
+   fun:main
+}

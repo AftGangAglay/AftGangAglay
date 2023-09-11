@@ -26,6 +26,8 @@ static int click_pos[2] = { -1, -1 };
 static void key(unsigned char k, int x, int y) {
 	(void) x, (void) y;
 	if(k == '\033') {
+		gluDeleteQuadric(sphere);
+
 		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex1));
 		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex2));
 		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &buf));

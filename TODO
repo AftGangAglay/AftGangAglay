@@ -2,5 +2,4 @@
 - Use libwww for networking gamecode
 - Find older libtiff
 - Replace GLUT with something sensible (and as a bonus get back to 1993)
-- `fixdfa'/`fixstate' in Python have some nasty ongoings with leaks
 

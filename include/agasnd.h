@@ -25,6 +25,6 @@ struct aga_snddev {
 enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev);
 enum af_err aga_killsnddev(struct aga_snddev* snddev);
 
-enum af_err aga_flushsnd(struct aga_snddev* snddev);
+enum af_err aga_flushsnd(struct aga_snddev* snddev, af_size_t* written);
 
 #endif

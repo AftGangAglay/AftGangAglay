@@ -19,6 +19,10 @@ struct af_buf buf;
 struct af_buf tex1;
 struct af_buf tex2;
 
+af_uchar_t* pcm;
+af_size_t pcm_len;
+af_size_t pcm_pos = 0;
+
 static af_bool_t did_click = AF_FALSE;
 static int last_button = -1;
 static int click_pos[2] = { -1, -1 };
@@ -33,6 +37,10 @@ static void key(unsigned char k, int x, int y) {
 		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &buf));
 
 		aga_af_chk("aga_kill", aga_kill(&ctx));
+
+		aga_af_chk(
+			"AGA_KILL_LARGE_FILE_STRATEGY",
+			AGA_KILL_LARGE_FILE_STRATEGY(pcm, pcm_len));
 
 		exit(EXIT_SUCCESS);
 	}
@@ -84,6 +92,17 @@ static void motion(int x, int y) {
 
 static void display(void) {
 	const float clear[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	if(ctx.settings.audio_enabled) {
+		af_size_t written;
+		aga_af_chk("aga_flushsnd", aga_flushsnd(&ctx.snddev, &written));
+
+		pcm_pos += written;
+		if(pcm_pos < pcm_len) {
+			af_size_t cpy = AGA_MIN(sizeof(ctx.snddev.buf), pcm_len - pcm_pos);
+			af_memcpy(ctx.snddev.buf, &pcm[pcm_pos], cpy);
+		}
+	}
 
 	aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
 
@@ -202,8 +221,8 @@ int main(int argc, char** argv) {
 	ctx.settings.height = 480;
 	ctx.settings.fov = 60.0f;
 
-	ctx.settings.audio_enabled = AF_FALSE;
-	ctx.settings.audio_dev = "/dev/dsp1";
+	ctx.settings.audio_enabled = AF_TRUE;
+	ctx.settings.audio_dev = "/dev/dsp2";
 
 	ctx.settings.startup_script = "res/test.py";
 	ctx.settings.python_path = "vendor/python/lib:res";
@@ -241,25 +260,9 @@ int main(int argc, char** argv) {
 		aga_af_chk("aga_killconf", aga_killconf(&root));
 	}
 
-	if(ctx.settings.audio_enabled) {
-		af_uchar_t* pcm;
-		af_size_t len;
-		af_size_t pos = 0;
-		aga_af_chk(
-			"AGA_MK_LARGE_FILE_STRATEGY",
-			AGA_MK_LARGE_FILE_STRATEGY("res/nggyu-u8pcm-48k.raw", &pcm, &len));
-
-		while(pos < len) {
-			af_size_t cpy = AGA_MIN(sizeof(ctx.snddev.buf), len - pos);
-			af_memcpy(ctx.snddev.buf, &pcm[pos], cpy);
-			aga_af_chk("aga_flushsnd", aga_flushsnd(&ctx.snddev));
-			pos += cpy;
-		}
-
-		aga_af_chk(
-			"AGA_KILL_LARGE_FILE_STRATEGY",
-			AGA_KILL_LARGE_FILE_STRATEGY(pcm, len));
-	}
+	if(ctx.settings.audio_enabled) aga_af_chk(
+		"AGA_MK_LARGE_FILE_STRATEGY",
+		AGA_MK_LARGE_FILE_STRATEGY("res/nggyu-u8pcm-48k.raw", &pcm, &pcm_len));
 
 	{
 		struct aga_scriptclass* fizz;

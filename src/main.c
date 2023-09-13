@@ -232,22 +232,6 @@ int main(int argc, char** argv) {
 
 	struct aga_img img;
 
-	/* TODO: Load defaults from file */
-	ctx.settings.sensitivity = 0.25f;
-	ctx.settings.zoom_speed = 0.1f;
-	ctx.settings.min_zoom = 2.0f;
-	ctx.settings.max_zoom = 50.0f;
-
-	ctx.settings.width = 640;
-	ctx.settings.height = 480;
-	ctx.settings.fov = 60.0f;
-
-	ctx.settings.audio_enabled = AF_TRUE;
-	ctx.settings.audio_dev = "/dev/dsp2";
-
-	ctx.settings.startup_script = "res/test.py";
-	ctx.settings.python_path = "vendor/python/lib:res";
-
 	aga_af_chk("aga_init", aga_init(&ctx, &argc, argv));
 	ctx.cam.dist = 3.0f;
 

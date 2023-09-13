@@ -9,6 +9,7 @@
 #include <agamath.h>
 #include <agasnd.h>
 #include <agascript.h>
+#include <agaconf.h>
 
 #include <afeirsa/afeirsa.h>
 #include <afeirsa/afgl.h>
@@ -18,6 +19,7 @@
 #include <stdarg.h>
 #include <time.h>
 #include <math.h>
+#include <ctype.h>
 
 #ifdef AF_HAVE_GNU
 # if __has_attribute(noreturn)
@@ -49,6 +51,7 @@ struct aga_ctx {
 	struct af_vert vert;
 	struct aga_cam cam;
 
+	struct aga_conf_node conf;
 	struct aga_settings {
 		/* Input */
 		float sensitivity;

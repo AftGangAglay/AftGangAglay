@@ -17,7 +17,8 @@
 enum aga_conf_type {
 	AGA_NONE,
 	AGA_STRING,
-	AGA_INTEGER
+	AGA_INTEGER,
+	AGA_FLOAT
 };
 
 struct aga_conf_node;
@@ -28,6 +29,7 @@ struct aga_conf_node {
 	union aga_conf_node_data {
 		char* string;
 		long integer;
+		double flt;
 	} data;
 
 	af_size_t scratch; /* Library internal - you peeked behind the curtain. */

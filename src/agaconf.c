@@ -5,8 +5,8 @@
 
 #include <afeirsa/afeirsa.h>
 
-#include <agaconf.h>
 #include <agacore.h>
+#include <agaconf.h>
 #include <agaio.h>
 
 /* Very nasty dependency to leak - keep it contained! */
@@ -61,6 +61,7 @@ void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
 	struct aga_conf_node* node = me->stack[me->depth - 1];
 
 	if(node->type == AGA_NONE) return;
+	if(c == ' ' || c == '\r' || c == '\t' || c == '\n') return;
 
 	node->data.string = realloc(node->data.string, ++node->scratch + 1);
 	if(!node->data.string) aga_errno_chk("realloc");
@@ -105,8 +106,9 @@ void aga_sgml_start_element(
 			if(!attribute_present[AGA_ITEM_TYPE]) node->type = AGA_NONE;
 			else {
 				const char* typename = attribute_value[AGA_ITEM_TYPE];
-				if(af_streql(typename, "Int")) node->type = AGA_INTEGER;
+				if(af_streql(typename, "Integer")) node->type = AGA_INTEGER;
 				else if(af_streql(typename, "String")) node->type = AGA_STRING;
+				else if(af_streql(typename, "Float")) node->type = AGA_FLOAT;
 				else {
 					static const char fmt[] =
 						"warn: <item> element has unknown type `%s' in `%s'\n";
@@ -121,16 +123,26 @@ void aga_sgml_start_element(
 
 void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 	struct aga_conf_node* node = me->stack[me->depth - 1];
+	char* string = node->data.string;
 
 	(void) element_number;
 
 	/* TODO: lstrip+rstrip string data to get rid of all the guff */
 
-	if(node->type == AGA_INTEGER) {
-		char* string = node->data.string;
-		long res = strtol(node->data.string, 0, 0);
-		free(string);
-		node->data.integer = res;
+	switch(node->type) {
+		default: break;
+		case AGA_INTEGER: {
+			long res = strtol(node->data.string, 0, 0);
+			free(string);
+			node->data.integer = res;
+			break;
+		}
+		case AGA_FLOAT: {
+			double res = strtod(node->data.string, 0);
+			free(string);
+			node->data.flt = res;
+			break;
+		}
 	}
 
 	me->depth--;

@@ -15,6 +15,7 @@ static GLUquadric* sphere;
 struct aga_ctx ctx;
 
 struct af_buf buf;
+struct af_buf loadbuf;
 
 struct af_buf tex1;
 struct af_buf tex2;
@@ -22,6 +23,9 @@ struct af_buf tex2;
 af_uchar_t* pcm;
 af_size_t pcm_len;
 af_size_t pcm_pos = 0;
+
+af_uchar_t* loaded;
+af_size_t loaded_len;
 
 static af_bool_t did_click = AF_FALSE;
 static int last_button = -1;
@@ -36,11 +40,17 @@ static void key(unsigned char k, int x, int y) {
 		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex2));
 		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &buf));
 
-		aga_af_chk("aga_kill", aga_kill(&ctx));
+		if(ctx.settings.audio_enabled) {
+			aga_af_chk(
+				"AGA_KILL_LARGE_FILE_STRATEGY",
+				AGA_KILL_LARGE_FILE_STRATEGY(pcm, pcm_len));
+		}
 
 		aga_af_chk(
 			"AGA_KILL_LARGE_FILE_STRATEGY",
-			AGA_KILL_LARGE_FILE_STRATEGY(pcm, pcm_len));
+			AGA_KILL_LARGE_FILE_STRATEGY(loaded, loaded_len));
+
+		aga_af_chk("aga_kill", aga_kill(&ctx));
 
 		exit(EXIT_SUCCESS);
 	}
@@ -142,6 +152,17 @@ static void display(void) {
 	}
 
 	{
+		glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glScalef(1.0f, 1.0f, 1.0f);
+			glTranslatef(-5.0f, -2.0f, 0.0f);
+
+		aga_af_chk(
+			"af_draw",
+			af_drawbuf(&ctx.af_ctx, &loadbuf, &ctx.vert, AF_TRIANGLES));
+	}
+
+	{
 		static double r = 0.0;
 		glMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
@@ -215,7 +236,7 @@ int main(int argc, char** argv) {
 	ctx.settings.sensitivity = 0.25f;
 	ctx.settings.zoom_speed = 0.1f;
 	ctx.settings.min_zoom = 2.0f;
-	ctx.settings.max_zoom = 10.0f;
+	ctx.settings.max_zoom = 50.0f;
 
 	ctx.settings.width = 640;
 	ctx.settings.height = 480;
@@ -241,6 +262,14 @@ int main(int argc, char** argv) {
 	aga_af_chk("af_mkbuf", af_mkbuf(&ctx.af_ctx, &buf, AF_BUF_VERT));
 	aga_af_chk(
 		"af_upload", af_upload(&ctx.af_ctx, &buf, vertices, sizeof(vertices)));
+
+	aga_af_chk(
+		"AGA_MK_LARGE_FILE_STRATEGY",
+		AGA_MK_LARGE_FILE_STRATEGY(
+			"res/thing.raw", (af_uchar_t**) &loaded, &loaded_len));
+	aga_af_chk("af_mkbuf", af_mkbuf(&ctx.af_ctx, &loadbuf, AF_BUF_VERT));
+	aga_af_chk(
+		"af_upload", af_upload(&ctx.af_ctx, &loadbuf, loaded, loaded_len));
 
 	aga_af_chk("aga_mkimg", aga_mkimg(&img, "res/arse.tiff"));
 	aga_af_chk("aga_mkteximg", aga_mkteximg(&ctx.af_ctx, &img, &tex1));
@@ -275,6 +304,13 @@ int main(int argc, char** argv) {
 			if(af_streql(name, "fizz")) fizz = class;
 		}
 		aga_af_chk("aga_mkscriptinst", aga_mkscriptinst(fizz, &inst));
+	}
+
+	if(ctx.settings.audio_enabled) {
+		aga_af_chk(
+			"AGA_MK_LARGE_FILE_STRATEGY",
+			AGA_MK_LARGE_FILE_STRATEGY(
+				"res/nggyu-u8pcm-48k.raw", &pcm, &pcm_len));
 	}
 
 	glutMainLoop();

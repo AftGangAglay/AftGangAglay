@@ -3,6 +3,6 @@
 Just a bit of a disclaimer - these scripts are not era-appropriate. But most of
 the development tooling we're using isn't anyway.
 
-`gensnd.sh' - converts any `ffmpeg' format to AGA 48khz u8 audio data
+`gensnd.sh' - converts any `ffmpeg' format to AGA 8khz u8 audio data
 `aga.supp' - valgrind suppressions for graphics drivers and GLUT
 `vertgen.py' - converts model formats to AGA packed models

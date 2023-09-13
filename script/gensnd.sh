@@ -5,4 +5,4 @@ if [ $# -lt 2 ]; then
   exit 1
 fi
 
-ffmpeg -i $1 -f u8 -ar 48000 -ab 48k -ac 1 $2
+ffmpeg -i $1 -f u8 -ar 8000 -ab 8k -ac 1 $2

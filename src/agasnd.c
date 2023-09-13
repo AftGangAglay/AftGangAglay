@@ -7,10 +7,9 @@
 #include <agacore.h>
 
 #include <sys/ioctl.h>
-#include <poll.h>
 #include <sys/soundcard.h>
-#include <asm/termbits.h>
 
+#include <poll.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>

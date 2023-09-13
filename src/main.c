@@ -289,10 +289,6 @@ int main(int argc, char** argv) {
 		aga_af_chk("aga_killconf", aga_killconf(&root));
 	}
 
-	if(ctx.settings.audio_enabled) aga_af_chk(
-		"AGA_MK_LARGE_FILE_STRATEGY",
-		AGA_MK_LARGE_FILE_STRATEGY("res/nggyu-u8pcm-48k.raw", &pcm, &pcm_len));
-
 	{
 		struct aga_scriptclass* fizz;
 		struct aga_scriptinst inst;
@@ -310,7 +306,7 @@ int main(int argc, char** argv) {
 		aga_af_chk(
 			"AGA_MK_LARGE_FILE_STRATEGY",
 			AGA_MK_LARGE_FILE_STRATEGY(
-				"res/nggyu-u8pcm-48k.raw", &pcm, &pcm_len));
+				"res/nggyu-u8pcm-8k.raw", &pcm, &pcm_len));
 	}
 
 	glutMainLoop();

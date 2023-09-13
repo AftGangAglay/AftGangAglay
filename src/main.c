@@ -17,7 +17,10 @@ struct aga_ctx ctx;
 struct af_buf buf;
 struct af_buf loadbuf;
 
+struct aga_img img1;
 struct af_buf tex1;
+
+struct aga_img img2;
 struct af_buf tex2;
 
 af_uchar_t* pcm;
@@ -37,8 +40,12 @@ static void key(unsigned char k, int x, int y) {
 		gluDeleteQuadric(sphere);
 
 		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex1));
+		aga_af_chk("aga_killimg", aga_killimg(&img1));
 		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex2));
+		aga_af_chk("aga_killimg", aga_killimg(&img2));
+
 		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &buf));
+		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &loadbuf));
 
 		if(ctx.settings.audio_enabled) {
 			aga_af_chk(
@@ -230,8 +237,6 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	struct aga_img img;
-
 	aga_af_chk("aga_init", aga_init(&ctx, &argc, argv));
 	ctx.cam.dist = 3.0f;
 
@@ -255,13 +260,11 @@ int main(int argc, char** argv) {
 	aga_af_chk(
 		"af_upload", af_upload(&ctx.af_ctx, &loadbuf, loaded, loaded_len));
 
-	aga_af_chk("aga_mkimg", aga_mkimg(&img, "res/arse.tiff"));
-	aga_af_chk("aga_mkteximg", aga_mkteximg(&ctx.af_ctx, &img, &tex1));
-	aga_af_chk("aga_killimg", aga_killimg(&img));
+	aga_af_chk("aga_mkimg", aga_mkimg(&img1, "res/arse.tiff"));
+	aga_af_chk("aga_mkteximg", aga_mkteximg(&ctx.af_ctx, &img1, &tex1));
 
-	aga_af_chk("aga_mkimg", aga_mkimg(&img, "res/test.tiff"));
-	aga_af_chk("aga_mkteximg", aga_mkteximg(&ctx.af_ctx, &img, &tex2));
-	aga_af_chk("aga_killimg", aga_killimg(&img));
+	aga_af_chk("aga_mkimg", aga_mkimg(&img2, "res/test.tiff"));
+	aga_af_chk("aga_mkteximg", aga_mkteximg(&ctx.af_ctx, &img2, &tex2));
 
 	puts((const char*) glGetString(GL_VERSION));
 

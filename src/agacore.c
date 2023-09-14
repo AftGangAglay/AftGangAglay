@@ -129,18 +129,19 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_init(struct aga_ctx* ctx, int* argcp, char** argvp) {
+enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 	AF_PARAM_CHK(ctx);
-	AF_PARAM_CHK(argcp);
-	AF_PARAM_CHK(argvp);
+	AF_PARAM_CHK(argc);
+	AF_PARAM_CHK(argv);
 
 	AF_CHK(aga_parseconf(ctx, "res/aga.sgml"));
 
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
-	glutInitWindowSize((int) ctx->settings.width, (int) ctx->settings.height);
-	glutInit(argcp, argvp);
-	if(!glutGet(GLUT_DISPLAY_MODE_POSSIBLE)) return AF_ERR_BAD_OP;
-	ctx->win = glutCreateWindow("Aft Gang Aglay");
+	ctx->argc = argc;
+	ctx->argv = argv;
+
+	AF_CHK(aga_mkctxdpy(ctx));
+	AF_CHK(aga_mkwin(ctx, &ctx->win));
+	AF_CHK(aga_glctx(ctx, &ctx->win));
 
 	AF_CHK(af_mkctx(&ctx->af_ctx, AF_FIDELITY_FAST));
 	AF_CHK(af_mkvert(
@@ -164,10 +165,11 @@ enum af_err aga_init(struct aga_ctx* ctx, int* argcp, char** argvp) {
 enum af_err aga_kill(struct aga_ctx* ctx) {
 	AF_CTX_CHK(ctx);
 
-	glutDestroyWindow(ctx->win);
-
 	AF_CHK(af_killvert(&ctx->af_ctx, &ctx->vert));
 	AF_CHK(af_killctx(&ctx->af_ctx));
+
+	AF_CHK(aga_killwin(ctx, &ctx->win));
+	AF_CHK(aga_killctxdpy(ctx));
 
 	if(ctx->settings.audio_enabled) AF_CHK(aga_killsnddev(&ctx->snddev));
 

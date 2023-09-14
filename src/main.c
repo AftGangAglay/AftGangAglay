@@ -12,56 +12,28 @@
 
 static GLUquadric* sphere;
 
-struct aga_ctx ctx;
+static struct aga_ctx ctx;
 
-struct af_buf buf;
-struct af_buf loadbuf;
+static struct af_buf buf;
+static struct af_buf loadbuf;
 
-struct aga_img img1;
-struct af_buf tex1;
+static struct aga_img img1;
+static struct af_buf tex1;
 
-struct aga_img img2;
-struct af_buf tex2;
+static struct aga_img img2;
+static struct af_buf tex2;
 
-af_uchar_t* pcm;
-af_size_t pcm_len;
-af_size_t pcm_pos = 0;
+static af_uchar_t* pcm;
+static af_size_t pcm_len;
+static af_size_t pcm_pos = 0;
 
-af_uchar_t* loaded;
-af_size_t loaded_len;
+static af_uchar_t* loaded;
+static af_size_t loaded_len;
 
+/*
 static af_bool_t did_click = AF_FALSE;
 static int last_button = -1;
 static int click_pos[2] = { -1, -1 };
-
-static void key(unsigned char k, int x, int y) {
-	(void) x, (void) y;
-	if(k == '\033') {
-		gluDeleteQuadric(sphere);
-
-		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex1));
-		aga_af_chk("aga_killimg", aga_killimg(&img1));
-		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex2));
-		aga_af_chk("aga_killimg", aga_killimg(&img2));
-
-		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &buf));
-		aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &loadbuf));
-
-		if(ctx.settings.audio_enabled) {
-			aga_af_chk(
-				"AGA_KILL_LARGE_FILE_STRATEGY",
-				AGA_KILL_LARGE_FILE_STRATEGY(pcm, pcm_len));
-		}
-
-		aga_af_chk(
-			"AGA_KILL_LARGE_FILE_STRATEGY",
-			AGA_KILL_LARGE_FILE_STRATEGY(loaded, loaded_len));
-
-		aga_af_chk("aga_kill", aga_kill(&ctx));
-
-		exit(EXIT_SUCCESS);
-	}
-}
 
 static void click(int button, int state, int x, int y) {
 	last_button = button;
@@ -107,105 +79,7 @@ static void motion(int x, int y) {
 	old_y = y;
 }
 
-static void display(void) {
-	const float clear[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-	if(ctx.settings.audio_enabled) {
-		af_size_t written;
-		aga_af_chk("aga_flushsnd", aga_flushsnd(&ctx.snddev, &written));
-
-		pcm_pos += written;
-		if(pcm_pos < pcm_len) {
-			af_size_t cpy = AGA_MIN(sizeof(ctx.snddev.buf), pcm_len - pcm_pos);
-			af_memcpy(ctx.snddev.buf, &pcm[pcm_pos], cpy);
-		}
-	}
-
-	aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
-
-	aga_af_chk("af_settex", af_settex(&ctx.af_ctx, &tex1));
-	{
-		glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glTranslatef(0.0f, 0.0f, -4.0f);
-
-		aga_af_chk(
-			"af_draw",
-			af_drawbuf(&ctx.af_ctx, &buf, &ctx.vert, AF_TRIANGLE_FAN));
-	}
-
-	{
-		glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glTranslatef(
-				-ctx.cam.pos.decomp.x,
-				-ctx.cam.pos.decomp.y,
-				-ctx.cam.pos.decomp.z);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		glutSolidTeapot(1.0f);
-	}
-
-	aga_af_chk("af_settex", af_settex(&ctx.af_ctx, &tex2));
-	{
-		glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glScalef(10.0f, 1.0f, 10.0f);
-			glTranslatef(0.0f, -4.0f, 0.0f);
-			glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-
-		aga_af_chk(
-			"af_draw",
-			af_drawbuf(&ctx.af_ctx, &buf, &ctx.vert, AF_TRIANGLE_FAN));
-	}
-
-	{
-		glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glScalef(1.0f, 1.0f, 1.0f);
-			glTranslatef(-5.0f, -2.0f, 0.0f);
-
-		aga_af_chk(
-			"af_draw",
-			af_drawbuf(&ctx.af_ctx, &loadbuf, &ctx.vert, AF_TRIANGLES));
-	}
-
-	{
-		static double r = 0.0;
-		glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glRotated((r += 0.5), 1.0, 1.0, 1.0);
-
-		glColor3d(sin(r / 50.0), cos(r / 50.0), 0.1);
-		gluSphere(sphere, 50.0, 20, 20);
-	}
-
-	{
-		static float r = 0.0f;
-		glDisable(GL_TEXTURE_2D);
-
-		glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glTranslatef(-3.0f, 0.0f, -1.0f);
-			glScalef(0.01f, 0.01f, 0.01f);
-			glRotatef((r += 1.0f), 0.0f, 0.0f, 1.0f);
-
-		glColor3f(1.0f, 1.0f, 1.0f);
-		glLineWidth(5.0f);
-		glutStrokeCharacter(GLUT_STROKE_ROMAN, '#');
-		glutStrokeCharacter(GLUT_STROKE_ROMAN, 'W');
-		glutStrokeCharacter(GLUT_STROKE_ROMAN, 'O');
-		glutStrokeCharacter(GLUT_STROKE_ROMAN, 'O');
-		glutStrokeCharacter(GLUT_STROKE_ROMAN, 'T');
-		glutStrokeCharacter(GLUT_STROKE_ROMAN, '!');
-
-		glEnable(GL_TEXTURE_2D);
-	}
-
-	aga_af_chk("af_flush", af_flush(&ctx.af_ctx));
-
-	glutSwapBuffers();
-	glutPostRedisplay();
-}
+*/
 
 int main(int argc, char** argv) {
 	af_size_t i;
@@ -237,16 +111,11 @@ int main(int argc, char** argv) {
 		}
 	};
 
-	aga_af_chk("aga_init", aga_init(&ctx, &argc, argv));
+	aga_af_chk("aga_init", aga_init(&ctx, argc, argv));
 	ctx.cam.dist = 3.0f;
 
 	sphere = gluNewQuadric();
 	gluQuadricTexture(sphere, GL_TRUE);
-
-	glutDisplayFunc(display);
-	glutMotionFunc(motion);
-	glutMouseFunc(click);
-	glutKeyboardFunc(key);
 
 	aga_af_chk("af_mkbuf", af_mkbuf(&ctx.af_ctx, &buf, AF_BUF_VERT));
 	aga_af_chk(
@@ -296,7 +165,97 @@ int main(int argc, char** argv) {
 				"res/nggyu-u8pcm-8k.raw", &pcm, &pcm_len));
 	}
 
-	glutMainLoop();
+	ctx.die = AF_FALSE;
+	while(!ctx.die) {
+		const float clear[] = { 1.0f, 0.0f, 1.0f, 1.0f };
 
-	return 0;
+		if(ctx.settings.audio_enabled) {
+			af_size_t written;
+			aga_af_chk("aga_flushsnd", aga_flushsnd(&ctx.snddev, &written));
+
+			pcm_pos += written;
+			if(pcm_pos < pcm_len) {
+				af_size_t cpy = AGA_MIN(
+					sizeof(ctx.snddev.buf), pcm_len - pcm_pos);
+
+				af_memcpy(ctx.snddev.buf, &pcm[pcm_pos], cpy);
+			}
+		}
+
+		aga_af_chk("aga_poll", aga_poll(&ctx));
+
+		aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
+
+		aga_af_chk("af_settex", af_settex(&ctx.af_ctx, &tex1));
+		{
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glTranslatef(0.0f, 0.0f, -4.0f);
+
+			aga_af_chk(
+				"af_draw",
+				af_drawbuf(&ctx.af_ctx, &buf, &ctx.vert, AF_TRIANGLE_FAN));
+		}
+
+		aga_af_chk("af_settex", af_settex(&ctx.af_ctx, &tex2));
+		{
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glScalef(10.0f, 1.0f, 10.0f);
+			glTranslatef(0.0f, -4.0f, 0.0f);
+			glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+
+			aga_af_chk(
+				"af_draw",
+				af_drawbuf(&ctx.af_ctx, &buf, &ctx.vert, AF_TRIANGLE_FAN));
+		}
+
+		{
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glScalef(1.0f, 1.0f, 1.0f);
+			glTranslatef(-5.0f, -2.0f, 0.0f);
+
+			aga_af_chk(
+				"af_draw",
+				af_drawbuf(&ctx.af_ctx, &loadbuf, &ctx.vert, AF_TRIANGLES));
+		}
+
+		{
+			static double r = 0.0;
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glRotated((r += 0.5), 1.0, 1.0, 1.0);
+
+			glColor3d(sin(r / 50.0), cos(r / 50.0), 0.1);
+			gluSphere(sphere, 50.0, 20, 20);
+		}
+
+		aga_af_chk("af_flush", af_flush(&ctx.af_ctx));
+		aga_af_chk("aga_swapbuf", aga_swapbuf(&ctx, &ctx.win));
+	}
+
+	gluDeleteQuadric(sphere);
+
+	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex1));
+	aga_af_chk("aga_killimg", aga_killimg(&img1));
+	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex2));
+	aga_af_chk("aga_killimg", aga_killimg(&img2));
+
+	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &buf));
+	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &loadbuf));
+
+	if(ctx.settings.audio_enabled) {
+		aga_af_chk(
+			"AGA_KILL_LARGE_FILE_STRATEGY",
+			AGA_KILL_LARGE_FILE_STRATEGY(pcm, pcm_len));
+	}
+
+	aga_af_chk(
+		"AGA_KILL_LARGE_FILE_STRATEGY",
+		AGA_KILL_LARGE_FILE_STRATEGY(loaded, loaded_len));
+
+	aga_af_chk("aga_kill", aga_kill(&ctx));
+
+	return EXIT_SUCCESS;
 }

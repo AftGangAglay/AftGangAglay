@@ -6,10 +6,16 @@
 #ifndef AGA_CORE_H
 #define AGA_CORE_H
 
+/*
+ * TODO: We should consider hiding all non-AGA includes in implementations to
+ * 		 Keep a sane, abstracted public API.
+ */
+
 #include <agamath.h>
 #include <agasnd.h>
 #include <agascript.h>
 #include <agaconf.h>
+#include <agawin.h>
 
 #include <afeirsa/afeirsa.h>
 #include <afeirsa/afgl.h>
@@ -43,7 +49,18 @@ struct aga_cam {
 
 struct aga_ctx {
 	struct af_ctx af_ctx;
-	int win;
+
+	char** argv;
+	int argc;
+
+	void* dpy;
+	int dpy_fd;
+	int screen;
+	struct aga_win win;
+	GLXContext glx;
+	af_bool_t double_buffered;
+	af_ulong_t wm_delete;
+	af_bool_t die;
 
 	struct aga_snddev snddev;
 	struct aga_scripteng scripteng;
@@ -73,7 +90,7 @@ struct aga_ctx {
 	} settings;
 };
 
-enum af_err aga_init(struct aga_ctx* ctx, int* argcp, char** argvp);
+enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv);
 enum af_err aga_kill(struct aga_ctx* ctx);
 
 enum af_err aga_setcam(struct aga_ctx* ctx);

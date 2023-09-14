@@ -9,6 +9,8 @@
 .PHONY: SUBMAKE
 SUBMAKE:
 
+GLXABI = 1
+
 include vendor/www.mk
 include vendor/python.mk
 include vendor/afeirsa.mk
@@ -25,7 +27,7 @@ OUT = src/main
 CFLAGS += -Iinclude
 CFLAGS += -std=c89 -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
 
-LDLIBS += -ltiff -lm
+LDLIBS += -ltiff -lm -lX11
 
 CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS) $(AFEIRSA_IFLAGS) $(LIBTIFF_IFLAGS)
 LDLIBS += $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) $(LIBTIFF)

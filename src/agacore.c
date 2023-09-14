@@ -34,6 +34,8 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 		ctx->settings.python_path = "vendor/python/lib:res";
 	}
 
+	af_memset(&ctx->conf, 0, sizeof(ctx->conf));
+
 	AF_CHK(aga_mkconf(path, &ctx->conf));
 
 	for(item = ctx->conf.children->children;

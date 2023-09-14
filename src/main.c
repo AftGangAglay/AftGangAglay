@@ -10,65 +10,28 @@
 #include <agaio.h>
 #include <agascript.h>
 
-static GLUquadric* sphere;
-
-static struct aga_ctx ctx;
-
-static struct af_buf buf;
-static struct af_buf loadbuf;
-
-static struct aga_img img1;
-static struct af_buf tex1;
-
-static struct aga_img img2;
-static struct af_buf tex2;
-
-static af_uchar_t* pcm;
-static af_size_t pcm_len;
-static af_size_t pcm_pos = 0;
-
-static af_uchar_t* loaded;
-static af_size_t loaded_len;
-
 int main(int argc, char** argv) {
-	af_size_t i;
+	struct aga_ctx ctx;
 
-	struct aga_vertex vertices[] = {
-		{
-			{ -1.0f,  1.0f, 0.0f },
-			{  1.0f,  0.0f, 0.0f, 0.7f },
-			{  0.0f,  1.0f },
-			{  0.0f,  1.0f, 0.0f }
-		},
-		{
-			{  1.0f,  1.0f, 0.0f },
-			{  0.0f,  1.0f, 0.0f, 0.7f },
-			{  1.0f,  1.0f },
-			{  0.0f,  1.0f, 0.0f }
-		},
-		{
-			{  1.0f, -1.0f, 0.0f },
-			{  1.0f,  1.0f, 0.0f, 0.7f },
-			{  1.0f,  0.0f },
-			{  0.0f,  1.0f, 0.0f }
-		},
-		{
-			{ -1.0f, -1.0f, 0.0f },
-			{  0.0f,  0.0f, 1.0f, 0.7f },
-			{  0.0f,  0.0f },
-			{  0.0f,  1.0f, 0.0f }
-		}
-	};
+	GLUquadric* sphere;
+
+	struct af_buf loadbuf;
+
+	struct aga_img img1;
+	struct af_buf tex1;
+	struct aga_img img2;
+	struct af_buf tex2;
+
+	struct aga_clip nggyu = { 0 };
+
+	af_uchar_t* loaded;
+	af_size_t loaded_len;
 
 	aga_af_chk("aga_init", aga_init(&ctx, argc, argv));
 	ctx.cam.dist = 3.0f;
 
 	sphere = gluNewQuadric();
 	gluQuadricTexture(sphere, GL_TRUE);
-
-	aga_af_chk("af_mkbuf", af_mkbuf(&ctx.af_ctx, &buf, AF_BUF_VERT));
-	aga_af_chk(
-		"af_upload", af_upload(&ctx.af_ctx, &buf, vertices, sizeof(vertices)));
 
 	aga_af_chk(
 		"AGA_MK_LARGE_FILE_STRATEGY",
@@ -89,12 +52,8 @@ int main(int argc, char** argv) {
 	aga_setcam(&ctx);
 
 	{
-		struct aga_conf_node root = { 0 };
-		aga_af_chk("aga_mkconf", aga_mkconf("res/test.sgml", &root));
-		aga_af_chk("aga_killconf", aga_killconf(&root));
-	}
+		af_size_t i;
 
-	{
 		struct aga_scriptclass* fizz;
 		struct aga_scriptinst inst;
 		for(i = 0; i < ctx.scripteng.len; ++i) {
@@ -104,6 +63,7 @@ int main(int argc, char** argv) {
 
 			if(af_streql(name, "fizz")) fizz = class;
 		}
+
 		aga_af_chk("aga_mkscriptinst", aga_mkscriptinst(fizz, &inst));
 	}
 
@@ -111,27 +71,19 @@ int main(int argc, char** argv) {
 		aga_af_chk(
 			"AGA_MK_LARGE_FILE_STRATEGY",
 			AGA_MK_LARGE_FILE_STRATEGY(
-				"res/nggyu-u8pcm-8k.raw", &pcm, &pcm_len));
+				"res/nggyu-u8pcm-8k.raw", &nggyu.pcm, &nggyu.len));
 	}
 
 	ctx.die = AF_FALSE;
 	while(!ctx.die) {
-		const float clear[] = { 1.0f, 0.0f, 1.0f, 1.0f };
-
-		if(ctx.settings.audio_enabled) {
-			af_size_t written;
-			aga_af_chk("aga_flushsnd", aga_flushsnd(&ctx.snddev, &written));
-
-			pcm_pos += written;
-			if(pcm_pos < pcm_len) {
-				af_size_t cpy = AGA_MIN(
-					sizeof(ctx.snddev.buf), pcm_len - pcm_pos);
-
-				af_memcpy(ctx.snddev.buf, &pcm[pcm_pos], cpy);
-			}
-		}
+		if(ctx.settings.audio_enabled) aga_putclip(&ctx.snddev, &nggyu);
 
 		aga_af_chk("aga_poll", aga_poll(&ctx));
+
+		{
+			float clear[] = { 1.0f, 0.0f, 1.0f, 1.0f };
+			aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
+		}
 
 		{
 			float right = 0.0f;
@@ -155,32 +107,7 @@ int main(int argc, char** argv) {
 			aga_af_chk("aga_setcam", aga_setcam(&ctx));
 		}
 
-		aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
-
 		aga_af_chk("af_settex", af_settex(&ctx.af_ctx, &tex1));
-		{
-			glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glTranslatef(0.0f, 0.0f, -4.0f);
-
-			aga_af_chk(
-				"af_draw",
-				af_drawbuf(&ctx.af_ctx, &buf, &ctx.vert, AF_TRIANGLE_FAN));
-		}
-
-		aga_af_chk("af_settex", af_settex(&ctx.af_ctx, &tex2));
-		{
-			glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glScalef(10.0f, 1.0f, 10.0f);
-			glTranslatef(0.0f, -4.0f, 0.0f);
-			glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-
-			aga_af_chk(
-				"af_draw",
-				af_drawbuf(&ctx.af_ctx, &buf, &ctx.vert, AF_TRIANGLE_FAN));
-		}
-
 		{
 			glMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
@@ -192,6 +119,7 @@ int main(int argc, char** argv) {
 				af_drawbuf(&ctx.af_ctx, &loadbuf, &ctx.vert, AF_TRIANGLES));
 		}
 
+		aga_af_chk("af_settex", af_settex(&ctx.af_ctx, &tex2));
 		{
 			static double r = 0.0;
 			glMatrixMode(GL_MODELVIEW);
@@ -213,13 +141,12 @@ int main(int argc, char** argv) {
 	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex2));
 	aga_af_chk("aga_killimg", aga_killimg(&img2));
 
-	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &buf));
 	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &loadbuf));
 
 	if(ctx.settings.audio_enabled) {
 		aga_af_chk(
 			"AGA_KILL_LARGE_FILE_STRATEGY",
-			AGA_KILL_LARGE_FILE_STRATEGY(pcm, pcm_len));
+			AGA_KILL_LARGE_FILE_STRATEGY(nggyu.pcm, nggyu.len));
 	}
 
 	aga_af_chk(

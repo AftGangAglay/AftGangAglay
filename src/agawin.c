@@ -169,10 +169,6 @@ enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win) {
 		AF_ERR_UNKNOWN);
 	XSetInputFocus(ctx->dpy, win->xwin, RevertToNone, CurrentTime);
 
-	XGrabPointer(
-		ctx->dpy, win->xwin, True,
-		PointerMotionMask, GrabModeAsync, GrabModeAsync,
-		win->xwin, None, CurrentTime);
 	aga_centreptr(ctx);
 
 	{

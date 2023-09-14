@@ -22,7 +22,7 @@
 
 	<item name="Audio">
 		<item name="Enabled" type="Integer">
-			0
+			1
 		</item>
 		<item name="Device" type="String">
 			/dev/dsp2

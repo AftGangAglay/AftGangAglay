@@ -21,6 +21,8 @@ enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 	AF_PARAM_CHK(snddev);
 	AF_PARAM_CHK(dev);
 
+	af_memset(snddev->buf, 0, sizeof(snddev->buf));
+
 	do {
 		if ((snddev->fd = open(dev, O_WRONLY | O_NONBLOCK)) == -1) {
 			if(errno != EBUSY) aga_errno_chk("open");
@@ -85,6 +87,23 @@ enum af_err aga_flushsnd(struct aga_snddev* snddev, af_size_t* written) {
 		if(res != sizeof(snddev->buf)) {
 			if(errno != EAGAIN) aga_errno_chk("write");
 		}
+	}
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip) {
+	af_size_t written;
+
+	AF_PARAM_CHK(snddev);
+	AF_PARAM_CHK(clip);
+
+	AF_CHK(aga_flushsnd(snddev, &written));
+
+	clip->pos += written;
+	if(clip->pos < clip->len) {
+		af_size_t cpy = AGA_MIN(sizeof(snddev->buf), clip->len - clip->pos);
+		af_memcpy(snddev->buf, &clip->pcm[clip->pos], cpy);
 	}
 
 	return AF_ERR_NONE;

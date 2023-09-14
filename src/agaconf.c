@@ -77,10 +77,11 @@ void aga_sgml_start_element(
 	struct aga_conf_node* parent = me->stack[me->depth - 1];
 	struct aga_conf_node* node;
 
-	parent->children = realloc(
-		parent->children, ++parent->len * sizeof(struct aga_conf_node));
+	af_size_t sz = ++parent->len * sizeof(struct aga_conf_node);
 
-	if(!parent->children) aga_errno_chk("malloc");
+	parent->children = realloc(parent->children, sz);
+
+	if(!parent->children) aga_errno_chk("realloc");
 
 	node = &parent->children[parent->len - 1];
 	af_memset(node, 0, sizeof(struct aga_conf_node));
@@ -172,7 +173,7 @@ enum af_err aga_mkconf(const char* path, struct aga_conf_node* root) {
 	HTTag tags[AGA_ELEMENT_COUNT] = { 0 };
 	attr item_attributes[AGA_ITEM_ATTRIB_COUNT];
 	struct aga_sgml_structured structured = {
-		0, 0, { 0 }, 1
+		0, 0, { 0 }, 0
 	};
 	structured.file = path;
 	AF_CHK(aga_sgml_push(&structured, root));

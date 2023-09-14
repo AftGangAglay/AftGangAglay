@@ -105,8 +105,10 @@ enum af_err aga_mkscripteng(
 			 *		 Most scripts are probably pretty light on non-class
 			 *		 globals anyway.
 			 */
-			eng->classes = malloc(len * sizeof(struct aga_scriptclass));
+			eng->classes = calloc(len, sizeof(struct aga_scriptclass));
 			AF_VERIFY(eng->classes, AF_ERR_MEM);
+
+			eng->len = 0;
 
 			for(i = 0; i < len; ++i) {
 				object* key;
@@ -181,12 +183,6 @@ enum af_err aga_mkscriptinst(
 
 	call_function(methodcall, NULL);
 	aga_scriptchk();
-
-	{
-		object* x = getattr(inst->object, "x");
-		printobject(x, stdout, 0);
-		putchar('\n');
-	}
 
 	return AF_ERR_NONE;
 }

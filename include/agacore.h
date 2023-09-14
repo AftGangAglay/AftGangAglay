@@ -81,6 +81,7 @@ struct aga_ctx {
 	struct aga_settings {
 		/* Input */
 		float sensitivity;
+		float move_speed;
 
 		/* Display */
 		float fov;

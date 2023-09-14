@@ -133,15 +133,27 @@ int main(int argc, char** argv) {
 
 		aga_af_chk("aga_poll", aga_poll(&ctx));
 
-		if(ctx.keystates[XK_w]) ctx.cam.pos.decomp.z += 0.1f;
-		if(ctx.keystates[XK_s]) ctx.cam.pos.decomp.z -= 0.1f;
-		if(ctx.keystates[XK_a]) ctx.cam.pos.decomp.x += 0.1f;
-		if(ctx.keystates[XK_d]) ctx.cam.pos.decomp.x -= 0.1f;
+		{
+			float right = 0.0f;
+			float fwd = 0.0f;
 
-		ctx.cam.yaw += ctx.settings.sensitivity * ctx.pointer_dx;
-		ctx.cam.pitch += ctx.settings.sensitivity * ctx.pointer_dy;
+			if(ctx.keystates[XK_w]) fwd = ctx.settings.move_speed;
+			if(ctx.keystates[XK_s]) fwd = -ctx.settings.move_speed;
+			if(ctx.keystates[XK_a]) right = ctx.settings.move_speed;
+			if(ctx.keystates[XK_d]) right = -ctx.settings.move_speed;
 
-		aga_af_chk("aga_setcam", aga_setcam(&ctx));
+			ctx.cam.yaw += ctx.settings.sensitivity * (float) ctx.pointer_dx;
+			ctx.cam.pitch += ctx.settings.sensitivity * (float) ctx.pointer_dy;
+
+			ctx.cam.pos.decomp.x +=
+				fwd * (float) sin((double) -ctx.cam.yaw * AGA_RADS) +
+				right * (float) cos((double) ctx.cam.yaw * AGA_RADS);
+			ctx.cam.pos.decomp.z +=
+				fwd * (float) cos((double) -ctx.cam.yaw * AGA_RADS) +
+				right * (float) sin((double) ctx.cam.yaw * AGA_RADS);
+
+			aga_af_chk("aga_setcam", aga_setcam(&ctx));
+		}
 
 		aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
 

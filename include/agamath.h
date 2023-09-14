@@ -16,4 +16,7 @@ union aga_vec3 {
 #define AGA_MIN(x, y) ((x) < (y) ? (x) : (y))
 #define AGA_MAX(x, y) ((x) > (y) ? (x) : (y))
 
+#define AGA_PI (3.14159265358979323846)
+#define AGA_RADS (AGA_PI / 180.0)
+
 #endif

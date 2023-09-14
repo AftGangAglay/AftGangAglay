@@ -21,6 +21,7 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 	/* Set defaults */
 	{
 		ctx->settings.sensitivity = 0.25f;
+		ctx->settings.move_speed = 0.1f;
 
 		ctx->settings.width = 640;
 		ctx->settings.height = 480;
@@ -45,6 +46,10 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 				if(af_streql(v->name, "Sensitivity")) {
 					AF_VERIFY(v->type == AGA_FLOAT, AF_ERR_BAD_PARAM);
 					ctx->settings.sensitivity = (float) v->data.flt;
+				}
+				else if(af_streql(v->name, "MoveSpeed")) {
+					AF_VERIFY(v->type == AGA_FLOAT, AF_ERR_BAD_PARAM);
+					ctx->settings.move_speed = (float) v->data.flt;
 				}
 				else {
 					fprintf(

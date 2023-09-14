@@ -3,6 +3,9 @@
 		<item name="Sensitivity" type="Float">
 			0.125f
 		</item>
+		<item name="MoveSpeed" type="Float">
+			0.1f
+		</item>
 	</item>
 
 	<item name="Display">

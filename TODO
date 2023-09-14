@@ -1,3 +1,4 @@
 - Track down FreeWAIS
 - Use libwww for networking gamecode
 - Find older libtiff
+- Redo vg suppressions file for new windowing scheme

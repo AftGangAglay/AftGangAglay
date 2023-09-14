@@ -62,6 +62,15 @@ struct aga_ctx {
 	af_ulong_t wm_delete;
 	af_bool_t die;
 
+	int keysyms_per_keycode;
+	int keycode_len;
+	int keycode_min;
+	af_ulong_t* keymap;
+	af_bool_t* keystates;
+
+	int pointer_dx;
+	int pointer_dy;
+
 	struct aga_snddev snddev;
 	struct aga_scripteng scripteng;
 
@@ -72,8 +81,6 @@ struct aga_ctx {
 	struct aga_settings {
 		/* Input */
 		float sensitivity;
-		float zoom_speed;
-		float min_zoom, max_zoom;
 
 		/* Display */
 		float fov;

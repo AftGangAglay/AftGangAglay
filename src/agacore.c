@@ -21,9 +21,6 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 	/* Set defaults */
 	{
 		ctx->settings.sensitivity = 0.25f;
-		ctx->settings.zoom_speed = 0.1f;
-		ctx->settings.min_zoom = 2.0f;
-		ctx->settings.max_zoom = 50.0f;
 
 		ctx->settings.width = 640;
 		ctx->settings.height = 480;
@@ -48,18 +45,6 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 				if(af_streql(v->name, "Sensitivity")) {
 					AF_VERIFY(v->type == AGA_FLOAT, AF_ERR_BAD_PARAM);
 					ctx->settings.sensitivity = (float) v->data.flt;
-				}
-				else if(af_streql(v->name, "ZoomSpeed")) {
-					AF_VERIFY(v->type == AGA_FLOAT, AF_ERR_BAD_PARAM);
-					ctx->settings.zoom_speed = (float) v->data.flt;
-				}
-				else if(af_streql(v->name, "MinZoom")) {
-					AF_VERIFY(v->type == AGA_FLOAT, AF_ERR_BAD_PARAM);
-					ctx->settings.min_zoom = (float) v->data.flt;
-				}
-				else if(af_streql(v->name, "MaxZoom")) {
-					AF_VERIFY(v->type == AGA_FLOAT, AF_ERR_BAD_PARAM);
-					ctx->settings.max_zoom = (float) v->data.flt;
 				}
 				else {
 					fprintf(
@@ -190,7 +175,6 @@ enum af_err aga_setcam(struct aga_ctx* ctx) {
 			(double) ctx->settings.width / (double) ctx->settings.height,
 			0.1, 100.0);
 
-		glTranslatef(0.0f, 0.0f, -ctx->cam.dist);
 		glRotatef(ctx->cam.pitch, 1.0f, 0.0f, 0.0f);
 		glRotatef(ctx->cam.yaw, 0.0f, 1.0f, 0.0f);
 		glTranslatef(

@@ -3,15 +3,6 @@
 		<item name="Sensitivity" type="Float">
 			0.125f
 		</item>
-		<item name="ZoomSpeed" type="Float">
-			0.05f
-		</item>
-		<item name="MinZoom" type="Float">
-			2.0f
-		</item>
-		<item name="MaxZoom" type="Float">
-			10.0f
-		</item>
 	</item>
 
 	<item name="Display">

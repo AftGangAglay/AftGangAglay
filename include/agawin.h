@@ -9,6 +9,8 @@
 #include <afeirsa/aftypes.h>
 #include <afeirsa/aferr.h>
 
+#include <X11/keysymdef.h>
+
 struct aga_ctx;
 
 struct aga_win {

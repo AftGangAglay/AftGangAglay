@@ -30,57 +30,6 @@ static af_size_t pcm_pos = 0;
 static af_uchar_t* loaded;
 static af_size_t loaded_len;
 
-/*
-static af_bool_t did_click = AF_FALSE;
-static int last_button = -1;
-static int click_pos[2] = { -1, -1 };
-
-static void click(int button, int state, int x, int y) {
-	last_button = button;
-	if(state == GLUT_UP) return;
-
-	did_click = AF_TRUE;
-	click_pos[0] = x;
-	click_pos[1] = y;
-}
-
-static void motion(int x, int y) {
-	static int old_x = -1, old_y = -1;
-
-	if(did_click) {
-		did_click = AF_FALSE;
-		old_x = click_pos[0];
-		old_y = click_pos[1];
-	}
-
-	{
-		float dx = (float) (x - old_x);
-		float dy = (float) (y - old_y);
-		switch(last_button) {
-			default: return;
-			case GLUT_RIGHT_BUTTON: {
-				ctx.cam.yaw += ctx.settings.sensitivity * dx;
-				ctx.cam.pitch += ctx.settings.sensitivity * dy;
-				break;
-			}
-			case GLUT_LEFT_BUTTON: {
-				ctx.cam.dist += ctx.settings.zoom_speed * dy;
-				aga_boundf(
-					&ctx.cam.dist,
-					ctx.settings.min_zoom, ctx.settings.max_zoom);
-				break;
-			}
-		}
-
-		aga_af_chk("aga_setcam", aga_setcam(&ctx));
-	}
-
-	old_x = x;
-	old_y = y;
-}
-
-*/
-
 int main(int argc, char** argv) {
 	af_size_t i;
 
@@ -183,6 +132,16 @@ int main(int argc, char** argv) {
 		}
 
 		aga_af_chk("aga_poll", aga_poll(&ctx));
+
+		if(ctx.keystates[XK_w]) ctx.cam.pos.decomp.z += 0.1f;
+		if(ctx.keystates[XK_s]) ctx.cam.pos.decomp.z -= 0.1f;
+		if(ctx.keystates[XK_a]) ctx.cam.pos.decomp.x += 0.1f;
+		if(ctx.keystates[XK_d]) ctx.cam.pos.decomp.x -= 0.1f;
+
+		ctx.cam.yaw += ctx.settings.sensitivity * ctx.pointer_dx;
+		ctx.cam.pitch += ctx.settings.sensitivity * ctx.pointer_dy;
+
+		aga_af_chk("aga_setcam", aga_setcam(&ctx));
 
 		aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
 

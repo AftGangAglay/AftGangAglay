@@ -10,7 +10,6 @@
 
 #include <poll.h>
 #include <fcntl.h>
-#include <errno.h>
 
 static const int single_buffer_fb[] = {
 	GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
@@ -36,6 +35,14 @@ static const int double_buffer_fb[] = {
 
 	None
 };
+
+static void aga_centreptr(struct aga_ctx* ctx) {
+	int mid_x = (int) ctx->settings.width / 2;
+	int mid_y = (int) ctx->settings.height / 2;
+	XWarpPointer(
+		ctx->dpy, ctx->win.xwin, ctx->win.xwin,
+		0, 0, 0, 0, mid_x, mid_y);
+}
 
 static int aga_xerr_handler(Display* dpy, XErrorEvent* err) {
 	char buff[2048 + 1] = { 0 };
@@ -66,6 +73,21 @@ enum af_err aga_mkctxdpy(struct aga_ctx* ctx) {
 
 	ctx->wm_delete = XInternAtom(ctx->dpy, "WM_DELETE_WINDOW", True);
 
+	{
+		int min, max;
+		XDisplayKeycodes(ctx->dpy, &min, &max);
+
+		ctx->keycode_len = max - min;
+		ctx->keycode_min = min;
+
+		ctx->keymap = XGetKeyboardMapping(
+			ctx->dpy, min, ctx->keycode_len, &ctx->keysyms_per_keycode);
+
+		ctx->keystates = calloc(
+			ctx->keysyms_per_keycode * ctx->keycode_len, sizeof(af_bool_t));
+		AF_VERIFY(ctx->keystates, AF_ERR_MEM);
+	}
+
 	ctx->double_buffered = AF_TRUE;
 	fb = glXChooseFBConfig(ctx->dpy, ctx->screen, double_buffer_fb, &n_fb);
 	if(!fb) {
@@ -93,6 +115,9 @@ enum af_err aga_killctxdpy(struct aga_ctx* ctx) {
 
 	glXDestroyContext(ctx->dpy, ctx->glx);
 
+	XFree(ctx->keymap);
+	free(ctx->keystates);
+
 	XCloseDisplay(ctx->dpy);
 
 	return AF_ERR_NONE;
@@ -116,7 +141,9 @@ enum af_err aga_mkwin(struct aga_ctx* ctx, struct aga_win* win) {
 		ctx->dpy, win->xwin, "Aft Gang Aglay", "", None,
 		ctx->argv, ctx->argc, 0);
 
-	XSelectInput(ctx->dpy, win->xwin, NoEventMask);
+	XSelectInput(
+		ctx->dpy, win->xwin,
+		KeyPressMask | KeyReleaseMask | PointerMotionMask);
 	XSetWMProtocols(ctx->dpy, win->xwin, &ctx->wm_delete, 1);
 
 	XMapRaised(ctx->dpy, win->xwin);
@@ -140,6 +167,30 @@ enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win) {
 	AF_VERIFY(
 		glXMakeContextCurrent(ctx->dpy, win->xwin, win->xwin, ctx->glx),
 		AF_ERR_UNKNOWN);
+	XSetInputFocus(ctx->dpy, win->xwin, RevertToNone, CurrentTime);
+
+	XGrabPointer(
+		ctx->dpy, win->xwin, True,
+		PointerMotionMask, GrabModeAsync, GrabModeAsync,
+		win->xwin, None, CurrentTime);
+	aga_centreptr(ctx);
+
+	{
+		Cursor hidden;
+		Pixmap bitmap;
+		XColor black = { 0 };
+		char empty[8] = { 0 };
+
+		bitmap = XCreateBitmapFromData(ctx->dpy, win->xwin, empty, 1, 1);
+		AF_VERIFY(bitmap, AF_ERR_UNKNOWN);
+
+		hidden =
+			XCreatePixmapCursor(
+				ctx->dpy, bitmap, bitmap, &black, &black, 0, 0);
+		XDefineCursor(ctx->dpy, win->xwin, hidden);
+		XFreePixmap(ctx->dpy, bitmap);
+		XFreeCursor(ctx->dpy, hidden);
+	}
 
 	return AF_ERR_NONE;
 }
@@ -167,10 +218,41 @@ enum af_err aga_poll(struct aga_ctx* ctx) {
 
 	if(rdy && (pollfd.revents & POLLIN)) {
 		while(XPending(ctx->dpy) > 0) {
+			af_bool_t press = AF_FALSE;
+
 			XNextEvent(ctx->dpy, &event);
 
 			switch(event.type) {
 				default: break;
+
+				case KeyPress: press = AF_TRUE;
+					AF_FALLTHROUGH;
+					/* FALLTHRU */
+				case KeyRelease: {
+					unsigned keycode = event.xkey.keycode;
+					af_size_t keysym_idx =
+						(keycode - ctx->keycode_min) *
+						ctx->keysyms_per_keycode + 0;
+					af_ulong_t keysym = ctx->keymap[keysym_idx];
+
+					ctx->keystates[keysym] = press;
+
+					break;
+				}
+
+				case MotionNotify: {
+					int mid_x = (int) ctx->settings.width / 2;
+					int mid_y = (int) ctx->settings.height / 2;
+
+					if(event.xmotion.x != mid_x || event.xmotion.y != mid_y) {
+						aga_centreptr(ctx);
+					}
+
+					ctx->pointer_dx = event.xmotion.x - mid_x;
+					ctx->pointer_dy = event.xmotion.y - mid_y;
+
+					break;
+				}
 
 				case ClientMessage: {
 					if(event.xclient.window == ctx->win.xwin) {

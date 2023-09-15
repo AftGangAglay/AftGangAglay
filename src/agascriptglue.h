@@ -8,17 +8,6 @@
 
 #include <modsupport.h>
 
-struct aga_nativeptr {
-	OB_HEAD
-	void* ptr;
-};
-
-static typeobject aga_nativeptrtype = {
-	OB_HEAD_INIT(&Typetype)
-	0, "nativeptr", sizeof(struct aga_nativeptr),
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
 static void aga_setfmterr(object* exception, const char* fmt, ...) {
 	static char str[2048 + 1];
 

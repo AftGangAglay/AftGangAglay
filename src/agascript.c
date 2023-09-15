@@ -239,21 +239,3 @@ enum af_err aga_instcall(struct aga_scriptinst* inst, const char* name) {
 
 	return AF_ERR_NONE;
 }
-
-enum af_err aga_instptr(
-		struct aga_scriptinst* inst, const char* name, void* data) {
-
-	object* native;
-
-	AF_PARAM_CHK(inst);
-	AF_PARAM_CHK(name);
-	AF_PARAM_CHK(data);
-
-	native = newobject(&aga_nativeptrtype);
-	aga_scriptchk();
-
-	setattr(inst->object, (char*) name, native);
-	aga_scriptchk();
-
-	return AF_ERR_NONE;
-}

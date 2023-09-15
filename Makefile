@@ -19,7 +19,7 @@ include vendor/libtiff.mk
 OUT = src/libafeirsa.a
 
 SOURCES = $(wildcard src/*.c)
-HEADERS = $(wildcard include/*.h)
+HEADERS = $(wildcard include/*.h) $(wildcard src/*.h)
 OBJECTS = $(SOURCES:.c=.o)
 
 OUT = src/main

@@ -46,6 +46,8 @@ static void aga_scriptchk(void) {
 	}
 }
 
+#include "agascriptglue.h"
+
 enum af_err aga_mkscripteng(
 		struct aga_scripteng* eng, const char* script, const char* pypath) {
 
@@ -54,6 +56,7 @@ enum af_err aga_mkscripteng(
 	AF_PARAM_CHK(pypath);
 
 	initall();
+	AF_CHK(aga_mkmod());
 
 	setpythonpath((char*) pypath); /* libpython predates `const' */
 	setpythonargv(0, 0);
@@ -150,6 +153,7 @@ enum af_err aga_killscripteng(struct aga_scripteng* eng) {
 	free(eng->classes);
 
 	flushline();
+	AF_CHK(aga_killmod());
 	doneimport();
 	donebuiltin();
 	donesys();

@@ -47,25 +47,7 @@ int main(int argc, char** argv) {
 	aga_af_chk("aga_mkimg", aga_mkimg(&img2, "res/test.tiff"));
 	aga_af_chk("aga_mkteximg", aga_mkteximg(&ctx.af_ctx, &img2, &tex2));
 
-	puts((const char*) glGetString(GL_VERSION));
-
 	aga_setcam(&ctx);
-
-	{
-		af_size_t i;
-
-		struct aga_scriptclass* fizz;
-		struct aga_scriptinst inst;
-		for(i = 0; i < ctx.scripteng.len; ++i) {
-			struct aga_scriptclass* class = &ctx.scripteng.classes[i];
-			char* name = class->name;
-			printf("- found script class `%s'\n", name);
-
-			if(af_streql(name, "fizz")) fizz = class;
-		}
-
-		aga_af_chk("aga_mkscriptinst", aga_mkscriptinst(fizz, &inst));
-	}
 
 	if(ctx.settings.audio_enabled) {
 		aga_af_chk(

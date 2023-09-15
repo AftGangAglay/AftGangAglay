@@ -148,8 +148,7 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 
 	/* TODO: Python path resolution in packaged builds. */
 	AF_CHK(aga_mkscripteng(
-		&ctx->scripteng, ctx->settings.startup_script,
-		ctx->settings.python_path));
+		ctx, ctx->settings.startup_script, ctx->settings.python_path));
 
 	return AF_ERR_NONE;
 }

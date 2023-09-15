@@ -44,7 +44,6 @@ struct aga_cam {
 	union aga_vec3 pos;
 	float yaw;
 	float pitch;
-	float dist;
 };
 
 struct aga_ctx {

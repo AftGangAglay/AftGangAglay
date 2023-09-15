@@ -24,11 +24,13 @@ int main(int argc, char** argv) {
 
 	struct aga_clip nggyu = { 0 };
 
+	struct aga_scriptclass* class;
+	struct aga_scriptinst inst;
+
 	af_uchar_t* loaded;
 	af_size_t loaded_len;
 
 	aga_af_chk("aga_init", aga_init(&ctx, argc, argv));
-	ctx.cam.dist = 3.0f;
 
 	sphere = gluNewQuadric();
 	gluQuadricTexture(sphere, GL_TRUE);
@@ -56,37 +58,21 @@ int main(int argc, char** argv) {
 				"res/nggyu-u8pcm-8k.raw", &nggyu.pcm, &nggyu.len));
 	}
 
+	aga_af_chk(
+		"aga_findclass", aga_findclass(&ctx.scripteng, &class, "camera"));
+	aga_af_chk("aga_mkscriptinst", aga_mkscriptinst(class, &inst));
+
 	ctx.die = AF_FALSE;
 	while(!ctx.die) {
 		if(ctx.settings.audio_enabled) aga_putclip(&ctx.snddev, &nggyu);
 
 		aga_af_chk("aga_poll", aga_poll(&ctx));
 
+		aga_af_chk("aga_instcall", aga_instcall(&inst, "update"));
+
 		{
 			float clear[] = { 1.0f, 0.0f, 1.0f, 1.0f };
 			aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
-		}
-
-		{
-			float right = 0.0f;
-			float fwd = 0.0f;
-
-			if(ctx.keystates[XK_w]) fwd = ctx.settings.move_speed;
-			if(ctx.keystates[XK_s]) fwd = -ctx.settings.move_speed;
-			if(ctx.keystates[XK_a]) right = ctx.settings.move_speed;
-			if(ctx.keystates[XK_d]) right = -ctx.settings.move_speed;
-
-			ctx.cam.yaw += ctx.settings.sensitivity * (float) ctx.pointer_dx;
-			ctx.cam.pitch += ctx.settings.sensitivity * (float) ctx.pointer_dy;
-
-			ctx.cam.pos.decomp.x +=
-				fwd * (float) sin((double) -ctx.cam.yaw * AGA_RADS) +
-				right * (float) cos((double) ctx.cam.yaw * AGA_RADS);
-			ctx.cam.pos.decomp.z +=
-				fwd * (float) cos((double) -ctx.cam.yaw * AGA_RADS) +
-				right * (float) sin((double) ctx.cam.yaw * AGA_RADS);
-
-			aga_af_chk("aga_setcam", aga_setcam(&ctx));
 		}
 
 		aga_af_chk("af_settex", af_settex(&ctx.af_ctx, &tex1));
@@ -130,6 +116,8 @@ int main(int argc, char** argv) {
 			"AGA_KILL_LARGE_FILE_STRATEGY",
 			AGA_KILL_LARGE_FILE_STRATEGY(nggyu.pcm, nggyu.len));
 	}
+
+	aga_af_chk("aga_killscriptinst", aga_killscriptinst(&inst));
 
 	aga_af_chk(
 		"AGA_KILL_LARGE_FILE_STRATEGY",

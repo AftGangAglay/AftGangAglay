@@ -46,14 +46,22 @@ static void aga_scriptchk(void) {
 	}
 }
 
+/*
+ * NOTE: This exists like this to avoid needing another mess of script
+ * 		 Includes and to reduce the impact of the less-than-desirable global
+ * 		 Context state here.
+ */
+static struct aga_ctx* script_ctx;
 #include "agascriptglue.h"
 
 enum af_err aga_mkscripteng(
-		struct aga_scripteng* eng, const char* script, const char* pypath) {
+		struct aga_ctx* ctx, const char* script, const char* pypath) {
 
-	AF_PARAM_CHK(eng);
+	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(script);
 	AF_PARAM_CHK(pypath);
+
+	script_ctx = ctx;
 
 	initall();
 	AF_CHK(aga_mkmod());
@@ -108,10 +116,10 @@ enum af_err aga_mkscripteng(
 			 *		 Most scripts are probably pretty light on non-class
 			 *		 globals anyway.
 			 */
-			eng->classes = calloc(len, sizeof(struct aga_scriptclass));
-			AF_VERIFY(eng->classes, AF_ERR_MEM);
+			ctx->scripteng.classes = calloc(len, sizeof(struct aga_scriptclass));
+			AF_VERIFY(ctx->scripteng.classes, AF_ERR_MEM);
 
-			eng->len = 0;
+			ctx->scripteng.len = 0;
 
 			for(i = 0; i < len; ++i) {
 				object* key;
@@ -124,7 +132,8 @@ enum af_err aga_mkscripteng(
 				AF_VERIFY(value = dictlookup(dict, key_name), AF_ERR_UNKNOWN);
 
 				if(is_classobject(value)) {
-					struct aga_scriptclass* class = &eng->classes[eng->len++];
+					struct aga_scriptclass* class =
+						&ctx->scripteng.classes[ctx->scripteng.len++];
 					af_size_t key_len = strlen(key_name);
 
 					class->class = value;
@@ -167,19 +176,57 @@ enum af_err aga_killscripteng(struct aga_scripteng* eng) {
 	return AF_ERR_NONE;
 }
 
+enum af_err aga_findclass(
+		struct aga_scripteng* eng, struct aga_scriptclass** class,
+		const char* name) {
+
+	struct aga_scriptclass* current;
+
+	AF_PARAM_CHK(eng);
+	AF_PARAM_CHK(class);
+
+	for(current = eng->classes; current < eng->classes + eng->len; ++current) {
+		if(af_streql(current->name, name)) {
+			*class = current;
+			return AF_ERR_NONE;
+		}
+	}
+
+	return AF_ERR_BAD_PARAM;
+}
+
 enum af_err aga_mkscriptinst(
 		struct aga_scriptclass* class, struct aga_scriptinst* inst) {
-
-	object* proc;
-	object* methodcall;
 
 	AF_PARAM_CHK(class);
 	AF_PARAM_CHK(inst);
 
+	inst->class = class;
+
 	inst->object = newclassmemberobject(class->class);
 	aga_scriptchk();
 
-	proc = getattr(class->class, "create");
+	AF_CHK(aga_instcall(inst, "create"));
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_killscriptinst(struct aga_scriptinst* inst) {
+	AF_PARAM_CHK(inst);
+
+	DECREF((object*) inst->object);
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_instcall(struct aga_scriptinst* inst, const char* name) {
+	object* proc;
+	object* methodcall;
+
+	AF_PARAM_CHK(inst);
+	AF_PARAM_CHK(name);
+
+	proc = getattr(inst->class->class, (char*) name);
 	aga_scriptchk();
 
 	methodcall = newclassmethodobject(proc, inst->object);
@@ -188,13 +235,25 @@ enum af_err aga_mkscriptinst(
 	call_function(methodcall, NULL);
 	aga_scriptchk();
 
+	DECREF(methodcall);
+
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_killscriptinst(struct aga_scriptinst* inst) {
+enum af_err aga_instptr(
+		struct aga_scriptinst* inst, const char* name, void* data) {
+
+	object* native;
+
 	AF_PARAM_CHK(inst);
+	AF_PARAM_CHK(name);
+	AF_PARAM_CHK(data);
 
+	native = newobject(&aga_nativeptrtype);
+	aga_scriptchk();
 
+	setattr(inst->object, (char*) name, native);
+	aga_scriptchk();
 
 	return AF_ERR_NONE;
 }

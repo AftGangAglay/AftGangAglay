@@ -6,9 +6,9 @@
 #include <agacore.h>
 
 static const struct af_vert_element vert_elements[] = {
-	{ AF_MEMBSIZE(struct aga_vertex, pos ), AF_VERT_POS  },
 	{ AF_MEMBSIZE(struct aga_vertex, col ), AF_VERT_COL  },
 	{ AF_MEMBSIZE(struct aga_vertex, uv  ), AF_VERT_UV   },
+	{ AF_MEMBSIZE(struct aga_vertex, pos ), AF_VERT_POS  },
 	{ AF_MEMBSIZE(struct aga_vertex, norm), AF_VERT_NORM },
 };
 

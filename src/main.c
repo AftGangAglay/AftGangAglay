@@ -5,7 +5,6 @@
 
 #include <agacore.h>
 #include <agaimg.h>
-#include <agaconf.h>
 #include <agasnd.h>
 #include <agaio.h>
 #include <agascript.h>
@@ -38,7 +37,7 @@ int main(int argc, char** argv) {
 	aga_af_chk(
 		"AGA_MK_LARGE_FILE_STRATEGY",
 		AGA_MK_LARGE_FILE_STRATEGY(
-			"res/thing.raw", (af_uchar_t**) &loaded, &loaded_len));
+			"res/plane.raw", (af_uchar_t**) &loaded, &loaded_len));
 	aga_af_chk("af_mkbuf", af_mkbuf(&ctx.af_ctx, &loadbuf, AF_BUF_VERT));
 	aga_af_chk(
 		"af_upload", af_upload(&ctx.af_ctx, &loadbuf, loaded, loaded_len));
@@ -78,9 +77,9 @@ int main(int argc, char** argv) {
 		aga_af_chk("af_settex", af_settex(&ctx.af_ctx, &tex1));
 		{
 			glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glScalef(1.0f, 1.0f, 1.0f);
-			glTranslatef(-5.0f, -2.0f, 0.0f);
+				glLoadIdentity();
+				glScalef(1.0f, 1.0f, 1.0f);
+				glTranslatef(-5.0f, -2.0f, 0.0f);
 
 			aga_af_chk(
 				"af_draw",
@@ -91,8 +90,8 @@ int main(int argc, char** argv) {
 		{
 			static double r = 0.0;
 			glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glRotated((r += 0.5), 1.0, 1.0, 1.0);
+				glLoadIdentity();
+				glRotated((r += 0.5), 1.0, 1.0, 1.0);
 
 			glColor3d(sin(r / 50.0), cos(r / 50.0), 0.1);
 			gluSphere(sphere, 50.0, 20, 20);

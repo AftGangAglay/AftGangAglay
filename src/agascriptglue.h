@@ -40,19 +40,16 @@ static object* agan_getmotion(object* self, object* arg) {
 	(void) self, (void) arg;
 
 	retval = newlistobject(2);
-	aga_scriptchk();
+	if(!retval) return 0;
 
 	x = newfloatobject(script_ctx->pointer_dx);
-	aga_scriptchk();
+	if(!x) return 0;
 
 	y = newfloatobject(script_ctx->pointer_dy);
-	aga_scriptchk();
+	if(!y) return 0;
 
-	setlistitem(retval, 0, x);
-	aga_scriptchk();
-
-	setlistitem(retval, 1, y);
-	aga_scriptchk();
+	if(setlistitem(retval, 0, x) == -1) return 0;
+	if(setlistitem(retval, 1, y) == -1) return 0;
 
 	return retval;
 }
@@ -69,14 +66,14 @@ static object* agan_setcam(object* self, object* arg) {
 
 	{
 		object* pos = getattr(arg, "pos");
-		aga_scriptchk();
+		if(!pos) return 0;
 
 		for(i = 0; i < 3; ++i) {
 			float f;
 			object* p;
 
 			p = getlistitem(pos, (int) i);
-			aga_scriptchk();
+			if(!p) return 0;
 
 			f = (float) getfloatvalue(p);
 			aga_scriptchk();
@@ -89,22 +86,23 @@ static object* agan_setcam(object* self, object* arg) {
 		object* v;
 		float f;
 		object* rot = getattr(arg, "rot");
-		aga_scriptchk();
+		if(!rot) return 0;
 
 		v = getlistitem(rot, 1);
-		aga_scriptchk();
+		if(!v) return 0;
 
 		f = (float) getfloatvalue(v);
 		aga_scriptchk();
-
+		/*
+		 * NOTE: The error state reporting out of `getfloatvalue' is borked.
+		if(f == -1) return 0;
+		 */
 		script_ctx->cam.yaw = f;
 
 		v = getlistitem(rot, 0);
-		aga_scriptchk();
-
+		if(!v) return 0;
 		f = (float) getfloatvalue(v);
 		aga_scriptchk();
-
 		script_ctx->cam.pitch = f;
 	}
 
@@ -117,11 +115,60 @@ static object* agan_setcam(object* self, object* arg) {
 	return 0;
 }
 
+static object* agan_getconf(object* self, object* arg) {
+	object* conf;
+	object* val;
+
+	(void) self, (void) arg;
+
+	conf = newdictobject();
+	aga_scriptchk();
+
+	val = newfloatobject(script_ctx->settings.sensitivity);
+	if(!val) return 0;
+	if(dictinsert(conf, "sensitivity", val) == -1) return 0;
+
+	val = newfloatobject(script_ctx->settings.move_speed);
+	if(!val) return 0;
+	if(dictinsert(conf, "move_speed", val)) return 0;
+
+	val = newfloatobject(script_ctx->settings.fov);
+	if(!val) return 0;
+	if(dictinsert(conf, "fov", val)) return 0;
+
+	val = newintobject(script_ctx->settings.width);
+	if(!val) return 0;
+	if(dictinsert(conf, "width", val)) return 0;
+
+	val = newintobject(script_ctx->settings.height);
+	if(!val) return 0;
+	if(dictinsert(conf, "height", val)) return 0;
+
+	val = newintobject(script_ctx->settings.audio_enabled);
+	if(!val) return 0;
+	if(dictinsert(conf, "audio_enabled", val)) return 0;
+
+	val = newstringobject((char*) script_ctx->settings.audio_dev);
+	if(!val) return 0;
+	if(dictinsert(conf, "audio_dev", val)) return 0;
+
+	val = newstringobject((char*) script_ctx->settings.startup_script);
+	if(!val) return 0;
+	if(dictinsert(conf, "startup_script", val)) return 0;
+
+	val = newstringobject((char*) script_ctx->settings.python_path);
+	if(!val) return 0;
+	if(dictinsert(conf, "python_path", val)) return 0;
+
+	return conf;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
 		{ "setcam", agan_setcam },
 		{ "getmotion", agan_getmotion },
+		{ "getconf", agan_getconf },
 		{ 0, 0 }
 	};
 

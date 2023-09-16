@@ -80,7 +80,6 @@ void aga_sgml_start_element(
 	af_size_t sz = ++parent->len * sizeof(struct aga_conf_node);
 
 	parent->children = realloc(parent->children, sz);
-
 	if(!parent->children) aga_errno_chk("realloc");
 
 	node = &parent->children[parent->len - 1];

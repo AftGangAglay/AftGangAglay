@@ -34,10 +34,10 @@
 #endif
 
 struct aga_vertex {
-	float pos[3];
 	float col[4];
 	float uv[2];
 	float norm[3];
+	float pos[3];
 };
 
 struct aga_cam {

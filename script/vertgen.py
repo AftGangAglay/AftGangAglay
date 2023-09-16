@@ -3,9 +3,9 @@
 
 # We're following the same vertex spec defined in `agacore.h'
 # > struct aga_vertex {
-# >     float pos[3];
 # >     float col[4];
 # >     float uv[2];
+# >     float pos[3];
 # >     float norm[3];
 # > };
 
@@ -35,14 +35,6 @@ with pyassimp.load(argv[1]) as scene:
             ooo = array([o, o, o], dtype=float32)
             oooo = array([o, o, o, o], dtype=float32)
 
-            if len(mesh.vertices):
-                a = mesh.vertices[i]
-                vertices.append(a[0])
-                vertices.append(a[1])
-                vertices.append(a[2])
-            else:
-                vertices.extend(zzz)
-
             vertices.extend(oooo)  # No color
 
             if len(mesh.texturecoords):
@@ -52,7 +44,21 @@ with pyassimp.load(argv[1]) as scene:
             else:
                 vertices.extend(zz)
 
-            vertices.extend(zzz)  # No normals
+            if len(mesh.normals):
+                a = mesh.normals[i]
+                vertices.append(a[0])
+                vertices.append(a[1])
+                vertices.append(a[2])
+            else:
+                vertices.extend(zzz)
+
+            if len(mesh.vertices):
+                a = mesh.vertices[i]
+                vertices.append(a[0])
+                vertices.append(a[1])
+                vertices.append(a[2])
+            else:
+                vertices.extend(zzz)
 
     for face in mesh.faces:
         for vertex in face:

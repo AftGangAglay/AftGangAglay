@@ -62,6 +62,7 @@ with pyassimp.load(argv[1]) as scene:
 
     for face in mesh.faces:
         for vertex in face:
+            print(vertex)
             data.extend(vertices[vertex * VERTSZ:(vertex + 1) * VERTSZ])
 
 data_s = array(data, dtype=float32)

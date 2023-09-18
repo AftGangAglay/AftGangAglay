@@ -6,7 +6,24 @@
 #ifndef AGA_SCRIPT_GLUE_H
 #define AGA_SCRIPT_GLUE_H
 
+#include <agaio.h>
+
 #include <modsupport.h>
+
+struct aga_nativeptr {
+	OB_HEAD
+	void* ptr;
+	af_size_t len;
+};
+
+static void aga_nativeptr_dealloc(object* _) { (void) _; }
+
+static const typeobject aga_nativeptr_type = {
+	OB_HEAD_INIT(&Typetype)
+	0,
+	"nativeptr", sizeof(struct aga_nativeptr), 0,
+	aga_nativeptr_dealloc, 0, 0, 0, 0, 0, 0, 0, 0
+};
 
 static void aga_setfmterr(object* exception, const char* fmt, ...) {
 	static char str[2048 + 1];
@@ -22,6 +39,8 @@ static void aga_setfmterr(object* exception, const char* fmt, ...) {
 }
 
 static object* agan_getkey(object* self, object* arg) {
+	long value;
+
 	(void) self;
 
 	if(!arg || !is_intobject(arg)) {
@@ -29,7 +48,10 @@ static object* agan_getkey(object* self, object* arg) {
 		return 0;
 	}
 
-	return script_ctx->keystates[getintvalue(arg)] ? True : False;
+	value = getintvalue(arg);
+	aga_scriptchk();
+
+	return script_ctx->keystates[value] ? True : False;
 }
 
 static object* agan_getmotion(object* self, object* arg) {
@@ -112,7 +134,8 @@ static object* agan_setcam(object* self, object* arg) {
 		return 0;
 	}
 
-	return 0;
+	INCREF(None);
+	return None;
 }
 
 static object* agan_getconf(object* self, object* arg) {
@@ -163,12 +186,197 @@ static object* agan_getconf(object* self, object* arg) {
 	return conf;
 }
 
+static object* agan_mklargefile(object* self, object* arg) {
+	struct aga_nativeptr* retval;
+	const char* path;
+
+	(void) self;
+
+	if(!arg || !is_stringobject(arg)) {
+		err_setstr(RuntimeError, "mklargefile() argument must be string");
+		return 0;
+	}
+
+	path = getstringvalue(arg);
+	retval = NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
+	if(!retval) return 0;
+
+	if(AGA_MK_LARGE_FILE_STRATEGY(
+		path, (af_uchar_t**) &retval->ptr, &retval->len)) {
+
+		err_setstr(RuntimeError, "AGA_MK_LARGE_FILE_STRATEGY() failed");
+		return 0;
+	}
+
+	return (object*) retval;
+}
+
+static object* agan_killlargefile(object* self, object* arg) {
+	struct aga_nativeptr* nativeptr;
+
+	(void) self;
+
+	if(!arg || arg->ob_type != &aga_nativeptr_type) {
+		err_setstr(
+			RuntimeError, "mklargefile() arguments must be nativeptr and int");
+		return 0;
+	}
+
+	nativeptr = (struct aga_nativeptr*) arg;
+
+	if(AGA_KILL_LARGE_FILE_STRATEGY(nativeptr->ptr, nativeptr->len)) {
+		err_setstr(RuntimeError, "AGA_KILL_LARGE_FILE_STRATEGY() failed");
+		return 0;
+	}
+
+	INCREF(None);
+	return None;
+}
+
+static object* agan_mkvertbuf(object* self, object* arg) {
+	struct aga_nativeptr* nativeptr;
+	struct aga_nativeptr* retval;
+
+	(void) self;
+
+	if(!arg || arg->ob_type != &aga_nativeptr_type) {
+		err_setstr(
+			RuntimeError, "mkvertbuf() argument must be nativeptr");
+		return 0;
+	}
+
+	nativeptr = (struct aga_nativeptr*) arg;
+
+	retval = NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
+	if(!retval) return 0;
+
+	if(!(retval->ptr = malloc(sizeof(struct af_buf)))) {
+		err_nomem();
+		return 0;
+	}
+
+	if(af_mkbuf(&script_ctx->af_ctx, retval->ptr, AF_BUF_VERT)) {
+		err_setstr(RuntimeError, "af_mkbuf() failed");
+		return 0;
+	}
+
+	if(af_upload(
+		&script_ctx->af_ctx, retval->ptr, nativeptr->ptr,
+		nativeptr->len)) {
+
+		err_setstr(RuntimeError, "af_upload() failed");
+		return 0;
+	}
+
+	return (object*) retval;
+}
+
+static object* agan_killvertbuf(object* self, object* arg) {
+	(void) self;
+
+	if(!arg || arg->ob_type != &aga_nativeptr_type) {
+		err_setstr(
+			RuntimeError, "killvertbuf() argument must be nativeptr");
+		return 0;
+	}
+
+	if(af_killbuf(&script_ctx->af_ctx, ((struct aga_nativeptr*) arg)->ptr)) {
+		err_setstr(RuntimeError, "af_killbuf() failed");
+		return 0;
+	}
+
+	INCREF(None);
+	return None;
+}
+
+static object* agan_drawbuf(object* self, object* arg) {
+	object* v;
+	object* o;
+	object* t;
+
+	void* ptr;
+	long primitive;
+
+	(void) self;
+
+	if(!arg || !is_tupleobject(arg) ||
+		!(v = gettupleitem(arg, 0)) || v->ob_type != &aga_nativeptr_type ||
+		!(o = gettupleitem(arg, 1)) || !is_intobject(o) ||
+		!(t = gettupleitem(arg, 2)) || !is_classmemberobject(t)) {
+
+		err_setstr(
+			RuntimeError,
+			"drawbuf() arguments must be nativeptr, int and transform");
+		return 0;
+	}
+
+	ptr = ((struct aga_nativeptr*) v)->ptr;
+	primitive = getintvalue(o);
+	aga_scriptchk();
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	{
+		const char* comps[] = { "pos", "rot", "scale" };
+		object* comp;
+		object* xo;
+		object* yo;
+		object* zo;
+		float x, y, z;
+		af_size_t i;
+
+		for(i = 0; i < 3; ++i) {
+			void (*proc)(float, float, float) = glScalef;
+
+			if(!(comp = getattr(t, (char*) comps[i]))) return 0;
+			if(!(xo = getlistitem(comp, 0))) return 0;
+			if(!(yo = getlistitem(comp, 1))) return 0;
+			if(!(zo = getlistitem(comp, 2))) return 0;
+
+			x = (float) getfloatvalue(xo);
+			aga_scriptchk();
+			y = (float) getfloatvalue(yo);
+			aga_scriptchk();
+			z = (float) getfloatvalue(zo);
+			aga_scriptchk();
+
+			switch(i) {
+				default: break;
+				case 1: {
+					glRotatef(x, 1.0f, 0.0f, 0.0f);
+					glRotatef(y, 0.0f, 1.0f, 0.0f);
+					glRotatef(z, 0.0f, 0.0f, 1.0f);
+					break;
+				}
+				case 0: proc = glTranslatef;
+				case 2: {
+					proc(x, y, z);
+					break;
+				}
+			}
+		}
+	}
+
+	if(af_drawbuf(&script_ctx->af_ctx, ptr, &script_ctx->vert, primitive)) {
+		err_setstr(RuntimeError, "af_drawbuf() failed");
+		return 0;
+	}
+
+	INCREF(None);
+	return None;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
 		{ "setcam", agan_setcam },
 		{ "getmotion", agan_getmotion },
 		{ "getconf", agan_getconf },
+		{ "mklargefile", agan_mklargefile },
+		{ "killlargefile", agan_killlargefile },
+		{ "mkvertbuf", agan_mkvertbuf },
+		{ "killvertbuf", agan_killvertbuf },
+		{ "drawbuf", agan_drawbuf },
 		{ 0, 0 }
 	};
 

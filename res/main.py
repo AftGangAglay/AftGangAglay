@@ -13,9 +13,13 @@ class camera():
         self.sensitivity = self.conf['sensitivity']
         self.move_speed = self.conf['move_speed']
         #
+        self.file = aga.largefile().create('res/thing.raw')
+        self.buf = aga.vertexbuffer().create(self.file)
+        self.modeltrans = aga.transform().create()
+        #
         return self
     #
-    def update(self):
+    def control(self):
         motion = aga.getmotion()
         #
         right = 0.0
@@ -43,3 +47,12 @@ class camera():
         self.trans.pos[2] = self.trans.pos[2] + fwd * ncos + right * sin
         #
         aga.setcam(self.trans)
+    #
+    def update(self):
+        self.control()
+        self.modeltrans.pos[0] = self.modeltrans.pos[0] + 0.01
+        self.modeltrans.rot[1] = self.modeltrans.rot[1] + 1.0
+        self.modeltrans.scale[2] = self.modeltrans.scale[2] + 0.005
+        self.buf.draw(aga.TRIANGLES, self.modeltrans)
+    #
+    # TODO: def destroy(self):

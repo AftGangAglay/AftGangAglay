@@ -85,7 +85,7 @@ enum af_err aga_flushsnd(struct aga_snddev* snddev, af_size_t* written) {
 		ssize_t res = write(snddev->fd, snddev->buf, sizeof(snddev->buf));
 		*written = res;
 		if(res != sizeof(snddev->buf)) {
-			if(errno != EAGAIN) aga_errno_chk("write");
+			if(errno && errno != EAGAIN) aga_errno_chk("write");
 		}
 	}
 

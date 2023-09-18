@@ -98,7 +98,7 @@ enum af_err aga_mkscripteng(
 
 		result = eval_code(code, dict, dict, 0);
 		aga_scriptchk();
-		DECREF(result);
+		if(result) { DECREF(result); }
 
 		DECREF(code);
 		flushline();

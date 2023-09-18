@@ -23,7 +23,6 @@ struct aga_scriptclass {
 
 struct aga_scriptinst {
 	struct aga_scriptclass* class;
-
 	void* object;
 };
 

@@ -6,6 +6,8 @@
 #include <agasnd.h>
 #include <agacore.h>
 
+#ifdef AGA_NOSND
+
 #include <sys/ioctl.h>
 #include <sys/soundcard.h>
 
@@ -108,3 +110,30 @@ enum af_err aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip) {
 
 	return AF_ERR_NONE;
 }
+
+#else
+
+enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
+	(void) snddev;
+	(void) dev;
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_killsnddev(struct aga_snddev* snddev) {
+	(void) snddev;
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_flushsnd(struct aga_snddev* snddev, af_size_t* written) {
+	(void) snddev;
+	(void) written;
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip) {
+	(void) snddev;
+	(void) clip;
+	return AF_ERR_NONE;
+}
+
+#endif

@@ -39,10 +39,18 @@ ifndef WINDOWS
 	CFLAGS += -D_POSIX_SOURCE
 endif
 
+ifdef APPLE
+	NOSND = 1
+endif
+
 ifdef DEBUG
 	CFLAGS += -g -O0 -D_DEBUG
 else
 	CFLAGS += -DNDEBUG -Ofast
+endif
+
+ifndef NOSND
+	CFLAGS += -DAGA_NOSND
 endif
 
 .DEFAULT_GOAL := all

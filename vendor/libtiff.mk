@@ -6,7 +6,7 @@ LIBTIFF_ROOT = vendor/libtiff
 LIBTIFF = $(LIBTIFF_ROOT)/libtiff/libtiff.a
 LIBTIFF_IFLAGS = -isystem $(LIBTIFF_ROOT)/libtiff
 
-LIBTIFF_CFLAGS = -std=c89 -ansi -D_SVID_SOURCE -w
+LIBTIFF_CFLAGS = -std=c89 -ansi -D_SVID_SOURCE -w -Dunix
 LIBTIFF_CFLAGS += -Wno-incompatible-function-pointer-types
 
 ifdef DEBUG
@@ -15,10 +15,14 @@ else
 	LIBTIFF_CFLAGS += -DNDEBUG -Ofast
 endif
 
+ifdef APPLE
+	LIBTIFF_CONFIG_FLAGS += i386-unknown-bsd
+endif
+
 all: $(LIBTIFF)
 
 $(LIBTIFF_ROOT)/Makefile:
-	cd $(LIBTIFF_ROOT) && (./configure << yes)
+	cd $(LIBTIFF_ROOT) && (./configure $(LIBTIFF_CONFIG_FLAGS) << yes)
 
 LIBTIFF_MAKE_FLAGS = COPTS="$(LIBTIFF_CFLAGS)" CC="$(CC)"
 $(LIBTIFF): $(LIBTIFF_ROOT)/Makefile SUBMAKE

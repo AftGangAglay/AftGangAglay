@@ -27,7 +27,7 @@ OUT = src/main
 CFLAGS += -Iinclude
 CFLAGS += -std=c89 -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
 
-LDLIBS += -ltiff -lm -lX11
+LDLIBS += -lm -lX11
 
 CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS) $(AFEIRSA_IFLAGS) $(LIBTIFF_IFLAGS)
 CFLAGS += $(NCURSES_IFLAGS)

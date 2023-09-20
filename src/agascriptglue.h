@@ -353,6 +353,8 @@ static object* agan_drawbuf(object* self, object* arg) {
 					break;
 				}
 				case 0: proc = glTranslatef;
+					AF_FALLTHROUGH;
+					/* FALLTHRU */
 				case 2: {
 					proc(x, y, z);
 					break;

@@ -12,28 +12,12 @@
 int main(int argc, char** argv) {
 	struct aga_ctx ctx;
 
-	GLUquadric* sphere;
-
-	struct aga_img img1;
-	struct af_buf tex1;
-	struct aga_img img2;
-	struct af_buf tex2;
-
 	struct aga_clip nggyu = { 0 };
 
 	struct aga_scriptclass* class;
 	struct aga_scriptinst inst;
 
 	aga_af_chk("aga_init", aga_init(&ctx, argc, argv));
-
-	sphere = gluNewQuadric();
-	gluQuadricTexture(sphere, GL_TRUE);
-
-	aga_af_chk("aga_mkimg", aga_mkimg(&img1, "res/arse.tiff"));
-	aga_af_chk("aga_mkteximg", aga_mkteximg(&ctx.af_ctx, &img1, &tex1));
-
-	aga_af_chk("aga_mkimg", aga_mkimg(&img2, "res/test.tiff"));
-	aga_af_chk("aga_mkteximg", aga_mkteximg(&ctx.af_ctx, &img2, &tex2));
 
 	aga_setcam(&ctx);
 
@@ -59,30 +43,11 @@ int main(int argc, char** argv) {
 			aga_af_chk("af_clear", af_clear(&ctx.af_ctx, clear));
 		}
 
-		aga_af_chk("af_settex", af_settex(&ctx.af_ctx, &tex1));
 		aga_af_chk("aga_instcall", aga_instcall(&inst, "update"));
-
-		aga_af_chk("af_settex", af_settex(&ctx.af_ctx, &tex2));
-		{
-			static double r = 0.0;
-			glMatrixMode(GL_MODELVIEW);
-				glLoadIdentity();
-				glRotated((r += 0.5), 1.0, 1.0, 1.0);
-
-			glColor3d(sin(r / 50.0), cos(r / 50.0), 0.1);
-			gluSphere(sphere, 50.0, 20, 20);
-		}
 
 		aga_af_chk("af_flush", af_flush(&ctx.af_ctx));
 		aga_af_chk("aga_swapbuf", aga_swapbuf(&ctx, &ctx.win));
 	}
-
-	gluDeleteQuadric(sphere);
-
-	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex1));
-	aga_af_chk("aga_killimg", aga_killimg(&img1));
-	aga_af_chk("af_killbuf", af_killbuf(&ctx.af_ctx, &tex2));
-	aga_af_chk("aga_killimg", aga_killimg(&img2));
 
 	if(ctx.settings.audio_enabled) {
 		aga_af_chk(

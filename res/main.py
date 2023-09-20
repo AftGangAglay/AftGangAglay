@@ -17,6 +17,17 @@ class camera():
         self.buf = aga.vertexbuffer().create(self.file)
         self.modeltrans = aga.transform().create()
         #
+        self.tex = aga.texture().create('res/arse.tiff')
+        #
+        self.spherefile = aga.largefile().create('res/sphere.raw')
+        self.spherebuf = aga.vertexbuffer().create(self.spherefile)
+        self.spheretrans = aga.transform().create()
+        self.spheretrans.scale[0] = 40.0
+        self.spheretrans.scale[1] = 40.0
+        self.spheretrans.scale[2] = 40.0
+        #
+        self.testtex = aga.texture().create('res/test.tiff')
+        #
         return self
     #
     def control(self):
@@ -50,6 +61,14 @@ class camera():
     #
     def update(self):
         self.control()
+        #
+        self.testtex.use()
+        self.spheretrans.rot[0] = self.spheretrans.rot[0] + 0.5
+        self.spheretrans.rot[1] = self.spheretrans.rot[1] + 0.5
+        self.spheretrans.rot[2] = self.spheretrans.rot[2] + 0.5
+        self.spherebuf.draw(aga.TRIANGLES, self.spheretrans)
+        #
+        self.tex.use()
         self.modeltrans.pos[0] = self.modeltrans.pos[0] + 0.01
         self.modeltrans.rot[1] = self.modeltrans.rot[1] + 1.0
         self.modeltrans.scale[2] = self.modeltrans.scale[2] + 0.005

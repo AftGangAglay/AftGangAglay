@@ -7,6 +7,7 @@
 #define AGA_SCRIPT_GLUE_H
 
 #include <agaio.h>
+#include <agaimg.h>
 
 #include <modsupport.h>
 
@@ -218,7 +219,7 @@ static object* agan_killlargefile(object* self, object* arg) {
 
 	if(!arg || arg->ob_type != &aga_nativeptr_type) {
 		err_setstr(
-			RuntimeError, "mklargefile() arguments must be nativeptr and int");
+			RuntimeError, "killlargefile() argument must be nativeptr");
 		return 0;
 	}
 
@@ -284,6 +285,8 @@ static object* agan_killvertbuf(object* self, object* arg) {
 		err_setstr(RuntimeError, "af_killbuf() failed");
 		return 0;
 	}
+
+	free(((struct aga_nativeptr*) arg)->ptr);
 
 	INCREF(None);
 	return None;
@@ -366,6 +369,127 @@ static object* agan_drawbuf(object* self, object* arg) {
 	return None;
 }
 
+struct agan_teximg {
+	struct aga_img img;
+	struct af_buf tex;
+};
+
+static object* agan_mkteximg(object* self, object* arg) {
+	struct aga_nativeptr* retval;
+	const char* path;
+
+	(void) self;
+
+	if(!arg || !is_stringobject(arg)) {
+		err_setstr(
+			RuntimeError, "mkteximg() argument must be string");
+		return 0;
+	}
+
+	retval = NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
+	if(!retval) return 0;
+
+	if(!(retval->ptr = malloc(sizeof(struct agan_teximg)))) {
+		err_nomem();
+		return 0;
+	}
+
+	if(!(path = getstringvalue(arg))) return 0;
+
+	if(aga_mkimg(&((struct agan_teximg*) retval->ptr)->img, path)) {
+		err_setstr(RuntimeError, "aga_mkimg() failed");
+		return 0;
+	}
+
+	if(aga_mkteximg(
+		&script_ctx->af_ctx, &((struct agan_teximg*) retval->ptr)->img,
+		&((struct agan_teximg*) retval->ptr)->tex)) {
+
+		err_setstr(RuntimeError, "aga_mkteximg() failed");
+		return 0;
+	}
+
+	return (object*) retval;
+}
+
+static object* agan_settex(object* self, object* arg) {
+	struct agan_teximg* teximg;
+
+	(void) self;
+
+	if (!arg || arg->ob_type != &aga_nativeptr_type) {
+		err_setstr(RuntimeError, "settex() argument must be nativeptr");
+		return 0;
+	}
+
+	teximg = ((struct aga_nativeptr*) arg)->ptr;
+
+	if(af_settex(&script_ctx->af_ctx, &teximg->tex)) {
+		err_setstr(RuntimeError, "af_settex() failed");
+		return 0;
+	}
+
+	INCREF(None);
+	return None;
+}
+
+static object* agan_killteximg(object* self, object* arg) {
+	struct agan_teximg* teximg;
+
+	(void) self;
+
+	if(!arg || arg->ob_type != &aga_nativeptr_type) {
+		err_setstr(
+			RuntimeError, "killteximg() argument must be nativeptr");
+		return 0;
+	}
+
+	teximg = ((struct aga_nativeptr*) arg)->ptr;
+
+	if(af_killbuf(&script_ctx->af_ctx, &teximg->tex)) {
+		err_setstr(RuntimeError, "af_killbuf() failed");
+		return 0;
+	}
+
+	if(aga_killimg(&teximg->img)) {
+		err_setstr(RuntimeError, "aga_killimg() failed");
+		return 0;
+	}
+
+	free(((struct aga_nativeptr*) arg)->ptr);
+
+	INCREF(None);
+	return None;
+}
+
+static object* agan_setcol(object* self, object* arg) {
+	object* v;
+	float r, g, b;
+
+	(void) self;
+
+	if(!arg || !is_listobject(arg)) {
+		err_setstr(
+			RuntimeError, "setcol() argument must be list");
+		return 0;
+	}
+
+	if(!(v = getlistitem(arg, 0))) return 0;
+	r = (float) getfloatvalue(v);
+	aga_scriptchk();
+	if(!(v = getlistitem(arg, 1))) return 0;
+	g = (float) getfloatvalue(v);
+	aga_scriptchk();
+	if(!(v = getlistitem(arg, 2))) return 0;
+	b = (float) getfloatvalue(v);
+	aga_scriptchk();
+
+	glColor3f(r, g, b);
+
+	INCREF(None);
+	return None;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -377,6 +501,10 @@ enum af_err aga_mkmod(void) {
 		{ "mkvertbuf", agan_mkvertbuf },
 		{ "killvertbuf", agan_killvertbuf },
 		{ "drawbuf", agan_drawbuf },
+		{ "mkteximg", agan_mkteximg },
+		{ "settex", agan_settex },
+		{ "killteximg", agan_killteximg },
+		{ "setcol", agan_setcol },
 		{ 0, 0 }
 	};
 

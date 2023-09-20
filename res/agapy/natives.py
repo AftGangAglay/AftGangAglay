@@ -33,3 +33,14 @@ class vertexbuffer():
     #
     def draw(self, (primitive, trans)):
         agan.drawbuf(self.nativeptr, primitive, trans)
+
+class texture():
+    def create(self, str):
+        self.nativeptr = agan.mkteximg(str)
+        return self
+    #
+    def close(self):
+        agan.killteximg(self.nativeptr)
+    #
+    def use(self):
+        agan.settex(self.nativeptr)

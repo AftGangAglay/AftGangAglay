@@ -9,4 +9,4 @@
 	url = https://github.com/Th3T3chn0G1t/Afeirsa
 [submodule "vendor/libtiff"]
 	path = vendor/libtiff
-	url = https://github.com/Th3T3chn0G1t/libtiff-3.4-beta18
+	url = https://github.com/Th3T3chn0G1t/libtiff3.4beta18

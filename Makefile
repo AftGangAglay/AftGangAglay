@@ -30,7 +30,8 @@ CFLAGS += -std=c89 -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
 LDLIBS += -ltiff -lm -lX11
 
 CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS) $(AFEIRSA_IFLAGS) $(LIBTIFF_IFLAGS)
-LDLIBS += $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) $(LIBTIFF)
+CFLAGS += $(NCURSES_IFLAGS)
+LDLIBS += $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) $(LIBTIFF) $(LIBNCURSES)
 
 # glabi appends its own ldlibs
 CFLAGS += $(GLABI)
@@ -57,7 +58,7 @@ endif
 .PHONY: all
 all: $(OUT)
 
-$(OUT): $(OBJECTS) $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) $(LIBTIFF)
+$(OUT): $(OBJECTS) $(LDLIBS)
 
 $(OBJECTS): $(HEADERS)
 

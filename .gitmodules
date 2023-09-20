@@ -10,3 +10,6 @@
 [submodule "vendor/libtiff"]
 	path = vendor/libtiff
 	url = https://github.com/Th3T3chn0G1t/libtiff3.4beta18
+[submodule "vendor/ncurses"]
+	path = vendor/ncurses
+	url = https://github.com/Th3T3chn0G1t/ncurses1.8.1

@@ -12,8 +12,6 @@
 int main(int argc, char** argv) {
 	struct aga_ctx ctx;
 
-	struct aga_clip nggyu = { 0 };
-
 	struct aga_scriptclass* class;
 	struct aga_scriptinst inst;
 
@@ -21,21 +19,12 @@ int main(int argc, char** argv) {
 
 	aga_setcam(&ctx);
 
-	if(ctx.settings.audio_enabled) {
-		aga_af_chk(
-			"AGA_MK_LARGE_FILE_STRATEGY",
-			AGA_MK_LARGE_FILE_STRATEGY(
-				"res/nggyu-u8pcm-8k.raw", &nggyu.pcm, &nggyu.len));
-	}
-
 	aga_af_chk(
-		"aga_findclass", aga_findclass(&ctx.scripteng, &class, "camera"));
+		"aga_findclass", aga_findclass(&ctx.scripteng, &class, "game"));
 	aga_af_chk("aga_mkscriptinst", aga_mkscriptinst(class, &inst));
 
 	ctx.die = AF_FALSE;
 	while(!ctx.die) {
-		if(ctx.settings.audio_enabled) aga_putclip(&ctx.snddev, &nggyu);
-
 		aga_af_chk("aga_poll", aga_poll(&ctx));
 
 		{
@@ -49,11 +38,7 @@ int main(int argc, char** argv) {
 		aga_af_chk("aga_swapbuf", aga_swapbuf(&ctx, &ctx.win));
 	}
 
-	if(ctx.settings.audio_enabled) {
-		aga_af_chk(
-			"AGA_KILL_LARGE_FILE_STRATEGY",
-			AGA_KILL_LARGE_FILE_STRATEGY(nggyu.pcm, nggyu.len));
-	}
+	aga_af_chk("aga_instcall", aga_instcall(&inst, "close"));
 
 	aga_af_chk("aga_killscriptinst", aga_killscriptinst(&inst));
 

@@ -490,6 +490,75 @@ static object* agan_setcol(object* self, object* arg) {
 	return None;
 }
 
+static object* agan_mkclip(object* self, object* arg) {
+	struct aga_nativeptr* retval;
+	struct aga_nativeptr* file;
+	struct aga_clip* clip;
+
+	(void) self;
+
+	if(!arg || arg->ob_type != &aga_nativeptr_type) {
+		err_setstr(
+			RuntimeError, "mkclip() argument must be nativeptr");
+		return 0;
+	}
+
+	file = (struct aga_nativeptr*) arg;
+
+	retval = NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
+	if(!retval) return 0;
+
+	if(!(retval->ptr = malloc(sizeof(struct aga_clip)))) {
+		err_nomem();
+		return 0;
+	}
+
+	clip = retval->ptr;
+
+	clip->len = file->len;
+	clip->pcm = file->ptr;
+	clip->pos = 0;
+
+	return (object*) retval;
+}
+
+static object* agan_putclip(object* self, object* arg) {
+	(void) self;
+
+	if(!arg || arg->ob_type != &aga_nativeptr_type) {
+		err_setstr(
+			RuntimeError, "putclip() argument must be nativeptr");
+		return 0;
+	}
+
+	if(script_ctx->settings.audio_enabled) {
+		if(aga_putclip(
+			&script_ctx->snddev, ((struct aga_nativeptr*) arg)->ptr)) {
+
+			err_setstr(RuntimeError, "aga_putclip() failed");
+			return 0;
+		}
+	}
+
+	INCREF(None);
+	return None;
+}
+
+static object* agan_killclip(object* self, object* arg) {
+	(void) self;
+
+	if(!arg || arg->ob_type != &aga_nativeptr_type) {
+		err_setstr(
+			RuntimeError, "killclip() argument must be nativeptr");
+		return 0;
+	}
+
+	free(((struct aga_nativeptr*) arg)->ptr);
+
+	INCREF(None);
+	return None;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -505,6 +574,9 @@ enum af_err aga_mkmod(void) {
 		{ "settex", agan_settex },
 		{ "killteximg", agan_killteximg },
 		{ "setcol", agan_setcol },
+		{ "mkclip", agan_mkclip },
+		{ "putclip", agan_putclip },
+		{ "killclip", agan_killclip },
 		{ 0, 0 }
 	};
 

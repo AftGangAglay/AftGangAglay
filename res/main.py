@@ -5,8 +5,10 @@ import aga
 
 import math
 
-class camera():
+class game():
     def create(self):
+        print('Breathing in the chemicals...')
+        #
         self.trans = aga.transform().create()
         self.conf = aga.getconf()
         #
@@ -28,6 +30,10 @@ class camera():
         #
         self.testtex = aga.texture().create('res/test.tiff')
         #
+        self.clipfile = aga.largefile().create('res/nggyu-u8pcm-8k.raw')
+        self.clip = aga.clip().create(self.clipfile)
+        #
+        print('Ahhhh!')
         return self
     #
     def control(self):
@@ -73,5 +79,17 @@ class camera():
         self.modeltrans.rot[1] = self.modeltrans.rot[1] + 1.0
         self.modeltrans.scale[2] = self.modeltrans.scale[2] + 0.005
         self.buf.draw(aga.TRIANGLES, self.modeltrans)
+        #
+        self.clip.play()
     #
-    # TODO: def destroy(self):
+    def close(self):
+        print('Tearing down...')
+        self.file.close()
+        self.buf.close()
+        self.tex.close()
+        self.spherefile.close()
+        self.spherebuf.close()
+        self.testtex.close()
+        self.clipfile.close()
+        self.clip.close()
+        print('Bye-bye!')

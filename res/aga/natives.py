@@ -44,3 +44,14 @@ class texture():
     #
     def use(self):
         agan.settex(self.nativeptr)
+
+class clip():
+    def create(self, file):
+        self.nativeptr = agan.mkclip(file.nativeptr)
+        return self
+    #
+    def close(self):
+        agan.killclip(self.nativeptr)
+    #
+    def play(self):
+        agan.putclip(self.nativeptr)

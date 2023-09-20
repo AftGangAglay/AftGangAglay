@@ -6,7 +6,7 @@
 #include <agacore.h>
 #include <agaimg.h>
 #include <agasnd.h>
-#include <agaio.h>
+#include <agalog.h>
 #include <agascript.h>
 
 int main(int argc, char** argv) {
@@ -14,6 +14,11 @@ int main(int argc, char** argv) {
 
 	struct aga_scriptclass* class;
 	struct aga_scriptinst inst;
+
+	const char* logfiles[] = { "/dev/stdout", "aga.log" };
+	aga_af_chk("aga_mklog", aga_mklog(logfiles, AF_ARRLEN(logfiles)));
+
+	aga_log(__FILE__, "Breathing in the chemicals...");
 
 	aga_af_chk("aga_init", aga_init(&ctx, argc, argv));
 
@@ -38,11 +43,16 @@ int main(int argc, char** argv) {
 		aga_af_chk("aga_swapbuf", aga_swapbuf(&ctx, &ctx.win));
 	}
 
+	aga_log(__FILE__, "Tearing down...");
+
 	aga_af_chk("aga_instcall", aga_instcall(&inst, "close"));
 
 	aga_af_chk("aga_killscriptinst", aga_killscriptinst(&inst));
 
 	aga_af_chk("aga_kill", aga_kill(&ctx));
+
+	aga_log(__FILE__, "Bye-bye!");
+	aga_af_chk("aga_killlog", aga_killlog());
 
 	return EXIT_SUCCESS;
 }

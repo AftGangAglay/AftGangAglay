@@ -7,11 +7,13 @@
 
 #include <agacore.h>
 #include <agascript.h>
+#include <agalog.h>
 
 /* NOTE: This is cursed beyond cursed but old C code do be like that. */
 #define main __attribute__((weak)) main
 #include <pythonmain.c>
 #include <config.c>
+#include <traceback.h>
 #undef main
 
 int setpythonpath(char* path);
@@ -35,14 +37,25 @@ static void aga_scriptchk(void) {
 	object* val;
 
 	if(err_occurred()) {
+		af_size_t i;
+		object* v = tb_fetch();
+
 		err_get(&exc, &val);
-		fputs("python: ", stderr);
-		printobject(exc, stderr, PRINT_RAW);
-		fputs(": ", stderr);
-		printobject(val, stderr, PRINT_RAW);
-		putc('\n', stderr);
-		printtraceback(stderr);
-		aga_fatal("");
+		for(i = 0; i < aga_logctx.len; ++i) {
+			FILE* s = aga_logctx.targets[i];
+			fprintf(s, "[%s] ", __FILE__);
+			printobject(exc, s, PRINT_RAW);
+			fputs(": ", s);
+			printobject(val, s, PRINT_RAW);
+			putc('\n', s);
+			printtraceback(s);
+			fprintf(s, "Stack backtrace (innermost last):\n");
+			tb_print(v, s);
+		}
+
+		DECREF(v);
+
+		abort();
 	}
 }
 

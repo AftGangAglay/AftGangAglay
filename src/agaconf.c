@@ -7,6 +7,7 @@
 
 #include <agacore.h>
 #include <agaconf.h>
+#include <agalog.h>
 #include <agaio.h>
 
 /* Very nasty dependency to leak - keep it contained! */
@@ -88,11 +89,14 @@ void aga_sgml_start_element(
 	aga_af_chk("aga_sgml_push", aga_sgml_push(me, node));
 
 	switch(element_number) {
-		default: aga_fatal("SGML_new: unknown element %i", element_number);
+		default: {
+			aga_log(__FILE__, "SGML_new: unknown element %i", element_number);
+			abort();
+		}
 		case AGA_NODE_ITEM: {
 			if(!attribute_present[AGA_ITEM_NAME]) {
-				fprintf(
-					stderr,
+				aga_log(
+					__FILE__,
 					"warn: <item> element without name attrib in `%s'\n",
 					me->file);
 			}
@@ -112,7 +116,7 @@ void aga_sgml_start_element(
 				else {
 					static const char fmt[] =
 						"warn: <item> element has unknown type `%s' in `%s'\n";
-					fprintf(stderr, fmt, typename, me->file);
+					aga_log(__FILE__, fmt, typename, me->file);
 					node->type = AGA_NONE;
 				}
 			}

@@ -23,15 +23,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 #include <time.h>
 #include <math.h>
 #include <ctype.h>
+#include <errno.h>
+#include <signal.h>
 
 #ifdef AF_HAVE_GNU
 # if __has_attribute(noreturn)
 #  define AGA_NORETURN __attribute__((noreturn))
 # endif
 #endif
+
+/*
+ * NOTE: This exists for cases where we are forced to use fixed size buffers
+ * 		 Due to limitations like the nonexistence of `vsnprintf'.
+ * 		 This is NOT an excuse to use this pattern unnecessarily - play nice
+ * 		 With your buffers.
+ */
+typedef char aga_fixed_buf_t[2048 + 1];
 
 struct aga_vertex {
 	float col[4];
@@ -112,7 +123,6 @@ enum af_err aga_setcam(struct aga_ctx* ctx);
  */
 void aga_af_chk(const char* proc, enum af_err e);
 AGA_NORETURN void aga_errno_chk(const char* proc);
-AGA_NORETURN void aga_fatal(const char* fmt, ...);
 
 void aga_boundf(float* f, float min, float max);
 

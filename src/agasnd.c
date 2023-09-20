@@ -5,6 +5,7 @@
 
 #include <agasnd.h>
 #include <agacore.h>
+#include <agalog.h>
 
 #ifdef AGA_NOSND
 
@@ -14,7 +15,6 @@
 #include <poll.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <errno.h>
 
 enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 	af_bool_t busy_msg = AF_FALSE;
@@ -29,14 +29,13 @@ enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 		if ((snddev->fd = open(dev, O_WRONLY | O_NONBLOCK)) == -1) {
 			if(errno != EBUSY) aga_errno_chk("open");
 			if(!busy_msg) {
-				fprintf(
-					stderr, "Sound device `%s' busy. Waiting...\n", dev);
+				aga_log(__FILE__, "Sound device `%s' busy. Waiting...\n", dev);
 				busy_msg = AF_TRUE;
 			}
 		}
 		else break;
 	} while(errno == EBUSY);
-	printf("Sound device `%s' acquired!\n", dev);
+	aga_log(__FILE__, "Sound device `%s' acquired!\n", dev);
 
 	value = AGA_SND_SAMPLEBITS;
 	if(ioctl(snddev->fd, SOUND_PCM_WRITE_BITS, &value) == -1) {

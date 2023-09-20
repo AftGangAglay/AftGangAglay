@@ -4,6 +4,7 @@
  */
 
 #include <agacore.h>
+#include <agalog.h>
 
 static const struct af_vert_element vert_elements[] = {
 	{ AF_MEMBSIZE(struct aga_vertex, col ), AF_VERT_COL  },
@@ -38,6 +39,8 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 
 	AF_CHK(aga_mkconf(path, &ctx->conf));
 
+	/* TODO: We can almost certainly clean this up. */
+
 	for(item = ctx->conf.children->children;
 		item < ctx->conf.children->children + ctx->conf.children->len;
 		++item) {
@@ -54,8 +57,9 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 					ctx->settings.move_speed = (float) v->data.flt;
 				}
 				else {
-					fprintf(
-						stderr, "warn: unknown input setting `%s'\n", v->name);
+					aga_log(
+						__FILE__,
+						"warn: unknown input setting `%s'\n", v->name);
 				}
 			}
 		}
@@ -75,8 +79,8 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 					ctx->settings.fov = (float) v->data.flt;
 				}
 				else {
-					fprintf(
-						stderr,
+					aga_log(
+						__FILE__,
 						"warn: unknown display setting `%s'\n", v->name);
 				}
 			}
@@ -93,8 +97,9 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 					ctx->settings.audio_dev = v->data.string;
 				}
 				else {
-					fprintf(
-						stderr, "warn: unknown audio setting `%s'\n", v->name);
+					aga_log(
+						__FILE__,
+						"warn: unknown audio setting `%s'\n", v->name);
 				}
 			}
 		}
@@ -110,8 +115,8 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 					ctx->settings.python_path = v->data.string;
 				}
 				else {
-					fprintf(
-						stderr,
+					aga_log(
+						__FILE__,
 						"warn: unknown script setting `%s'\n", v->name);
 				}
 			}
@@ -207,21 +212,16 @@ void aga_af_chk(const char* proc, enum af_err e) {
 		case AF_ERR_MEM: n = "out of memory"; break;
 	}
 
-	fprintf(stderr, "%s: %s\n", proc, n);
+	aga_log(__FILE__, "%s: %s\n", proc, n);
 	abort();
 }
 
 void aga_errno_chk(const char* proc) {
-	perror(proc);
-	abort();
-}
-
-void aga_fatal(const char* fmt, ...) {
-	va_list l;
-	va_start(l, fmt);
-	vfprintf(stderr, fmt, l);
-	va_end(l);
-	putc('\n', stderr);
+	/*
+	 * TODO: This gives a rather unhelpful file message as it won't be the
+	 * 		 Site of the error.
+	 */
+	aga_log(__FILE__, "%s: %s", proc, strerror(errno));
 	abort();
 }
 

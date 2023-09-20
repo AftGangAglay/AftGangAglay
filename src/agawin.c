@@ -4,6 +4,7 @@
  */
 
 #include <agacore.h>
+#include <agalog.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -45,10 +46,12 @@ static void aga_centreptr(struct aga_ctx* ctx) {
 }
 
 static int aga_xerr_handler(Display* dpy, XErrorEvent* err) {
-	char buff[2048 + 1] = { 0 };
+	aga_fixed_buf_t buf = { 0 };
 
-	XGetErrorText(dpy, err->error_code, buff, sizeof(buff));
-	aga_fatal("xlib: %s", buff);
+	XGetErrorText(dpy, err->error_code, buf, sizeof(buf));
+
+	aga_log(__FILE__, "xlib: %s", buf);
+	abort();
 }
 
 enum af_err aga_mkctxdpy(struct aga_ctx* ctx) {

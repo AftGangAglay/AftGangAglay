@@ -8,6 +8,7 @@
 
 #include <agaio.h>
 #include <agaimg.h>
+#include <agalog.h>
 
 #include <modsupport.h>
 
@@ -27,7 +28,7 @@ static const typeobject aga_nativeptr_type = {
 };
 
 static void aga_setfmterr(object* exception, const char* fmt, ...) {
-	static char str[2048 + 1];
+	aga_fixed_buf_t str = { 0 };
 
 	va_list l;
 	va_start(l, fmt);
@@ -559,6 +560,29 @@ static object* agan_killclip(object* self, object* arg) {
 	return None;
 }
 
+static object* agan_log(object* self, object* arg) {
+	const char* str;
+	const char* loc;
+
+	(void) self;
+
+	if(!arg || !is_stringobject(arg)) {
+		err_setstr(
+			RuntimeError, "log() argument must be string");
+		return 0;
+	}
+
+	str = getstringvalue(arg);
+	if(!str) return 0;
+
+	if(!(loc = getstringvalue(current_frame->f_code->co_filename))) return 0;
+
+	aga_log(loc, str);
+
+	INCREF(None);
+	return None;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -577,6 +601,7 @@ enum af_err aga_mkmod(void) {
 		{ "mkclip", agan_mkclip },
 		{ "putclip", agan_putclip },
 		{ "killclip", agan_killclip },
+		{ "log", agan_log },
 		{ 0, 0 }
 	};
 

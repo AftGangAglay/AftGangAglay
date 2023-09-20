@@ -7,7 +7,7 @@ import math
 
 class game():
     def create(self):
-        print('Breathing in the chemicals...')
+        aga.log('I wake!')
         #
         self.trans = aga.transform().create()
         self.conf = aga.getconf()
@@ -33,7 +33,6 @@ class game():
         self.clipfile = aga.largefile().create('res/nggyu-u8pcm-8k.raw')
         self.clip = aga.clip().create(self.clipfile)
         #
-        print('Ahhhh!')
         return self
     #
     def control(self):
@@ -83,7 +82,6 @@ class game():
         self.clip.play()
     #
     def close(self):
-        print('Tearing down...')
         self.file.close()
         self.buf.close()
         self.tex.close()
@@ -92,4 +90,3 @@ class game():
         self.testtex.close()
         self.clipfile.close()
         self.clip.close()
-        print('Bye-bye!')

@@ -34,7 +34,7 @@
 			res/main.py
 		</item>
 		<item name="Path" type="String">
-			vendor/python/lib:res/agapy:res
+			vendor/python/lib:res/aga:res
 		</item>
 	</item>
 </root>

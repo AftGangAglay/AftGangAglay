@@ -6,29 +6,12 @@
 #ifndef AGA_CORE_H
 #define AGA_CORE_H
 
-/*
- * TODO: We should consider hiding all non-AGA includes in implementations to
- * 		 Keep a sane, abstracted public API.
- */
-
-#include <agamath.h>
 #include <agasnd.h>
 #include <agascript.h>
 #include <agaconf.h>
 #include <agawin.h>
 
 #include <afeirsa/afeirsa.h>
-#include <afeirsa/afgl.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <time.h>
-#include <math.h>
-#include <ctype.h>
-#include <errno.h>
-#include <signal.h>
 
 #ifdef AF_HAVE_GNU
 # if __has_attribute(noreturn)
@@ -51,12 +34,6 @@ struct aga_vertex {
 	float pos[3];
 };
 
-struct aga_cam {
-	union aga_vec3 pos;
-	float yaw;
-	float pitch;
-};
-
 struct aga_ctx {
 	struct af_ctx af_ctx;
 
@@ -67,7 +44,7 @@ struct aga_ctx {
 	int dpy_fd;
 	int screen;
 	struct aga_win win;
-	GLXContext glx;
+	void* glx;
 	af_bool_t double_buffered;
 	af_ulong_t wm_delete;
 	af_bool_t die;
@@ -85,7 +62,6 @@ struct aga_ctx {
 	struct aga_scripteng scripteng;
 
 	struct af_vert vert;
-	struct aga_cam cam;
 
 	struct aga_conf_node conf;
 	struct aga_settings {
@@ -110,8 +86,6 @@ struct aga_ctx {
 
 enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv);
 enum af_err aga_kill(struct aga_ctx* ctx);
-
-enum af_err aga_setcam(struct aga_ctx* ctx);
 
 /*
  * NOTE: The use of `chk' is somewhat inconsistent in that the base `AF_'

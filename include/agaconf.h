@@ -7,6 +7,7 @@
 #define AGA_CONF_H
 
 #include <afeirsa/aferr.h>
+#include <afeirsa/aftypes.h>
 
 /*
  * NOTE: This is a pretty restrictive way to represent the quite versatile

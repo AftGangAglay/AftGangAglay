@@ -6,12 +6,6 @@
 #ifndef AGA_SCRIPT_GLUE_H
 #define AGA_SCRIPT_GLUE_H
 
-#include <agaio.h>
-#include <agaimg.h>
-#include <agalog.h>
-
-#include <modsupport.h>
-
 struct aga_nativeptr {
 	OB_HEAD
 	void* ptr;
@@ -26,19 +20,6 @@ static const typeobject aga_nativeptr_type = {
 	"nativeptr", sizeof(struct aga_nativeptr), 0,
 	aga_nativeptr_dealloc, 0, 0, 0, 0, 0, 0, 0, 0
 };
-
-static void aga_setfmterr(object* exception, const char* fmt, ...) {
-	aga_fixed_buf_t str = { 0 };
-
-	va_list l;
-	va_start(l, fmt);
-
-	/* NOTE: `vsnprintf' doesn't exist yet. Demons may arise. */
-	vsprintf(str, fmt, l);
-	err_setstr(exception, str);
-
-	va_end(l);
-}
 
 static object* agan_getkey(object* self, object* arg) {
 	long value;
@@ -88,53 +69,57 @@ static object* agan_setcam(object* self, object* arg) {
 		return 0;
 	}
 
-	{
-		object* pos = getattr(arg, "pos");
-		if(!pos) return 0;
-
-		for(i = 0; i < 3; ++i) {
-			float f;
-			object* p;
-
-			p = getlistitem(pos, (int) i);
-			if(!p) return 0;
-
-			f = (float) getfloatvalue(p);
-			aga_scriptchk();
-
-			script_ctx->cam.pos.comp[i] = f;
-		}
-	}
+	glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluPerspective(
+			script_ctx->settings.fov,
+			(double) script_ctx->settings.width /
+			(double) script_ctx->settings.height,
+			0.1, 10000.0);
 
 	{
+		/*
+		 * NOTE: The error state reporting out of `getfloatvalue' and co.
+		 * 		 Is borked. Just always `aga_scriptchk'.
+		 */
+
 		object* v;
 		float f;
 		object* rot = getattr(arg, "rot");
 		if(!rot) return 0;
 
-		v = getlistitem(rot, 1);
-		if(!v) return 0;
-
-		f = (float) getfloatvalue(v);
-		aga_scriptchk();
-		/*
-		 * NOTE: The error state reporting out of `getfloatvalue' is borked.
-		if(f == -1) return 0;
-		 */
-		script_ctx->cam.yaw = f;
-
 		v = getlistitem(rot, 0);
 		if(!v) return 0;
 		f = (float) getfloatvalue(v);
 		aga_scriptchk();
-		script_ctx->cam.pitch = f;
+		glRotatef(f, 1.0f, 0.0f, 0.0f);
+
+		v = getlistitem(rot, 1);
+		if(!v) return 0;
+		f = (float) getfloatvalue(v);
+		aga_scriptchk();
+		glRotatef(f, 0.0f, 1.0f, 0.0f);
+	}
+
+	{
+		float comps[3];
+		object* pos = getattr(arg, "pos");
+		if(!pos) return 0;
+
+		for(i = 0; i < 3; ++i) {
+			object* p;
+
+			p = getlistitem(pos, (int) i);
+			if(!p) return 0;
+
+			comps[i] = (float) getfloatvalue(p);
+			aga_scriptchk();
+		}
+
+		glTranslatef(comps[0], comps[1], comps[2]);
 	}
 
 	/* TODO: `af_err` -> python exception. */
-	if(aga_setcam(script_ctx)) {
-		aga_setfmterr(RuntimeError, "aga_setcam() failed");
-		return 0;
-	}
 
 	INCREF(None);
 	return None;

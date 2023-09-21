@@ -6,11 +6,14 @@
 #include <agacore.h>
 #include <agalog.h>
 
+#define AGA_WANT_UNIX
+#include <agastd.h>
+#undef AGA_WANT_UNIX
+
+#include <afeirsa/afgl.h>
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-
-#include <poll.h>
-#include <fcntl.h>
 
 static const int single_buffer_fb[] = {
 	GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,

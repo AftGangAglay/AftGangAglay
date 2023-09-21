@@ -35,7 +35,7 @@ LDLIBS += $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) $(LIBTIFF)
 CFLAGS += $(GLABI)
 
 ifndef WINDOWS
-	CFLAGS += -D_POSIX_SOURCE
+	CFLAGS += -D_POSIX_SOURCE -DAGA_HAVE_UNIX
 endif
 
 ifdef APPLE
@@ -48,7 +48,7 @@ else
 	CFLAGS += -DNDEBUG -Ofast
 endif
 
-ifndef NOSND
+ifdef NOSND
 	CFLAGS += -DAGA_NOSND
 endif
 

@@ -6,15 +6,16 @@
 #include <agasnd.h>
 #include <agacore.h>
 #include <agalog.h>
+#include <agamath.h>
 
-#ifdef AGA_NOSND
+#ifndef AGA_NOSND
 
 #include <sys/ioctl.h>
 #include <sys/soundcard.h>
 
-#include <poll.h>
-#include <unistd.h>
-#include <fcntl.h>
+#define AGA_WANT_UNIX
+#include <agastd.h>
+#undef AGA_WANT_UNIX
 
 enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 	af_bool_t busy_msg = AF_FALSE;
@@ -125,7 +126,7 @@ enum af_err aga_killsnddev(struct aga_snddev* snddev) {
 
 enum af_err aga_flushsnd(struct aga_snddev* snddev, af_size_t* written) {
 	(void) snddev;
-	(void) written;
+	*written = 0;
 	return AF_ERR_NONE;
 }
 

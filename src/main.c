@@ -9,6 +9,8 @@
 #include <agalog.h>
 #include <agascript.h>
 
+#include <afeirsa/afgl.h>
+
 int main(int argc, char** argv) {
 	struct aga_ctx ctx;
 
@@ -21,8 +23,6 @@ int main(int argc, char** argv) {
 	aga_log(__FILE__, "Breathing in the chemicals...");
 
 	aga_af_chk("aga_init", aga_init(&ctx, argc, argv));
-
-	aga_af_chk("aga_setcam", aga_setcam(&ctx));
 
 	aga_af_chk(
 		"aga_findclass", aga_findclass(&ctx.scripteng, &class, "game"));

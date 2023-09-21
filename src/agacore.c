@@ -6,6 +6,8 @@
 #include <agacore.h>
 #include <agalog.h>
 
+#include <agastd.h>
+
 static const struct af_vert_element vert_elements[] = {
 	{ AF_MEMBSIZE(struct aga_vertex, col ), AF_VERT_COL  },
 	{ AF_MEMBSIZE(struct aga_vertex, uv  ), AF_VERT_UV   },
@@ -144,9 +146,6 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 	AF_CHK(af_mkvert(
 		&ctx->af_ctx, &ctx->vert, vert_elements, AF_ARRLEN(vert_elements)));
 
-	af_memset(&ctx->cam, 0, sizeof(struct aga_cam));
-	AF_CHK(aga_setcam(ctx));
-
 	if(ctx->settings.audio_enabled) {
 		AF_CHK(aga_mksnddev(ctx->settings.audio_dev, &ctx->snddev));
 	}
@@ -172,26 +171,6 @@ enum af_err aga_kill(struct aga_ctx* ctx) {
 	AF_CHK(aga_killscripteng(&ctx->scripteng));
 
 	AF_CHK(aga_killconf(&ctx->conf));
-
-	return AF_ERR_NONE;
-}
-
-enum af_err aga_setcam(struct aga_ctx* ctx) {
-	AF_CTX_CHK(ctx);
-
-	glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluPerspective(
-			ctx->settings.fov,
-			(double) ctx->settings.width / (double) ctx->settings.height,
-			0.1, 10000.0);
-
-		glRotatef(ctx->cam.pitch, 1.0f, 0.0f, 0.0f);
-		glRotatef(ctx->cam.yaw, 0.0f, 1.0f, 0.0f);
-		glTranslatef(
-			ctx->cam.pos.decomp.x,
-			ctx->cam.pos.decomp.y,
-			ctx->cam.pos.decomp.z);
 
 	return AF_ERR_NONE;
 }

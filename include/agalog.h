@@ -9,7 +9,7 @@
 #include <agacore.h>
 
 struct aga_logctx {
-	FILE** targets;
+	void** targets;
 	af_size_t len;
 };
 

@@ -5,7 +5,9 @@
 
 #include <agalog.h>
 
-#include <unistd.h>
+#define AGA_WANT_UNIX
+#include <agastd.h>
+#undef AGA_WANT_UNIX
 
 struct aga_logctx aga_logctx;
 
@@ -13,6 +15,11 @@ static void aga_onabrt(int signum) {
 	(void) signum;
 
 	aga_killlog();
+}
+
+static AGA_NORETURN void aga_logdierr(const char* proc) {
+	perror(proc);
+	exit(EXIT_FAILURE);
 }
 
 enum af_err aga_mklog(const char** targets, af_size_t len) {
@@ -26,8 +33,7 @@ enum af_err aga_mklog(const char** targets, af_size_t len) {
 
 	for(i = 0; i < len; ++i) {
 		if(!(aga_logctx.targets[i] = fopen(targets[i], "w+"))) {
-			perror("fopen");
-			abort();
+			aga_logdierr("fopen");
 		}
 	}
 
@@ -41,14 +47,8 @@ enum af_err aga_killlog(void) {
 	for(i = 0; i < aga_logctx.len; ++i) {
 		FILE* s = aga_logctx.targets[i];
 		if(fileno(s) <= 2) continue;
-		if(fflush(s) == EOF) {
-			perror("fflush");
-			abort();
-		}
-		if(fclose(s) == EOF) {
-			perror("fclose");
-			abort();
-		}
+		if(fflush(s) == EOF) aga_logdierr("fflush");
+		if(fclose(s) == EOF) aga_logdierr("fclose");
 	}
 
 	return AF_ERR_NONE;
@@ -65,20 +65,14 @@ void aga_log(const char* loc, const char* fmt, ...) {
 	va_list l;
 	va_start(l, fmt);
 
-	if(vsprintf(buf, fmt, l) < 0) {
-		perror("vsprintf");
-		abort();
-	}
+	if(vsprintf(buf, fmt, l) < 0) aga_logdierr("vsprintf");
 
 	for(i = 0; i < aga_logctx.len; ++i) {
 		FILE* s = aga_logctx.targets[i];
 		const char* f = fstr;
 		if(isatty(fileno(s))) f = cfstr;
 
-		if(fprintf(s, f, loc, buf) < 0) {
-			perror("fprintf");
-			abort();
-		}
+		if(fprintf(s, f, loc, buf) < 0) aga_logdierr("fprintf");
  	}
 
 	va_end(l);

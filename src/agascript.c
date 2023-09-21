@@ -3,17 +3,21 @@
  * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#include <afeirsa/afeirsa.h>
-
 #include <agacore.h>
 #include <agascript.h>
 #include <agalog.h>
+#include <agaio.h>
+#include <agaimg.h>
+
+#include <afeirsa/afeirsa.h>
+#include <afeirsa/afgl.h>
 
 /* NOTE: This is cursed beyond cursed but old C code do be like that. */
 #define main __attribute__((weak)) main
 #include <pythonmain.c>
 #include <config.c>
 #include <traceback.h>
+#include <modsupport.h>
 #undef main
 
 int setpythonpath(char* path);

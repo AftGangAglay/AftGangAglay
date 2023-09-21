@@ -3,12 +3,13 @@
  * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#include <agacore.h>
 #include <agaimg.h>
 
 /* Hiding larger libs like libtiff is desireable */
 #include <tiff.h>
 #include <tiffio.h>
+
+#include <agastd.h>
 
 enum af_err aga_mkimg(struct aga_img* img, const char* path) {
 	TIFF* t;

@@ -15,7 +15,6 @@ include vendor/www.mk
 include vendor/python.mk
 include vendor/afeirsa.mk
 include vendor/libtiff.mk
-include vendor/ncurses.mk
 
 OUT = src/libafeirsa.a
 
@@ -31,8 +30,7 @@ CFLAGS += -std=c89 -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
 LDLIBS += -lm -lX11
 
 CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS) $(AFEIRSA_IFLAGS) $(LIBTIFF_IFLAGS)
-CFLAGS += $(NCURSES_IFLAGS)
-LDLIBS += $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) $(LIBTIFF) $(LIBNCURSES)
+LDLIBS += $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) $(LIBTIFF)
 
 # glabi appends its own ldlibs
 CFLAGS += $(GLABI)

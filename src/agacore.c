@@ -184,7 +184,7 @@ enum af_err aga_setcam(struct aga_ctx* ctx) {
 		gluPerspective(
 			ctx->settings.fov,
 			(double) ctx->settings.width / (double) ctx->settings.height,
-			0.1, 100.0);
+			0.1, 10000.0);
 
 		glRotatef(ctx->cam.pitch, 1.0f, 0.0f, 0.0f);
 		glRotatef(ctx->cam.yaw, 0.0f, 1.0f, 0.0f);

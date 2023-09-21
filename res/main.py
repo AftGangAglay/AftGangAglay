@@ -24,14 +24,24 @@ class game():
         self.spherefile = aga.largefile().create('res/sphere.raw')
         self.spherebuf = aga.vertexbuffer().create(self.spherefile)
         self.spheretrans = aga.transform().create()
-        self.spheretrans.scale[0] = 40.0
-        self.spheretrans.scale[1] = 40.0
-        self.spheretrans.scale[2] = 40.0
+        self.spheretrans.scale[0] = 80.0
+        self.spheretrans.scale[1] = 80.0
+        self.spheretrans.scale[2] = 80.0
         #
         self.testtex = aga.texture().create('res/test.tiff')
         #
+        self.face = aga.texture().create('res/astley.tiff')
+        #
         self.clipfile = aga.largefile().create('res/nggyu-u8pcm-8k.raw')
         self.clip = aga.clip().create(self.clipfile)
+        #
+        self.env0 = aga.largefile().create('res/env0.raw')
+        self.env0buf = aga.vertexbuffer().create(self.env0)
+        self.env0trans = aga.transform().create()
+        self.env0trans.pos[1] = -5.0
+        self.env0trans.scale[0] = 5.0
+        self.env0trans.scale[1] = 5.0
+        self.env0trans.scale[2] = 5.0
         #
         return self
     #
@@ -67,11 +77,16 @@ class game():
     def update(self):
         self.control()
         #
-        self.testtex.use()
+        aga.nolight()
+        self.face.use()
         self.spheretrans.rot[0] = self.spheretrans.rot[0] + 0.5
         self.spheretrans.rot[1] = self.spheretrans.rot[1] + 0.5
         self.spheretrans.rot[2] = self.spheretrans.rot[2] + 0.5
         self.spherebuf.draw(aga.TRIANGLES, self.spheretrans)
+        aga.yeslight()
+        #
+        self.testtex.use()
+        self.env0buf.draw(aga.TRIANGLES, self.env0trans)
         #
         self.tex.use()
         self.modeltrans.pos[0] = self.modeltrans.pos[0] + 0.01
@@ -90,3 +105,5 @@ class game():
         self.testtex.close()
         self.clipfile.close()
         self.clip.close()
+        self.env0.close()
+        self.env0buf.close()

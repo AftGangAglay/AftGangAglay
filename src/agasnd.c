@@ -29,13 +29,13 @@ enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 		if ((snddev->fd = open(dev, O_WRONLY | O_NONBLOCK)) == -1) {
 			if(errno != EBUSY) aga_errno_chk("open");
 			if(!busy_msg) {
-				aga_log(__FILE__, "Sound device `%s' busy. Waiting...\n", dev);
+				aga_log(__FILE__, "Sound device `%s' busy. Waiting...", dev);
 				busy_msg = AF_TRUE;
 			}
 		}
 		else break;
 	} while(errno == EBUSY);
-	aga_log(__FILE__, "Sound device `%s' acquired!\n", dev);
+	aga_log(__FILE__, "Sound device `%s' acquired!", dev);
 
 	value = AGA_SND_SAMPLEBITS;
 	if(ioctl(snddev->fd, SOUND_PCM_WRITE_BITS, &value) == -1) {

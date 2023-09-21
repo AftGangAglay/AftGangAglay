@@ -585,6 +585,26 @@ static object* agan_log(object* self, object* arg) {
 	return None;
 }
 
+static object* agan_yeslight(object* self, object* arg) {
+	(void) self, (void) arg;
+
+	glEnable(GL_LIGHTING);
+	aga_af_chk("glEnable", af_gl_chk());
+
+	INCREF(None);
+	return None;
+}
+
+static object* agan_nolight(object* self, object* arg) {
+	(void) self, (void) arg;
+
+	glDisable(GL_LIGHTING);
+	aga_af_chk("glDisable", af_gl_chk());
+
+	INCREF(None);
+	return None;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -604,6 +624,8 @@ enum af_err aga_mkmod(void) {
 		{ "putclip", agan_putclip },
 		{ "killclip", agan_killclip },
 		{ "log", agan_log },
+		{ "nolight", agan_nolight },
+		{ "yeslight", agan_yeslight },
 		{ 0, 0 }
 	};
 

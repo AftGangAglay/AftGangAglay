@@ -11,6 +11,7 @@
 struct aga_logctx {
 	FILE** targets;
 	af_size_t len;
+	void* scr;
 };
 
 /*

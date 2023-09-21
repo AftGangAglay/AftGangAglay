@@ -5,6 +5,8 @@
 
 #include <agalog.h>
 
+#include <ncurses.h>
+
 struct aga_logctx aga_logctx;
 
 static void aga_onabrt(int signum) {
@@ -17,6 +19,26 @@ enum af_err aga_mklog(const char** targets, af_size_t len) {
 	af_size_t i;
 
 	AF_PARAM_CHK(targets);
+
+	if(slk_init(1) == ERR) {
+		puts("slk_init() failed");
+		abort();
+	}
+
+	if(!(aga_logctx.scr = initscr())) {
+		puts("initscr() failed");
+		abort();
+	}
+
+	if(refresh() == ERR) {
+		puts("refresh() failed");
+		abort();
+	}
+
+	if(start_color() == ERR) {
+		puts("start_color() failed");
+		abort();
+	}
 
 	aga_logctx.len = len;
 
@@ -48,6 +70,8 @@ enum af_err aga_killlog(void) {
 			abort();
 		}
 	}
+
+	free(aga_logctx.scr);
 
 	return AF_ERR_NONE;
 }

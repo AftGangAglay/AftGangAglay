@@ -15,6 +15,7 @@ include vendor/www.mk
 include vendor/python.mk
 include vendor/afeirsa.mk
 include vendor/libtiff.mk
+include vendor/ncurses.mk
 
 OUT = src/libafeirsa.a
 

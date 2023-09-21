@@ -31,9 +31,9 @@ class game():
         self.testtex = aga.texture().create('res/img/test.tiff')
         #
         self.face = aga.texture().create('res/img/BlackKnight.tiff')
-        #s
-        self.clipfile = aga.largefile()
-        self.clipfile.create('res/snd/PawnWithAShotgun.mp3.raw')
+        #
+        clipsrc = 'res/snd/PawnWithAShotgun.mp3.raw'
+        self.clipfile = aga.largefile().create(clipsrc)
         self.clip = aga.clip().create(self.clipfile)
         #
         self.env0 = aga.largefile().create('res/model/env0.obj.raw')

@@ -5,6 +5,8 @@
 
 #include <agalog.h>
 
+#include <unistd.h>
+
 struct aga_logctx aga_logctx;
 
 static void aga_onabrt(int signum) {
@@ -54,6 +56,8 @@ enum af_err aga_killlog(void) {
 
 void aga_log(const char* loc, const char* fmt, ...) {
 
+	static const char cfstr[] = "\033[0;36m[%s]\033[0m %s\n";
+	static const char fstr[] = "[%s] %s\n";
 	aga_fixed_buf_t buf = { 0 };
 
 	af_size_t i;
@@ -67,7 +71,11 @@ void aga_log(const char* loc, const char* fmt, ...) {
 	}
 
 	for(i = 0; i < aga_logctx.len; ++i) {
-		if(fprintf(aga_logctx.targets[i], "[%s] %s\n", loc, buf) < 0) {
+		FILE* s = aga_logctx.targets[i];
+		const char* f = fstr;
+		if(isatty(fileno(s))) f = cfstr;
+
+		if(fprintf(s, f, loc, buf) < 0) {
 			perror("fprintf");
 			abort();
 		}

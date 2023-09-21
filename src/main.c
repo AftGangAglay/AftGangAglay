@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
 
 	aga_af_chk("aga_init", aga_init(&ctx, argc, argv));
 
-	aga_setcam(&ctx);
+	aga_af_chk("aga_setcam", aga_setcam(&ctx));
 
 	aga_af_chk(
 		"aga_findclass", aga_findclass(&ctx.scripteng, &class, "game"));

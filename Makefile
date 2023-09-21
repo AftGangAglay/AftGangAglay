@@ -15,8 +15,7 @@ include vendor/www.mk
 include vendor/python.mk
 include vendor/afeirsa.mk
 include vendor/libtiff.mk
-
-OUT = src/libafeirsa.a
+include res/res.mk
 
 SOURCES = $(wildcard src/*.c)
 HEADERS = $(wildcard include/*.h) $(wildcard src/*.h)

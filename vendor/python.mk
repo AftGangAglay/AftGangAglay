@@ -24,4 +24,4 @@ clean: clean_python
 .PHONY: clean_python
 clean_python:
 	$(MAKE) -C $(PYTHON_ROOT)/src clean
-	rm -rf $(LIBPYTHON)
+	rm -f $(LIBPYTHON)

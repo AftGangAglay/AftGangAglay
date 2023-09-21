@@ -22,7 +22,7 @@
 
 	<item name="Audio">
 		<item name="Enabled" type="Integer">
-			0
+			1
 		</item>
 		<item name="Device" type="String">
 			/dev/dsp2
@@ -31,10 +31,10 @@
 
 	<item name="Script">
 		<item name="Startup" type="String">
-			res/main.py
+			res/script/main.py
 		</item>
 		<item name="Path" type="String">
-			vendor/python/lib:res/aga:res
+			vendor/python/lib:res/script/aga:res/script
 		</item>
 	</item>
 </root>

@@ -32,10 +32,10 @@ clean: clean_libtiff
 .PHONY: clean_libtiff
 clean_libtiff:
 	-$(MAKE) -C $(LIBTIFF_ROOT) clean
-	rm -rf $(LIBTIFF_ROOT)/config.log
-	rm -rf $(LIBTIFF_ROOT)/Makefile
-	rm -rf $(LIBTIFF_ROOT)/port.h
-	rm -rf $(LIBTIFF_ROOT)/libtiff/Makefile
-	rm -rf $(LIBTIFF_ROOT)/man/Makefile
-	rm -rf $(LIBTIFF_ROOT)/tools/Makefile
-	rm -rf $(LIBTIFF_ROOT)/port/install.sh
+	rm -f $(LIBTIFF_ROOT)/config.log
+	rm -f $(LIBTIFF_ROOT)/Makefile
+	rm -f $(LIBTIFF_ROOT)/port.h
+	rm -f $(LIBTIFF_ROOT)/libtiff/Makefile
+	rm -f $(LIBTIFF_ROOT)/man/Makefile
+	rm -f $(LIBTIFF_ROOT)/tools/Makefile
+	rm -f $(LIBTIFF_ROOT)/port/install.sh

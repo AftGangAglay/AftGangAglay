@@ -36,5 +36,5 @@ $(WWW_OBJECTS): $(WWW_SOURCES)
 clean: clean_www
 .PHONY: clean_www
 clean_www:
-	rm -rf $(WWW_OBJECTS)
-	rm -rf $(LIBWWW)
+	rm -f $(WWW_OBJECTS)
+	rm -f $(LIBWWW)

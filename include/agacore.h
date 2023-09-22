@@ -92,10 +92,8 @@ struct aga_ctx {
 enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv);
 enum af_err aga_kill(struct aga_ctx* ctx);
 
-/*
 void aga_af_chk(const char* loc, const char* proc, enum af_err e);
 AGA_NORETURN void aga_errno_chk(const char* loc, const char* proc);
-*/
 
 const char* aga_af_errname(enum af_err e);
 /* NOTE: Pass null to `proc' to suppress error message printout. */

@@ -21,6 +21,7 @@
 # include <unistd.h>
 # include <fcntl.h>
 # include <poll.h>
+# include <getopt.h>
 #endif
 
 #endif

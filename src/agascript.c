@@ -70,7 +70,8 @@ static struct aga_ctx* script_ctx;
 #include "agascriptglue.h"
 
 enum af_err aga_mkscripteng(
-		struct aga_ctx* ctx, const char* script, const char* pypath) {
+		struct aga_ctx* ctx, const char* script, const char* pypath,
+		int argc, char** argv) {
 
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(script);
@@ -81,8 +82,34 @@ enum af_err aga_mkscripteng(
 	initall();
 	AF_CHK(aga_mkmod());
 
-	setpythonpath((char*) pypath); /* libpython predates `const' */
-	setpythonargv(0, 0);
+	{
+		char* envpath = getenv("PYTHONPATH");
+		if(envpath) {
+			af_size_t envpath_len = strlen(envpath);
+			af_size_t pypath_len = strlen(pypath);
+			af_size_t sz = envpath_len + 1 + pypath_len + 1;
+			char* path = malloc(sz);
+			if(!path) {
+				aga_log(__FILE__, "Using python path %s", pypath);
+				setpythonpath((char *) pypath);
+			}
+			else {
+				path[sz - 1] = 0;
+				path[envpath_len] = ':';
+				af_memcpy(path, envpath, envpath_len);
+				af_memcpy(path + envpath_len + 1, pypath, pypath_len);
+				aga_log(__FILE__, "Using python path %s", path);
+				setpythonpath((char*) path);
+				free(path);
+			}
+		}
+		else {
+			aga_log(__FILE__, "Using python path %s", pypath);
+			setpythonpath((char *) pypath);
+		}
+	}
+
+	setpythonargv(argc, argv);
 
 	{
 		FILE* f;
@@ -233,8 +260,6 @@ enum af_err aga_mkscriptinst(
 		aga_scripttrace();
 		return AF_ERR_UNKNOWN;
 	}
-
-	AF_CHK(aga_instcall(inst, "create"));
 
 	return AF_ERR_NONE;
 }

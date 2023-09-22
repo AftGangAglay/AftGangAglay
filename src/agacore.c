@@ -6,7 +6,9 @@
 #include <agacore.h>
 #include <agalog.h>
 
+#define AGA_WANT_UNIX
 #include <agastd.h>
+#undef AGA_WANT_UNIX
 
 static const struct af_vert_element vert_elements[] = {
 	{ AF_MEMBSIZE(struct aga_vertex, col ), AF_VERT_COL  },
@@ -33,7 +35,9 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 		ctx->settings.audio_enabled = AF_FALSE;
 		ctx->settings.audio_dev = "/dev/dsp";
 
-		ctx->settings.startup_script = "res/script/main.py";
+		if(!ctx->settings.startup_script) {
+			ctx->settings.startup_script = "res/script/main.py";
+		}
 		ctx->settings.python_path =
 			"vendor/python/lib:res/script:res/script/aga";
 	}
@@ -130,14 +134,31 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 }
 
 enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
-	/* TODO: argv */
-	const char confpath[] = "res/aga.sgml";
-
+	const char* confpath = "res/aga.sgml";
 	enum af_err result;
 
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(argc);
 	AF_PARAM_CHK(argv);
+
+	ctx->settings.startup_script = 0;
+
+	{
+		int o;
+		while((o = 	getopt(argc, argv, "f:s:")) != -1) {
+			switch(o) {
+				default: {
+					aga_log(
+						__FILE__,
+						"warn: usage: %s [-f config] [-s script]", argv[0]);
+					goto break2;
+				}
+				case 'f': confpath = optarg; break;
+				case 's': ctx->settings.startup_script = optarg; break;
+			}
+		}
+		break2:;
+	}
 
 	result = aga_parseconf(ctx, confpath);
 	if(result) aga_af_soft(__FILE__, "aga_parseconf", result);
@@ -164,7 +185,8 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 
 	/* TODO: Python path resolution in packaged builds. */
 	AF_CHK(aga_mkscripteng(
-		ctx, ctx->settings.startup_script, ctx->settings.python_path));
+		ctx, ctx->settings.startup_script, ctx->settings.python_path,
+		argc, argv));
 
 	return AF_ERR_NONE;
 }

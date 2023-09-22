@@ -15,29 +15,50 @@ class game():
         self.sensitivity = self.conf['sensitivity']
         self.move_speed = self.conf['move_speed']
         #
-        self.file = aga.largefile().create('res/model/thing.obj.raw')
-        self.buf = aga.vertexbuffer().create(self.file)
+        try:
+            self.file = aga.largefile().create('res/model/thing.obj.raw')
+            self.buf = aga.vertexbuffer().create(self.file)
+        except:
+            pass
         self.modeltrans = aga.transform().create()
         #
-        self.tex = aga.texture().create('res/img/arse.tiff')
+        try:
+            self.tex = aga.texture().create('res/img/arse.tiff')
+        except:
+            pass
         #
-        self.spherefile = aga.largefile().create('res/model/sphere.obj.raw')
-        self.spherebuf = aga.vertexbuffer().create(self.spherefile)
+        try:
+            self.spherefile = aga.largefile().create('res/model/sphere.obj.raw')
+            self.spherebuf = aga.vertexbuffer().create(self.spherefile)
+        except:
+            pass
         self.spheretrans = aga.transform().create()
         self.spheretrans.scale[0] = 80.0
         self.spheretrans.scale[1] = 80.0
         self.spheretrans.scale[2] = 80.0
         #
-        self.testtex = aga.texture().create('res/img/test.tiff')
+        try:
+            self.testtex = aga.texture().create('res/img/test.tiff')
+        except:
+            pass
         #
-        self.face = aga.texture().create('res/img/BlackKnight.tiff')
+        try:
+            self.face = aga.texture().create('res/img/BlackKnight.tiff')
+        except:
+            pass
         #
-        clipsrc = 'res/snd/PawnWithAShotgun.mp3.raw'
-        self.clipfile = aga.largefile().create(clipsrc)
-        self.clip = aga.clip().create(self.clipfile)
+        try:
+            clipsrc = 'res/snd/PawnWithAShotgun.mp3.raw'
+            self.clipfile = aga.largefile().create(clipsrc)
+            self.clip = aga.clip().create(self.clipfile)
+        except:
+            pass
         #
-        self.env0 = aga.largefile().create('res/model/env0.obj.raw')
-        self.env0buf = aga.vertexbuffer().create(self.env0)
+        try:
+            self.env0 = aga.largefile().create('res/model/env0.obj.raw')
+            self.env0buf = aga.vertexbuffer().create(self.env0)
+        except:
+            pass
         self.env0trans = aga.transform().create()
         self.env0trans.pos[1] = -5.0
         self.env0trans.scale[0] = 5.0

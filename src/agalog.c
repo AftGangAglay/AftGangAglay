@@ -24,14 +24,19 @@ enum af_err aga_mklog(const char** targets, af_size_t len) {
 
 	aga_logctx.len = len;
 
-	if(!(aga_logctx.targets = malloc(len * sizeof(FILE*)))) return AF_ERR_MEM;
-
-	for(i = 0; i < len; ++i) {
-		if(!(aga_logctx.targets[i] = fopen(targets[i], "w+"))) {
-			perror("fopen");
-		}
+	if(!(aga_logctx.targets = malloc(len * sizeof(FILE*)))) {
+		perror("malloc");
+		aga_logctx.targets = (void**) &stdout;
+		aga_logctx.len = 1;
 	}
+	else {
+		for(i = 0; i < len; ++i) {
+			if(!(aga_logctx.targets[i] = fopen(targets[i], "w+"))) {
+				perror("fopen");
+			}
+		}
 
+	}
 	signal(SIGABRT, aga_onabrt);
 
 	return AF_ERR_NONE;

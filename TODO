@@ -3,6 +3,6 @@
 - Find older libtiff
 - Redo vg suppressions file for new windowing scheme
 - Physics
-- Lighting in script glue
 - Texture parameter api
 - Material import/api
+- Adjust dependencies to lessen GNU std deps over base SUS/UNIX/POSIX.1

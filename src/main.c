@@ -17,9 +17,9 @@ int main(int argc, char** argv) {
 	struct aga_scriptclass* class;
 	struct aga_scriptinst inst;
 
+	enum af_err result;
+
 	const char* logfiles[] = { "/dev/stdout", "aga.log" };
-	void aga_af_chk(const char* loc, const char* proc, enum af_err e);
-	AGA_NORETURN void aga_errno_chk(const char* loc, const char* proc);
 
 	aga_af_chk(
 		__FILE__, "aga_mklog", aga_mklog(logfiles, AF_ARRLEN(logfiles)));
@@ -28,23 +28,30 @@ int main(int argc, char** argv) {
 
 	aga_af_chk(__FILE__, "aga_init", aga_init(&ctx, argc, argv));
 
-	aga_af_chk(__FILE__, 
+	aga_af_chk(__FILE__,
 		"aga_findclass", aga_findclass(&ctx.scripteng, &class, "game"));
 	aga_af_chk(__FILE__, "aga_mkscriptinst", aga_mkscriptinst(class, &inst));
 
+	result = aga_instcall(&inst, "create");
+	if(result) aga_af_soft(__FILE__, "aga_instcall", result);
+
 	ctx.die = AF_FALSE;
 	while(!ctx.die) {
-		aga_af_chk(__FILE__, "aga_poll", aga_poll(&ctx));
+		result = aga_poll(&ctx);
+		if(result) aga_af_soft(__FILE__, "aga_poll", result);
 
 		{
 			float clear[] = { 1.0f, 0.0f, 1.0f, 1.0f };
 			aga_af_chk(__FILE__, "af_clear", af_clear(&ctx.af_ctx, clear));
 		}
 
-		aga_af_chk(__FILE__, "aga_instcall", aga_instcall(&inst, "update"));
+		result = aga_instcall(&inst, "update");
+		if(result) aga_af_soft(__FILE__, "aga_instcall", result);
 
-		aga_af_chk(__FILE__, "af_flush", af_flush(&ctx.af_ctx));
-		aga_af_chk(__FILE__, "aga_swapbuf", aga_swapbuf(&ctx, &ctx.win));
+		result = af_flush(&ctx.af_ctx);
+		if(result) aga_af_soft(__FILE__, "af_flush", result);
+		result = aga_swapbuf(&ctx, &ctx.win);
+		if(result) aga_af_soft(__FILE__, "aga_swapbuf", result);
 	}
 
 	aga_log(__FILE__, "Tearing down...");

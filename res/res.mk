@@ -9,10 +9,10 @@ MODELBINS = $(MODELS:.obj=.obj.raw)
 SOUNDS = $(wildcard res/snd/*.mp3)
 SOUNDBINS = $(SOUNDS:.mp3=.mp3.raw)
 
-%.obj.raw: %.obj
+%.obj.raw: %.obj script/vertgen.py
 	$(PYTHON3) script/vertgen.py $< $@
 
-%.mp3.raw: %.mp3
+%.mp3.raw: %.mp3 script/gensnd.sh
 	script/gensnd.sh $< $@
 
 all: $(MODELBINS) $(SOUNDBINS)

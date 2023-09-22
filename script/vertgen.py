@@ -11,26 +11,28 @@
 
 from numpy import float32, array
 import pyassimp
+from pyassimp.postprocess import *
 from sys import argv
 
 VERTSZ = 3 + 4 + 2 + 3
 
 if len(argv) < 3:
-    print(f'usage: {argv[0]} <input> <output>')
+    print('usage: ' + argv[0] + ' <input> <output>')
     exit(1)
 
-data: list[float32] = list()
-vertices: list[float32] = list()
+data = list()
+vertices = list()
 
-with pyassimp.load(argv[1]) as scene:
+proc = aiProcess_PreTransformVertices | aiProcess_Triangulate
+with pyassimp.load(argv[1], processing=proc) as scene:
     for mesh in scene.meshes:
         for i in range(len(mesh.vertices)):
-            z: float32 = float32(0.0)
+            z = float32(0.0)
             zz = array([z, z], dtype=float32)
             zzz = array([z, z, z], dtype=float32)
             zzzz = array([z, z, z, z], dtype=float32)
 
-            o: float32 = float32(1.0)
+            o = float32(1.0)
             oo = array([o, o], dtype=float32)
             ooo = array([o, o, o], dtype=float32)
             oooo = array([o, o, o, o], dtype=float32)

@@ -192,7 +192,7 @@ void aga_af_chk(const char* proc, enum af_err e) {
 		case AF_ERR_MEM: n = "out of memory"; break;
 	}
 
-	aga_log(__FILE__, "%s: %s\n", proc, n);
+	aga_log(__FILE__, "err: %s: %s\n", proc, n);
 	abort();
 }
 
@@ -201,7 +201,7 @@ void aga_errno_chk(const char* proc) {
 	 * TODO: This gives a rather unhelpful file message as it won't be the
 	 * 		 Site of the error.
 	 */
-	aga_log(__FILE__, "%s: %s", proc, strerror(errno));
+	aga_log(__FILE__, "err: %s: %s", proc, strerror(errno));
 	abort();
 }
 

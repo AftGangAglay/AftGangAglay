@@ -23,6 +23,7 @@ static const typeobject aga_nativeptr_type = {
 
 static object* agan_getkey(object* self, object* arg) {
 	long value;
+	object* retval;
 
 	(void) self;
 
@@ -34,7 +35,9 @@ static object* agan_getkey(object* self, object* arg) {
 	value = getintvalue(arg);
 	aga_scriptchk();
 
-	return script_ctx->keystates[value] ? True : False;
+	retval = script_ctx->keystates[value] ? True : False;
+	INCREF(retval);
+	return retval;
 }
 
 static object* agan_getmotion(object* self, object* arg) {
@@ -278,31 +281,7 @@ static object* agan_killvertbuf(object* self, object* arg) {
 	return None;
 }
 
-static object* agan_drawbuf(object* self, object* arg) {
-	object* v;
-	object* o;
-	object* t;
-
-	void* ptr;
-	long primitive;
-
-	(void) self;
-
-	if(!arg || !is_tupleobject(arg) ||
-		!(v = gettupleitem(arg, 0)) || v->ob_type != &aga_nativeptr_type ||
-		!(o = gettupleitem(arg, 1)) || !is_intobject(o) ||
-		!(t = gettupleitem(arg, 2)) || !is_classmemberobject(t)) {
-
-		err_setstr(
-			RuntimeError,
-			"drawbuf() arguments must be nativeptr, int and transform");
-		return 0;
-	}
-
-	ptr = ((struct aga_nativeptr*) v)->ptr;
-	primitive = getintvalue(o);
-	aga_scriptchk();
-
+static enum af_err agan_settransmat(object* trans) {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	{
@@ -317,7 +296,7 @@ static object* agan_drawbuf(object* self, object* arg) {
 		for(i = 0; i < 3; ++i) {
 			void (*proc)(float, float, float) = glScalef;
 
-			if(!(comp = getattr(t, (char*) comps[i]))) return 0;
+			if(!(comp = getattr(trans, (char*) comps[i]))) return 0;
 			if(!(xo = getlistitem(comp, 0))) return 0;
 			if(!(yo = getlistitem(comp, 1))) return 0;
 			if(!(zo = getlistitem(comp, 2))) return 0;
@@ -347,6 +326,36 @@ static object* agan_drawbuf(object* self, object* arg) {
 			}
 		}
 	}
+
+	return AF_ERR_NONE;
+}
+
+static object* agan_drawbuf(object* self, object* arg) {
+	object* v;
+	object* o;
+	object* t;
+
+	void* ptr;
+	long primitive;
+
+	(void) self;
+
+	if(!arg || !is_tupleobject(arg) ||
+		!(v = gettupleitem(arg, 0)) || v->ob_type != &aga_nativeptr_type ||
+		!(o = gettupleitem(arg, 1)) || !is_intobject(o) ||
+		!(t = gettupleitem(arg, 2)) || !is_classmemberobject(t)) {
+
+		err_setstr(
+			RuntimeError,
+			"drawbuf() arguments must be nativeptr, int and transform");
+		return 0;
+	}
+
+	ptr = ((struct aga_nativeptr*) v)->ptr;
+	primitive = getintvalue(o);
+	aga_scriptchk();
+
+	if(agan_settransmat(t)) return 0;
 
 	if(af_drawbuf(&script_ctx->af_ctx, ptr, &script_ctx->vert, primitive)) {
 		err_setstr(RuntimeError, "af_drawbuf() failed");
@@ -553,10 +562,22 @@ static object* agan_log(object* self, object* arg) {
 
 	(void) self;
 
-	if(!arg || !is_stringobject(arg)) {
-		err_setstr(
-			RuntimeError, "log() argument must be string");
+	if(!arg) {
+		err_setstr(RuntimeError, "log() takes one argument");
 		return 0;
+	}
+
+	if(!is_stringobject(arg)) {
+		af_size_t i;
+		for(i = 0; i < aga_logctx.len; ++i) {
+			FILE* s = aga_logctx.targets[i];
+			aga_loghdr(s, __FILE__, AGA_NORM);
+			printobject(arg, s, 0);
+			putc('\n', s);
+		}
+
+		INCREF(None);
+		return None;
 	}
 
 	str = getstringvalue(arg);
@@ -590,6 +611,182 @@ static object* agan_nolight(object* self, object* arg) {
 	return None;
 }
 
+#define AGAN_LIGHT_INVAL (~0UL)
+/* GL1.0 doesn't use `GL_MAX_LIGHTS'. */
+#define AGAN_MAXLIGHT (7)
+static af_size_t aga_current_light = AGAN_LIGHT_INVAL;
+static af_bool_t aga_light_cap_warned = AF_FALSE;
+static af_bool_t aga_light_start_warned = AF_FALSE;
+
+static object* agan_startlight(object* self, object* arg) {
+	af_size_t i;
+
+	(void) self, (void) arg;
+
+	for(i = 0; i < AGAN_MAXLIGHT; ++i) {
+		glDisable(GL_LIGHT0 + i);
+		if(af_gl_chk()) {
+			err_setstr(RuntimeError, "glDisable() failed");
+			return None;
+		}
+	}
+	aga_current_light = GL_LIGHT0;
+
+	INCREF(None);
+	return None;
+}
+
+static object* agan_mklight(object* self, object* arg) {
+	object* retval;
+
+	(void) self, (void) arg;
+
+	/* TODO: We need better handling for this error state. */
+	if(aga_current_light == AGAN_LIGHT_INVAL) {
+		if(!aga_light_start_warned) {
+			aga_log(__FILE__, "warn: mklight() called before startlight()");
+			aga_light_start_warned = !aga_light_start_warned;
+		}
+		INCREF(None);
+		return None;
+	}
+
+	glEnable(aga_current_light);
+	if(af_gl_chk()) {
+		err_setstr(RuntimeError, "glEnable() failed");
+		return 0;
+	}
+
+	retval = newintobject((long) aga_current_light);
+	if(!retval) return 0;
+
+	if(++aga_current_light >= GL_LIGHT0 + AGAN_MAXLIGHT) {
+		if(!aga_light_cap_warned) {
+			aga_log(__FILE__, "warn: light cap (%i) reached", AGAN_MAXLIGHT);
+			aga_light_cap_warned = !aga_light_cap_warned;
+		}
+		aga_current_light = AGAN_LIGHT_INVAL;
+		INCREF(None);
+		return None;
+	}
+
+	return retval;
+}
+
+static object* agan_lightpos(object* self, object* arg) {
+	float pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	object* t;
+	object* v;
+
+	long light;
+
+	(void) self;
+
+	if(!arg || !is_tupleobject(arg) ||
+	   !(v = gettupleitem(arg, 0)) || !is_intobject(v) ||
+	   !(t = gettupleitem(arg, 1)) || !is_classmemberobject(t)) {
+
+		err_setstr(
+			RuntimeError,
+			"lightpos() arguments must be int and transform");
+		return 0;
+	}
+
+	light = getintvalue(v);
+	aga_scriptchk();
+
+	if(agan_settransmat(t)) {
+		err_setstr(RuntimeError, "agan_settransmat() failed");
+		return 0;
+	}
+
+	glLightfv(light, GL_POSITION, pos);
+	if(af_gl_chk()) {
+		err_setstr(RuntimeError, "glLightfv() failed");
+		return 0;
+	}
+
+	INCREF(None);
+	return None;
+}
+
+/*
+float col[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+glLightfv(aga_current_light, GL_AMBIENT, col);
+if(af_gl_chk()) {
+	err_setstr(RuntimeError, "glLightfv() failed");
+	return 0;
+}
+ */
+
+/*
+ * NOTE: Light params follow the following format:
+ * 		 [ exp(0-128), const atten(norm), lin atten(norm), quad atten(norm) ]
+ */
+static object* agan_lightparam(object* self, object* arg) {
+	object* l;
+
+	object* o;
+	long light;
+
+	object* v;
+	float f;
+	(void) self;
+
+	if(!arg || !is_tupleobject(arg) ||
+		!(o = gettupleitem(arg, 0)) || !is_intobject(o) ||
+		!(l = gettupleitem(arg, 1)) || !is_listobject(l)) {
+
+		err_setstr(
+			RuntimeError,
+			"lightparam() arguments must be int and list");
+		return 0;
+	}
+
+	light = getintvalue(o);
+	aga_scriptchk();
+
+	if(!(v = getlistitem(l, 0))) return 0;
+	f = (float) getfloatvalue(v);
+	aga_scriptchk();
+	glLightf(light, GL_SPOT_EXPONENT, f);
+	if(af_gl_chk()) {
+		err_setstr(RuntimeError, "glLightf() failed");
+		return 0;
+	}
+
+	if(!(v = getlistitem(l, 1))) return 0;
+	f = (float) getfloatvalue(v);
+	aga_scriptchk();
+	glLightf(light, GL_CONSTANT_ATTENUATION, f);
+	if(af_gl_chk()) {
+		err_setstr(RuntimeError, "glLightf() failed");
+		return 0;
+	}
+
+	if(!(v = getlistitem(l, 2))) return 0;
+	f = (float) getfloatvalue(v);
+	aga_scriptchk();
+	glLightf(light, GL_LINEAR_ATTENUATION, f);
+	if(af_gl_chk()) {
+		err_setstr(RuntimeError, "glLightf() failed");
+		return 0;
+	}
+
+	if(!(v = getlistitem(l, 3))) return 0;
+	f = (float) getfloatvalue(v);
+	aga_scriptchk();
+	glLightf(light, GL_QUADRATIC_ATTENUATION, f);
+	if(af_gl_chk()) {
+		err_setstr(RuntimeError, "glLightf() failed");
+		return 0;
+	}
+
+	INCREF(None);
+	return None;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -611,6 +808,10 @@ enum af_err aga_mkmod(void) {
 		{ "log", agan_log },
 		{ "nolight", agan_nolight },
 		{ "yeslight", agan_yeslight },
+		{ "startlight", agan_startlight },
+		{ "mklight", agan_mklight },
+		{ "lightpos", agan_lightpos },
+		{ "lightparam", agan_lightparam },
 		{ 0, 0 }
 	};
 

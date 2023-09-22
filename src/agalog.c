@@ -54,25 +54,50 @@ enum af_err aga_killlog(void) {
 	return AF_ERR_NONE;
 }
 
-void aga_log(const char* loc, const char* fmt, ...) {
+void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
+#define ESC "\033[0"
+#define CYN ESC "36m"
+#define YLW ESC "33m"
+#define RED ESC "31m"
+#define END ESC "m"
+	const char* f;
+	if(isatty(fileno(s))) {
+		switch(sev) {
+			default: break;
+			case AGA_NORM: f = CYN "[%s]" END " "; break;
+			case AGA_WARN: f = YLW "[%s]" END " "; break;
+			case AGA_ERR: f = RED "[%s]" END " "; break;
+		}
+	}
+	else f = "[%s] ";
+	if(fprintf(s, f, loc) < 0) aga_logdierr("fprintf");
+#undef ESC
+#undef CYN
+#undef YLW
+#undef RED
+#undef END
+}
 
-	static const char cfstr[] = "\033[0;36m[%s]\033[0m %s\n";
-	static const char fstr[] = "[%s] %s\n";
+void aga_log(const char* loc, const char* fmt, ...) {
 	aga_fixed_buf_t buf = { 0 };
 
 	af_size_t i;
 
 	va_list l;
+	enum aga_logsev sev = AGA_NORM;
 	va_start(l, fmt);
 
 	if(vsprintf(buf, fmt, l) < 0) aga_logdierr("vsprintf");
 
+	if(!strncmp(fmt, "warn", 4)) sev = AGA_WARN;
+	if(!strncmp(fmt, "err", 3)) sev = AGA_ERR;
+
 	for(i = 0; i < aga_logctx.len; ++i) {
 		FILE* s = aga_logctx.targets[i];
-		const char* f = fstr;
-		if(isatty(fileno(s))) f = cfstr;
 
-		if(fprintf(s, f, loc, buf) < 0) aga_logdierr("fprintf");
+		aga_loghdr(s, loc, sev);
+		if(fputs(buf, s) == EOF) aga_logdierr("fputs");
+		if(putc('\n', s) == EOF) aga_logdierr("putc");
  	}
 
 	va_end(l);

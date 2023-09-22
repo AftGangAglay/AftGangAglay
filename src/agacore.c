@@ -33,8 +33,9 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 		ctx->settings.audio_enabled = AF_FALSE;
 		ctx->settings.audio_dev = "/dev/dsp";
 
-		ctx->settings.startup_script = "res/main.py";
-		ctx->settings.python_path = "vendor/python/lib:res";
+		ctx->settings.startup_script = "res/script/main.py";
+		ctx->settings.python_path =
+			"vendor/python/lib:res/script:res/script/aga";
 	}
 
 	af_memset(&ctx->conf, 0, sizeof(ctx->conf));

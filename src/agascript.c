@@ -47,7 +47,7 @@ static void aga_scriptchk(void) {
 		err_get(&exc, &val);
 		for(i = 0; i < aga_logctx.len; ++i) {
 			FILE* s = aga_logctx.targets[i];
-			fprintf(s, "[%s] ", __FILE__);
+			aga_loghdr(s, __FILE__, AGA_ERR);
 			printobject(exc, s, PRINT_RAW);
 			fputs(": ", s);
 			printobject(val, s, PRINT_RAW);

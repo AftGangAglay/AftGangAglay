@@ -28,44 +28,6 @@ int main(int argc, char** argv) {
 		"aga_findclass", aga_findclass(&ctx.scripteng, &class, "game"));
 	aga_af_chk("aga_mkscriptinst", aga_mkscriptinst(class, &inst));
 
-	glEnable(GL_LIGHTING);
-	aga_af_chk("glEnable", af_gl_chk());
-
-	{
-		af_size_t i;
-		float pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-		float (poss[])[3] = {
-			{ 0.0f, 0.0f, 0.0f },
-			{ 45.0f, 0.0f, 0.0f }
-		};
-		float col[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-		for(i = 0; i < AF_ARRLEN(poss); ++i) {
-			glMatrixMode(GL_MODELVIEW);
-				glLoadIdentity();
-				glTranslatef(poss[i][0], poss[i][1], poss[i][2]);
-
-			glEnable(GL_LIGHT0 + i);
-			aga_af_chk("glEnable", af_gl_chk());
-
-			glLightfv(GL_LIGHT0 + i, GL_POSITION, pos);
-			aga_af_chk("glLightfv", af_gl_chk());
-
-			glLightfv(GL_LIGHT0 + i, GL_AMBIENT, col);
-			aga_af_chk("glLightfv", af_gl_chk());
-
-			glLighti(GL_LIGHT0 + i, GL_SPOT_EXPONENT, 128);
-			aga_af_chk("glLighti", af_gl_chk());
-
-			glLightf(GL_LIGHT0 + i, GL_CONSTANT_ATTENUATION, 0.0f);
-			aga_af_chk("glLightf", af_gl_chk());
-			glLightf(GL_LIGHT0 + i, GL_LINEAR_ATTENUATION, 0.0f);
-			aga_af_chk("glLightf", af_gl_chk());
-			glLightf(GL_LIGHT0 + i, GL_QUADRATIC_ATTENUATION, 0.01f);
-			aga_af_chk("glLightf", af_gl_chk());
-		}
-	}
-
 	ctx.die = AF_FALSE;
 	while(!ctx.die) {
 		aga_af_chk("aga_poll", aga_poll(&ctx));

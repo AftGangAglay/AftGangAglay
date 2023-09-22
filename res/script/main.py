@@ -78,6 +78,11 @@ class game():
     def update(self):
         self.control()
         #
+        aga.startlight()
+        l0 = aga.mklight()
+        aga.lightpos(l0, self.spheretrans)
+        aga.lightparam(l0, [ 128.0, 0.0, 0.1, 0.01 ])
+        #
         aga.nolight()
         self.face.use()
         self.spheretrans.rot[0] = self.spheretrans.rot[0] + 0.5

@@ -22,6 +22,7 @@ if len(argv) < 3:
 
 data = list()
 vertices = list()
+index_off = 0
 
 proc = aiProcess_PreTransformVertices | aiProcess_Triangulate
 with pyassimp.load(argv[1], processing=proc) as scene:
@@ -62,9 +63,12 @@ with pyassimp.load(argv[1], processing=proc) as scene:
             else:
                 vertices.extend(zzz)
 
-    for face in mesh.faces:
-        for vertex in face:
-            data.extend(vertices[vertex * VERTSZ:(vertex + 1) * VERTSZ])
+        for face in mesh.faces:
+            for vertex in face:
+                st = (index_off + vertex) * VERTSZ
+                end = (index_off + vertex + 1) * VERTSZ
+                data.extend(vertices[st:end])
+        index_off = len(vertices) // VERTSZ
 
 data_s = array(data, dtype=float32)
 

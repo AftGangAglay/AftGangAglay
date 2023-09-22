@@ -36,7 +36,7 @@ object* call_function(object* func, object* arg);
 int debugging = 0;
 #endif
 
-static void aga_scriptchk(void) {
+static void aga_scripttrace(void) {
 	object* exc;
 	object* val;
 
@@ -58,8 +58,6 @@ static void aga_scriptchk(void) {
 		}
 
 		DECREF(v);
-
-		abort();
 	}
 }
 
@@ -97,7 +95,9 @@ enum af_err aga_mkscripteng(
 
 		codeobject* code;
 
-		if(!(f = fopen(script, "r"))) aga_errno_chk("fopen");
+		if(!(f = fopen(script, "r"))) {
+			return aga_af_patherrno(__FILE__, "fopen", script);
+		}
 
 		module = add_module("__main__");
 		AF_VERIFY(module, AF_ERR_UNKNOWN);
@@ -114,7 +114,10 @@ enum af_err aga_mkscripteng(
 		freetree(node);
 
 		result = eval_code(code, dict, dict, 0);
-		aga_scriptchk();
+		if(err_occurred()) {
+			aga_scripttrace();
+			return AF_ERR_UNKNOWN;
+		}
 		if(result) { DECREF(result); }
 
 		DECREF(code);
@@ -164,7 +167,12 @@ enum af_err aga_mkscripteng(
 			DECREF(keys);
 		}
 
-		if(fclose(f) == EOF) aga_errno_chk("fclose");
+		if(fclose(f) == EOF) {
+			if(err_occurred()) {
+				aga_scripttrace();
+				return AF_ERR_UNKNOWN;
+			}
+		}
 	}
 
 	return AF_ERR_NONE;
@@ -221,7 +229,10 @@ enum af_err aga_mkscriptinst(
 	inst->class = class;
 
 	inst->object = newclassmemberobject(class->class);
-	aga_scriptchk();
+	if(err_occurred()) {
+		aga_scripttrace();
+		return AF_ERR_UNKNOWN;
+	}
 
 	AF_CHK(aga_instcall(inst, "create"));
 
@@ -244,13 +255,22 @@ enum af_err aga_instcall(struct aga_scriptinst* inst, const char* name) {
 	AF_PARAM_CHK(name);
 
 	proc = getattr(inst->class->class, (char*) name);
-	aga_scriptchk();
+	if(err_occurred()) {
+		aga_scripttrace();
+		return AF_ERR_UNKNOWN;
+	}
 
 	methodcall = newclassmethodobject(proc, inst->object);
-	aga_scriptchk();
+	if(err_occurred()) {
+		aga_scripttrace();
+		return AF_ERR_UNKNOWN;
+	}
 
 	call_function(methodcall, NULL);
-	aga_scriptchk();
+	if(err_occurred()) {
+		aga_scripttrace();
+		return AF_ERR_UNKNOWN;
+	}
 
 	DECREF(methodcall);
 

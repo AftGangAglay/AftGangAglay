@@ -17,11 +17,6 @@ static void aga_onabrt(int signum) {
 	aga_killlog();
 }
 
-static AGA_NORETURN void aga_logdierr(const char* proc) {
-	perror(proc);
-	exit(EXIT_FAILURE);
-}
-
 enum af_err aga_mklog(const char** targets, af_size_t len) {
 	af_size_t i;
 
@@ -33,7 +28,7 @@ enum af_err aga_mklog(const char** targets, af_size_t len) {
 
 	for(i = 0; i < len; ++i) {
 		if(!(aga_logctx.targets[i] = fopen(targets[i], "w+"))) {
-			aga_logdierr("fopen");
+			perror("fopen");
 		}
 	}
 
@@ -47,8 +42,8 @@ enum af_err aga_killlog(void) {
 	for(i = 0; i < aga_logctx.len; ++i) {
 		FILE* s = aga_logctx.targets[i];
 		if(fileno(s) <= 2) continue;
-		if(fflush(s) == EOF) aga_logdierr("fflush");
-		if(fclose(s) == EOF) aga_logdierr("fclose");
+		if(fflush(s) == EOF) perror("fflush");
+		if(fclose(s) == EOF) perror("fclose");
 	}
 
 	return AF_ERR_NONE;
@@ -70,7 +65,7 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 		}
 	}
 	else f = "[%s] ";
-	if(fprintf(s, f, loc) < 0) aga_logdierr("fprintf");
+	if(fprintf(s, f, loc) < 0) perror("fprintf");
 #undef ESC
 #undef CYN
 #undef YLW
@@ -87,7 +82,7 @@ void aga_log(const char* loc, const char* fmt, ...) {
 	enum aga_logsev sev = AGA_NORM;
 	va_start(l, fmt);
 
-	if(vsprintf(buf, fmt, l) < 0) aga_logdierr("vsprintf");
+	if(vsprintf(buf, fmt, l) < 0) perror("vsprintf");
 
 	if(!strncmp(fmt, "warn", 4)) sev = AGA_WARN;
 	if(!strncmp(fmt, "err", 3)) sev = AGA_ERR;
@@ -96,8 +91,8 @@ void aga_log(const char* loc, const char* fmt, ...) {
 		FILE* s = aga_logctx.targets[i];
 
 		aga_loghdr(s, loc, sev);
-		if(fputs(buf, s) == EOF) aga_logdierr("fputs");
-		if(putc('\n', s) == EOF) aga_logdierr("putc");
+		if(fputs(buf, s) == EOF) perror("fputs");
+		if(putc('\n', s) == EOF) perror("putc");
  	}
 
 	va_end(l);

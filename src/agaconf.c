@@ -60,12 +60,18 @@ enum af_err aga_sgml_push(
 void aga_sgml_nil(void) {}
 void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
 	struct aga_conf_node* node = me->stack[me->depth - 1];
+	void* newptr;
 
 	if(node->type == AGA_NONE) return;
 	if(c == ' ' || c == '\r' || c == '\t' || c == '\n') return;
 
-	node->data.string = realloc(node->data.string, ++node->scratch + 1);
-	if(!node->data.string) aga_errno_chk("realloc");
+	newptr = realloc(node->data.string, ++node->scratch + 1);
+	if(!newptr) {
+		aga_af_errno(__FILE__, "realloc");
+		free(node->data.string);
+		node->data.string = 0;
+	}
+	node->data.string = newptr;
 
 	node->data.string[node->scratch - 1] = c;
 	node->data.string[node->scratch] = 0;
@@ -77,21 +83,39 @@ void aga_sgml_start_element(
 
 	struct aga_conf_node* parent = me->stack[me->depth - 1];
 	struct aga_conf_node* node;
+	void* newptr;
+	enum af_err result;
 
 	af_size_t sz = ++parent->len * sizeof(struct aga_conf_node);
 
-	parent->children = realloc(parent->children, sz);
-	if(!parent->children) aga_errno_chk("realloc");
+	newptr = realloc(parent->children, sz);
+	if(!newptr) {
+		aga_af_errno(__FILE__, "realloc");
+		free(parent->children);
+		parent->children = 0;
+		parent->len = 0;
+		return;
+	}
+	parent->children = newptr;
 
 	node = &parent->children[parent->len - 1];
 	af_memset(node, 0, sizeof(struct aga_conf_node));
 
-	aga_af_chk("aga_sgml_push", aga_sgml_push(me, node));
+	if((result = aga_sgml_push(me, node))) {
+		aga_af_soft(__FILE__, "aga_sgml_push", result);
+		/*
+		 * TODO: This can be a soft misuse of memory as we will leave haps in
+		 * 		 The child list.
+		 */
+		return;
+	}
 
 	switch(element_number) {
 		default: {
-			aga_log(__FILE__, "SGML_new: unknown element %i", element_number);
-			abort();
+			aga_log(
+				__FILE__,
+				"warn: SGML_new: unknown element %i", element_number);
+			return;
 		}
 		case AGA_NODE_ITEM: {
 			if(!attribute_present[AGA_ITEM_NAME]) {
@@ -103,7 +127,10 @@ void aga_sgml_start_element(
 			else {
 				const char* value = attribute_value[AGA_ITEM_NAME];
 				af_size_t len = af_strlen(value);
-				if(!(node->name = malloc(len + 1))) aga_errno_chk("malloc");
+				if(!(node->name = malloc(len + 1))) {
+					aga_af_errno(__FILE__, "malloc");
+					return;
+				}
 				af_memcpy(node->name, value, len + 1);
 			}
 
@@ -136,13 +163,23 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 	switch(node->type) {
 		default: break;
 		case AGA_INTEGER: {
-			long res = strtol(node->data.string, 0, 0);
+			long res;
+			if(!string) {
+				node->data.integer = 0;
+				break;
+			}
+			res = strtol(node->data.string, 0, 0);
 			free(string);
 			node->data.integer = res;
 			break;
 		}
 		case AGA_FLOAT: {
-			double res = strtod(node->data.string, 0);
+			double res;
+			if(!string) {
+				node->data.flt = 0.0;
+				break;
+			}
+			res = strtod(node->data.string, 0);
 			free(string);
 			node->data.flt = res;
 			break;

@@ -10,12 +10,12 @@
 
 #ifndef AGA_NOSND
 
-#include <sys/ioctl.h>
-#include <sys/soundcard.h>
+# include <sys/ioctl.h>
+# include <sys/soundcard.h>
 
-#define AGA_WANT_UNIX
-#include <agastd.h>
-#undef AGA_WANT_UNIX
+# define AGA_WANT_UNIX
+# include <agastd.h>
+# undef AGA_WANT_UNIX
 
 enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 	af_bool_t busy_msg = AF_FALSE;
@@ -28,7 +28,9 @@ enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 
 	do {
 		if ((snddev->fd = open(dev, O_WRONLY | O_NONBLOCK)) == -1) {
-			if(errno != EBUSY) aga_errno_chk("open");
+			if(errno != EBUSY) {
+				return aga_af_patherrno(__FILE__, "open", dev);
+			}
 			if(!busy_msg) {
 				aga_log(__FILE__, "Sound device `%s' busy. Waiting...", dev);
 				busy_msg = AF_TRUE;
@@ -40,19 +42,19 @@ enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 
 	value = AGA_SND_SAMPLEBITS;
 	if(ioctl(snddev->fd, SOUND_PCM_WRITE_BITS, &value) == -1) {
-		aga_errno_chk("ioctl");
+		return aga_af_errno(__FILE__, "ioctl");
 	}
 	value = AGA_SND_CHANNELS;
 	if(ioctl(snddev->fd, SOUND_PCM_WRITE_CHANNELS, &value) == -1) {
-		aga_errno_chk("ioctl");
+		return aga_af_errno(__FILE__, "ioctl");
 	}
 	value = AGA_SND_SAMPLERATE;
 	if(ioctl(snddev->fd, SOUND_PCM_WRITE_RATE, &value) == -1) {
-		aga_errno_chk("ioctl");
+		return aga_af_errno(__FILE__, "ioctl");
 	}
 	value = 1;
 	if(ioctl(snddev->fd, SOUND_PCM_NONBLOCK, &value) == -1) {
-		aga_errno_chk("ioctl");
+		return aga_af_errno(__FILE__, "ioctl");
 	}
 
 	return AF_ERR_NONE;
@@ -62,10 +64,10 @@ enum af_err aga_killsnddev(struct aga_snddev* snddev) {
 	AF_PARAM_CHK(snddev);
 
 	if(ioctl(snddev->fd, SOUND_PCM_RESET) == -1) {
-		aga_errno_chk("ioctl");
+		return aga_af_errno(__FILE__, "ioctl");
 	}
 
-	if(close(snddev->fd) == -1) aga_errno_chk("close");
+	if(close(snddev->fd) == -1) return aga_af_errno(__FILE__, "close");
 
 	return AF_ERR_NONE;
 }
@@ -81,13 +83,17 @@ enum af_err aga_flushsnd(struct aga_snddev* snddev, af_size_t* written) {
 
 	*written = 0;
 
-	if((rdy = poll(&pollfd, 1, 0)) == -1) aga_errno_chk("poll");
+	if((rdy = poll(&pollfd, 1, 0)) == -1) {
+		return aga_af_errno(__FILE__, "poll");
+	}
 
 	if(rdy && (pollfd.revents & POLLOUT)) {
 		ssize_t res = write(snddev->fd, snddev->buf, sizeof(snddev->buf));
 		*written = res;
 		if(res != sizeof(snddev->buf)) {
-			if(errno && errno != EAGAIN) aga_errno_chk("write");
+			if(errno && errno != EAGAIN) {
+				return aga_af_errno(__FILE__, "write");
+			}
 		}
 	}
 

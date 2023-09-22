@@ -3,6 +3,7 @@
  * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
+#include <agalog.h>
 #include <agaimg.h>
 
 /* Hiding larger libs like libtiff is desireable */
@@ -19,7 +20,10 @@ enum af_err aga_mkimg(struct aga_img* img, const char* path) {
 	AF_PARAM_CHK(img);
 	AF_PARAM_CHK(path);
 
-	if(!(t = TIFFOpen(path, "r"))) return AF_ERR_UNKNOWN;
+	if(!(t = TIFFOpen(path, "r"))) {
+		aga_log(__FILE__, "err: TIFFOpen: unknown `%s'", path);
+		return AF_ERR_UNKNOWN;
+	}
 
 	/* We want to treat TIFFs as single images */
 	AF_VERIFY(TIFFLastDirectory(t), AF_ERR_BAD_PARAM);

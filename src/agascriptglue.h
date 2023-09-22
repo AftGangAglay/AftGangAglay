@@ -21,6 +21,30 @@ static const typeobject aga_nativeptr_type = {
 	aga_nativeptr_dealloc, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
+static af_bool_t aga_script_aferr(const char* proc, enum af_err err) {
+	aga_fixed_buf_t buf = { 0 };
+
+	if(!err) return AF_FALSE;
+
+	sprintf(buf, "%s: %s\n", proc, aga_af_errname(err));
+	err_setstr(RuntimeError, buf);
+
+	return AF_TRUE;
+}
+
+static af_bool_t aga_script_glerr(const char* proc) {
+	aga_fixed_buf_t buf = { 0 };
+	af_uint_t err = glGetError();
+	if(!err) return AF_FALSE;
+
+	sprintf(buf, "%s: %s\n", proc, gluErrorString(err));
+	err_setstr(RuntimeError, buf);
+
+	af_gl_err_clear(); /* TODO: Elegant way to report all set errors. */
+
+	return AF_TRUE;
+}
+
 static object* agan_getkey(object* self, object* arg) {
 	long value;
 	object* retval;
@@ -33,7 +57,7 @@ static object* agan_getkey(object* self, object* arg) {
 	}
 
 	value = getintvalue(arg);
-	aga_scriptchk();
+	if(err_occurred()) return 0;
 
 	retval = script_ctx->keystates[value] ? True : False;
 	INCREF(retval);
@@ -94,13 +118,13 @@ static object* agan_setcam(object* self, object* arg) {
 		v = getlistitem(rot, 0);
 		if(!v) return 0;
 		f = (float) getfloatvalue(v);
-		aga_scriptchk();
+		if(err_occurred()) return 0;
 		glRotatef(f, 1.0f, 0.0f, 0.0f);
 
 		v = getlistitem(rot, 1);
 		if(!v) return 0;
 		f = (float) getfloatvalue(v);
-		aga_scriptchk();
+		if(err_occurred()) return 0;
 		glRotatef(f, 0.0f, 1.0f, 0.0f);
 	}
 
@@ -116,7 +140,7 @@ static object* agan_setcam(object* self, object* arg) {
 			if(!p) return 0;
 
 			comps[i] = (float) getfloatvalue(p);
-			aga_scriptchk();
+			if(err_occurred()) return 0;
 		}
 
 		glTranslatef(comps[0], comps[1], comps[2]);
@@ -135,7 +159,7 @@ static object* agan_getconf(object* self, object* arg) {
 	(void) self, (void) arg;
 
 	conf = newdictobject();
-	aga_scriptchk();
+	if(err_occurred()) return 0;
 
 	val = newfloatobject(script_ctx->settings.sensitivity);
 	if(!val) return 0;
@@ -179,6 +203,7 @@ static object* agan_getconf(object* self, object* arg) {
 static object* agan_mklargefile(object* self, object* arg) {
 	struct aga_nativeptr* retval;
 	const char* path;
+	enum af_err result;
 
 	(void) self;
 
@@ -191,18 +216,16 @@ static object* agan_mklargefile(object* self, object* arg) {
 	retval = NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
 	if(!retval) return 0;
 
-	if(AGA_MK_LARGE_FILE_STRATEGY(
-		path, (af_uchar_t**) &retval->ptr, &retval->len)) {
-
-		err_setstr(RuntimeError, "AGA_MK_LARGE_FILE_STRATEGY() failed");
-		return 0;
-	}
+	result = AGA_MK_LARGE_FILE_STRATEGY(
+				path, (af_uchar_t**) &retval->ptr, &retval->len);
+	if(aga_script_aferr("AGA_MK_LARGE_FILE_STRATEGY", result)) return 0;
 
 	return (object*) retval;
 }
 
 static object* agan_killlargefile(object* self, object* arg) {
 	struct aga_nativeptr* nativeptr;
+	enum af_err result;
 
 	(void) self;
 
@@ -214,10 +237,8 @@ static object* agan_killlargefile(object* self, object* arg) {
 
 	nativeptr = (struct aga_nativeptr*) arg;
 
-	if(AGA_KILL_LARGE_FILE_STRATEGY(nativeptr->ptr, nativeptr->len)) {
-		err_setstr(RuntimeError, "AGA_KILL_LARGE_FILE_STRATEGY() failed");
-		return 0;
-	}
+	result = AGA_KILL_LARGE_FILE_STRATEGY(nativeptr->ptr, nativeptr->len);
+	if(aga_script_aferr("AGA_KILL_LARGE_FILE_STRATEGY", result)) return 0;
 
 	INCREF(None);
 	return None;
@@ -226,12 +247,12 @@ static object* agan_killlargefile(object* self, object* arg) {
 static object* agan_mkvertbuf(object* self, object* arg) {
 	struct aga_nativeptr* nativeptr;
 	struct aga_nativeptr* retval;
+	enum af_err result;
 
 	(void) self;
 
 	if(!arg || arg->ob_type != &aga_nativeptr_type) {
-		err_setstr(
-			RuntimeError, "mkvertbuf() argument must be nativeptr");
+		err_setstr(RuntimeError, "mkvertbuf() argument must be nativeptr");
 		return 0;
 	}
 
@@ -245,23 +266,20 @@ static object* agan_mkvertbuf(object* self, object* arg) {
 		return 0;
 	}
 
-	if(af_mkbuf(&script_ctx->af_ctx, retval->ptr, AF_BUF_VERT)) {
-		err_setstr(RuntimeError, "af_mkbuf() failed");
-		return 0;
-	}
+	result = af_mkbuf(&script_ctx->af_ctx, retval->ptr, AF_BUF_VERT);
+	if(aga_script_aferr("af_mkbuf", result)) return 0;
 
-	if(af_upload(
-		&script_ctx->af_ctx, retval->ptr, nativeptr->ptr,
-		nativeptr->len)) {
-
-		err_setstr(RuntimeError, "af_upload() failed");
-		return 0;
-	}
+	result = af_upload(
+				&script_ctx->af_ctx, retval->ptr, nativeptr->ptr,
+				nativeptr->len);
+	if(aga_script_aferr("af_upload", result)) return 0;
 
 	return (object*) retval;
 }
 
 static object* agan_killvertbuf(object* self, object* arg) {
+	enum af_err result;
+
 	(void) self;
 
 	if(!arg || arg->ob_type != &aga_nativeptr_type) {
@@ -270,10 +288,9 @@ static object* agan_killvertbuf(object* self, object* arg) {
 		return 0;
 	}
 
-	if(af_killbuf(&script_ctx->af_ctx, ((struct aga_nativeptr*) arg)->ptr)) {
-		err_setstr(RuntimeError, "af_killbuf() failed");
-		return 0;
-	}
+	result = af_killbuf(
+				&script_ctx->af_ctx, ((struct aga_nativeptr*) arg)->ptr);
+	if(aga_script_aferr("af_killbuf", result)) return 0;
 
 	free(((struct aga_nativeptr*) arg)->ptr);
 
@@ -302,11 +319,11 @@ static enum af_err agan_settransmat(object* trans) {
 			if(!(zo = getlistitem(comp, 2))) return 0;
 
 			x = (float) getfloatvalue(xo);
-			aga_scriptchk();
+			if(err_occurred()) return 0;
 			y = (float) getfloatvalue(yo);
-			aga_scriptchk();
+			if(err_occurred()) return 0;
 			z = (float) getfloatvalue(zo);
-			aga_scriptchk();
+			if(err_occurred()) return 0;
 
 			switch(i) {
 				default: break;
@@ -353,7 +370,7 @@ static object* agan_drawbuf(object* self, object* arg) {
 
 	ptr = ((struct aga_nativeptr*) v)->ptr;
 	primitive = getintvalue(o);
-	aga_scriptchk();
+	if(err_occurred()) return 0;
 
 	if(agan_settransmat(t)) return 0;
 
@@ -473,13 +490,13 @@ static object* agan_setcol(object* self, object* arg) {
 
 	if(!(v = getlistitem(arg, 0))) return 0;
 	r = (float) getfloatvalue(v);
-	aga_scriptchk();
+	if(err_occurred()) return 0;
 	if(!(v = getlistitem(arg, 1))) return 0;
 	g = (float) getfloatvalue(v);
-	aga_scriptchk();
+	if(err_occurred()) return 0;
 	if(!(v = getlistitem(arg, 2))) return 0;
 	b = (float) getfloatvalue(v);
-	aga_scriptchk();
+	if(err_occurred()) return 0;
 
 	glColor3f(r, g, b);
 
@@ -595,7 +612,7 @@ static object* agan_yeslight(object* self, object* arg) {
 	(void) self, (void) arg;
 
 	glEnable(GL_LIGHTING);
-	aga_af_chk("glEnable", af_gl_chk());
+	if(aga_script_glerr("glEnable")) return 0;
 
 	INCREF(None);
 	return None;
@@ -605,7 +622,7 @@ static object* agan_nolight(object* self, object* arg) {
 	(void) self, (void) arg;
 
 	glDisable(GL_LIGHTING);
-	aga_af_chk("glDisable", af_gl_chk());
+	if(aga_script_glerr("glDisable")) return 0;
 
 	INCREF(None);
 	return None;
@@ -694,7 +711,7 @@ static object* agan_lightpos(object* self, object* arg) {
 	}
 
 	light = getintvalue(v);
-	aga_scriptchk();
+	if(err_occurred()) return 0;
 
 	if(agan_settransmat(t)) {
 		err_setstr(RuntimeError, "agan_settransmat() failed");
@@ -745,11 +762,11 @@ static object* agan_lightparam(object* self, object* arg) {
 	}
 
 	light = getintvalue(o);
-	aga_scriptchk();
+	if(err_occurred()) return 0;
 
 	if(!(v = getlistitem(l, 0))) return 0;
 	f = (float) getfloatvalue(v);
-	aga_scriptchk();
+	if(err_occurred()) return 0;
 	glLightf(light, GL_SPOT_EXPONENT, f);
 	if(af_gl_chk()) {
 		err_setstr(RuntimeError, "glLightf() failed");
@@ -758,7 +775,7 @@ static object* agan_lightparam(object* self, object* arg) {
 
 	if(!(v = getlistitem(l, 1))) return 0;
 	f = (float) getfloatvalue(v);
-	aga_scriptchk();
+	if(err_occurred()) return 0;
 	glLightf(light, GL_CONSTANT_ATTENUATION, f);
 	if(af_gl_chk()) {
 		err_setstr(RuntimeError, "glLightf() failed");
@@ -767,7 +784,7 @@ static object* agan_lightparam(object* self, object* arg) {
 
 	if(!(v = getlistitem(l, 2))) return 0;
 	f = (float) getfloatvalue(v);
-	aga_scriptchk();
+	if(err_occurred()) return 0;
 	glLightf(light, GL_LINEAR_ATTENUATION, f);
 	if(af_gl_chk()) {
 		err_setstr(RuntimeError, "glLightf() failed");
@@ -776,7 +793,7 @@ static object* agan_lightparam(object* self, object* arg) {
 
 	if(!(v = getlistitem(l, 3))) return 0;
 	f = (float) getfloatvalue(v);
-	aga_scriptchk();
+	if(err_occurred()) return 0;
 	glLightf(light, GL_QUADRATIC_ATTENUATION, f);
 	if(af_gl_chk()) {
 		err_setstr(RuntimeError, "glLightf() failed");

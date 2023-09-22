@@ -53,8 +53,9 @@ static int aga_xerr_handler(Display* dpy, XErrorEvent* err) {
 
 	XGetErrorText(dpy, err->error_code, buf, sizeof(buf));
 
-	aga_log(__FILE__, "xlib: %s", buf);
-	abort();
+	aga_log(__FILE__, "err: xlib: %s", buf);
+	
+	return 0;
 }
 
 enum af_err aga_mkctxdpy(struct aga_ctx* ctx) {
@@ -70,9 +71,13 @@ enum af_err aga_mkctxdpy(struct aga_ctx* ctx) {
 		int fl;
 
 		ctx->dpy_fd = ConnectionNumber(ctx->dpy);
-		if((fl = fcntl(ctx->dpy_fd, F_GETFL)) == -1) aga_errno_chk("fcntl");
+		if((fl = fcntl(ctx->dpy_fd, F_GETFL)) == -1) {
+			return aga_af_errno(__FILE__, "fcntl");
+		}
 		fl |= O_NONBLOCK; /* TODO: We could use `O_ASYNC' for this. */
-		if(fcntl(ctx->dpy_fd, F_SETFL, fl) == -1) aga_errno_chk("fcntl");
+		if(fcntl(ctx->dpy_fd, F_SETFL, fl) == -1) {
+			return aga_af_errno(__FILE__, "fcntl");
+		}
 	}
 
 	ctx->screen = DefaultScreen(ctx->dpy);
@@ -216,7 +221,9 @@ enum af_err aga_poll(struct aga_ctx* ctx) {
 	pollfd.fd = ctx->dpy_fd;
 	pollfd.events = POLLIN;
 
-	if((rdy = poll(&pollfd, 1, 0)) == -1) aga_errno_chk("poll");
+	if((rdy = poll(&pollfd, 1, 0)) == -1) {
+		return aga_af_errno(__FILE__, "poll");
+	}
 
 	if(rdy && (pollfd.revents & POLLIN)) {
 		while(XPending(ctx->dpy) > 0) {

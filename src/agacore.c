@@ -62,7 +62,7 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 				else {
 					aga_log(
 						__FILE__,
-						"warn: unknown input setting `%s'\n", v->name);
+						"warn: unknown input setting `%s'", v->name);
 				}
 			}
 		}
@@ -84,7 +84,7 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 				else {
 					aga_log(
 						__FILE__,
-						"warn: unknown display setting `%s'\n", v->name);
+						"warn: unknown display setting `%s'", v->name);
 				}
 			}
 		}
@@ -102,7 +102,7 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 				else {
 					aga_log(
 						__FILE__,
-						"warn: unknown audio setting `%s'\n", v->name);
+						"warn: unknown audio setting `%s'", v->name);
 				}
 			}
 		}
@@ -120,7 +120,7 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 				else {
 					aga_log(
 						__FILE__,
-						"warn: unknown script setting `%s'\n", v->name);
+						"warn: unknown script setting `%s'", v->name);
 				}
 			}
 		}
@@ -130,25 +130,36 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 }
 
 enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
+	/* TODO: argv */
+	const char confpath[] = "res/aga.sgml";
+
+	enum af_err result;
+
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(argc);
 	AF_PARAM_CHK(argv);
 
-	AF_CHK(aga_parseconf(ctx, "res/aga.sgml"));
+	result = aga_parseconf(ctx, confpath);
+	if(result) aga_af_soft(__FILE__, "aga_parseconf", result);
 
 	ctx->argc = argc;
 	ctx->argv = argv;
 
+	/* TODO: `DISPLAY' from argv */
 	AF_CHK(aga_mkctxdpy(ctx));
 	AF_CHK(aga_mkwin(ctx, &ctx->win));
 	AF_CHK(aga_glctx(ctx, &ctx->win));
-
 	AF_CHK(af_mkctx(&ctx->af_ctx, AF_FIDELITY_FAST));
+
 	AF_CHK(af_mkvert(
 		&ctx->af_ctx, &ctx->vert, vert_elements, AF_ARRLEN(vert_elements)));
 
 	if(ctx->settings.audio_enabled) {
-		AF_CHK(aga_mksnddev(ctx->settings.audio_dev, &ctx->snddev));
+		result = aga_mksnddev(ctx->settings.audio_dev, &ctx->snddev);
+		if(result) {
+			aga_af_soft(__FILE__, "aga_mksnddev", result);
+			ctx->settings.audio_enabled = AF_FALSE;
+		}
 	}
 
 	/* TODO: Python path resolution in packaged builds. */
@@ -176,33 +187,61 @@ enum af_err aga_kill(struct aga_ctx* ctx) {
 	return AF_ERR_NONE;
 }
 
-void aga_af_chk(const char* proc, enum af_err e) {
-	const char* n;
+const char* aga_af_errname(enum af_err e) {
 	switch(e) {
 		default:;
 			AF_FALLTHROUGH;
 			/* FALLTHRU */
-		case AF_ERR_NONE: return;
+		case AF_ERR_NONE: return "none";
 
-		case AF_ERR_UNKNOWN: n = "unknown"; break;
-		case AF_ERR_BAD_PARAM: n = "bad parameter"; break;
-		case AF_ERR_BAD_CTX: n = "bad context"; break;
-		case AF_ERR_BAD_OP: n = "bad operation"; break;
-		case AF_ERR_NO_GL: n = "no opengl"; break;
-		case AF_ERR_MEM: n = "out of memory"; break;
+		case AF_ERR_UNKNOWN: return "unknown";
+		case AF_ERR_BAD_PARAM: return "bad parameter";
+		case AF_ERR_BAD_CTX: return "bad context";
+		case AF_ERR_BAD_OP: return "bad operation";
+		case AF_ERR_NO_GL: return "no opengl";
+		case AF_ERR_MEM: return "out of memory";
 	}
 
-	aga_log(__FILE__, "err: %s: %s\n", proc, n);
+	return "none";
+}
+
+void aga_af_chk(const char* loc, const char* proc, enum af_err e) {
+	if(!e) return;
+	aga_af_soft(loc, proc, e);
 	abort();
 }
 
-void aga_errno_chk(const char* proc) {
-	/*
-	 * TODO: This gives a rather unhelpful file message as it won't be the
-	 * 		 Site of the error.
-	 */
-	aga_log(__FILE__, "err: %s: %s", proc, strerror(errno));
+void aga_af_soft(const char* loc, const char* proc, enum af_err e) {
+	aga_log(loc, "err: %s: %s", proc, aga_af_errname(e));
+}
+
+void aga_errno_chk(const char* loc, const char* proc) {
+	aga_log(loc, "err: %s: %s", proc, strerror(errno));
 	abort();
+}
+
+enum af_err aga_af_errno(const char* loc, const char* proc) {
+	return aga_af_patherrno(loc, proc, 0);
+}
+
+enum af_err aga_af_patherrno(
+		const char* loc, const char* proc, const char* path) {
+
+	if(loc) {
+		if(path) aga_log(loc, "err: %s: %s `%s'", proc, strerror(errno), path);
+		else aga_log(loc, "err: %s: %s", proc, strerror(errno));
+	}
+	switch(errno) {
+		default: return AF_ERR_UNKNOWN;
+		case 0: return AF_ERR_NONE;
+
+		case EBADF: return AF_ERR_BAD_PARAM;
+		case ENOMEM: return AF_ERR_MEM;
+		case EACCES:
+			AF_FALLTHROUGH;
+			/* FALLTHRU */
+		case EOPNOTSUPP: return AF_ERR_BAD_OP;
+	}
 }
 
 void aga_boundf(float* f, float min, float max) {

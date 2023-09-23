@@ -158,8 +158,6 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 
 	(void) element_number;
 
-	/* TODO: lstrip+rstrip string data to get rid of all the guff */
-
 	switch(node->type) {
 		default: break;
 		case AGA_INTEGER: {
@@ -276,4 +274,38 @@ enum af_err aga_killconf(struct aga_conf_node* root) {
 	aga_free_node(root);
 
 	return AF_ERR_NONE;
+}
+
+
+af_bool_t aga_confvar(
+		const char* name, struct aga_conf_node* node, enum aga_conf_type type,
+		void* value) {
+
+	if(af_streql(node->name, name)) {
+		if(node->type != type) {
+			aga_log(__FILE__, "warn: wrong type for field `%s'", name);
+			return AF_TRUE;
+		}
+		switch(type) {
+			default:
+				AF_FALLTHROUGH;
+				/* FALLTHRU */
+			case AGA_NONE: break;
+			case AGA_STRING: {
+				*(char**) value = node->data.string;
+				break;
+			}
+			case AGA_INTEGER: {
+				*(int*) value = (int) node->data.integer;
+				break;
+			}
+			case AGA_FLOAT: {
+				*(float*) value = (float) node->data.flt;
+				break;
+			}
+		}
+		return AF_TRUE;
+	}
+
+	return AF_FALSE;
 }

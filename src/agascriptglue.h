@@ -146,8 +146,6 @@ static object* agan_setcam(object* self, object* arg) {
 		glTranslatef(comps[0], comps[1], comps[2]);
 	}
 
-	/* TODO: `af_err` -> python exception. */
-
 	INCREF(None);
 	return None;
 }
@@ -658,7 +656,6 @@ static object* agan_mklight(object* self, object* arg) {
 
 	(void) self, (void) arg;
 
-	/* TODO: We need better handling for this error state. */
 	if(aga_current_light == AGAN_LIGHT_INVAL) {
 		if(!aga_light_start_warned) {
 			aga_log(__FILE__, "warn: mklight() called before startlight()");

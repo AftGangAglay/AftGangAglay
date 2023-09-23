@@ -19,113 +19,59 @@ static const struct af_vert_element vert_elements[] = {
 
 static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 	struct aga_conf_node* item;
+	struct aga_conf_node* v;
+	struct aga_settings* sets = &ctx->settings;
 
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(path);
 
 	/* Set defaults */
 	{
-		ctx->settings.sensitivity = 0.25f;
-		ctx->settings.move_speed = 0.1f;
+		sets->sensitivity = 0.25f;
+		sets->move_speed = 0.1f;
 
-		ctx->settings.width = 640;
-		ctx->settings.height = 480;
-		ctx->settings.fov = 60.0f;
+		sets->width = 640;
+		sets->height = 480;
+		sets->fov = 60.0f;
 
-		ctx->settings.audio_enabled = AF_FALSE;
-		ctx->settings.audio_dev = "/dev/dsp";
+		sets->audio_enabled = AF_FALSE;
+		if(!sets->audio_dev) sets->audio_dev = "/dev/dsp";
 
-		if(!ctx->settings.startup_script) {
-			ctx->settings.startup_script = "res/script/main.py";
-		}
-		ctx->settings.python_path =
-			"vendor/python/lib:res/script:res/script/aga";
+		if(!sets->startup_script) sets->startup_script = "res/script/main.py";
+		sets->python_path = "vendor/python/lib:res/script:res/script/aga";
 	}
 
 	af_memset(&ctx->conf, 0, sizeof(ctx->conf));
 
 	AF_CHK(aga_mkconf(path, &ctx->conf));
 
-	/* TODO: We can almost certainly clean this up. */
-
 	for(item = ctx->conf.children->children;
 		item < ctx->conf.children->children + ctx->conf.children->len;
 		++item) {
 
 		if(af_streql(item->name, "Input")) {
-			struct aga_conf_node* v;
 			for(v = item->children; v < item->children + item->len; ++v) {
-				if(af_streql(v->name, "Sensitivity")) {
-					AF_VERIFY(v->type == AGA_FLOAT, AF_ERR_BAD_PARAM);
-					ctx->settings.sensitivity = (float) v->data.flt;
-				}
-				else if(af_streql(v->name, "MoveSpeed")) {
-					AF_VERIFY(v->type == AGA_FLOAT, AF_ERR_BAD_PARAM);
-					ctx->settings.move_speed = (float) v->data.flt;
-				}
-				else {
-					aga_log(
-						__FILE__,
-						"warn: unknown input setting `%s'", v->name);
-				}
+				aga_confvar("Sensitivity", v, AGA_FLOAT, &sets->sensitivity);
+				aga_confvar("MoveSpeed", v, AGA_FLOAT, &sets->move_speed);
 			}
 		}
 		else if(af_streql(item->name, "Display")) {
-			struct aga_conf_node* v;
 			for(v = item->children; v < item->children + item->len; ++v) {
-				if(af_streql(v->name, "Width")) {
-					AF_VERIFY(v->type == AGA_INTEGER, AF_ERR_BAD_PARAM);
-					ctx->settings.width = v->data.integer;
-				}
-				else if(af_streql(v->name, "Height")) {
-					AF_VERIFY(v->type == AGA_INTEGER, AF_ERR_BAD_PARAM);
-					ctx->settings.height = v->data.integer;
-				}
-				else if(af_streql(v->name, "FOV")) {
-					AF_VERIFY(v->type == AGA_FLOAT, AF_ERR_BAD_PARAM);
-					ctx->settings.fov = (float) v->data.flt;
-				}
-				else {
-					aga_log(
-						__FILE__,
-						"warn: unknown display setting `%s'", v->name);
-				}
+				aga_confvar("Width", v, AGA_INTEGER, &sets->width);
+				aga_confvar("Height", v, AGA_INTEGER, &sets->height);
+				aga_confvar("FOV", v, AGA_FLOAT, &sets->fov);
 			}
 		}
 		else if(af_streql(item->name, "Audio")) {
-			struct aga_conf_node* v;
 			for(v = item->children; v < item->children + item->len; ++v) {
-				if(af_streql(v->name, "Enabled")) {
-					AF_VERIFY(v->type == AGA_INTEGER, AF_ERR_BAD_PARAM);
-					ctx->settings.audio_enabled = !!v->data.integer;
-				}
-				else if(af_streql(v->name, "Device")) {
-					AF_VERIFY(v->type == AGA_STRING, AF_ERR_BAD_PARAM);
-					ctx->settings.audio_dev = v->data.string;
-				}
-				else {
-					aga_log(
-						__FILE__,
-						"warn: unknown audio setting `%s'", v->name);
-				}
+				aga_confvar("Enabled", v, AGA_INTEGER, &sets->audio_enabled);
+				aga_confvar("Device", v, AGA_STRING, &sets->audio_dev);
 			}
 		}
 		else if(af_streql(item->name, "Script")) {
-			struct aga_conf_node* v;
 			for(v = item->children; v < item->children + item->len; ++v) {
-				if(af_streql(v->name, "Startup")) {
-					AF_VERIFY(v->type == AGA_STRING, AF_ERR_BAD_PARAM);
-					ctx->settings.startup_script = v->data.string;
-				}
-				else if(af_streql(v->name, "Path")) {
-					AF_VERIFY(v->type == AGA_STRING, AF_ERR_BAD_PARAM);
-					ctx->settings.python_path = v->data.string;
-				}
-				else {
-					aga_log(
-						__FILE__,
-						"warn: unknown script setting `%s'", v->name);
-				}
+				aga_confvar("Startup", v, AGA_STRING, &sets->startup_script);
+				aga_confvar("Path", v, AGA_STRING, &sets->python_path);
 			}
 		}
 	}
@@ -136,29 +82,35 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 	const char* confpath = "res/aga.sgml";
 	enum af_err result;
+	const char* display = 0;
+	const char* helpstr =
+		"warn: usage: %s [-f config] [-s script] [-A dsp] [-D display]";
 
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(argc);
 	AF_PARAM_CHK(argv);
 
+	ctx->settings.audio_dev = 0;
 	ctx->settings.startup_script = 0;
 
 	{
 		int o;
-		while((o = 	getopt(argc, argv, "f:s:")) != -1) {
+		while((o = 	getopt(argc, argv, "f:s:A:")) != -1) {
 			switch(o) {
 				default: {
-					aga_log(
-						__FILE__,
-						"warn: usage: %s [-f config] [-s script]", argv[0]);
+					aga_log(__FILE__, helpstr, argv[0]);
 					goto break2;
 				}
 				case 'f': confpath = optarg; break;
 				case 's': ctx->settings.startup_script = optarg; break;
+				case 'A': ctx->settings.audio_dev = optarg; break;
+				case 'D': display = optarg; break;
 			}
 		}
 		break2:;
 	}
+
+	display = getenv("DISPLAY");
 
 	result = aga_parseconf(ctx, confpath);
 	if(result) aga_af_soft(__FILE__, "aga_parseconf", result);
@@ -166,8 +118,7 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 	ctx->argc = argc;
 	ctx->argv = argv;
 
-	/* TODO: `DISPLAY' from argv */
-	AF_CHK(aga_mkctxdpy(ctx));
+	AF_CHK(aga_mkctxdpy(ctx, display));
 	AF_CHK(aga_mkwin(ctx, &ctx->win));
 	AF_CHK(aga_glctx(ctx, &ctx->win));
 	AF_CHK(af_mkctx(&ctx->af_ctx, AF_FIDELITY_FAST));

@@ -27,13 +27,14 @@ enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 	af_memset(snddev->buf, 0, sizeof(snddev->buf));
 
 	do {
-		if ((snddev->fd = open(dev, O_WRONLY | O_NONBLOCK)) == -1) {
+		if((snddev->fd = open(dev, O_WRONLY | O_NONBLOCK)) == -1) {
 			if(errno != EBUSY) {
 				return aga_af_patherrno(__FILE__, "open", dev);
 			}
 			if(!busy_msg) {
 				aga_log(__FILE__, "Sound device `%s' busy. Waiting...", dev);
 				busy_msg = AF_TRUE;
+				errno = EBUSY;
 			}
 		}
 		else break;

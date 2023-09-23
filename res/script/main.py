@@ -82,7 +82,6 @@ class game():
         if(aga.getkey(aga.KEY_d)):
             right = -self.move_speed
         #
-        # TODO: Get in input settings
         self.trans.rot[1] = self.trans.rot[1] + motion[0] * self.sensitivity
         self.trans.rot[0] = self.trans.rot[0] + motion[1] * self.sensitivity
         #

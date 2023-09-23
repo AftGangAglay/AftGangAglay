@@ -42,4 +42,9 @@ struct aga_conf_node {
 enum af_err aga_mkconf(const char* path, struct aga_conf_node* root);
 enum af_err aga_killconf(struct aga_conf_node* root);
 
+
+af_bool_t aga_confvar(
+		const char* name, struct aga_conf_node* node, enum aga_conf_type type,
+		void* value);
+
 #endif

@@ -17,7 +17,7 @@ struct aga_win {
 	af_ulong_t xwin;
 };
 
-enum af_err aga_mkctxdpy(struct aga_ctx* ctx);
+enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display);
 enum af_err aga_killctxdpy(struct aga_ctx* ctx);
 
 enum af_err aga_mkwin(struct aga_ctx* ctx, struct aga_win* win);

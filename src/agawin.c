@@ -58,14 +58,14 @@ static int aga_xerr_handler(Display* dpy, XErrorEvent* err) {
 	return 0;
 }
 
-enum af_err aga_mkctxdpy(struct aga_ctx* ctx) {
+enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display) {
 	GLXFBConfig* fb;
 	int n_fb;
 	XVisualInfo* vi;
 
 	AF_PARAM_CHK(ctx);
 
-	AF_VERIFY(ctx->dpy = XOpenDisplay(0), AF_ERR_UNKNOWN);
+	AF_VERIFY(ctx->dpy = XOpenDisplay(display), AF_ERR_UNKNOWN);
 
 	{
 		int fl;

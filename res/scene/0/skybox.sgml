@@ -1,0 +1,24 @@
+<root>
+    <item name="Model" type="String">
+        res/model/sphere.obj.raw
+    </item>
+    <item name="Texture" type="String">
+        res/img/BlackKnight.tiff
+    </item>
+
+    <item name="Position">
+        <item name="X" type="Float">0.0</item>
+        <item name="Y" type="Float">0.0</item>
+        <item name="Z" type="Float">0.0</item>
+    </item>
+    <item name="Rotation">
+        <item name="X" type="Float">0.0</item>
+        <item name="Y" type="Float">0.0</item>
+        <item name="Z" type="Float">0.0</item>
+    </item>
+    <item name="Scale">
+        <item name="X" type="Float">80.0</item>
+        <item name="Y" type="Float">80.0</item>
+        <item name="Z" type="Float">80.0</item>
+    </item>
+</root>

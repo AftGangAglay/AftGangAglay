@@ -95,7 +95,7 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 
 	{
 		int o;
-		while((o = 	getopt(argc, argv, "f:s:A:")) != -1) {
+		while((o = 	getopt(argc, argv, "f:s:A:D:")) != -1) {
 			switch(o) {
 				default: {
 					aga_log(__FILE__, helpstr, argv[0]);

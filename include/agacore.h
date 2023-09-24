@@ -60,6 +60,7 @@ struct aga_ctx {
 
 	struct aga_snddev snddev;
 	struct aga_scripteng scripteng;
+	void* transform_class;
 
 	struct af_vert vert;
 

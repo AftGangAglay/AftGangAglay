@@ -27,6 +27,7 @@ struct aga_scriptinst {
 };
 
 struct aga_scripteng {
+	void* global;
 	struct aga_scriptclass* classes;
 	af_size_t len;
 };

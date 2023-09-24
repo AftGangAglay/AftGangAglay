@@ -105,11 +105,6 @@ static object* agan_setcam(object* self, object* arg) {
 			0.1, 10000.0);
 
 	{
-		/*
-		 * NOTE: The error state reporting out of `getfloatvalue' and co.
-		 * 		 Is borked. Just always `aga_scriptchk'.
-		 */
-
 		object* v;
 		float f;
 		object* rot = getattr(arg, "rot");
@@ -259,10 +254,7 @@ static object* agan_mkvertbuf(object* self, object* arg) {
 	retval = NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
 	if(!retval) return 0;
 
-	if(!(retval->ptr = malloc(sizeof(struct af_buf)))) {
-		err_nomem();
-		return 0;
-	}
+	if(!(retval->ptr = malloc(sizeof(struct af_buf)))) return err_nomem();
 
 	result = af_mkbuf(&script_ctx->af_ctx, retval->ptr, AF_BUF_VERT);
 	if(aga_script_aferr("af_mkbuf", result)) return 0;
@@ -401,10 +393,7 @@ static object* agan_mkteximg(object* self, object* arg) {
 	retval = NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
 	if(!retval) return 0;
 
-	if(!(retval->ptr = malloc(sizeof(struct agan_teximg)))) {
-		err_nomem();
-		return 0;
-	}
+	if(!(retval->ptr = malloc(sizeof(struct agan_teximg)))) return err_nomem();
 
 	if(!(path = getstringvalue(arg))) return 0;
 
@@ -520,10 +509,7 @@ static object* agan_mkclip(object* self, object* arg) {
 	retval = NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
 	if(!retval) return 0;
 
-	if(!(retval->ptr = malloc(sizeof(struct aga_clip)))) {
-		err_nomem();
-		return 0;
-	}
+	if(!(retval->ptr = malloc(sizeof(struct aga_clip)))) return err_nomem();
 
 	clip = retval->ptr;
 
@@ -640,10 +626,7 @@ static object* agan_startlight(object* self, object* arg) {
 
 	for(i = 0; i < AGAN_MAXLIGHT; ++i) {
 		glDisable(GL_LIGHT0 + i);
-		if(af_gl_chk()) {
-			err_setstr(RuntimeError, "glDisable() failed");
-			return None;
-		}
+		if(aga_script_glerr("glDisable")) return 0;
 	}
 	aga_current_light = GL_LIGHT0;
 
@@ -666,10 +649,7 @@ static object* agan_mklight(object* self, object* arg) {
 	}
 
 	glEnable(aga_current_light);
-	if(af_gl_chk()) {
-		err_setstr(RuntimeError, "glEnable() failed");
-		return 0;
-	}
+	if(aga_script_glerr("glEnable")) return 0;
 
 	retval = newintobject((long) aga_current_light);
 	if(!retval) return 0;
@@ -689,6 +669,7 @@ static object* agan_mklight(object* self, object* arg) {
 
 static object* agan_lightpos(object* self, object* arg) {
 	float pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	enum af_err result;
 
 	object* t;
 	object* v;
@@ -710,29 +691,15 @@ static object* agan_lightpos(object* self, object* arg) {
 	light = getintvalue(v);
 	if(err_occurred()) return 0;
 
-	if(agan_settransmat(t)) {
-		err_setstr(RuntimeError, "agan_settransmat() failed");
-		return 0;
-	}
+	result = agan_settransmat(t);
+	if(aga_script_aferr("agan_settransmat", result)) return 0;
 
 	glLightfv(light, GL_POSITION, pos);
-	if(af_gl_chk()) {
-		err_setstr(RuntimeError, "glLightfv() failed");
-		return 0;
-	}
+	if(aga_script_glerr("glLightfv")) return 0;
 
 	INCREF(None);
 	return None;
 }
-
-/*
-float col[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-glLightfv(aga_current_light, GL_AMBIENT, col);
-if(af_gl_chk()) {
-	err_setstr(RuntimeError, "glLightfv() failed");
-	return 0;
-}
- */
 
 /*
  * NOTE: Light params follow the following format:
@@ -765,37 +732,167 @@ static object* agan_lightparam(object* self, object* arg) {
 	f = (float) getfloatvalue(v);
 	if(err_occurred()) return 0;
 	glLightf(light, GL_SPOT_EXPONENT, f);
-	if(af_gl_chk()) {
-		err_setstr(RuntimeError, "glLightf() failed");
-		return 0;
-	}
+	if(aga_script_glerr("glLightf")) return 0;
 
 	if(!(v = getlistitem(l, 1))) return 0;
 	f = (float) getfloatvalue(v);
 	if(err_occurred()) return 0;
 	glLightf(light, GL_CONSTANT_ATTENUATION, f);
-	if(af_gl_chk()) {
-		err_setstr(RuntimeError, "glLightf() failed");
-		return 0;
-	}
+	if(aga_script_glerr("glLightf")) return 0;
 
 	if(!(v = getlistitem(l, 2))) return 0;
 	f = (float) getfloatvalue(v);
 	if(err_occurred()) return 0;
 	glLightf(light, GL_LINEAR_ATTENUATION, f);
-	if(af_gl_chk()) {
-		err_setstr(RuntimeError, "glLightf() failed");
-		return 0;
-	}
+	if(aga_script_glerr("glLightf")) return 0;
 
 	if(!(v = getlistitem(l, 3))) return 0;
 	f = (float) getfloatvalue(v);
 	if(err_occurred()) return 0;
 	glLightf(light, GL_QUADRATIC_ATTENUATION, f);
-	if(af_gl_chk()) {
-		err_setstr(RuntimeError, "glLightf() failed");
+	if(aga_script_glerr("glLightf")) return 0;
+
+	INCREF(None);
+	return None;
+}
+
+struct agan_object {
+	object* transform;
+
+	object* modelfile;
+	object* model;
+
+	object* tex;
+};
+
+/* TODO: Caching/sharing of models and textures */
+static object* agan_mkobj(object* self, object* arg) {
+	struct aga_nativeptr* retval;
+	struct agan_object* obj;
+	const char* path;
+
+	(void) self;
+
+	if(!arg || !is_stringobject(arg)) {
+		err_setstr(RuntimeError, "mkobj() argument must be string");
 		return 0;
 	}
+
+	if(!(path = getstringvalue(arg))) return 0;
+
+	retval = NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
+	if(!retval) return 0;
+
+	if(!(retval->ptr = malloc(sizeof(struct agan_object)))) return err_nomem();
+
+	obj = retval->ptr;
+
+	if(!(obj->transform = newclassmemberobject(script_ctx->transform_class))) {
+		return 0;
+	}
+	{
+		struct aga_scriptclass class = { 0, "transform" };
+		struct aga_scriptinst inst;
+		inst.class = &class;
+		inst.object = obj->transform;
+
+		class.class = script_ctx->transform_class;
+		aga_instcall(&inst, "create");
+	}
+
+	{
+		struct aga_conf_node conf;
+		struct aga_conf_node* item;
+		struct aga_conf_node* v;
+		enum af_err result;
+		const char* str;
+		object* strobj;
+
+		result = aga_mkconf(path, &conf);
+		if(aga_script_aferr("aga_mkconf", result)) return 0;
+
+		for(item = conf.children->children;
+			item < conf.children->children + conf.children->len;
+			++item) {
+
+			object* aspect = 0;
+
+			if(aga_confvar("Model", item, AGA_STRING, &str)) {
+				if(!(strobj = newstringobject((char*) str))) return 0;
+				if(!(obj->modelfile = agan_mklargefile(0, strobj))) return 0;
+				if(!(obj->model = agan_mkvertbuf(0, obj->modelfile))) return 0;
+				DECREF(strobj);
+			}
+			if(aga_confvar("Texture", item, AGA_STRING, &str)) {
+				if(!(strobj = newstringobject((char*) str))) return 0;
+				if(!(obj->tex = agan_mkteximg(0, strobj))) return 0;
+				DECREF(strobj);
+			}
+
+			if(af_streql(item->name, "Position")) {
+				if(!(aspect = getattr(obj->transform, "pos"))) return 0;
+			}
+			if(af_streql(item->name, "Rotation")) {
+				if(!(aspect = getattr(obj->transform, "rot"))) return 0;
+			}
+			if(af_streql(item->name, "Scale")) {
+				if(!(aspect = getattr(obj->transform, "scale"))) return 0;
+			}
+
+			if(aspect) {
+				for(v = item->children; v < item->children + item->len; ++v) {
+					float f;
+					if(aga_confvar("X", v, AGA_FLOAT, &f)) {
+						object* flobj = newfloatobject(f);
+						if(err_occurred()) return 0;
+						if(setlistitem(aspect, 0, flobj) == -1) return 0;
+					}
+					if(aga_confvar("Y", v, AGA_FLOAT, &f)) {
+						object* flobj = newfloatobject(f);
+						if(err_occurred()) return 0;
+						if(setlistitem(aspect, 1, flobj) == -1) return 0;
+					}
+					if(aga_confvar("Z", v, AGA_FLOAT, &f)) {
+						object* flobj = newfloatobject(f);
+						if(err_occurred()) return 0;
+						if(setlistitem(aspect, 2, flobj) == -1) return 0;
+					}
+				}
+			}
+		}
+
+		result = aga_killconf(&conf);
+		if(aga_script_aferr("aga_killconf", result)) return 0;
+	}
+
+	return (object*) retval;
+}
+
+static object* agan_putobj(object* self, object* arg) {
+	struct aga_nativeptr* nativeptr;
+	struct agan_object* obj;
+	object* call_tuple;
+	object* prim;
+
+	(void) self;
+
+	if(!arg || arg->ob_type != &aga_nativeptr_type) {
+		err_setstr(RuntimeError, "putobj() argument must be nativeptr");
+		return 0;
+	}
+
+	nativeptr = (struct aga_nativeptr*) arg;
+
+	obj = nativeptr->ptr;
+
+	if(!agan_settex(0, obj->tex)) return 0;
+
+	if(!(call_tuple = newtupleobject(3))) return 0;
+	if(settupleitem(call_tuple, 0, obj->model) == -1) return 0;
+	if(!(prim = newintobject(AF_TRIANGLES))) return 0;
+	if(settupleitem(call_tuple, 1, prim) == -1) return 0;
+	if(settupleitem(call_tuple, 2, obj->transform) == -1) return 0;
+	if(!agan_drawbuf(0, call_tuple)) return 0;
 
 	INCREF(None);
 	return None;
@@ -826,6 +923,8 @@ enum af_err aga_mkmod(void) {
 		{ "mklight", agan_mklight },
 		{ "lightpos", agan_lightpos },
 		{ "lightparam", agan_lightparam },
+		{ "mkobj", agan_mkobj },
+		{ "putobj", agan_putobj },
 		{ 0, 0 }
 	};
 

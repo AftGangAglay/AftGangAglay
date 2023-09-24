@@ -147,6 +147,26 @@ enum af_err aga_mkscripteng(
 		}
 		if(result) { DECREF(result); }
 
+		ctx->scripteng.global = dict;
+
+		/* TODO: I don't like hardcoding scriptglue into base agascript */
+		{
+			object* aga = dictlookup(dict, "aga");
+			object* agadict;
+			if(!aga) {
+				aga_scripttrace();
+				return AF_ERR_UNKNOWN;
+			}
+			if(!(agadict = getmoduledict(aga))) {
+				aga_scripttrace();
+				return AF_ERR_UNKNOWN;
+			}
+			if(!(ctx->transform_class = dictlookup(agadict, "transform"))) {
+				aga_scripttrace();
+				return AF_ERR_UNKNOWN;
+			}
+		}
+
 		DECREF(code);
 		flushline();
 

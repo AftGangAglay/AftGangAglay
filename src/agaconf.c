@@ -213,6 +213,7 @@ enum af_err aga_mkconf(const char* path, struct aga_conf_node* root) {
 	struct aga_sgml_structured structured = {
 		0, 0, { 0 }, 0
 	};
+	af_memset(root, 0, sizeof(struct aga_conf_node));
 	structured.file = path;
 	AF_CHK(aga_sgml_push(&structured, root));
 

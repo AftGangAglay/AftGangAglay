@@ -898,6 +898,29 @@ static object* agan_putobj(object* self, object* arg) {
 	return None;
 }
 
+static object* agan_killobj(object* self, object* arg) {
+	struct aga_nativeptr* nativeptr;
+	struct agan_object* obj;
+
+	(void) self;
+
+	if(!arg || arg->ob_type != &aga_nativeptr_type) {
+		err_setstr(RuntimeError, "killobj() argument must be nativeptr");
+		return 0;
+	}
+
+	nativeptr = (struct aga_nativeptr*) arg;
+	obj = nativeptr->ptr;
+
+	DECREF(obj->transform);
+	DECREF(obj->modelfile);
+	DECREF(obj->model);
+	DECREF(obj->tex);
+
+	INCREF(None);
+	return None;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -925,6 +948,7 @@ enum af_err aga_mkmod(void) {
 		{ "lightparam", agan_lightparam },
 		{ "mkobj", agan_mkobj },
 		{ "putobj", agan_putobj },
+		{ "killobj", agan_killobj },
 		{ 0, 0 }
 	};
 

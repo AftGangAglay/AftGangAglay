@@ -73,3 +73,6 @@ class game():
     def close(self):
         self.clipfile.close()
         self.clip.close()
+        aga.killobj(self.skybox)
+        aga.killobj(self.env)
+        aga.killobj(self.thing)

@@ -23,9 +23,17 @@ class game():
             pass
         #
         self.origin = aga.transform().create()
-        self.skybox = aga.mkobj('res/scene/0/skybox.sgml')
-        self.thing = aga.mkobj('res/scene/0/thing.sgml')
-        self.env = aga.mkobj('res/scene/0/env.sgml')
+        #
+        self.scene = []
+        self.scenefiles = [ \
+            'res/scene/0/skybox.sgml', \
+            'res/scene/0/thing.sgml', \
+            'res/scene/0/env.sgml' ]
+        for p in self.scenefiles:
+            self.scene.append(aga.mkobj(p))
+        #
+        self.selected = 0
+        self.cmodekey = 0
         #
         return self
     #
@@ -52,27 +60,49 @@ class game():
         self.trans.pos[2] = self.trans.pos[2] + fwd * ncos + right * sin
         #
         aga.setcam(self.trans)
+        #
+        # Creative mode stuff
+        if(aga.getkey(aga.KEY_q)):
+            if(not self.cmodekey):
+                self.selected = self.selected - 1
+                if(self.selected < 0): self.selected = len(self.scene) - 1
+                aga.log('Selected `' + self.scenefiles[self.selected] + '\'')
+                self.cmodekey = 1
+        elif(aga.getkey(aga.KEY_e)):
+            if(not self.cmodekey):
+                self.selected = self.selected + 1
+                if(self.selected >= len(self.scene)): self.selected = 0
+                aga.log('Selected `' + self.scenefiles[self.selected] + '\'')
+                self.cmodekey = 1
+        elif(aga.getkey(aga.KEY_p)):
+            if(not self.cmodekey):
+                aga.log('Saving scene...')
+                for i in range(len(self.scene)):
+                    aga.dumpobj(self.scene[i], self.scenefiles[i])
+                aga.log('Saved!')
+                self.cmodekey = 1
+        else: self.cmodekey = 0
+        #
+        if(aga.getkey(aga.KEY_Up)):
+            pass
+        #
     #
     def update(self):
+        self.clip.play()
+        #
         self.control()
         #
         aga.startlight()
         l0 = aga.mklight()
         aga.lightpos(l0, self.origin)
-        aga.lightparam(l0, [ 128.0, 0.0, 0.1, 0.01 ])
+        aga.lightparam(l0, [ 128.0, 0.0, 0.0, 0.0005 ])
         #
-        aga.nolight()
-        aga.putobj(self.skybox)
         aga.yeslight()
-        #
-        aga.putobj(self.env)
-        aga.putobj(self.thing)
-        #
-        self.clip.play()
+        for obj in self.scene:
+            aga.putobj(obj)
     #
     def close(self):
         self.clipfile.close()
         self.clip.close()
-        aga.killobj(self.skybox)
-        aga.killobj(self.env)
-        aga.killobj(self.thing)
+        for obj in self.scene:
+            aga.killobj(obj)

@@ -25,7 +25,7 @@
 			1
 		</item>
 		<item name="Device" type="String">
-			/dev/dsp2
+			/dev/dsp1
 		</item>
 	</item>
 

@@ -8,6 +8,7 @@
 #include <agalog.h>
 #include <agaio.h>
 #include <agaimg.h>
+#include <agastd.h>
 
 #include <afeirsa/afeirsa.h>
 #include <afeirsa/afgl.h>

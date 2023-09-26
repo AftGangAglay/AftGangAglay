@@ -763,6 +763,9 @@ struct agan_object {
 	object* model;
 
 	object* tex;
+
+	object* modelpath;
+	object* texpath;
 };
 
 /* TODO: Caching/sharing of models and textures */
@@ -816,17 +819,18 @@ static object* agan_mkobj(object* self, object* arg) {
 			++item) {
 
 			object* aspect = 0;
+			object* flobj;
 
 			if(aga_confvar("Model", item, AGA_STRING, &str)) {
 				if(!(strobj = newstringobject((char*) str))) return 0;
 				if(!(obj->modelfile = agan_mklargefile(0, strobj))) return 0;
 				if(!(obj->model = agan_mkvertbuf(0, obj->modelfile))) return 0;
-				DECREF(strobj);
+				obj->modelpath = strobj;
 			}
 			if(aga_confvar("Texture", item, AGA_STRING, &str)) {
 				if(!(strobj = newstringobject((char*) str))) return 0;
 				if(!(obj->tex = agan_mkteximg(0, strobj))) return 0;
-				DECREF(strobj);
+				obj->texpath = strobj;
 			}
 
 			if(af_streql(item->name, "Position")) {
@@ -843,18 +847,15 @@ static object* agan_mkobj(object* self, object* arg) {
 				for(v = item->children; v < item->children + item->len; ++v) {
 					float f;
 					if(aga_confvar("X", v, AGA_FLOAT, &f)) {
-						object* flobj = newfloatobject(f);
-						if(err_occurred()) return 0;
+						if(!(flobj = newfloatobject(f))) return 0;
 						if(setlistitem(aspect, 0, flobj) == -1) return 0;
 					}
 					if(aga_confvar("Y", v, AGA_FLOAT, &f)) {
-						object* flobj = newfloatobject(f);
-						if(err_occurred()) return 0;
+						if(!(flobj = newfloatobject(f))) return 0;
 						if(setlistitem(aspect, 1, flobj) == -1) return 0;
 					}
 					if(aga_confvar("Z", v, AGA_FLOAT, &f)) {
-						object* flobj = newfloatobject(f);
-						if(err_occurred()) return 0;
+						if(!(flobj = newfloatobject(f))) return 0;
 						if(setlistitem(aspect, 2, flobj) == -1) return 0;
 					}
 				}
@@ -916,6 +917,98 @@ static object* agan_killobj(object* self, object* arg) {
 	DECREF(obj->modelfile);
 	DECREF(obj->model);
 	DECREF(obj->tex);
+	DECREF(obj->modelpath);
+	DECREF(obj->texpath);
+
+	INCREF(None);
+	return None;
+}
+
+static af_bool_t agan_dumpputs(FILE* f, const char* fmt, ...) {
+	va_list l;
+	va_start(l, fmt);
+
+	if(vfprintf(f, fmt, l) == EOF) {
+		aga_af_errno(__FILE__, "vfprintf");
+		return AF_TRUE;
+	}
+
+	va_end(l);
+
+	return AF_FALSE;
+}
+
+static object* agan_dumpobj(object* self, object* arg) {
+	struct aga_nativeptr* nativeptr;
+	struct agan_object* obj;
+	object* path;
+	const char* s;
+	FILE* f;
+	const char* aspects[] = { "Position", "Rotation", "Scale" };
+	const char* pyaspects[] = { "pos", "rot", "scale" };
+	af_size_t i;
+
+	(void) self;
+
+	if(!arg || !is_tupleobject(arg) ||
+		!(nativeptr = (struct aga_nativeptr*) gettupleitem(arg, 0)) ||
+		nativeptr->ob_type != &aga_nativeptr_type ||
+		!(path = gettupleitem(arg, 1)) || !is_stringobject(path)) {
+
+		err_setstr(
+			RuntimeError, "dumpobj() arguments must be nativeptr and string");
+		return 0;
+	}
+
+	obj = nativeptr->ptr;
+
+	if(!(s = getstringvalue(path))) return 0;
+	if(!(f = fopen(s, "w+"))) {
+		aga_af_patherrno(__FILE__, "fopen", s);
+		return 0;
+	}
+
+	if(agan_dumpputs(f, "<root>\n")) return 0;
+	if(!(s = getstringvalue(obj->modelpath))) return 0;
+	if(agan_dumpputs(
+		f, "\t<item name=\"Model\" type=\"String\">%s</item>\n", s)) return 0;
+	if(!(s = getstringvalue(obj->texpath))) return 0;
+	if(agan_dumpputs(
+		f, "\t<item name=\"Texture\" type=\"String\">%s</item>\n", s)) {
+
+		return 0;
+	}
+
+	for(i = 0; i < AF_ARRLEN(aspects); ++i) {
+		object* attr;
+		af_size_t j;
+		if(agan_dumpputs(f, "\t<item name=\"%s\">\n", aspects[i])) return 0;
+
+		if(!(attr = getattr(obj->transform, (char*) pyaspects[i]))) return 0;
+		for(j = 0; j < 3; ++j) {
+			object* flobj;
+			float fl;
+			if(!(flobj = getlistitem(attr, j))) return 0;
+			fl = getfloatvalue(flobj);
+			if(err_occurred()) return 0;
+
+			if(agan_dumpputs(
+				f,
+				"\t\t<item name=\"%c\" type=\"Float\">%f</item>\n",
+				"XYZ"[j], fl)) {
+
+				return 0;
+			}
+		}
+
+		if(agan_dumpputs(f, "\t</item>\n")) return 0;
+	}
+	if(agan_dumpputs(f, "</root>\n")) return 0;
+
+	if(fclose(f) == EOF) {
+		aga_af_errno(__FILE__, "fclose");
+		return 0;
+	}
 
 	INCREF(None);
 	return None;
@@ -949,6 +1042,7 @@ enum af_err aga_mkmod(void) {
 		{ "mkobj", agan_mkobj },
 		{ "putobj", agan_putobj },
 		{ "killobj", agan_killobj },
+		{ "dumpobj", agan_dumpobj },
 		{ 0, 0 }
 	};
 

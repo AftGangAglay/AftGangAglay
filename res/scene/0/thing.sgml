@@ -1,24 +1,19 @@
 <root>
-    <item name="Model" type="String">
-        res/model/thing.obj.raw
-    </item>
-    <item name="Texture" type="String">
-        res/img/arse.tiff
-    </item>
-
-    <item name="Position">
-        <item name="X" type="Float">0.0</item>
-        <item name="Y" type="Float">0.0</item>
-        <item name="Z" type="Float">0.0</item>
-    </item>
-    <item name="Rotation">
-        <item name="X" type="Float">0.0</item>
-        <item name="Y" type="Float">0.0</item>
-        <item name="Z" type="Float">0.0</item>
-    </item>
-    <item name="Scale">
-        <item name="X" type="Float">1.0</item>
-        <item name="Y" type="Float">1.0</item>
-        <item name="Z" type="Float">1.0</item>
-    </item>
+	<item name="Model" type="String">res/model/thing.obj.raw</item>
+	<item name="Texture" type="String">res/img/arse.tiff</item>
+	<item name="Position">
+		<item name="X" type="Float">-5.000000</item>
+		<item name="Y" type="Float">0.000000</item>
+		<item name="Z" type="Float">0.000000</item>
+	</item>
+	<item name="Rotation">
+		<item name="X" type="Float">0.000000</item>
+		<item name="Y" type="Float">0.000000</item>
+		<item name="Z" type="Float">0.000000</item>
+	</item>
+	<item name="Scale">
+		<item name="X" type="Float">1.000000</item>
+		<item name="Y" type="Float">1.000000</item>
+		<item name="Z" type="Float">1.000000</item>
+	</item>
 </root>

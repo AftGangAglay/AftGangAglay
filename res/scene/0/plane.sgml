@@ -1,0 +1,20 @@
+<root>
+	<item name="Model" type="String">res/model/plane.obj.raw</item>
+	<item name="Texture" type="String">res/img/arse.tiff</item>
+	<item name="Unlit" type="Integer">0</item>
+	<item name="Position">
+		<item name="X" type="Float">-6.600000</item>
+		<item name="Y" type="Float">-1.400000</item>
+		<item name="Z" type="Float">3.900000</item>
+	</item>
+	<item name="Rotation">
+		<item name="X" type="Float">105.800003</item>
+		<item name="Y" type="Float">-0.800000</item>
+		<item name="Z" type="Float">-1.100000</item>
+	</item>
+	<item name="Scale">
+		<item name="X" type="Float">1.900000</item>
+		<item name="Y" type="Float">1.300000</item>
+		<item name="Z" type="Float">0.100000</item>
+	</item>
+</root>

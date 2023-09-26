@@ -572,7 +572,7 @@ static object* agan_log(object* self, object* arg) {
 		af_size_t i;
 		for(i = 0; i < aga_logctx.len; ++i) {
 			FILE* s = aga_logctx.targets[i];
-			aga_loghdr(s, __FILE__, AGA_NORM);
+			aga_loghdr(s, __FILE__, AGA_NORM); /* TODO: Fix loc */
 			printobject(arg, s, 0);
 			putc('\n', s);
 		}

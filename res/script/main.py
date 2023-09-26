@@ -28,12 +28,15 @@ class game():
         self.scenefiles = [ \
             'res/scene/0/skybox.sgml', \
             'res/scene/0/thing.sgml', \
+            'res/scene/0/plane.sgml', \
             'res/scene/0/env.sgml' ]
         for p in self.scenefiles:
             self.scene.append(aga.mkobj(p))
         #
         self.selected = 0
         self.cmodekey = 0
+        self.cmodeaspect = 0
+        self.cmodespd = 0.1
         #
         return self
     #
@@ -74,6 +77,29 @@ class game():
                 if(self.selected >= len(self.scene)): self.selected = 0
                 aga.log('Selected `' + self.scenefiles[self.selected] + '\'')
                 self.cmodekey = 1
+        elif(aga.getkey(aga.KEY_z)):
+            if(not self.cmodekey):
+                self.cmodeaspect = self.cmodeaspect + 1
+                if(self.cmodeaspect > 2): self.cmodeaspect = 0
+                aga.log(['pos', 'rot', 'scale'][self.cmodeaspect])
+                self.cmodekey = 1
+        elif(aga.getkey(aga.KEY_c)):
+            if(not self.cmodekey):
+                self.cmodeaspect = self.cmodeaspect - 1
+                if(self.cmodeaspect < 0): self.cmodeaspect = 2
+                aga.log(['pos', 'rot', 'scale'][self.cmodeaspect])
+                self.cmodekey = 1
+        elif(aga.getkey(aga.KEY_minus)):
+            if(not self.cmodekey):
+                self.cmodespd = self.cmodespd - 0.1
+                if(self.cmodespd <= 0.1): self.cmodespd = 0.1
+                aga.log(self.cmodespd)
+                self.cmodekey = 1
+        elif(aga.getkey(aga.KEY_equal)):
+            if(not self.cmodekey):
+                self.cmodespd = self.cmodespd + 0.1
+                aga.log(self.cmodespd)
+                self.cmodekey = 1
         elif(aga.getkey(aga.KEY_p)):
             if(not self.cmodekey):
                 aga.log('Saving scene...')
@@ -83,24 +109,28 @@ class game():
                 self.cmodekey = 1
         else: self.cmodekey = 0
         #
-        if(aga.getkey(aga.KEY_i)):
-            t = aga.objtrans(self.scene[self.selected])
-            t.pos[1] = t.pos[1] + 0.1
-        if(aga.getkey(aga.KEY_k)):
-            t = aga.objtrans(self.scene[self.selected])
-            t.pos[1] = t.pos[1] - 0.1
-        if(aga.getkey(aga.KEY_j)):
-            t = aga.objtrans(self.scene[self.selected])
-            t.pos[0] = t.pos[0] - 0.1
-        if(aga.getkey(aga.KEY_l)):
-            t = aga.objtrans(self.scene[self.selected])
-            t.pos[0] = t.pos[0] + 0.1
-        if(aga.getkey(aga.KEY_u)):
-            t = aga.objtrans(self.scene[self.selected])
-            t.pos[2] = t.pos[2] + 0.1
-        if(aga.getkey(aga.KEY_o)):
-            t = aga.objtrans(self.scene[self.selected])
-            t.pos[2] = t.pos[2] - 0.1
+        t = aga.objtrans(self.scene[self.selected])
+        if(self.cmodeaspect = 0):
+            if(aga.getkey(aga.KEY_i)): t.pos[1] = t.pos[1] + self.cmodespd
+            if(aga.getkey(aga.KEY_k)): t.pos[1] = t.pos[1] - self.cmodespd
+            if(aga.getkey(aga.KEY_j)): t.pos[0] = t.pos[0] - self.cmodespd
+            if(aga.getkey(aga.KEY_l)): t.pos[0] = t.pos[0] + self.cmodespd
+            if(aga.getkey(aga.KEY_u)): t.pos[2] = t.pos[2] + self.cmodespd
+            if(aga.getkey(aga.KEY_o)): t.pos[2] = t.pos[2] - self.cmodespd
+        elif(self.cmodeaspect = 1):
+            if(aga.getkey(aga.KEY_i)): t.rot[1] = t.rot[1] + self.cmodespd
+            if(aga.getkey(aga.KEY_k)): t.rot[1] = t.rot[1] - self.cmodespd
+            if(aga.getkey(aga.KEY_j)): t.rot[0] = t.rot[0] - self.cmodespd
+            if(aga.getkey(aga.KEY_l)): t.rot[0] = t.rot[0] + self.cmodespd
+            if(aga.getkey(aga.KEY_u)): t.rot[2] = t.rot[2] + self.cmodespd
+            if(aga.getkey(aga.KEY_o)): t.rot[2] = t.rot[2] - self.cmodespd
+        elif(self.cmodeaspect = 2):
+            if(aga.getkey(aga.KEY_i)): t.scale[1] = t.scale[1] + self.cmodespd
+            if(aga.getkey(aga.KEY_k)): t.scale[1] = t.scale[1] - self.cmodespd
+            if(aga.getkey(aga.KEY_j)): t.scale[0] = t.scale[0] - self.cmodespd
+            if(aga.getkey(aga.KEY_l)): t.scale[0] = t.scale[0] + self.cmodespd
+            if(aga.getkey(aga.KEY_u)): t.scale[2] = t.scale[2] + self.cmodespd
+            if(aga.getkey(aga.KEY_o)): t.scale[2] = t.scale[2] - self.cmodespd
         #
     #
     def update(self):

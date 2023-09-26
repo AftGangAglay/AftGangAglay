@@ -64,7 +64,9 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 		}
 		else if(af_streql(item->name, "Audio")) {
 			for(v = item->children; v < item->children + item->len; ++v) {
-				aga_confvar("Enabled", v, AGA_INTEGER, &sets->audio_enabled);
+				long enabled;
+				if(aga_confvar("Enabled", v, AGA_INTEGER, &enabled))
+					sets->audio_enabled = !!enabled;
 				aga_confvar("Device", v, AGA_STRING, &sets->audio_dev);
 			}
 		}

@@ -121,7 +121,7 @@ void aga_sgml_start_element(
 			if(!attribute_present[AGA_ITEM_NAME]) {
 				aga_log(
 					__FILE__,
-					"warn: <item> element without name attrib in `%s'\n",
+					"warn: <item> element without name attrib in `%s'",
 					me->file);
 			}
 			else {
@@ -142,7 +142,7 @@ void aga_sgml_start_element(
 				else if(af_streql(typename, "Float")) node->type = AGA_FLOAT;
 				else {
 					static const char fmt[] =
-						"warn: <item> element has unknown type `%s' in `%s'\n";
+						"warn: <item> element has unknown type `%s' in `%s'";
 					aga_log(__FILE__, fmt, typename, me->file);
 					node->type = AGA_NONE;
 				}

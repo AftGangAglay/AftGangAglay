@@ -762,6 +762,8 @@ struct agan_object {
 	object* modelfile;
 	object* model;
 
+	af_bool_t unlit;
+
 	object* tex;
 
 	object* modelpath;
@@ -786,7 +788,8 @@ static object* agan_mkobj(object* self, object* arg) {
 	retval = NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
 	if(!retval) return 0;
 
-	if(!(retval->ptr = malloc(sizeof(struct agan_object)))) return err_nomem();
+	if(!(retval->ptr = calloc(1, sizeof(struct agan_object))))
+		return err_nomem();
 
 	obj = retval->ptr;
 
@@ -820,6 +823,7 @@ static object* agan_mkobj(object* self, object* arg) {
 
 			object* aspect = 0;
 			object* flobj;
+			long unlit;
 
 			if(aga_confvar("Model", item, AGA_STRING, &str)) {
 				if(!(strobj = newstringobject((char*) str))) return 0;
@@ -832,6 +836,8 @@ static object* agan_mkobj(object* self, object* arg) {
 				if(!(obj->tex = agan_mkteximg(0, strobj))) return 0;
 				obj->texpath = strobj;
 			}
+			if(aga_confvar("Unlit", item, AGA_INTEGER, &unlit))
+				obj->unlit = !!unlit;
 
 			if(af_streql(item->name, "Position")) {
 				if(!(aspect = getattr(obj->transform, "pos"))) return 0;
@@ -893,6 +899,8 @@ static object* agan_putobj(object* self, object* arg) {
 	if(!(prim = newintobject(AF_TRIANGLES))) return 0;
 	if(settupleitem(call_tuple, 1, prim) == -1) return 0;
 	if(settupleitem(call_tuple, 2, obj->transform) == -1) return 0;
+	if(obj->unlit && !agan_nolight(0, 0)) return 0;
+	else if(!obj->unlit && !agan_yeslight(0, 0)) return 0;
 	if(!agan_drawbuf(0, call_tuple)) return 0;
 
 	INCREF(None);
@@ -922,6 +930,24 @@ static object* agan_killobj(object* self, object* arg) {
 
 	INCREF(None);
 	return None;
+}
+
+static object* agan_objtrans(object* self, object* arg) {
+	struct aga_nativeptr* nativeptr;
+	struct agan_object* obj;
+
+	(void) self;
+
+	if(!arg || arg->ob_type != &aga_nativeptr_type) {
+		err_setstr(RuntimeError, "objtrans() argument must me nativeptr");
+		return 0;
+	}
+
+	nativeptr = (struct aga_nativeptr*) arg;
+	obj = nativeptr->ptr;
+
+	INCREF(obj->transform);
+	return obj->transform;
 }
 
 static af_bool_t agan_dumpputs(FILE* f, const char* fmt, ...) {
@@ -975,6 +1001,12 @@ static object* agan_dumpobj(object* self, object* arg) {
 	if(!(s = getstringvalue(obj->texpath))) return 0;
 	if(agan_dumpputs(
 		f, "\t<item name=\"Texture\" type=\"String\">%s</item>\n", s)) {
+
+		return 0;
+	}
+	if(agan_dumpputs(
+		f,
+		"\t<item name=\"Unlit\" type=\"Integer\">%i</item>\n", obj->unlit)) {
 
 		return 0;
 	}
@@ -1043,6 +1075,7 @@ enum af_err aga_mkmod(void) {
 		{ "putobj", agan_putobj },
 		{ "killobj", agan_killobj },
 		{ "dumpobj", agan_dumpobj },
+		{ "objtrans", agan_objtrans },
 		{ 0, 0 }
 	};
 

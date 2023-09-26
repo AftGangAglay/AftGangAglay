@@ -83,8 +83,24 @@ class game():
                 self.cmodekey = 1
         else: self.cmodekey = 0
         #
-        if(aga.getkey(aga.KEY_Up)):
-            pass
+        if(aga.getkey(aga.KEY_i)):
+            t = aga.objtrans(self.scene[self.selected])
+            t.pos[1] = t.pos[1] + 0.1
+        if(aga.getkey(aga.KEY_k)):
+            t = aga.objtrans(self.scene[self.selected])
+            t.pos[1] = t.pos[1] - 0.1
+        if(aga.getkey(aga.KEY_j)):
+            t = aga.objtrans(self.scene[self.selected])
+            t.pos[0] = t.pos[0] - 0.1
+        if(aga.getkey(aga.KEY_l)):
+            t = aga.objtrans(self.scene[self.selected])
+            t.pos[0] = t.pos[0] + 0.1
+        if(aga.getkey(aga.KEY_u)):
+            t = aga.objtrans(self.scene[self.selected])
+            t.pos[2] = t.pos[2] + 0.1
+        if(aga.getkey(aga.KEY_o)):
+            t = aga.objtrans(self.scene[self.selected])
+            t.pos[2] = t.pos[2] - 0.1
         #
     #
     def update(self):

@@ -26,7 +26,10 @@ static af_bool_t aga_script_aferr(const char* proc, enum af_err err) {
 
 	if(!err) return AF_FALSE;
 
-	sprintf(buf, "%s: %s\n", proc, aga_af_errname(err));
+	if(sprintf(buf, "%s: %s\n", proc, aga_af_errname(err)) < 0) {
+		aga_af_errno(__FILE__, "sprintf");
+		return AF_TRUE;
+	}
 	err_setstr(RuntimeError, buf);
 
 	return AF_TRUE;
@@ -34,13 +37,22 @@ static af_bool_t aga_script_aferr(const char* proc, enum af_err err) {
 
 static af_bool_t aga_script_glerr(const char* proc) {
 	aga_fixed_buf_t buf = { 0 };
-	af_uint_t err = glGetError();
-	if(!err) return AF_FALSE;
+	af_uint_t err;
+	af_uint_t tmp = glGetError();
+	const char* s;
+	if(!tmp) return AF_FALSE;
 
-	sprintf(buf, "%s: %s\n", proc, gluErrorString(err));
+	while((tmp = glGetError())) {
+		err = tmp;
+		s = (const char*) gluErrorString(err);
+		aga_log(__FILE__, "err: %s: %s", proc, s);
+	}
+
+	if(sprintf(buf, "%s: %s\n", proc, s) < 0) {
+		aga_af_errno(__FILE__, "sprintf");
+		return AF_TRUE;
+	}
 	err_setstr(RuntimeError, buf);
-
-	af_gl_err_clear(); /* TODO: Elegant way to report all set errors. */
 
 	return AF_TRUE;
 }

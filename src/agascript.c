@@ -52,10 +52,18 @@ static void aga_scripttrace(void) {
 			printobject(exc, s, PRINT_RAW);
 			fputs(": ", s);
 			printobject(val, s, PRINT_RAW);
-			putc('\n', s);
+			if(putc('\n', s) == EOF) aga_af_errno(__FILE__, "putc");
 			printtraceback(s);
-			fprintf(s, "Stack backtrace (innermost last):\n");
-			tb_print(v, s);
+			if(fprintf(s, "Stack backtrace (innermost last):\n") < 0) {
+				aga_af_errno(__FILE__, "fprintf");
+			}
+			if(tb_print(v, s) == -1) {
+				/*
+				 * We obviously don't want to traceback here to avoid endless
+				 * loops.
+				 */
+				aga_log(__FILE__, "err: tb_print() failed");
+			}
 		}
 
 		DECREF(v);

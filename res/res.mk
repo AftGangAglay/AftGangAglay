@@ -13,7 +13,11 @@ SOUNDBINS = $(SOUNDS:.mp3=.mp3.raw)
 	$(PYTHON3) script/vertgen.py $< $@
 
 %.mp3.raw: %.mp3 script/gensnd.sh
+ifndef NOSND
 	script/gensnd.sh $< $@
+else
+	touch $@
+endif
 
 all: $(MODELBINS) $(SOUNDBINS)
 

@@ -14,13 +14,12 @@ class game():
         #
         self.sensitivity = self.conf['sensitivity']
         self.move_speed = self.conf['move_speed']
+        self.audio_enabled = self.conf['audio_enabled']
         #
-        try:
+        if(self.audio_enabled):
             clipsrc = 'res/snd/PawnWithAShotgun.mp3.raw'
             self.clipfile = aga.largefile().create(clipsrc)
             self.clip = aga.clip().create(self.clipfile)
-        except:
-            pass
         #
         self.origin = aga.transform().create()
         #
@@ -134,7 +133,7 @@ class game():
         #
     #
     def update(self):
-        self.clip.play()
+        if(self.audio_enabled): self.clip.play()
         #
         self.control()
         #
@@ -148,7 +147,8 @@ class game():
             aga.putobj(obj)
     #
     def close(self):
-        self.clipfile.close()
-        self.clip.close()
+        if(self.audio_enabled):
+            self.clipfile.close()
+            self.clip.close()
         for obj in self.scene:
             aga.killobj(obj)

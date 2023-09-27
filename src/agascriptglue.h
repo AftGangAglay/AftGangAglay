@@ -580,11 +580,13 @@ static object* agan_log(object* self, object* arg) {
 		return 0;
 	}
 
+	if(!(loc = getstringvalue(current_frame->f_code->co_filename))) return 0;
+
 	if(!is_stringobject(arg)) {
 		af_size_t i;
 		for(i = 0; i < aga_logctx.len; ++i) {
 			FILE* s = aga_logctx.targets[i];
-			aga_loghdr(s, __FILE__, AGA_NORM); /* TODO: Fix loc */
+			aga_loghdr(s, loc, AGA_NORM);
 			printobject(arg, s, 0);
 			putc('\n', s);
 		}
@@ -595,8 +597,6 @@ static object* agan_log(object* self, object* arg) {
 
 	str = getstringvalue(arg);
 	if(!str) return 0;
-
-	if(!(loc = getstringvalue(current_frame->f_code->co_filename))) return 0;
 
 	aga_log(loc, str);
 

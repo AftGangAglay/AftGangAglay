@@ -59,8 +59,10 @@ struct aga_ctx {
 	int pointer_dy;
 
 	struct aga_snddev snddev;
+
 	struct aga_scripteng scripteng;
 	void* transform_class;
+	void* agan_dict;
 
 	struct af_vert vert;
 

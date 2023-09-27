@@ -838,15 +838,57 @@ static object* agan_mkobj(object* self, object* arg) {
 			long unlit;
 
 			if(aga_confvar("Model", item, AGA_STRING, &str)) {
+				object* modelcache;
+				object* filecache;
+				object* lookup;
+				if(!(modelcache =
+					dictlookup(script_ctx->agan_dict, "modelcache")) )return 0;
+				if(!(filecache =
+					dictlookup(script_ctx->agan_dict, "filecache"))) return 0;
+
 				if(!(strobj = newstringobject((char*) str))) return 0;
-				if(!(obj->modelfile = agan_mklargefile(0, strobj))) return 0;
-				if(!(obj->model = agan_mkvertbuf(0, obj->modelfile))) return 0;
 				obj->modelpath = strobj;
+
+				if(!filecache ||
+					!(lookup = dictlookup(filecache, (char*) str))) {
+
+					if(!(obj->modelfile = agan_mklargefile(0, strobj)))
+						return 0;
+					if(dictinsert(
+						filecache, (char*) str, obj->modelfile) == -1) {
+
+						return 0;
+					}
+				}
+				else obj->modelfile = lookup;
+
+				if(!modelcache ||
+					!(lookup = dictlookup(modelcache, (char*) str))) {
+
+					if(!(obj->model = agan_mkvertbuf(0, obj->modelfile)))
+						return 0;
+					if(dictinsert(modelcache, (char*) str, obj->model) == -1)
+						return 0;
+				}
+				else obj->model = lookup;
 			}
 			if(aga_confvar("Texture", item, AGA_STRING, &str)) {
+				object* texcache;
+				object* lookup;
+				if(!(texcache =
+					dictlookup(script_ctx->agan_dict, "texcache"))) return 0;
+
 				if(!(strobj = newstringobject((char*) str))) return 0;
-				if(!(obj->tex = agan_mkteximg(0, strobj))) return 0;
 				obj->texpath = strobj;
+
+				if(!texcache ||
+					!(lookup = dictlookup(texcache, (char*) str))) {
+
+					if(!(obj->tex = agan_mkteximg(0, strobj))) return 0;
+					if(dictinsert(texcache, (char*) str, obj->tex) == -1)
+						return 0;
+				}
+				else obj->tex = lookup;
 			}
 			if(aga_confvar("Unlit", item, AGA_INTEGER, &unlit))
 				obj->unlit = !!unlit;
@@ -1092,7 +1134,43 @@ enum af_err aga_mkmod(void) {
 	};
 
 	object* module = initmodule("agan", methods);
+	object* dict;
+	object* texcache;
+	object* modelcache;
+	object* filecache;
 	AF_VERIFY(module, AF_ERR_UNKNOWN);
+
+	if(!(texcache = newdictobject())) {
+		aga_scripttrace();
+		return AF_ERR_UNKNOWN;
+	}
+	if(!(modelcache = newdictobject())) {
+		aga_scripttrace();
+		return AF_ERR_UNKNOWN;
+	}
+	if(!(filecache = newdictobject())) {
+		aga_scripttrace();
+		return AF_ERR_UNKNOWN;
+	}
+	if(!(dict = getmoduledict(module))) {
+		aga_scripttrace();
+		return AF_ERR_UNKNOWN;
+	}
+
+	if(dictinsert(dict, "texcache", texcache) == -1) {
+		aga_scripttrace();
+		return AF_ERR_UNKNOWN;
+	}
+	if(dictinsert(dict, "modelcache", modelcache) == -1) {
+		aga_scripttrace();
+		return AF_ERR_UNKNOWN;
+	}
+	if(dictinsert(dict, "filecache", filecache) == -1) {
+		aga_scripttrace();
+		return AF_ERR_UNKNOWN;
+	}
+
+	script_ctx->agan_dict = dict;
 
 	return AF_ERR_NONE;
 }

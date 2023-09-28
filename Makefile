@@ -1,15 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
-(%): %
-%.a:
-	$(AR) $(ARFLAGS) $@ $?
-	ranlib $@
-
-.PHONY: SUBMAKE
-SUBMAKE:
-
-GLXABI = 1
+ifndef WINDOWS
+	GLXABI = 1
+endif
 
 ifdef APPLE
 	NOSND = 1
@@ -17,6 +11,14 @@ endif
 ifdef WINDOWS
 	NOSND = 1
 endif
+
+(%): %
+%.a:
+	$(AR) $(ARFLAGS) $@ $?
+	ranlib $@
+
+.PHONY: SUBMAKE
+SUBMAKE:
 
 include vendor/www.mk
 include vendor/python.mk

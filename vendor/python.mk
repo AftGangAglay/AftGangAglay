@@ -8,8 +8,11 @@ PYTHON_IFLAGS = -isystem $(PYTHON_ROOT)/src
 
 all: $(LIBPYTHON)
 
-PYTHON_CFLAGS = -std=c89 -ansi -w
+PYTHON_CFLAGS = -std=c89 -ansi -w -DSYSV
 PYTHON_CFLAGS += -Wno-incompatible-function-pointer-types
+ifdef WINDOWS
+	PYTHON_CFLAGS += -D_WINDOWS -DNO_LSTAT
+endif
 
 ifdef DEBUG
 	PYTHON_CFLAGS += -g -O0 -D_DEBUG -DDEBUG

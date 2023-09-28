@@ -12,6 +12,10 @@ ifdef WINDOWS
 	NOSND = 1
 endif
 
+ifndef RANLIB
+	RANLIB = ranlib
+endif
+
 (%): %
 %.a:
 	$(AR) $(ARFLAGS) $@ $?
@@ -35,7 +39,7 @@ OUT = src/main
 CFLAGS += -Iinclude
 CFLAGS += -std=c89 -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
 
-LDLIBS += -lm -lX11
+LDLIBS += -lm
 
 CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS) $(AFEIRSA_IFLAGS) $(LIBTIFF_IFLAGS)
 LIBDEPS = $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) $(LIBTIFF)
@@ -48,6 +52,10 @@ ifndef WINDOWS
 	CFLAGS += -D_POSIX_SOURCE -DAGA_HAVE_UNIX
 else
 	CFLAGS += -D_WINDOWS
+endif
+
+ifdef GLXABI
+	LDLIBS += -lX11
 endif
 
 ifdef DEBUG

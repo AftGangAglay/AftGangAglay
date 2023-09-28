@@ -35,7 +35,7 @@ enum af_err aga_funmap(af_uchar_t* ptr, af_size_t size);
 # define AGA_MK_LARGE_FILE_STRATEGY(path, ptr, size) \
 		aga_read((path), (ptr), (size))
 # define AGA_KILL_LARGE_FILE_STRATEGY(ptr, size) \
-		free((ptr))
+		(free((ptr)), AF_ERR_NONE)
 #endif
 
 #endif

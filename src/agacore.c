@@ -85,8 +85,6 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 	const char* confpath = "res/aga.sgml";
 	enum af_err result;
 	const char* display = 0;
-	const char* helpstr =
-		"warn: usage: %s [-f config] [-s script] [-A dsp] [-D display]";
 
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(argc);
@@ -95,7 +93,10 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 	ctx->settings.audio_dev = 0;
 	ctx->settings.startup_script = 0;
 
+#ifdef _POSIX_SOURCE
 	{
+		const char* helpstr =
+			"warn: usage: %s [-f config] [-s script] [-A dsp] [-D display]";
 		int o;
 		while((o = 	getopt(argc, argv, "f:s:A:D:")) != -1) {
 			switch(o) {
@@ -111,6 +112,7 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 		}
 		break2:;
 	}
+#endif
 
 	display = getenv("DISPLAY");
 

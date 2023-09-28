@@ -25,8 +25,10 @@ enum af_err aga_mklog(const char** targets, af_size_t len) {
 	aga_logctx.len = len;
 
 	if(!(aga_logctx.targets = malloc(len * sizeof(FILE*)))) {
+		static FILE* so[1];
+		so[0] = stdout;
 		perror("malloc");
-		aga_logctx.targets = (void**) &stdout;
+		aga_logctx.targets = (void**) so;
 		aga_logctx.len = 1;
 	}
 	else {
@@ -35,7 +37,6 @@ enum af_err aga_mklog(const char** targets, af_size_t len) {
 				perror("fopen");
 			}
 		}
-
 	}
 	signal(SIGABRT, aga_onabrt);
 
@@ -61,6 +62,8 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 #define RED ESC "31m"
 #define END ESC "m"
 	const char* f;
+	(void) sev;
+#ifdef AGA_HAVE_UNIX
 	if(isatty(fileno(s))) {
 		switch(sev) {
 			default: break;
@@ -69,7 +72,9 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 			case AGA_ERR: f = RED "[%s]" END " "; break;
 		}
 	}
-	else f = "[%s] ";
+	else
+#endif
+		f = "[%s] ";
 	if(fprintf(s, f, loc) < 0) perror("fprintf");
 #undef ESC
 #undef CYN

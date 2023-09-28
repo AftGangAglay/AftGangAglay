@@ -46,6 +46,8 @@ CFLAGS += $(GLABI)
 
 ifndef WINDOWS
 	CFLAGS += -D_POSIX_SOURCE -DAGA_HAVE_UNIX
+else
+	CFLAGS += -D_WINDOWS
 endif
 
 ifdef DEBUG

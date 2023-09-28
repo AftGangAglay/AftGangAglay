@@ -42,11 +42,11 @@ static af_bool_t aga_script_glerr(const char* proc) {
 	const char* s;
 	if(!tmp) return AF_FALSE;
 
-	while((tmp = glGetError())) {
+	do {
 		err = tmp;
 		s = (const char*) gluErrorString(err);
 		aga_log(__FILE__, "err: %s: %s", proc, s);
-	}
+	} while((tmp = glGetError()));
 
 	if(sprintf(buf, "%s: %s\n", proc, s) < 0) {
 		aga_af_errno(__FILE__, "sprintf");

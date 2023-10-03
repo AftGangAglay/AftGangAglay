@@ -116,6 +116,8 @@ static object* agan_setcam(object* self, object* arg) {
 			(double) script_ctx->settings.height,
 			0.1, 10000.0);
 
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 	{
 		object* v;
 		float f;
@@ -300,9 +302,9 @@ static object* agan_killvertbuf(object* self, object* arg) {
 	return None;
 }
 
-static enum af_err agan_settransmat(object* trans) {
+static enum af_err agan_settransmat(object* trans, af_bool_t reset) {
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+	if(reset) glLoadIdentity();
 	{
 		const char* comps[] = { "pos", "rot", "scale" };
 		object* comp;
@@ -374,12 +376,17 @@ static object* agan_drawbuf(object* self, object* arg) {
 	primitive = getintvalue(o);
 	if(err_occurred()) return 0;
 
-	if(agan_settransmat(t)) return 0;
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+
+	if(agan_settransmat(t, AF_FALSE)) return 0;
 
 	if(af_drawbuf(&script_ctx->af_ctx, ptr, &script_ctx->vert, primitive)) {
 		err_setstr(RuntimeError, "af_drawbuf() failed");
 		return 0;
 	}
+
+	glPopMatrix();
 
 	INCREF(None);
 	return None;
@@ -703,7 +710,7 @@ static object* agan_lightpos(object* self, object* arg) {
 	light = getintvalue(v);
 	if(err_occurred()) return 0;
 
-	result = agan_settransmat(t);
+	result = agan_settransmat(t, AF_FALSE);
 	if(aga_script_aferr("agan_settransmat", result)) return 0;
 
 	glLightfv(light, GL_POSITION, pos);
@@ -953,8 +960,16 @@ static object* agan_putobj(object* self, object* arg) {
 	if(!(prim = newintobject(AF_TRIANGLES))) return 0;
 	if(settupleitem(call_tuple, 1, prim) == -1) return 0;
 	if(settupleitem(call_tuple, 2, obj->transform) == -1) return 0;
-	if(obj->unlit && !agan_nolight(0, 0)) return 0;
-	else if(!obj->unlit && !agan_yeslight(0, 0)) return 0;
+	if(obj->unlit) {
+		if(!agan_nolight(0, 0)) return 0;
+		glDisable(GL_FOG);
+		aga_af_chk(__FILE__, "glDisable", af_gl_chk());
+	}
+	else {
+		if(!agan_yeslight(0, 0)) return 0;
+		glEnable(GL_FOG);
+		aga_af_chk(__FILE__, "glEnable", af_gl_chk());
+	}
 	if(!agan_drawbuf(0, call_tuple)) return 0;
 
 	INCREF(None);

@@ -35,6 +35,19 @@ int main(int argc, char** argv) {
 	result = aga_instcall(&inst, "create");
 	if(result) aga_af_soft(__FILE__, "aga_instcall", result);
 
+	glEnable(GL_FOG);
+	aga_af_chk(__FILE__, "glEnable", af_gl_chk());
+
+	glFogi(GL_FOG_MODE, GL_EXP);
+	aga_af_chk(__FILE__, "glFogi", af_gl_chk());
+
+	glFogf(GL_FOG_DENSITY, 0.1f);
+	aga_af_chk(__FILE__, "glFogf", af_gl_chk());
+	glFogf(GL_FOG_START, 0.0f);
+	aga_af_chk(__FILE__, "glFogf", af_gl_chk());
+	glFogf(GL_FOG_END, 10.0f);
+	aga_af_chk(__FILE__, "glFogf", af_gl_chk());
+
 	ctx.die = AF_FALSE;
 	while(!ctx.die) {
 		result = aga_poll(&ctx);

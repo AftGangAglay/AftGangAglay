@@ -23,6 +23,10 @@ class game():
         #
         self.origin = aga.transform().create()
         #
+        self.bounds = [ \
+            [[ -5.0, -5.0 ], [ 5.0, 5.0 ]], \
+        ]
+        #
         self.scene = []
         self.scenefiles = [ \
             'res/scene/0/skybox.sgml', \
@@ -58,8 +62,18 @@ class game():
         ncos = math.cos(-yaw)
         sin = math.sin(yaw)
         #
-        self.trans.pos[0] = self.trans.pos[0] + fwd * -sin + right * cos
-        self.trans.pos[2] = self.trans.pos[2] + fwd * ncos + right * sin
+        dx = fwd * -sin + right * cos
+        dz = fwd * ncos + right * sin
+        self.trans.pos[0] = self.trans.pos[0] + dx
+        self.trans.pos[2] = self.trans.pos[2] + dz
+        x = self.trans.pos[0]
+        z = self.trans.pos[2]
+        #
+        for bound in self.bounds:
+            if(x < bound[0][0] or x > bound[1][0]):
+                self.trans.pos[0] = self.trans.pos[0] - dx
+            if(z < bound[0][1] or z > bound[1][1]):
+                self.trans.pos[2] = self.trans.pos[2] - dz
         #
         aga.setcam(self.trans)
         #

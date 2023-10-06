@@ -789,7 +789,6 @@ struct agan_object {
 	object* texpath;
 };
 
-/* TODO: Caching/sharing of models and textures */
 static object* agan_mkobj(object* self, object* arg) {
 	struct aga_nativeptr* retval;
 	struct agan_object* obj;

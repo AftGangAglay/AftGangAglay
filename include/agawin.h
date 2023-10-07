@@ -15,6 +15,10 @@ struct aga_win {
 	af_ulong_t xwin;
 };
 
+/*
+ * NOTE: Glyphs are generated as display lists corresponding to the ASCII value
+ * 		 Of each printable character (i.e. `glCallList('a')')
+ */
 enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display);
 enum af_err aga_killctxdpy(struct aga_ctx* ctx);
 

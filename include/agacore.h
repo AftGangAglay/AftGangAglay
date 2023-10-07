@@ -58,6 +58,8 @@ struct aga_ctx {
 	int pointer_dx;
 	int pointer_dy;
 
+	unsigned font_base;
+
 	struct aga_snddev snddev;
 
 	struct aga_scripteng scripteng;

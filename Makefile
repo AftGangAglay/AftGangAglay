@@ -19,7 +19,7 @@ endif
 (%): %
 %.a:
 	$(AR) $(ARFLAGS) $@ $?
-	ranlib $@
+	$(RANLIB) $@
 
 .PHONY: SUBMAKE
 SUBMAKE:

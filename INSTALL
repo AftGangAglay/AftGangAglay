@@ -1,0 +1,26 @@
+			Build and Install Information
+
+To perform a basic, release build of AftGangAglay - run `make' within the
+project root directory.
+
+If building for macOS - `APPLE=1' must be appended to the invocation.
+If building for Windows - `WINDOWS=1' must be appended to the invocation.
+If a debug build is desired - `DEBUG=1' must be appended to the invocation.
+
+If cross-compiling, the variable `CROSS_TOOL' should be specified as a runner
+for targeted system commands (e.g. `CROSS_TOOL=wine' for Windows-targeting
+cross-compilation). This is an annoying feature of the older build systems
+present within dependencies. Builds make use of GNU/Make implicit rules,
+and should respect all toolchain variables therein - with the addition of
+`RANLIB'.
+
+Builds have only presently been tested on a Linux machine - though should in
+principle work on any UNIX-esque shell environment.
+
+Tested/supported compilers are `gcc' and `clang' - of unknown minimum version.
+
+This file is part of AftGangAglay
+(https://github.com/Th3T3chn0G1t/AftGangAglay) which is licenced under the
+GNU General Public License v3.0 or later.
+
+Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>

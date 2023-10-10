@@ -4,7 +4,7 @@
 			0.125f
 		</item>
 		<item name="MoveSpeed" type="Float">
-			0.1f
+			0.05f
 		</item>
 	</item>
 

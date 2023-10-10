@@ -42,14 +42,17 @@ int main(int argc, char** argv) {
 	aga_af_chk(__FILE__, "glFogi", af_gl_chk());
 
 	{
-		float col[] = {1.0f, 1.0f, 1.0f};
+		float col[] = {0.03f, 0.0f, 0.01f};
 		glFogfv(GL_FOG_COLOR, col);
 		aga_af_chk(__FILE__, "glFogfv", af_gl_chk());
 	}
 
-	glFogf(GL_FOG_DENSITY, 0.1f);
+	glEnable(GL_CULL_FACE);
+	aga_af_chk(__FILE__, "glEnable", af_gl_chk());
+
+	glFogf(GL_FOG_DENSITY, 0.05f);
 	aga_af_chk(__FILE__, "glFogf", af_gl_chk());
-	glFogf(GL_FOG_START, 0.0f);
+	glFogf(GL_FOG_START, 1.0f);
 	aga_af_chk(__FILE__, "glFogf", af_gl_chk());
 	glFogf(GL_FOG_END, 10.0f);
 	aga_af_chk(__FILE__, "glFogf", af_gl_chk());

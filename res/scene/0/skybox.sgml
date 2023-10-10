@@ -13,8 +13,8 @@
 		<item name="Z" type="Float">0.000000</item>
 	</item>
 	<item name="Scale">
-		<item name="X" type="Float">80.000000</item>
-		<item name="Y" type="Float">80.000000</item>
-		<item name="Z" type="Float">80.000000</item>
+		<item name="X" type="Float">180.000000</item>
+		<item name="Y" type="Float">180.000000</item>
+		<item name="Z" type="Float">180.000000</item>
 	</item>
 </root>

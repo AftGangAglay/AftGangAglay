@@ -1,0 +1,20 @@
+<root>
+	<item name="Model" type="String">res/model/table.obj.raw</item>
+	<item name="Texture" type="String">res/img/lightwood.tiff</item>
+	<item name="Unlit" type="Integer">0</item>
+	<item name="Position">
+		<item name="X" type="Float">-3.500000</item>
+		<item name="Y" type="Float">1.000000</item>
+		<item name="Z" type="Float">0.000000</item>
+	</item>
+	<item name="Rotation">
+		<item name="X" type="Float">0.000000</item>
+		<item name="Y" type="Float">0.000000</item>
+		<item name="Z" type="Float">0.000000</item>
+	</item>
+	<item name="Scale">
+		<item name="X" type="Float">0.200000</item>
+		<item name="Y" type="Float">0.200000</item>
+		<item name="Z" type="Float">0.200000</item>
+	</item>
+</root>

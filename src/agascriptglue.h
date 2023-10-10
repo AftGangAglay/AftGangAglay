@@ -710,11 +710,16 @@ static object* agan_lightpos(object* self, object* arg) {
 	light = getintvalue(v);
 	if(err_occurred()) return 0;
 
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+
 	result = agan_settransmat(t, AF_FALSE);
 	if(aga_script_aferr("agan_settransmat", result)) return 0;
 
 	glLightfv(light, GL_POSITION, pos);
 	if(aga_script_glerr("glLightfv")) return 0;
+
+	glPopMatrix();
 
 	INCREF(None);
 	return None;

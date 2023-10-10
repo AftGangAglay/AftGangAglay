@@ -53,6 +53,7 @@ struct aga_ctx {
 	int keycode_len;
 	int keycode_min;
 	af_ulong_t* keymap;
+	/* TODO: Ensure keystates are in-bounds */
 	af_bool_t* keystates;
 
 	int pointer_dx;

@@ -61,7 +61,7 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 #define YLW ESC "33m"
 #define RED ESC "31m"
 #define END ESC "m"
-	const char* f;
+	const char* f = 0;
 	(void) sev;
 #ifdef AGA_HAVE_UNIX
 	if(isatty(fileno(s))) {

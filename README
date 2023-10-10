@@ -1,0 +1,27 @@
+			AftGangAglay
+The best laid plans of mice and men
+
+AftGangAglay (or AGA) is a game engine project aiming to build an
+architecturally modern C codebase using technologies which existed at the time
+of OpenGL 1.0s original specification (June 1992).
+
+In particular - any program code which would be distributed with a game needs
+to satisfy this requirement. Extra tooling such as a modern C compiler, helper
+scripts etc. are allowed to be from the future. Additionally, some helper code
+(which should be appropriately annotated) may break this rule to allow porting
+to modern platforms - Windows didn't get OpenGL (WGL) until post-1996!
+
+Ideally (where possible/appropriate), any task which can be undertaken by a
+dependency of the era should do so. Examples here are using Python 0.9.1 from
+1991 for scripting and using libwww to parse SGML for config.
+
+For build instructions, refer to the INSTALL file in this directory
+For licence information, refer to the LICENCE file in this directory
+For information regarding dependencies, refer to the README file in the
+`vendor/' subdirectory
+
+This file is part of AftGangAglay
+(https://github.com/Th3T3chn0G1t/AftGangAglay) which is licenced under the
+GNU General Public License v3.0 or later.
+
+Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>

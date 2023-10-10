@@ -38,8 +38,8 @@ static void aga_centreptr(struct aga_ctx* ctx) {
 	int mid_x = (int) ctx->settings.width / 2;
 	int mid_y = (int) ctx->settings.height / 2;
 	XWarpPointer(
-			ctx->dpy, ctx->win.xwin, ctx->win.xwin,
-			0, 0, 0, 0, mid_x, mid_y);
+		ctx->dpy, ctx->win.xwin, ctx->win.xwin,
+		0, 0, 0, 0, mid_x, mid_y);
 }
 
 static int aga_xerr_handler(Display* dpy, XErrorEvent* err) {
@@ -58,6 +58,8 @@ enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display) {
 	XVisualInfo* vi;
 
 	AF_PARAM_CHK(ctx);
+
+	XSetErrorHandler(aga_xerr_handler);
 
 	AF_VERIFY(ctx->dpy = XOpenDisplay(display), AF_ERR_UNKNOWN);
 
@@ -86,10 +88,10 @@ enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display) {
 		ctx->keycode_min = min;
 
 		ctx->keymap = XGetKeyboardMapping(
-				ctx->dpy, min, ctx->keycode_len, &ctx->keysyms_per_keycode);
+			ctx->dpy, min, ctx->keycode_len, &ctx->keysyms_per_keycode);
 
 		ctx->keystates = calloc(
-				ctx->keysyms_per_keycode * ctx->keycode_len, sizeof(af_bool_t));
+			ctx->keysyms_per_keycode * ctx->keycode_len, sizeof(af_bool_t));
 		AF_VERIFY(ctx->keystates, AF_ERR_MEM);
 	}
 
@@ -109,8 +111,6 @@ enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display) {
 	AF_VERIFY(ctx->glx, AF_ERR_UNKNOWN);
 
 	XFree(vi);
-
-	XSetErrorHandler(aga_xerr_handler);
 
 	return AF_ERR_NONE;
 }
@@ -138,17 +138,17 @@ enum af_err aga_mkwin(struct aga_ctx* ctx, struct aga_win* win) {
 	white = WhitePixel(ctx->dpy, ctx->screen);
 
 	win->xwin = XCreateSimpleWindow(
-			ctx->dpy, RootWindow(ctx->dpy, ctx->screen),
-			0, 0, ctx->settings.width, ctx->settings.height,
-			8, white, black);
+		ctx->dpy, RootWindow(ctx->dpy, ctx->screen),
+		0, 0, ctx->settings.width, ctx->settings.height,
+		8, white, black);
 
 	XSetStandardProperties(
-			ctx->dpy, win->xwin, "Aft Gang Aglay", "", None,
-			ctx->argv, ctx->argc, 0);
+		ctx->dpy, win->xwin, "Aft Gang Aglay", "", None,
+		ctx->argv, ctx->argc, 0);
 
 	XSelectInput(
-			ctx->dpy, win->xwin,
-			KeyPressMask | KeyReleaseMask | PointerMotionMask);
+		ctx->dpy, win->xwin,
+		KeyPressMask | KeyReleaseMask | PointerMotionMask);
 	XSetWMProtocols(ctx->dpy, win->xwin, &ctx->wm_delete, 1);
 
 	XMapRaised(ctx->dpy, win->xwin);
@@ -170,8 +170,8 @@ enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win) {
 	AF_PARAM_CHK(win);
 
 	AF_VERIFY(
-			glXMakeContextCurrent(ctx->dpy, win->xwin, win->xwin, ctx->glx),
-			AF_ERR_UNKNOWN);
+		glXMakeContextCurrent(ctx->dpy, win->xwin, win->xwin, ctx->glx),
+		AF_ERR_UNKNOWN);
 	XSetInputFocus(ctx->dpy, win->xwin, RevertToNone, CurrentTime);
 
 	aga_centreptr(ctx);
@@ -185,12 +185,34 @@ enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win) {
 		bitmap = XCreateBitmapFromData(ctx->dpy, win->xwin, empty, 1, 1);
 		AF_VERIFY(bitmap, AF_ERR_UNKNOWN);
 
-		hidden =
-				XCreatePixmapCursor(
-						ctx->dpy, bitmap, bitmap, &black, &black, 0, 0);
+		hidden = XCreatePixmapCursor(
+			ctx->dpy, bitmap, bitmap, &black, &black, 0, 0);
 		XDefineCursor(ctx->dpy, win->xwin, hidden);
 		XFreePixmap(ctx->dpy, bitmap);
 		XFreeCursor(ctx->dpy, hidden);
+	}
+
+	{
+		Font font;
+		/* TODO: Proper font discovery. */
+		XFontStruct* info = XLoadQueryFont(ctx->dpy, "*");
+		unsigned base;
+
+		AF_VERIFY(info, AF_ERR_UNKNOWN);
+		font = info->fid;
+
+		base = glGenLists(('~' - ' ') + 1);
+		AF_GL_CHK;
+		AF_VERIFY(base, AF_ERR_MEM);
+
+		glXUseXFont(font, ' ', ('~' - ' ') + 1, base);
+
+		AF_VERIFY(base, AF_ERR_UNKNOWN);
+		AF_VERIFY(base + ('~' - ' '), AF_ERR_UNKNOWN);
+
+		ctx->font_base = base;
+
+		XUnloadFont(ctx->dpy, font);
 	}
 
 	return AF_ERR_NONE;
@@ -234,8 +256,8 @@ enum af_err aga_poll(struct aga_ctx* ctx) {
 				case KeyRelease: {
 					unsigned keycode = event.xkey.keycode;
 					af_size_t keysym_idx =
-							(keycode - ctx->keycode_min) *
-							ctx->keysyms_per_keycode + 0;
+						(keycode - ctx->keycode_min) *
+						ctx->keysyms_per_keycode + 0;
 					af_ulong_t keysym = ctx->keymap[keysym_idx];
 
 					ctx->keystates[keysym] = press;

@@ -41,6 +41,12 @@ int main(int argc, char** argv) {
 	glFogi(GL_FOG_MODE, GL_EXP);
 	aga_af_chk(__FILE__, "glFogi", af_gl_chk());
 
+	{
+		float col[] = {1.0f, 1.0f, 1.0f};
+		glFogfv(GL_FOG_COLOR, col);
+		aga_af_chk(__FILE__, "glFogfv", af_gl_chk());
+	}
+
 	glFogf(GL_FOG_DENSITY, 0.1f);
 	aga_af_chk(__FILE__, "glFogf", af_gl_chk());
 	glFogf(GL_FOG_START, 0.0f);
@@ -57,9 +63,40 @@ int main(int argc, char** argv) {
 			float clear[] = { 1.0f, 0.0f, 1.0f, 1.0f };
 			aga_af_chk(__FILE__, "af_clear", af_clear(&ctx.af_ctx, clear));
 		}
-
 		result = aga_instcall(&inst, "update");
 		if(result) aga_af_soft(__FILE__, "aga_instcall", result);
+
+		{
+			aga_fixed_buf_t msg = { 0 };
+			const char* c;
+
+			int sprintf(char * str, const char* format, ...);
+			long time(long* tloc);
+
+			sprintf(msg, "%li", time(0));
+
+			glMatrixMode(GL_MODELVIEW);
+				glPushMatrix();
+				glLoadIdentity();
+
+			glMatrixMode(GL_PROJECTION);
+				glPushMatrix();
+				glLoadIdentity();
+
+			glRasterPos4f(0.0f, 0.0f, 0.0f, 1.0f);
+			aga_af_chk(__FILE__, "glRasterPos4f", af_gl_chk());
+
+			glMatrixMode(GL_MODELVIEW);
+				glPopMatrix();
+
+			glMatrixMode(GL_PROJECTION);
+				glPopMatrix();
+
+			for(c = msg; *c; ++c) {
+				glCallList(ctx.font_base + (*c - (' ')));
+				aga_af_chk(__FILE__, "glCallList", af_gl_chk());
+			}
+		}
 
 		result = af_flush(&ctx.af_ctx);
 		if(result) aga_af_soft(__FILE__, "af_flush", result);

@@ -10,6 +10,7 @@
 #include <agastd.h>
 #undef AGA_WANT_UNIX
 
+#include <afeirsa/afdefs.h>
 #include <afeirsa/afgl.h>
 
 #ifdef AF_GLXABI

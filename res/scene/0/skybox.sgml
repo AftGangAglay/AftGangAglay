@@ -2,6 +2,7 @@
 	<item name="Model" type="String">res/model/sphere.obj.raw</item>
 	<item name="Texture" type="String">res/img/BlackKnight.tiff</item>
 	<item name="Unlit" type="Integer">1</item>
+	<item name="ScaleTex" type="Integer">1</item>
 	<item name="Position">
 		<item name="X" type="Float">0.100000</item>
 		<item name="Y" type="Float">4.900000</item>

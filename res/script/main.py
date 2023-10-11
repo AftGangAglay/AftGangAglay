@@ -37,6 +37,8 @@ class game():
         self.scenefiles = [ \
             'res/scene/0/skybox.sgml', \
             'res/scene/0/thing.sgml', \
+            'res/scene/0/bed.sgml', \
+            'res/scene/0/plane.sgml', \
             'res/scene/0/bedside.sgml', \
             'res/scene/0/lamp.sgml', \
             'res/scene/0/env.sgml' ]
@@ -98,6 +100,12 @@ class game():
                 else:
                     self.noclip = 0
                     aga.log('noclip disabled')
+                self.cmodekey = 1
+        elif(aga.getkey(aga.KEY_m)):
+            if(not self.cmodekey):
+                for i in range(len(self.scene)):
+                    aga.dumpobj(self.scene[i], self.scenefiles[i])
+                aga.log('scene re-exported')
                 self.cmodekey = 1
         else: self.cmodekey = 0
     #

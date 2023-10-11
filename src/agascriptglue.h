@@ -302,9 +302,7 @@ static object* agan_killvertbuf(object* self, object* arg) {
 	return None;
 }
 
-static enum af_err agan_settransmat(object* trans, af_bool_t reset) {
-	glMatrixMode(GL_MODELVIEW);
-	if(reset) glLoadIdentity();
+static enum af_err agan_settransmat(object* trans, af_bool_t scaleonly) {
 	{
 		const char* comps[] = { "pos", "rot", "scale" };
 		object* comp;
@@ -315,8 +313,7 @@ static enum af_err agan_settransmat(object* trans, af_bool_t reset) {
 		af_size_t i;
 
 		for(i = 0; i < 3; ++i) {
-			void (*proc)(float, float, float) = glScalef;
-
+			if(scaleonly && i != 2) continue;
 			if(!(comp = getattr(trans, (char*) comps[i]))) return 0;
 			if(!(xo = getlistitem(comp, 0))) return 0;
 			if(!(yo = getlistitem(comp, 1))) return 0;
@@ -337,11 +334,12 @@ static enum af_err agan_settransmat(object* trans, af_bool_t reset) {
 					glRotatef(z, 0.0f, 0.0f, 1.0f);
 					break;
 				}
-				case 0: proc = glTranslatef;
-					AF_FALLTHROUGH;
-					/* FALLTHRU */
+				case 0: {
+					glTranslatef(x, y, z);
+					break;
+				}
 				case 2: {
-					proc(x, y, z);
+					glScalef(x, y, z);
 					break;
 				}
 			}
@@ -787,6 +785,7 @@ struct agan_object {
 	object* model;
 
 	af_bool_t unlit;
+	af_bool_t scaletex;
 
 	object* tex;
 
@@ -846,7 +845,8 @@ static object* agan_mkobj(object* self, object* arg) {
 
 			object* aspect = 0;
 			object* flobj;
-			long unlit;
+			int unlit;
+			int scaletex;
 
 			if(aga_confvar("Model", item, AGA_STRING, &str)) {
 				object* modelcache;
@@ -903,6 +903,8 @@ static object* agan_mkobj(object* self, object* arg) {
 			}
 			if(aga_confvar("Unlit", item, AGA_INTEGER, &unlit))
 				obj->unlit = !!unlit;
+			if(aga_confvar("ScaleTex", item, AGA_INTEGER, &scaletex))
+				obj->scaletex = !!scaletex;
 
 			if(af_streql(item->name, "Position")) {
 				if(!(aspect = getattr(obj->transform, "pos"))) return 0;
@@ -974,6 +976,11 @@ static object* agan_putobj(object* self, object* arg) {
 		glEnable(GL_FOG);
 		aga_af_chk(__FILE__, "glEnable", af_gl_chk());
 	}
+	/* TODO: Cache `is_ident' for all matrices to avoid redundant reqs. */
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+	if(obj->scaletex) agan_settransmat(obj->transform, AF_TRUE);
+
 	if(!agan_drawbuf(0, call_tuple)) return 0;
 
 	INCREF(None);
@@ -1080,6 +1087,12 @@ static object* agan_dumpobj(object* self, object* arg) {
 	if(agan_dumpputs(
 		f,
 		"\t<item name=\"Unlit\" type=\"Integer\">%i</item>\n", obj->unlit)) {
+
+		return 0;
+	}
+	if(agan_dumpputs(
+		f, "\t<item name=\"ScaleTex\" type=\"Integer\">%i</item>\n",
+		obj->scaletex)) {
 
 		return 0;
 	}

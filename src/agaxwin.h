@@ -16,7 +16,7 @@ static const int single_buffer_fb[] = {
 		GLX_RED_SIZE, GLX_DONT_CARE,
 		GLX_GREEN_SIZE, GLX_DONT_CARE,
 		GLX_BLUE_SIZE, GLX_DONT_CARE,
-		GLX_DEPTH_SIZE, GLX_DONT_CARE,
+		GLX_DEPTH_SIZE, 1,
 
 		None
 };
@@ -29,7 +29,7 @@ static const int double_buffer_fb[] = {
 		GLX_RED_SIZE, GLX_DONT_CARE,
 		GLX_GREEN_SIZE, GLX_DONT_CARE,
 		GLX_BLUE_SIZE, GLX_DONT_CARE,
-		GLX_DEPTH_SIZE, GLX_DONT_CARE,
+		GLX_DEPTH_SIZE, 1,
 
 		None
 };

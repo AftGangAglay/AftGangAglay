@@ -92,6 +92,7 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 
 	ctx->settings.audio_dev = 0;
 	ctx->settings.startup_script = 0;
+	ctx->debugdraw = AF_FALSE;
 
 #ifdef _POSIX_SOURCE
 	{

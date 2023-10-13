@@ -35,7 +35,6 @@ class game():
         #
         self.scene = []
         self.scenefiles = [ \
-            'res/scene/0/skybox.sgml', \
             'res/scene/0/thing.sgml', \
             'res/scene/0/bed.sgml', \
             'res/scene/0/plane.sgml', \
@@ -101,6 +100,11 @@ class game():
                     self.noclip = 0
                     aga.log('noclip disabled')
                 self.cmodekey = 1
+        elif(aga.getkey(aga.KEY_y)):
+            if(not self.cmodekey):
+                aga.debugdraw()
+                aga.log('debugdraw toggled')
+                self.cmodekey = 1
         elif(aga.getkey(aga.KEY_m)):
             if(not self.cmodekey):
                 for i in range(len(self.scene)):
@@ -121,7 +125,7 @@ class game():
         lighttrans.pos[1] = 1.5
         lighttrans.pos[2] = 0.0
         aga.lightpos(l0, lighttrans)
-        aga.lightparam(l0, [ 0.0, 0.0, 0.0, 0.05 ])
+        aga.lightparam(l0, [ 128.0, 0.0, 0.0, 0.1 ])
         #
         aga.yeslight()
         for obj in self.scene:

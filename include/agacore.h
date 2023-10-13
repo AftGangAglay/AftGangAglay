@@ -48,6 +48,7 @@ struct aga_ctx {
 	af_bool_t double_buffered;
 	af_ulong_t wm_delete;
 	af_bool_t die;
+	af_bool_t debugdraw;
 
 	int keysyms_per_keycode;
 	int keycode_len;

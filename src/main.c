@@ -49,6 +49,8 @@ int main(int argc, char** argv) {
 
 	glEnable(GL_CULL_FACE);
 	aga_af_chk(__FILE__, "glEnable", af_gl_chk());
+	glDepthFunc(GL_LEQUAL);
+	aga_af_chk(__FILE__, "glDepthFunc", af_gl_chk());
 
 	glFogf(GL_FOG_DENSITY, 0.05f);
 	aga_af_chk(__FILE__, "glFogf", af_gl_chk());

@@ -963,7 +963,8 @@ static object* agan_putobj(object* self, object* arg) {
 
 	if(!(call_tuple = newtupleobject(3))) return 0;
 	if(settupleitem(call_tuple, 0, obj->model) == -1) return 0;
-	if(!(prim = newintobject(AF_TRIANGLES))) return 0;
+	if(!(prim = newintobject(script_ctx->debugdraw ? AF_LINES : AF_TRIANGLES)))
+		return 0;
 	if(settupleitem(call_tuple, 1, prim) == -1) return 0;
 	if(settupleitem(call_tuple, 2, obj->transform) == -1) return 0;
 	if(obj->unlit) {
@@ -1132,6 +1133,16 @@ static object* agan_dumpobj(object* self, object* arg) {
 	return None;
 }
 
+static object* agan_debugdraw(object* self, object* arg) {
+	(void) self;
+	(void) arg;
+
+	script_ctx->debugdraw = !script_ctx->debugdraw;
+
+	INCREF(None);
+	return None;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -1162,6 +1173,7 @@ enum af_err aga_mkmod(void) {
 		{ "killobj", agan_killobj },
 		{ "dumpobj", agan_dumpobj },
 		{ "objtrans", agan_objtrans },
+		{ "debugdraw", agan_debugdraw },
 		{ 0, 0 }
 	};
 

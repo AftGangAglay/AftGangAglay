@@ -21,7 +21,7 @@ class game():
                 'It\'s  been loading Floppy Bord for 3 weeks' ], \
             [ cam.OUTER, [   2.75, -3.0  ], [ - 2.25, - 4.5  ] ], \
             [ cam.OUTER, [   3.2 , -3.25 ], [   2.75, - 4.5  ], '...' ], \
-            [ cam.OUTER, [   4.0 ,  3.0  ], [   3.9 , - 0.75 ], \
+            [ cam.OUTER, [   4.5 ,  3.0  ], [   4.3 ,   0.75 ], \
                 'Trying my best' ], \
             [ cam.OUTER, [  23.0 , -5.25 ], [  14.0 , - 6.25 ] ] \
         ]

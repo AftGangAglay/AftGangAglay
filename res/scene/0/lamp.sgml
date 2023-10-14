@@ -4,9 +4,9 @@
 	<item name="Unlit" type="Integer">0</item>
 	<item name="ScaleTex" type="Integer">0</item>
 	<item name="Position">
-		<item name="X" type="Float">-3.500000</item>
+		<item name="X" type="Float">-3.700000</item>
 		<item name="Y" type="Float">1.500000</item>
-		<item name="Z" type="Float">0.000000</item>
+		<item name="Z" type="Float">-0.200000</item>
 	</item>
 	<item name="Rotation">
 		<item name="X" type="Float">0.000000</item>

@@ -71,38 +71,6 @@ int main(int argc, char** argv) {
 		result = aga_instcall(&inst, "update");
 		if(result) aga_af_soft(__FILE__, "aga_instcall", result);
 
-		{
-			aga_fixed_buf_t msg = { 0 };
-			const char* c;
-
-			int sprintf(char * str, const char* format, ...);
-			long time(long* tloc);
-
-			sprintf(msg, "%li", time(0));
-
-			glMatrixMode(GL_MODELVIEW);
-				glPushMatrix();
-				glLoadIdentity();
-
-			glMatrixMode(GL_PROJECTION);
-				glPushMatrix();
-				glLoadIdentity();
-
-			glRasterPos4f(0.0f, 0.0f, 0.0f, 1.0f);
-			aga_af_chk(__FILE__, "glRasterPos4f", af_gl_chk());
-
-			glMatrixMode(GL_MODELVIEW);
-				glPopMatrix();
-
-			glMatrixMode(GL_PROJECTION);
-				glPopMatrix();
-
-			for(c = msg; *c; ++c) {
-				glCallList(ctx.font_base + (*c - (' ')));
-				aga_af_chk(__FILE__, "glCallList", af_gl_chk());
-			}
-		}
-
 		result = af_flush(&ctx.af_ctx);
 		if(result) aga_af_soft(__FILE__, "af_flush", result);
 		result = aga_swapbuf(&ctx, &ctx.win);

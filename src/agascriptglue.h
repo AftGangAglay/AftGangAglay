@@ -750,6 +750,12 @@ static object* agan_lightparam(object* self, object* arg) {
 	light = getintvalue(o);
 	if(err_occurred()) return 0;
 
+	if(light != GL_LIGHT0) {
+		float diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		glLightfv(light, GL_DIFFUSE, diffuse);
+		if(aga_script_glerr("glLightf")) return 0;
+	}
+
 	if(!(v = getlistitem(l, 0))) return 0;
 	f = (float) getfloatvalue(v);
 	if(err_occurred()) return 0;
@@ -1143,6 +1149,67 @@ static object* agan_debugdraw(object* self, object* arg) {
 	return None;
 }
 
+static object* agan_text(object* self, object* arg) {
+	object* str;
+	const char* text;
+	object* t;
+	object* f;
+	float x, y;
+
+	(void) self;
+
+	if(!arg || !is_tupleobject(arg) ||
+	   !(str = gettupleitem(arg, 0)) || !is_stringobject(str) ||
+	   !(t = gettupleitem(arg, 1)) || !is_listobject(t)) {
+
+		err_setstr(
+			RuntimeError, "text() arguments must be string and list");
+		return 0;
+	}
+
+	if(!(text = getstringvalue(str))) return 0;
+
+	if(!(f = getlistitem(t, 0))) return 0;
+	x = (float) getfloatvalue(f);
+	if(err_occurred()) return 0;
+	if(!(f = getlistitem(t, 1))) return 0;
+	y = (float) getfloatvalue(f);
+	if(err_occurred()) return 0;
+
+	glDisable(GL_TEXTURE_2D);
+	if(aga_script_glerr("glDisable")) return 0;
+
+	if(!agan_nolight(0, 0)) return 0;
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glRasterPos2f(x, y);
+	aga_af_chk(__FILE__, "glRasterPos2f", af_gl_chk());
+
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+
+	for(; *text; ++text) {
+		glCallList(script_ctx->font_base + (*text - (' ')));
+		aga_af_chk(__FILE__, "glCallList", af_gl_chk());
+	}
+
+	glEnable(GL_TEXTURE_2D);
+	if(aga_script_glerr("glEnable")) return 0;
+
+	INCREF(None);
+	return None;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -1174,6 +1241,7 @@ enum af_err aga_mkmod(void) {
 		{ "dumpobj", agan_dumpobj },
 		{ "objtrans", agan_objtrans },
 		{ "debugdraw", agan_debugdraw },
+		{ "text", agan_text },
 		{ 0, 0 }
 	};
 

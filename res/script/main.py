@@ -2,19 +2,32 @@
 # Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
 import aga
-
-import math
+import cam
 
 class game():
     def create(self):
         aga.log('I wake!')
         #
-        self.trans = aga.transform().create()
-        self.trans.pos[1] = -2.0
         self.conf = aga.getconf()
         #
-        self.sensitivity = self.conf['sensitivity']
-        self.move_speed = self.conf['move_speed']
+        bounds = [ \
+            [ cam.INNER, [   4.5 ,  4.5  ], [ - 4.0 , - 4.5  ] ], \
+            [ cam.INNER, [   6.0 , -1.2  ], [ - 0.0 , - 3.75 ] ], \
+            [ cam.INNER, [  23.0 ,  4.5  ], [   6.0 , -11.5  ] ], \
+            [ cam.OUTER, [   0.5 ,  4.5  ], [ - 4.0 ,   1.0  ] ], \
+            [ cam.OUTER, [ - 2.8 ,  1.0  ], [ - 4.0 , - 1.0  ], \
+                'I\'ve had enough today' ], \
+            [ cam.OUTER, [ - 1.15, -2.5 ], [ - 3.75, - 4.5  ], \
+                'It\'s  been loading Floppy Bord for 3 weeks' ], \
+            [ cam.OUTER, [   2.75, -3.0  ], [ - 2.25, - 4.5  ] ], \
+            [ cam.OUTER, [   3.2 , -3.25 ], [   2.75, - 4.5  ], '...' ], \
+            [ cam.OUTER, [   4.0 ,  3.0  ], [   3.9 , - 0.75 ], \
+                'Trying my best' ], \
+            [ cam.OUTER, [  23.0 , -5.25 ], [  14.0 , - 6.25 ] ] \
+        ]
+        #
+        self.cam = cam.camera().create(self.conf, bounds)
+        #
         self.audio_enabled = self.conf['audio_enabled']
         #
         if(self.audio_enabled):
@@ -22,112 +35,54 @@ class game():
             self.clipfile = aga.largefile().create(clipsrc)
             self.clip = aga.clip().create(self.clipfile)
         #
-        self.origin = aga.transform().create()
-        self.upstairs_light = aga.transform().create()
-        self.upstairs_light.pos = [ -14.0, -5.0, 4.0 ]
-        #
-        self.bounds = [ \
-            [[  4.5,  4.5 ], [ -4.0,  -4.5  ]], \
-            [[  6.0, -1.2 ], [ -0.0,  -3.75 ]], \
-            [[ 23.0,  4.5 ], [  6.0, -11.5  ]] \
-        ]
-        self.noclip = 0
-        #
         self.scene = []
         self.scenefiles = [ \
-            'res/scene/0/thing.sgml', \
+            'res/scene/0/ceilamp.sgml', \
+            'res/scene/0/compuber.sgml', \
+            'res/scene/0/banister.sgml', \
+            'res/scene/0/kbd.sgml', \
+            'res/scene/0/desk.sgml', \
+            'res/scene/0/wardrobe.sgml', \
+            'res/scene/0/clock.sgml', \
+            'res/scene/0/botl.sgml', \
             'res/scene/0/bed.sgml', \
+            'res/scene/0/bucket.sgml', \
             'res/scene/0/plane.sgml', \
             'res/scene/0/bedside.sgml', \
             'res/scene/0/lamp.sgml', \
-            'res/scene/0/env.sgml' ]
+            'res/scene/0/env.sgml' \
+        ]
         for p in self.scenefiles:
             self.scene.append(aga.mkobj(p))
         #
-        self.selected = 0
-        self.cmodekey = 0
-        self.cmodeaspect = 0
-        self.cmodespd = 0.1
+        lightpos = [ \
+            [ - 3.0, 1.5,  0.0 ], \
+            [  20.0, 0.5, -2.5 ] \
+        ]
+        self.lightparams = [ \
+            [ 128.0, 0.0, 0.0, 0.1 ], \
+            [ 128.0, 0.0, 0.0, 0.05 ] \
+        ]
+        self.lighttrans = []
+        for l in range(len(lightpos)):
+            self.lighttrans.append(aga.transform().create())
+            self.lighttrans[l].pos = lightpos[l]
         #
         return self
-    #
-    def control(self):
-        motion = aga.getmotion()
-        #
-        right = 0.0
-        fwd = 0.0
-        #
-        if(aga.getkey(aga.KEY_w)): fwd = self.move_speed
-        if(aga.getkey(aga.KEY_s)): fwd = -self.move_speed
-        if(aga.getkey(aga.KEY_a)): right = self.move_speed
-        if(aga.getkey(aga.KEY_d)): right = -self.move_speed
-        #
-        self.trans.rot[1] = self.trans.rot[1] + motion[0] * self.sensitivity
-        self.trans.rot[0] = self.trans.rot[0] + motion[1] * self.sensitivity
-        #
-        yaw = self.trans.rot[1] * aga.RADS
-        cos = math.cos(yaw)
-        ncos = math.cos(-yaw)
-        sin = math.sin(yaw)
-        #
-        dx = fwd * -sin + right * cos
-        dz = fwd * ncos + right * sin
-        self.trans.pos[0] = self.trans.pos[0] + dx
-        self.trans.pos[2] = self.trans.pos[2] + dz
-        x = self.trans.pos[0]
-        z = self.trans.pos[2]
-        if(aga.getkey(aga.KEY_equal)): aga.log(self.trans.pos)
-        #
-        inside = 0
-        #
-        for bound in self.bounds:
-            if(x > -bound[0][0] and x < -bound[1][0]):
-                if(z > -bound[0][1] and z < -bound[1][1]):
-                    inside = 1
-        #
-        if(not self.noclip and not inside):
-            self.trans.pos[0] = self.trans.pos[0] - dx
-            self.trans.pos[2] = self.trans.pos[2] - dz
-        #
-        aga.setcam(self.trans)
-        #
-        if(aga.getkey(aga.KEY_n)):
-            if(not self.cmodekey):
-                if(not self.noclip):
-                    self.noclip = 1
-                    aga.log('noclip enabled')
-                else:
-                    self.noclip = 0
-                    aga.log('noclip disabled')
-                self.cmodekey = 1
-        elif(aga.getkey(aga.KEY_y)):
-            if(not self.cmodekey):
-                aga.debugdraw()
-                aga.log('debugdraw toggled')
-                self.cmodekey = 1
-        elif(aga.getkey(aga.KEY_m)):
-            if(not self.cmodekey):
-                for i in range(len(self.scene)):
-                    aga.dumpobj(self.scene[i], self.scenefiles[i])
-                aga.log('scene re-exported')
-                self.cmodekey = 1
-        else: self.cmodekey = 0
     #
     def update(self):
         if(self.audio_enabled): self.clip.play()
         #
-        self.control()
+        self.cam.update()
         #
         aga.startlight()
-        l0 = aga.mklight()
-        lighttrans = aga.transform().create()
-        lighttrans.pos[0] = -3.0
-        lighttrans.pos[1] = 1.5
-        lighttrans.pos[2] = 0.0
-        aga.lightpos(l0, lighttrans)
-        aga.lightparam(l0, [ 128.0, 0.0, 0.0, 0.1 ])
+        for i in range(len(self.lighttrans)):
+            l0 = aga.mklight()
+            t = self.lighttrans[i]
+            aga.lightpos(l0, t)
+            p = self.lightparams[i]
+            aga.lightparam(l0, p)
         #
-        aga.yeslight()
         for obj in self.scene:
             aga.putobj(obj)
     #

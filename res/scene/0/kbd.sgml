@@ -1,0 +1,21 @@
+<root>
+	<item name="Model" type="String">res/model/kbd.obj.raw</item>
+	<item name="Texture" type="String">res/img/kbd.tiff</item>
+	<item name="Unlit" type="Integer">0</item>
+	<item name="ScaleTex" type="Integer">0</item>
+	<item name="Position">
+		<item name="X" type="Float">-3.000000</item>
+		<item name="Y" type="Float">1.300000</item>
+		<item name="Z" type="Float">-3.500000</item>
+	</item>
+	<item name="Rotation">
+		<item name="X" type="Float">0.000000</item>
+		<item name="Y" type="Float">0.000000</item>
+		<item name="Z" type="Float">0.000000</item>
+	</item>
+	<item name="Scale">
+		<item name="X" type="Float">0.150000</item>
+		<item name="Y" type="Float">0.150000</item>
+		<item name="Z" type="Float">0.150000</item>
+	</item>
+</root>

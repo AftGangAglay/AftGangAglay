@@ -379,6 +379,9 @@ static object* agan_drawbuf(object* self, object* arg) {
 
 	if(agan_settransmat(t, AF_FALSE)) return 0;
 
+	script_ctx->frame_verts +=
+		((struct af_buf*) ptr)->size / sizeof(struct aga_vertex);
+
 	if(af_drawbuf(&script_ctx->af_ctx, ptr, &script_ctx->vert, primitive)) {
 		err_setstr(RuntimeError, "af_drawbuf() failed");
 		return 0;
@@ -1176,35 +1179,8 @@ static object* agan_text(object* self, object* arg) {
 	y = (float) getfloatvalue(f);
 	if(err_occurred()) return 0;
 
-	glDisable(GL_TEXTURE_2D);
-	if(aga_script_glerr("glDisable")) return 0;
-
-	if(!agan_nolight(0, 0)) return 0;
-
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-
-	glRasterPos2f(x, y);
-	aga_af_chk(__FILE__, "glRasterPos2f", af_gl_chk());
-
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
-
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-
-	for(; *text; ++text) {
-		glCallList(script_ctx->font_base + (*text - (' ')));
-		aga_af_chk(__FILE__, "glCallList", af_gl_chk());
-	}
-
-	glEnable(GL_TEXTURE_2D);
-	if(aga_script_glerr("glEnable")) return 0;
+	if(aga_script_aferr("aga_puttext", aga_puttext(script_ctx, x, y, text)))
+		return 0;
 
 	INCREF(None);
 	return None;

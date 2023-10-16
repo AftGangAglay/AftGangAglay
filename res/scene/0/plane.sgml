@@ -6,7 +6,7 @@
 	<item name="Position">
 		<item name="X" type="Float">5.300000</item>
 		<item name="Y" type="Float">2.500000</item>
-		<item name="Z" type="Float">2.000000</item>
+		<item name="Z" type="Float">1.000000</item>
 	</item>
 	<item name="Rotation">
 		<item name="X" type="Float">0.000000</item>

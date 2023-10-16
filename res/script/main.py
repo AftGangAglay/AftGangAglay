@@ -10,6 +10,7 @@ class game():
         #
         self.conf = aga.getconf()
         #
+        # TODO: Water plant sidequest
         bounds = [ \
             [ cam.INNER, [   4.5 ,  4.5  ], [ - 4.0 , - 4.5  ] ], \
             [ cam.INNER, [   6.0 , -1.2  ], [ - 0.0 , - 3.75 ] ], \
@@ -21,9 +22,11 @@ class game():
                 'It\'s  been loading Floppy Bord for 3 weeks' ], \
             [ cam.OUTER, [   2.75, -3.0  ], [ - 2.25, - 4.5  ] ], \
             [ cam.OUTER, [   3.2 , -3.25 ], [   2.75, - 4.5  ], '...' ], \
-            [ cam.OUTER, [   4.5 ,  3.0  ], [   4.3 ,   0.75 ], \
+            [ cam.OUTER, [   4.5 ,  2.0  ], [   4.3 , - 0.25 ], \
                 'Trying my best' ], \
-            [ cam.OUTER, [  23.0 , -5.25 ], [  14.0 , - 6.25 ] ] \
+            [ cam.OUTER, [  23.0 , -5.25 ], [  14.0 , - 6.25 ] ], \
+            [ cam.OUTER, [   4.5 ,  4.0  ], [   3.0 ,   2.75 ], \
+                'You need some water' ], \
         ]
         #
         self.cam = cam.camera().create(self.conf, bounds)
@@ -38,6 +41,7 @@ class game():
         self.scene = []
         self.scenefiles = [ \
             'res/scene/0/ceilamp.sgml', \
+            'res/scene/0/plant.sgml', \
             'res/scene/0/compuber.sgml', \
             'res/scene/0/banister.sgml', \
             'res/scene/0/kbd.sgml', \

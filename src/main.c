@@ -8,8 +8,13 @@
 #include <agasnd.h>
 #include <agalog.h>
 #include <agascript.h>
+#include <agadraw.h>
 
 #include <afeirsa/afgl.h>
+
+#ifdef AGA_HAVE_UNIX
+# include <sys/time.h>
+#endif
 
 int main(int argc, char** argv) {
 	struct aga_ctx ctx;
@@ -61,6 +66,17 @@ int main(int argc, char** argv) {
 
 	ctx.die = AF_FALSE;
 	while(!ctx.die) {
+		af_size_t verts = ctx.frame_verts;
+#ifdef AGA_HAVE_UNIX
+		struct timeval tv0;
+		struct timeval tv1;
+		if(gettimeofday(&tv0, 0) == -1) {
+			aga_af_chk(__FILE__, "gettimeofday",
+			   aga_af_errno(__FILE__, "gettimeofday"));
+		}
+#endif
+		ctx.frame_verts = 0;
+
 		result = aga_poll(&ctx);
 		if(result) aga_af_soft(__FILE__, "aga_poll", result);
 
@@ -71,10 +87,29 @@ int main(int argc, char** argv) {
 		result = aga_instcall(&inst, "update");
 		if(result) aga_af_soft(__FILE__, "aga_instcall", result);
 
+		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
+			&ctx, -0.8f, 0.8f, "verts: %zu", verts));
+
+		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
+			&ctx, -0.8f, 0.7f, "frametime: %zu", ctx.frame_us));
+		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
+			&ctx, -0.8f, 0.6f, "fps: %lf",
+			(1.0 / (double) ctx.frame_us) * 1e6));
+
 		result = af_flush(&ctx.af_ctx);
 		if(result) aga_af_soft(__FILE__, "af_flush", result);
 		result = aga_swapbuf(&ctx, &ctx.win);
 		if(result) aga_af_soft(__FILE__, "aga_swapbuf", result);
+
+#ifdef AGA_HAVE_UNIX
+		if(gettimeofday(&tv1, 0) == -1) {
+			aga_af_chk(__FILE__, "gettimeofday",
+			   aga_af_errno(__FILE__, "gettimeofday"));
+		}
+
+		if(tv0.tv_sec != tv1.tv_sec) continue; /* World is ending. */
+		ctx.frame_us = tv1.tv_usec - tv0.tv_usec;
+#endif
 	}
 
 	aga_log(__FILE__, "Tearing down...");

@@ -7,3 +7,4 @@
 - Material import/api
 - Adjust dependencies to lessen GNU std deps over base SUS/UNIX/POSIX.1
 - Installation (?)
+- Re-export images and models with copyright notice

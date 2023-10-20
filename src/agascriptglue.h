@@ -71,7 +71,11 @@ static object* agan_getkey(object* self, object* arg) {
 	value = getintvalue(arg);
 	if(err_occurred()) return 0;
 
-	retval = script_ctx->keystates[value] ? True : False;
+	if(script_ctx->keystates) {
+		retval = script_ctx->keystates[value] ? True : False;
+	}
+	else retval = None;
+
 	INCREF(retval);
 	return retval;
 }

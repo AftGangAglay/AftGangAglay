@@ -11,6 +11,9 @@
 enum af_err aga_puttext(
 		struct aga_ctx* ctx, float x, float y, const char* text) {
 
+	/* GL Text-less backends or no font or bad font shouldn't mean a crash. */
+	if(!ctx->font_base) return AF_ERR_NONE;
+
 	glDisable(GL_TEXTURE_2D);
 	AF_GL_CHK;
 

@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 
 	enum af_err result;
 
-	const char* logfiles[] = { "/dev/stdout", "aga.log" };
+	const char* logfiles[] = { AGA_SYSOUT, "aga.log" };
 
 	aga_af_chk(
 		__FILE__, "aga_mklog", aga_mklog(logfiles, AF_ARRLEN(logfiles)));

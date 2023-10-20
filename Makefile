@@ -52,6 +52,7 @@ ifndef WINDOWS
 	CFLAGS += -D_POSIX_SOURCE -DAGA_HAVE_UNIX
 else
 	CFLAGS += -D_WINDOWS
+	LDLIBS += -lgdi32
 endif
 
 ifdef GLXABI

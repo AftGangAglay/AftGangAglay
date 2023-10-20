@@ -13,6 +13,7 @@ struct aga_ctx;
 
 struct aga_win {
 	af_ulong_t xwin;
+	void* storage;
 };
 
 /*

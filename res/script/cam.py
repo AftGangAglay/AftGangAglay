@@ -46,7 +46,7 @@ class camera():
         self.trans.pos[0] = self.trans.pos[0] + dx
         self.trans.pos[2] = self.trans.pos[2] + dz
         pos = self.trans.pos
-        if(aga.getkey(aga.KEY_equal)): aga.log([ -pos[0], -pos[1], -pos[2] ])
+        if(aga.getkey(aga.KEY_p)): aga.log([ -pos[0], -pos[1], -pos[2] ])
         #
         inside = 0
         #

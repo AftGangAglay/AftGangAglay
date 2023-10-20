@@ -7,6 +7,7 @@
 #define AGA_W_WIN_H
 
 #include <windows.h>
+#include <windowsx.h>
 
 #define AGA_CLASS_NAME ("Aft Gang Aglay")
 
@@ -37,7 +38,7 @@ static enum af_err aga_af_pathwinerr(
 		if(path) aga_log(loc, "err: %s: %s `%s'", proc, buf, path);
 		else aga_log(loc, "err: %s: %s", proc, buf);
 
-		if(!LocalFree(buf)) {
+		if(LocalFree(buf)) {
 			aga_log(__FILE__, "err: LocalFree failed");
 			return AF_ERR_UNKNOWN;
 		}
@@ -50,40 +51,65 @@ static enum af_err aga_af_winerr(const char* loc, const char* proc) {
 	return aga_af_pathwinerr(loc, proc, 0);
 }
 
+#define AGA_AF_WINCHK(proc) \
+	aga_af_chk(__FILE__, proc, aga_af_winerr(__FILE__, proc))
+
+static LRESULT aga_winproc(
+		HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param) {
+
+	struct aga_ctx* ctx;
+	af_bool_t down = AF_TRUE;
+
+	if(msg == WM_NCCREATE) {
+		CREATESTRUCTA* create = (void*) l_param;
+		ctx = create->lpCreateParams;
+
+		SetLastError(0);
+		SetWindowLongPtrA(wnd, GWLP_USERDATA, (LONG_PTR) ctx);
+		if(GetLastError()) AGA_AF_WINCHK("SetWindowLongPtrA");
+
+		return TRUE;
+	}
+
+	SetLastError(0);
+	if(!(ctx = (void*) GetWindowLongPtrA(wnd, GWLP_USERDATA))) {
+		if(GetLastError()) AGA_AF_WINCHK("GetWindowLongPtrA");
+		goto default_msg;
+	}
+
+	switch(msg) {
+		default: {
+			default_msg:;
+			return DefWindowProcA(wnd, msg, w_param, l_param);
+		}
+
+		case WM_KEYUP: down = AF_FALSE;
+			AF_FALLTHROUGH;
+			/* FALLTHRU */
+		case WM_KEYDOWN: {
+			ctx->keystates[w_param] = down;
+			return 0;
+		}
+
+		case WM_MOUSEMOVE: {
+			ctx->pointer_dx = GET_X_LPARAM(l_param) - ctx->keycode_len;
+			ctx->pointer_dy = GET_Y_LPARAM(l_param) - ctx->keycode_min;
+			ctx->keycode_len = GET_X_LPARAM(l_param);
+			ctx->keycode_min = GET_Y_LPARAM(l_param);
+			return 0;
+		}
+
+		case WM_NCDESTROY: {
+			ctx->die = AF_TRUE;
+			return 0;
+		}
+	}
+}
+
 /*
  * Many thanks to code yoinked from: https://github.com/quakeforge/quakeforge/
  * (see libs/video/targets/).
  */
-
-static LRESULT aga_winproc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	switch(uMsg) {
-		case WM_KEYDOWN: {
-			break;
-		}
-		case WM_KEYUP: {
-			break;
-		}
-
-		case WM_LBUTTONDOWN: {
-			break;
-		}
-		case WM_RBUTTONDOWN: {
-			break;
-		}
-
-		case WM_MOUSEMOVE: {
-			break;
-		}
-
-		case WM_NCDESTROY: {
-			break;
-		}
-
-		default: return DefWindowProc(hWnd, uMsg, wParam, lParam);
-	}
-
-	return 1;
-}
 
 enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display) {
 	WNDCLASSA class;
@@ -109,6 +135,9 @@ enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display) {
 	if(!(ctx->dpy_fd = RegisterClassA(&class))) {
 		return aga_af_winerr(__FILE__, "RegisterClassA");
 	}
+
+	ctx->keystates = calloc(0xFF, sizeof(af_bool_t)); /* VK_OEM_CLEAR + 1 */
+	AF_VERIFY(ctx->keystates, AF_ERR_MEM);
 
 	return AF_ERR_NONE;
 }
@@ -138,7 +167,7 @@ enum af_err aga_mkwin(struct aga_ctx* ctx, struct aga_win* win) {
 		WS_CAPTION | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		ctx->settings.width, ctx->settings.height,
-		0, 0, ctx->dpy, 0);
+		0, 0, ctx->dpy, ctx);
 	if(!win->xwin) return aga_af_winerr(__FILE__, "CreateWindowA");
 	if(!ShowWindow((void*) win->xwin, SW_SHOWNORMAL)) {
 		return aga_af_winerr(__FILE__, "ShowWindow");
@@ -162,6 +191,7 @@ enum af_err aga_killwin(struct aga_ctx* ctx, struct aga_win* win) {
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(win);
 
+	/*
 	if(!ReleaseDC((void*) win->xwin, win->storage)) {
 		return aga_af_winerr(__FILE__, "ReleaseDC");
 	}
@@ -169,11 +199,14 @@ enum af_err aga_killwin(struct aga_ctx* ctx, struct aga_win* win) {
 	if(!DestroyWindow((void*) win->xwin)) {
 		return aga_af_winerr(__FILE__, "DestroyWindow");
 	}
+	 */
 
 	return AF_ERR_NONE;
 }
 
 enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win) {
+	RECT r;
+
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(win);
 
@@ -184,6 +217,12 @@ enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win) {
 	if(!wglMakeCurrent(win->storage, ctx->glx)) {
 		return aga_af_winerr(__FILE__, "wglMakeCurrent");
 	}
+
+	SetCapture((void*) win->xwin);
+	if(!GetWindowRect((void*) win->xwin, &r)) {
+		return aga_af_winerr(__FILE__, "GetWindowRect");
+	}
+	if(!ClipCursor(&r)) return aga_af_winerr(__FILE__, "ClipCursor");
 
 	return AF_ERR_NONE;
 }
@@ -200,7 +239,15 @@ enum af_err aga_swapbuf(struct aga_ctx* ctx, struct aga_win* win) {
 }
 
 enum af_err aga_poll(struct aga_ctx* ctx) {
-	(void) ctx;
+	MSG msg;
+
+	AF_PARAM_CHK(ctx);
+
+	while(PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
+		TranslateMessage(&msg);
+		DispatchMessageA(&msg);
+	}
+
 	return AF_ERR_NONE;
 }
 

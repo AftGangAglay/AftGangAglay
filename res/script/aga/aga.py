@@ -3,6 +3,10 @@
 
 from agan import *
 
-from keys import *
+if(glabi() = 'x'):
+    from xkeys import *
+elif(glabi() = 'w'):
+    from wkeys import *
+
 from maths import *
 from natives import *

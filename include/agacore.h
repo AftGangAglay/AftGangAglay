@@ -40,6 +40,7 @@ struct aga_ctx {
 	char** argv;
 	int argc;
 
+	/* TODO: Document what fields `agawwin' yoinks. */
 	void* dpy;
 	int dpy_fd;
 	int screen;

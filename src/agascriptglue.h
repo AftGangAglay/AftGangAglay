@@ -1190,6 +1190,18 @@ static object* agan_text(object* self, object* arg) {
 	return None;
 }
 
+static object* agan_glabi(object* self, object* param) {
+	(void) self;
+	(void) param;
+
+#ifdef AF_GLXABI
+	return newstringobject("x");
+#elif defined(AF_WGL)
+	return newstringobject("w");
+#endif
+	return 0;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -1222,6 +1234,7 @@ enum af_err aga_mkmod(void) {
 		{ "objtrans", agan_objtrans },
 		{ "debugdraw", agan_debugdraw },
 		{ "text", agan_text },
+		{ "glabi", agan_glabi },
 		{ 0, 0 }
 	};
 

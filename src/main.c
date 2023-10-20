@@ -99,8 +99,11 @@ int main(int argc, char** argv) {
 
 		result = af_flush(&ctx.af_ctx);
 		if(result) aga_af_soft(__FILE__, "af_flush", result);
-		result = aga_swapbuf(&ctx, &ctx.win);
-		if(result) aga_af_soft(__FILE__, "aga_swapbuf", result);
+
+		if(!ctx.die) {
+			result = aga_swapbuf(&ctx, &ctx.win);
+			if(result) aga_af_soft(__FILE__, "aga_swapbuf", result);
+		}
 
 #ifdef AGA_HAVE_UNIX
 		if(gettimeofday(&tv1, 0) == -1) {

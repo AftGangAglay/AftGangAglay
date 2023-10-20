@@ -3,7 +3,7 @@ The best laid plans of mice and men
 
 AftGangAglay (or AGA) is a game engine project aiming to build an
 architecturally modern C codebase using technologies which existed at the time
-of OpenGL 1.0s original specification (June 1992).
+of OpenGL 1.0's original specification (June 1992).
 
 In particular - any program code which would be distributed with a game needs
 to satisfy this requirement. Extra tooling such as a modern C compiler, helper

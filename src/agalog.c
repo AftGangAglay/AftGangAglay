@@ -47,6 +47,7 @@ enum af_err aga_killlog(void) {
 	af_size_t i;
 	for(i = 0; i < aga_logctx.len; ++i) {
 		FILE* s = aga_logctx.targets[i];
+		if(!s) continue;
 		if(fileno(s) <= 2) continue;
 		if(fflush(s) == EOF) perror("fflush");
 		if(fclose(s) == EOF) perror("fclose");
@@ -63,6 +64,7 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 #define END ESC "m"
 	const char* f = 0;
 	(void) sev;
+	if(!s) return;
 #ifdef AGA_HAVE_UNIX
 	if(isatty(fileno(s))) {
 		switch(sev) {
@@ -99,6 +101,7 @@ void aga_log(const char* loc, const char* fmt, ...) {
 
 	for(i = 0; i < aga_logctx.len; ++i) {
 		FILE* s = aga_logctx.targets[i];
+		if(!s) continue;
 
 		aga_loghdr(s, loc, sev);
 		if(fputs(buf, s) == EOF) perror("fputs");

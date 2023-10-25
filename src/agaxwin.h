@@ -194,9 +194,35 @@ enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win) {
 
 	{
 		Font font;
-		/* TODO: Proper font discovery. */
-		XFontStruct* info = XLoadQueryFont(ctx->dpy, "*");
+		int nfonts = 0;
+		XFontStruct* info;
 		unsigned base;
+		static const char* const fnames[] = {
+			"*bold*iso8859*",
+			"*iso8859*",
+			"*bold*",
+			"*"
+		};
+		unsigned currentf = 0;
+
+		while(AF_TRUE) {
+			char** fontname;
+			if(currentf >= AF_ARRLEN(fnames)) {
+				aga_log(__FILE__, "err: no fonts available");
+				return AF_ERR_BAD_OP;
+			}
+			aga_log(__FILE__, "Trying font pattern `%s'", fnames[currentf]);
+			fontname = XListFonts(ctx->dpy, fnames[currentf], 1, &nfonts);
+			if(nfonts) {
+				aga_log(__FILE__, "Using x11 font `%s'", *fontname);
+				XFreeFontNames(fontname);
+				break;
+			}
+			XFreeFontNames(fontname);
+			currentf++;
+		}
+
+		info = XLoadQueryFont(ctx->dpy, fnames[currentf]);
 
 		AF_VERIFY(info, AF_ERR_UNKNOWN);
 		font = info->fid;

@@ -127,5 +127,5 @@ int main(int argc, char** argv) {
 	aga_log(__FILE__, "Bye-bye!");
 	aga_af_chk(__FILE__, "aga_killlog", aga_killlog());
 
-	return EXIT_SUCCESS;
+	return 0;
 }

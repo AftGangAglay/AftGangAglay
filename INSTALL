@@ -19,6 +19,12 @@ principle work on any UNIX-esque shell environment.
 
 Tested/supported compilers are `gcc' and `clang' - of unknown minimum version.
 
+        Other Prerequisites
+
+Your system will need the `GL/' headers available on a system-level if
+such is not already the case. Additionally, to build resources you will
+need the `pip' packages `pyassimp' and `numpy', aswell as `ffmpeg'.
+
 This file is part of AftGangAglay
 (https://github.com/Th3T3chn0G1t/AftGangAglay) which is licenced under the
 GNU General Public License v3.0 or later.

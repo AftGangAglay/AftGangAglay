@@ -5,8 +5,8 @@
 # > struct aga_vertex {
 # >     float col[4];
 # >     float uv[2];
-# >     float pos[3];
 # >     float norm[3];
+# >     float pos[3];
 # > };
 
 from numpy import float32, array

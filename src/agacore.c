@@ -226,3 +226,39 @@ void aga_boundf(float* f, float min, float max) {
 	if(*f < min) *f = min;
 	if(*f > max) *f = max;
 }
+
+#ifdef AGA_HAVE_UNIX
+# include <sys/time.h>
+
+enum af_err aga_startstamp(struct aga_timestamp* ts) {
+	struct timeval tv;
+
+	AF_PARAM_CHK(ts);
+
+	if(gettimeofday(&tv, 0) == -1) {
+		return aga_af_errno(__FILE__, "gettimeofday");
+	}
+
+	ts->sec = tv.tv_sec;
+	ts->usec = tv.tv_usec;
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_endstamp(const struct aga_timestamp* ts, af_size_t* us) {
+	struct timeval tv;
+
+	AF_PARAM_CHK(ts);
+	AF_PARAM_CHK(us);
+
+	if(gettimeofday(&tv, 0) == -1) {
+		return aga_af_errno(__FILE__, "gettimeofday");
+	}
+
+	*us = tv.tv_usec - ts->usec;
+	*us += (tv.tv_sec - ts->sec) * 1000000;
+
+	return AF_ERR_NONE;
+}
+
+#endif

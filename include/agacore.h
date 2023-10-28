@@ -115,4 +115,13 @@ void aga_af_soft(const char* loc, const char* proc, enum af_err e);
 
 void aga_boundf(float* f, float min, float max);
 
+struct aga_timestamp {
+	/* NOTE: Not supposed to be a public API time format. */
+	long sec;
+	long usec;
+};
+
+enum af_err aga_startstamp(struct aga_timestamp* ts);
+enum af_err aga_endstamp(const struct aga_timestamp* ts, af_size_t* us);
+
 #endif

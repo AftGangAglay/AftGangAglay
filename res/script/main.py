@@ -4,7 +4,18 @@
 import aga
 import cam
 
+import posix
+
 class game():
+    def load(self, scene):
+        scene_name = 'res/scene/' + scene
+        self.scene = []
+        aga.log('Loading scene `' + scene_name + '\'')
+        for obj in posix.listdir(scene_name):
+            if(obj[0] <> '.'):
+                obj = 'res/scene/' + scene + '/' + obj
+                self.scene.append(aga.mkobj(obj))
+    #
     def create(self):
         aga.log('I wake!')
         #
@@ -38,26 +49,7 @@ class game():
             self.clipfile = aga.largefile().create(clipsrc)
             self.clip = aga.clip().create(self.clipfile)
         #
-        self.scene = []
-        self.scenefiles = [ \
-            'res/scene/0/ceilamp.sgml', \
-            'res/scene/0/plant.sgml', \
-            'res/scene/0/compuber.sgml', \
-            'res/scene/0/banister.sgml', \
-            'res/scene/0/kbd.sgml', \
-            'res/scene/0/desk.sgml', \
-            'res/scene/0/wardrobe.sgml', \
-            'res/scene/0/clock.sgml', \
-            'res/scene/0/botl.sgml', \
-            'res/scene/0/bed.sgml', \
-            'res/scene/0/bucket.sgml', \
-            'res/scene/0/plane.sgml', \
-            'res/scene/0/bedside.sgml', \
-            'res/scene/0/lamp.sgml', \
-            'res/scene/0/env.sgml' \
-        ]
-        for p in self.scenefiles:
-            self.scene.append(aga.mkobj(p))
+        self.load('0')
         #
         lightpos = [ \
             [ - 3.0, 1.5,  0.0 ], \

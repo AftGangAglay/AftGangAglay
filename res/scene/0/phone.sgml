@@ -1,0 +1,21 @@
+<root>
+	<item name="Model" type="String">res/model/phone.obj.raw</item>
+	<item name="Texture" type="String">res/img/metal.tiff</item>
+	<item name="Unlit" type="Integer">0</item>
+	<item name="ScaleTex" type="Integer">0</item>
+	<item name="Position">
+		<item name="X" type="Float">6.650000</item>
+		<item name="Y" type="Float">1.450000</item>
+		<item name="Z" type="Float">3.750000</item>
+	</item>
+	<item name="Rotation">
+		<item name="X" type="Float">0.000000</item>
+		<item name="Y" type="Float">110.000000</item>
+		<item name="Z" type="Float">0.000000</item>
+	</item>
+	<item name="Scale">
+		<item name="X" type="Float">0.125000</item>
+		<item name="Y" type="Float">0.125000</item>
+		<item name="Z" type="Float">0.125000</item>
+	</item>
+</root>

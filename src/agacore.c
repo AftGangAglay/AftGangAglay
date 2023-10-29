@@ -143,11 +143,6 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 		}
 	}
 
-	/* TODO: Python path resolution in packaged builds. */
-	AF_CHK(aga_mkscripteng(
-		ctx, ctx->settings.startup_script, ctx->settings.python_path,
-		argc, argv));
-
 	return AF_ERR_NONE;
 }
 
@@ -161,8 +156,6 @@ enum af_err aga_kill(struct aga_ctx* ctx) {
 	AF_CHK(aga_killctxdpy(ctx));
 
 	if(ctx->settings.audio_enabled) AF_CHK(aga_killsnddev(&ctx->snddev));
-
-	AF_CHK(aga_killscripteng(&ctx->scripteng));
 
 	AF_CHK(aga_killconf(&ctx->conf));
 

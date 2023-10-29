@@ -15,7 +15,8 @@
 int main(int argc, char** argv) {
 	struct aga_ctx ctx;
 
-	struct aga_scriptclass* class;
+	struct aga_scripteng scripteng;
+	struct aga_scriptclass* class = 0;
 	struct aga_scriptinst inst;
 
 	struct aga_timestamp ts;
@@ -32,12 +33,19 @@ int main(int argc, char** argv) {
 
 	aga_af_chk(__FILE__, "aga_init", aga_init(&ctx, argc, argv));
 
-	aga_af_chk(__FILE__,
-		"aga_findclass", aga_findclass(&ctx.scripteng, &class, "game"));
-	aga_af_chk(__FILE__, "aga_mkscriptinst", aga_mkscriptinst(class, &inst));
+	result = aga_mkscripteng(
+		&ctx, &scripteng, ctx.settings.startup_script,
+		ctx.settings.python_path, argc, argv);
+	if(result) aga_af_soft(__FILE__, "aga_mkscripteng", result);
+	else {
+		aga_af_chk(__FILE__, "aga_findclass", aga_findclass(
+			&scripteng, &class, "game"));
+		aga_af_chk(__FILE__, "aga_mkscriptinst", aga_mkscriptinst(
+			class, &inst));
 
-	result = aga_instcall(&inst, "create");
-	if(result) aga_af_soft(__FILE__, "aga_instcall", result);
+		result = aga_instcall(&inst, "create");
+		if(result) aga_af_soft(__FILE__, "aga_instcall", result);
+	}
 
 	glEnable(GL_CULL_FACE);
 	aga_af_chk(__FILE__, "glEnable", af_gl_chk());
@@ -54,8 +62,10 @@ int main(int argc, char** argv) {
 			aga_af_chk(__FILE__, "af_clear", af_clear(&ctx.af_ctx, clear));
 		}
 
-		result = aga_instcall(&inst, "update");
-		if(result) aga_af_soft(__FILE__, "aga_instcall", result);
+		if(class) {
+			result = aga_instcall(&inst, "update");
+			if(result) aga_af_soft(__FILE__, "aga_instcall", result);
+		}
 
 		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
 			&ctx, -0.8f, 0.7f, "frametime: %zu", frame_us));
@@ -76,10 +86,12 @@ int main(int argc, char** argv) {
 
 	aga_log(__FILE__, "Tearing down...");
 
-	aga_af_chk(__FILE__, "aga_instcall", aga_instcall(&inst, "close"));
+	if(class) {
+		aga_af_chk(__FILE__, "aga_instcall", aga_instcall(&inst, "close"));
+		aga_af_chk(__FILE__, "aga_killscriptinst", aga_killscriptinst(&inst));
+	}
 
-	aga_af_chk(__FILE__, "aga_killscriptinst", aga_killscriptinst(&inst));
-
+	aga_af_chk(__FILE__, "aga_killscripteng", aga_killscripteng(&scripteng));
 	aga_af_chk(__FILE__, "aga_kill", aga_kill(&ctx));
 
 	aga_log(__FILE__, "Bye-bye!");

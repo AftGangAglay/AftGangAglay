@@ -65,7 +65,6 @@ struct aga_ctx {
 
 	struct aga_snddev snddev;
 
-	struct aga_scripteng scripteng;
 	void* transform_class;
 	void* agan_dict;
 

@@ -80,8 +80,8 @@ static struct aga_ctx* script_ctx;
 #include "agascriptglue.h"
 
 enum af_err aga_mkscripteng(
-		struct aga_ctx* ctx, const char* script, const char* pypath,
-		int argc, char** argv) {
+		struct aga_ctx* ctx, struct aga_scripteng* scripteng,
+		const char* script, const char* pypath, int argc, char** argv) {
 
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(script);
@@ -157,7 +157,7 @@ enum af_err aga_mkscripteng(
 		}
 		if(result) { DECREF(result); }
 
-		ctx->scripteng.global = dict;
+		scripteng->global = dict;
 
 		/* TODO: I don't like hardcoding scriptglue into base agascript */
 		{
@@ -193,10 +193,10 @@ enum af_err aga_mkscripteng(
 			 *		 Most scripts are probably pretty light on non-class
 			 *		 globals anyway.
 			 */
-			ctx->scripteng.classes = calloc(len, sizeof(struct aga_scriptclass));
-			AF_VERIFY(ctx->scripteng.classes, AF_ERR_MEM);
+			scripteng->classes = calloc(len, sizeof(struct aga_scriptclass));
+			AF_VERIFY(scripteng->classes, AF_ERR_MEM);
 
-			ctx->scripteng.len = 0;
+			scripteng->len = 0;
 
 			for(i = 0; i < len; ++i) {
 				object* key;
@@ -210,7 +210,7 @@ enum af_err aga_mkscripteng(
 
 				if(is_classobject(value)) {
 					struct aga_scriptclass* class =
-						&ctx->scripteng.classes[ctx->scripteng.len++];
+						&scripteng->classes[scripteng->len++];
 					af_size_t key_len = strlen(key_name);
 
 					class->class = value;

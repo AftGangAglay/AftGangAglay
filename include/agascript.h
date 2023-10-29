@@ -33,8 +33,8 @@ struct aga_scripteng {
 };
 
 enum af_err aga_mkscripteng(
-		struct aga_ctx* ctx, const char* script, const char* pypath,
-		int argc, char** argv);
+		struct aga_ctx* ctx, struct aga_scripteng* scripteng,
+		const char* script, const char* pypath, int argc, char** argv);
 
 enum af_err aga_killscripteng(struct aga_scripteng* eng);
 

@@ -51,9 +51,6 @@ struct aga_ctx {
 	af_bool_t die;
 	af_bool_t debugdraw;
 
-	af_size_t frame_verts;
-	af_size_t frame_us;
-
 	int keysyms_per_keycode;
 	int keycode_len;
 	int keycode_min;

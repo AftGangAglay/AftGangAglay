@@ -17,7 +17,9 @@ int main(int argc, char** argv) {
 
 	struct aga_scriptclass* class;
 	struct aga_scriptinst inst;
+
 	struct aga_timestamp ts;
+	af_size_t frame_us = 0;
 
 	enum af_err result;
 
@@ -37,36 +39,12 @@ int main(int argc, char** argv) {
 	result = aga_instcall(&inst, "create");
 	if(result) aga_af_soft(__FILE__, "aga_instcall", result);
 
-	glEnable(GL_FOG);
-	aga_af_chk(__FILE__, "glEnable", af_gl_chk());
-
-	glFogi(GL_FOG_MODE, GL_EXP);
-	aga_af_chk(__FILE__, "glFogi", af_gl_chk());
-
-	{
-		float col[] = {0.03f, 0.0f, 0.01f};
-		glFogfv(GL_FOG_COLOR, col);
-		aga_af_chk(__FILE__, "glFogfv", af_gl_chk());
-	}
-
 	glEnable(GL_CULL_FACE);
 	aga_af_chk(__FILE__, "glEnable", af_gl_chk());
-	glDepthFunc(GL_LEQUAL);
-	aga_af_chk(__FILE__, "glDepthFunc", af_gl_chk());
-
-	glFogf(GL_FOG_DENSITY, 0.05f);
-	aga_af_chk(__FILE__, "glFogf", af_gl_chk());
-	glFogf(GL_FOG_START, 1.0f);
-	aga_af_chk(__FILE__, "glFogf", af_gl_chk());
-	glFogf(GL_FOG_END, 10.0f);
-	aga_af_chk(__FILE__, "glFogf", af_gl_chk());
 
 	ctx.die = AF_FALSE;
 	while(!ctx.die) {
-		af_size_t verts = ctx.frame_verts;
 		aga_af_chk(__FILE__, "aga_startstamp", aga_startstamp(&ts));
-
-		ctx.frame_verts = 0;
 
 		result = aga_poll(&ctx);
 		if(result) aga_af_soft(__FILE__, "aga_poll", result);
@@ -80,18 +58,15 @@ int main(int argc, char** argv) {
 		if(result) aga_af_soft(__FILE__, "aga_instcall", result);
 
 		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
-			&ctx, -0.8f, 0.8f, "verts: %zu", verts));
-
-		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
-			&ctx, -0.8f, 0.7f, "frametime: %zu", ctx.frame_us));
+			&ctx, -0.8f, 0.7f, "frametime: %zu", frame_us));
 		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
 			&ctx, -0.8f, 0.6f, "fps: %lf",
-			(1.0 / (double) ctx.frame_us) * 1e6));
+			(1.0 / (double) frame_us) * 1e6));
 
 		result = af_flush(&ctx.af_ctx);
 		if(result) aga_af_soft(__FILE__, "af_flush", result);
 
-		aga_af_chk(__FILE__, "aga_endstamp", aga_endstamp(&ts, &ctx.frame_us));
+		aga_af_chk(__FILE__, "aga_endstamp", aga_endstamp(&ts, &frame_us));
 
 		if(!ctx.die) {
 			result = aga_swapbuf(&ctx, &ctx.win);

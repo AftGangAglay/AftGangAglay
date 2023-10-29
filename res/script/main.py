@@ -30,7 +30,7 @@ class game():
             [ cam.OUTER, [ - 2.8 ,  1.0  ], [ - 4.0 , - 1.0  ], \
                 'I\'ve had enough today' ], \
             [ cam.OUTER, [ - 1.15, -2.5 ], [ - 3.75, - 4.5  ], \
-                'It\'s  been loading Floppy Bord for 3 weeks' ], \
+                'It\'s been loading Floppy Bord for 3 weeks' ], \
             [ cam.OUTER, [   2.75, -3.0  ], [ - 2.25, - 4.5  ] ], \
             [ cam.OUTER, [   3.2 , -3.25 ], [   2.75, - 4.5  ], '...' ], \
             [ cam.OUTER, [   4.5 ,  2.0  ], [   4.3 , - 0.25 ], \
@@ -49,6 +49,8 @@ class game():
             self.clipfile = aga.largefile().create(clipsrc)
             self.clip = aga.clip().create(self.clipfile)
         #
+        # TODO: Startup scene from conf
+        self.scenehdl = 0
         self.load('0')
         #
         lightpos = [ \
@@ -78,6 +80,10 @@ class game():
             aga.lightpos(l0, t)
             p = self.lightparams[i]
             aga.lightparam(l0, p)
+        #
+        aga.yesfog()
+        aga.fogcol([ 0.03, 0.0, 0.01 ])
+        aga.fogparam([ 0.05, 1.0, 10.0 ])
         #
         for obj in self.scene:
             aga.putobj(obj)

@@ -383,9 +383,6 @@ static object* agan_drawbuf(object* self, object* arg) {
 
 	if(agan_settransmat(t, AF_FALSE)) return 0;
 
-	script_ctx->frame_verts +=
-		((struct af_buf*) ptr)->size / sizeof(struct aga_vertex);
-
 	if(af_drawbuf(&script_ctx->af_ctx, ptr, &script_ctx->vert, primitive)) {
 		err_setstr(RuntimeError, "af_drawbuf() failed");
 		return 0;
@@ -636,6 +633,90 @@ static object* agan_nolight(object* self, object* arg) {
 	return None;
 }
 
+static object* agan_yesfog(object* self, object* arg) {
+	(void) self, (void) arg;
+
+	glEnable(GL_FOG);
+	if(aga_script_glerr("glEnable")) return 0;
+
+	glFogi(GL_FOG_MODE, GL_EXP);
+	if(aga_script_glerr("glFogi")) return 0;
+
+	INCREF(None);
+	return None;
+}
+
+static object* agan_nofog(object* self, object* arg) {
+	(void) self, (void) arg;
+
+	glDisable(GL_FOG);
+	if(aga_script_glerr("glDisable")) return 0;
+
+	INCREF(None);
+	return None;
+}
+
+/*
+ * NOTE: Fog params follow the following format:
+ * 		 [ density(norm), start, end ]
+ */
+static object* agan_fogparam(object* self, object* arg) {
+	object* v;
+	float f;
+
+	(void) self;
+
+	if(!arg || !is_listobject(arg)) {
+		err_setstr(RuntimeError, "fogparam() argument must be list");
+		return 0;
+	}
+
+	if(!(v = getlistitem(arg, 0))) return 0;
+	f = (float) getfloatvalue(v);
+	if(err_occurred()) return 0;
+	glFogf(GL_FOG_DENSITY, f);
+	if(aga_script_glerr("glFogf")) return 0;
+
+	if(!(v = getlistitem(arg, 1))) return 0;
+	f = (float) getfloatvalue(v);
+	if(err_occurred()) return 0;
+	glFogf(GL_FOG_START, f);
+	if(aga_script_glerr("glFogf")) return 0;
+
+	if(!(v = getlistitem(arg, 2))) return 0;
+	f = (float) getfloatvalue(v);
+	if(err_occurred()) return 0;
+	glFogf(GL_FOG_END, f);
+
+	INCREF(None);
+	return None;
+}
+
+static object* agan_fogcol(object* self, object* arg) {
+	object* v;
+	af_size_t i;
+	float col[3];
+
+	(void) self;
+
+	if(!arg || !is_listobject(arg)) {
+		err_setstr(RuntimeError, "fogcol() argument must be list");
+		return 0;
+	}
+
+	for(i = 0; i < 3; ++i) {
+		if(!(v = getlistitem(arg, i))) return 0;
+		col[i] = getfloatvalue(v);
+		if(err_occurred()) return 0;
+	}
+
+	glFogfv(GL_FOG_COLOR, col);
+	if(aga_script_glerr("glFogfv")) return 0;
+
+	INCREF(None);
+	return None;
+}
+
 #define AGAN_LIGHT_INVAL (~0UL)
 /* GL1.0 doesn't use `GL_MAX_LIGHTS'. */
 #define AGAN_MAXLIGHT (7)
@@ -804,12 +885,16 @@ struct agan_object {
 
 	object* modelpath;
 	object* texpath;
+
+	af_uint_t drawlist;
 };
 
+static object* agan_putobj(object* self, object* arg);
 static object* agan_mkobj(object* self, object* arg) {
 	struct aga_nativeptr* retval;
 	struct agan_object* obj;
 	const char* path;
+	enum af_err result;
 
 	(void) self;
 
@@ -838,14 +923,14 @@ static object* agan_mkobj(object* self, object* arg) {
 		inst.object = obj->transform;
 
 		class.class = script_ctx->transform_class;
-		aga_instcall(&inst, "create");
+		result = aga_instcall(&inst, "create");
+		if(aga_script_aferr("aga_instcall", result)) return 0;
 	}
 
 	{
 		struct aga_conf_node conf;
 		struct aga_conf_node* item;
 		struct aga_conf_node* v;
-		enum af_err result;
 		const char* str;
 		object* strobj;
 
@@ -952,7 +1037,35 @@ static object* agan_mkobj(object* self, object* arg) {
 		if(aga_script_aferr("aga_killconf", result)) return 0;
 	}
 
+	obj->drawlist = glGenLists(1);
+	glNewList(obj->drawlist, GL_COMPILE);
+		if(!agan_putobj(0, (void*) retval)) return 0;
+	glEndList();
+	if(aga_script_glerr("glNewList")) return 0;
+
 	return (object*) retval;
+}
+
+static object* agan_putobj_quick(object* self, object* arg) {
+	struct aga_nativeptr* nativeptr;
+	struct agan_object* obj;
+
+	(void) self;
+
+	if(!arg || arg->ob_type != &aga_nativeptr_type) {
+		err_setstr(RuntimeError, "putobj() argument must be nativeptr");
+		return 0;
+	}
+
+	nativeptr = (struct aga_nativeptr*) arg;
+
+	obj = nativeptr->ptr;
+
+	glCallList(obj->drawlist);
+	if(aga_script_glerr("glCallList")) return 0;
+
+	INCREF(None);
+	return None;
 }
 
 static object* agan_putobj(object* self, object* arg) {
@@ -982,13 +1095,11 @@ static object* agan_putobj(object* self, object* arg) {
 	if(settupleitem(call_tuple, 2, obj->transform) == -1) return 0;
 	if(obj->unlit) {
 		if(!agan_nolight(0, 0)) return 0;
-		glDisable(GL_FOG);
-		aga_af_chk(__FILE__, "glDisable", af_gl_chk());
+		if(!agan_nofog(0, 0)) return 0;
 	}
 	else {
 		if(!agan_yeslight(0, 0)) return 0;
-		glEnable(GL_FOG);
-		aga_af_chk(__FILE__, "glEnable", af_gl_chk());
+		if(!agan_yesfog(0, 0)) return 0;
 	}
 	/* TODO: Cache `is_ident' for all matrices to avoid redundant reqs. */
 	glMatrixMode(GL_TEXTURE);
@@ -1014,6 +1125,9 @@ static object* agan_killobj(object* self, object* arg) {
 
 	nativeptr = (struct aga_nativeptr*) arg;
 	obj = nativeptr->ptr;
+
+	glDeleteLists(obj->drawlist, 1);
+	if(aga_script_glerr("glDeleteLists")) return 0;
 
 	DECREF(obj->transform);
 	DECREF(obj->modelfile);
@@ -1190,9 +1304,9 @@ static object* agan_text(object* self, object* arg) {
 	return None;
 }
 
-static object* agan_glabi(object* self, object* param) {
+static object* agan_glabi(object* self, object* arg) {
 	(void) self;
-	(void) param;
+	(void) arg;
 
 #ifdef AF_GLXABI
 	return newstringobject("x");
@@ -1228,13 +1342,17 @@ enum af_err aga_mkmod(void) {
 		{ "lightpos", agan_lightpos },
 		{ "lightparam", agan_lightparam },
 		{ "mkobj", agan_mkobj },
-		{ "putobj", agan_putobj },
+		{ "putobj", agan_putobj_quick },
 		{ "killobj", agan_killobj },
 		{ "dumpobj", agan_dumpobj },
 		{ "objtrans", agan_objtrans },
 		{ "debugdraw", agan_debugdraw },
 		{ "text", agan_text },
 		{ "glabi", agan_glabi },
+		{ "yesfog", agan_yesfog },
+		{ "nofog", agan_nofog },
+		{ "fogparam", agan_fogparam },
+		{ "fogcol", agan_fogcol },
 		{ 0, 0 }
 	};
 

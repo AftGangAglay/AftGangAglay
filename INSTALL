@@ -1,5 +1,7 @@
 			Build and Install Information
 
+		Build
+
 To perform a basic, release build of AftGangAglay - run `make' within the
 project root directory.
 
@@ -18,6 +20,15 @@ Builds have only presently been tested on a Linux machine - though should in
 principle work on any UNIX-esque shell environment.
 
 Tested/supported compilers are `gcc' and `clang' - of unknown minimum version.
+
+		Install
+
+Once you have a working build, you can install with `make install'.
+The install prefix can be configured with the `PREFIX' variable (Default is
+`/usr/local'). Root privileges may be required depending on the install
+location. This installs the binary executable `aftgangaglay' for running
+game projects, and `aga-vertgen' and `aga-sndgen' for generating model and
+sound assets respectively.
 
         Other Prerequisites
 

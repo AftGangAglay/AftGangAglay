@@ -37,8 +37,8 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 		sets->audio_enabled = AF_FALSE;
 		if(!sets->audio_dev) sets->audio_dev = "/dev/dsp";
 
-		if(!sets->startup_script) sets->startup_script = "res/script/main.py";
-		sets->python_path = "vendor/python/lib:res/script:res/script/aga";
+		if(!sets->startup_script) sets->startup_script = "script/main.py";
+		sets->python_path = "vendor/python/lib:script:script/aga";
 	}
 
 	af_memset(&ctx->conf, 0, sizeof(ctx->conf));
@@ -82,9 +82,10 @@ static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
 }
 
 enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
-	const char* confpath = "res/aga.sgml";
+	const char* confpath = "aga.sgml";
 	enum af_err result;
 	const char* display = 0;
+	const char* chcwd = 0;
 
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(argc);
@@ -97,9 +98,10 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 #ifdef _POSIX_SOURCE
 	{
 		const char* helpstr =
-			"warn: usage: %s [-f config] [-s script] [-A dsp] [-D display]";
+			"warn: usage: %s [-f config] [-s script] [-A dsp] [-D display] "
+			"[-C dir]";
 		int o;
-		while((o = 	getopt(argc, argv, "f:s:A:D:")) != -1) {
+		while((o = 	getopt(argc, argv, "f:s:A:D:C:")) != -1) {
 			switch(o) {
 				default: {
 					aga_log(__FILE__, helpstr, argv[0]);
@@ -109,13 +111,15 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 				case 's': ctx->settings.startup_script = optarg; break;
 				case 'A': ctx->settings.audio_dev = optarg; break;
 				case 'D': display = optarg; break;
+				case 'C': chcwd = optarg; break;
 			}
 		}
 		break2:;
 	}
 #endif
 
-	display = getenv("DISPLAY");
+	if(!display) display = getenv("DISPLAY");
+	if(chcwd && chdir(chcwd) == -1) return aga_af_errno(__FILE__, "chdir");
 
 	result = aga_parseconf(ctx, confpath);
 	if(result) aga_af_soft(__FILE__, "aga_parseconf", result);

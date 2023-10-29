@@ -28,7 +28,6 @@ include vendor/www.mk
 include vendor/python.mk
 include vendor/afeirsa.mk
 include vendor/libtiff.mk
-include res/res.mk
 
 SOURCES = $(wildcard src/*.c)
 HEADERS = $(wildcard include/*.h) $(wildcard src/*.h)
@@ -81,3 +80,12 @@ $(OBJECTS): $(HEADERS)
 clean:
 	rm -f $(OBJECTS)
 	rm -f $(OUT)
+
+PREFIX = /usr/local
+
+.PHONY: install
+install: $(INSTALLFILES)
+	install -d $(PREFIX)/bin
+	install $(OUT) $(PREFIX)/bin/aftgangaglay
+	install script/vertgen.py $(PREFIX)/bin/aga-vertgen
+	install script/sndgen.py $(PREFIX)/bin/aga-sndgen

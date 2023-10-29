@@ -16,12 +16,16 @@
 #include <errno.h>
 #include <signal.h>
 
-#if defined(AGA_HAVE_UNIX) && defined(AGA_WANT_UNIX)
-# include <unistd.h>
-# include <unistd.h>
-# include <fcntl.h>
-# include <poll.h>
-# include <getopt.h>
+#ifdef AGA_WANT_UNIX
+# ifdef AGA_HAVE_UNIX
+#  include <unistd.h>
+#  include <fcntl.h>
+#  include <poll.h>
+#  include <getopt.h>
+# endif
+# ifdef _WINDOWS
+#  include <direct.h>
+# endif
 #endif
 
 #endif

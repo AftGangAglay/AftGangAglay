@@ -3,9 +3,6 @@
 *.so
 *.dylib
 
-*.obj.raw
-*.mp3.raw
-
 src/*
 !src/*.c
 !src/*.h

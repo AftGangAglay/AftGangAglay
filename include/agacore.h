@@ -49,13 +49,11 @@ struct aga_ctx {
 	af_bool_t double_buffered;
 	af_ulong_t wm_delete;
 	af_bool_t die;
-	af_bool_t debugdraw;
 
 	int keysyms_per_keycode;
 	int keycode_len;
 	int keycode_min;
 	af_ulong_t* keymap;
-	/* TODO: Ensure keystates are in-bounds */
 	af_bool_t* keystates;
 
 	int pointer_dx;
@@ -91,11 +89,6 @@ struct aga_ctx {
 	} settings;
 };
 
-/*
- * NOTE: The required systems for a startup are scripting and graphics.
- * 		 Otherwise, we have a path to continuing execution with reduced
- * 		 Capabilities.
- */
 enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv);
 enum af_err aga_kill(struct aga_ctx* ctx);
 

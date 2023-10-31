@@ -59,7 +59,7 @@ static af_bool_t aga_script_glerr(const char* proc) {
 
 static object* agan_getkey(object* self, object* arg) {
 	long value;
-	object* retval;
+	object* retval = None;
 
 	(void) self;
 
@@ -72,9 +72,10 @@ static object* agan_getkey(object* self, object* arg) {
 	if(err_occurred()) return 0;
 
 	if(script_ctx->keystates) {
-		retval = script_ctx->keystates[value] ? True : False;
+		if(value < script_ctx->keysyms_per_keycode * script_ctx->keycode_len) {
+			retval = script_ctx->keystates[value] ? True : False;
+		}
 	}
-	else retval = None;
 
 	INCREF(retval);
 	return retval;
@@ -1089,8 +1090,7 @@ static object* agan_putobj(object* self, object* arg) {
 
 	if(!(call_tuple = newtupleobject(3))) return 0;
 	if(settupleitem(call_tuple, 0, obj->model) == -1) return 0;
-	if(!(prim = newintobject(script_ctx->debugdraw ? AF_LINES : AF_TRIANGLES)))
-		return 0;
+	if(!(prim = newintobject(AF_TRIANGLES))) return 0;
 	if(settupleitem(call_tuple, 1, prim) == -1) return 0;
 	if(settupleitem(call_tuple, 2, obj->transform) == -1) return 0;
 	if(obj->unlit) {
@@ -1260,16 +1260,6 @@ static object* agan_dumpobj(object* self, object* arg) {
 	return None;
 }
 
-static object* agan_debugdraw(object* self, object* arg) {
-	(void) self;
-	(void) arg;
-
-	script_ctx->debugdraw = !script_ctx->debugdraw;
-
-	INCREF(None);
-	return None;
-}
-
 static object* agan_text(object* self, object* arg) {
 	object* str;
 	const char* text;
@@ -1313,6 +1303,7 @@ static object* agan_glabi(object* self, object* arg) {
 #elif defined(AF_WGL)
 	return newstringobject("w");
 #endif
+
 	return 0;
 }
 
@@ -1346,7 +1337,6 @@ enum af_err aga_mkmod(void) {
 		{ "killobj", agan_killobj },
 		{ "dumpobj", agan_dumpobj },
 		{ "objtrans", agan_objtrans },
-		{ "debugdraw", agan_debugdraw },
 		{ "text", agan_text },
 		{ "glabi", agan_glabi },
 		{ "yesfog", agan_yesfog },

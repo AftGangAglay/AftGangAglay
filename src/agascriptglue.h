@@ -106,27 +106,45 @@ static object* agan_getmotion(object* self, object* arg) {
 static object* agan_setcam(object* self, object* arg) {
 	af_size_t i;
 
+	object* t;
+	object* mode;
+	af_bool_t b;
+
 	(void) self;
 
-	if(!arg || !is_classmemberobject(arg)) {
-		err_setstr(RuntimeError, "setcam() argument must be transform");
+	if(!arg || !is_tupleobject(arg) ||
+		!(t = gettupleitem(arg, 0)) || !is_classmemberobject(t) ||
+		!(mode = gettupleitem(arg, 1)) || !is_intobject(mode)) {
+
+		err_setstr(
+			RuntimeError, "setcam() arguments must be transform and int");
 		return 0;
 	}
 
+	b = !!getintvalue(mode);
+	if(err_occurred()) return 0;
+
 	glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
+	glLoadIdentity();
+	if(b) {
 		gluPerspective(
 			script_ctx->settings.fov,
 			(double) script_ctx->settings.width /
 			(double) script_ctx->settings.height,
 			0.1, 10000.0);
+	}
+	else {
+		double ar = (double) script_ctx->settings.height /
+			(double) script_ctx->settings.width;
+		glOrtho(-1.0, 1.0, -ar, ar, 0.001, 1.0);
+	}
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	{
 		object* v;
 		float f;
-		object* rot = getattr(arg, "rot");
+		object* rot = getattr(t, "rot");
 		if(!rot) return 0;
 
 		v = getlistitem(rot, 0);
@@ -144,7 +162,7 @@ static object* agan_setcam(object* self, object* arg) {
 
 	{
 		float comps[3];
-		object* pos = getattr(arg, "pos");
+		object* pos = getattr(t, "pos");
 		if(!pos) return 0;
 
 		for(i = 0; i < 3; ++i) {
@@ -1307,6 +1325,33 @@ static object* agan_glabi(object* self, object* arg) {
 	return 0;
 }
 
+static object* agan_clear(object* self, object* arg) {
+	object* v;
+	float col[4];
+	af_size_t i;
+	enum af_err result;
+
+	(void) self;
+
+	if(!arg || !is_listobject(arg)) {
+		err_setstr(
+			RuntimeError, "clear() argument must be list");
+		return 0;
+	}
+
+	for(i = 0; i < 4; ++i) {
+		if(!(v = getlistitem(arg, i))) return 0;
+		col[i] = (float) getfloatvalue(v);
+		if(err_occurred()) return 0;
+	}
+
+	result = af_clear(&script_ctx->af_ctx, col);
+	if(aga_script_aferr("af_clear", result)) return 0;
+
+	INCREF(None);
+	return None;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -1343,6 +1388,7 @@ enum af_err aga_mkmod(void) {
 		{ "nofog", agan_nofog },
 		{ "fogparam", agan_fogparam },
 		{ "fogcol", agan_fogcol },
+		{ "clear", agan_clear },
 		{ 0, 0 }
 	};
 

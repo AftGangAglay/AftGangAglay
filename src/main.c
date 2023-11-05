@@ -57,11 +57,6 @@ int main(int argc, char** argv) {
 		result = aga_poll(&ctx);
 		if(result) aga_af_soft(__FILE__, "aga_poll", result);
 
-		{
-			float clear[] = { 1.0f, 0.0f, 1.0f, 1.0f };
-			aga_af_chk(__FILE__, "af_clear", af_clear(&ctx.af_ctx, clear));
-		}
-
 		if(class) {
 			result = aga_instcall(&inst, "update");
 			if(result) aga_af_soft(__FILE__, "aga_instcall", result);

@@ -63,6 +63,8 @@ struct aga_ctx {
 
 	struct aga_snddev snddev;
 
+	/* TODO: Move to object definitions instead of as a flag here. */
+	af_bool_t tex_filter;
 	void* transform_class;
 	void* agan_dict;
 

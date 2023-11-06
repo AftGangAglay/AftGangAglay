@@ -19,6 +19,7 @@ struct aga_img {
 enum af_err aga_mkimg(struct aga_img* img, const char* path);
 enum af_err aga_killimg(struct aga_img* img);
 enum af_err aga_mkteximg(
-		struct af_ctx* ctx, struct aga_img* img, struct af_buf* tex);
+		struct af_ctx* ctx, struct aga_img* img, struct af_buf* tex,
+		af_bool_t filter);
 
 #endif

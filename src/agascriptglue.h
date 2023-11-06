@@ -419,23 +419,33 @@ struct agan_teximg {
 };
 
 static object* agan_mkteximg(object* self, object* arg) {
+	object* str;
+	object* filter;
+
 	struct aga_nativeptr* retval;
 	const char* path;
 
+	af_bool_t f;
+
 	(void) self;
 
-	if(!arg || !is_stringobject(arg)) {
+	if(!arg || !is_tupleobject(arg) ||
+		!(str = gettupleitem(arg, 0)) || !is_stringobject(str) ||
+		!(filter = gettupleitem(arg, 1)) || !is_intobject(filter)) {
 		err_setstr(
-			RuntimeError, "mkteximg() argument must be string");
+			RuntimeError, "mkteximg() arguments must be string and int");
 		return 0;
 	}
+
+	f = !!getintvalue(filter);
+	if(err_occurred()) return 0;
 
 	retval = NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
 	if(!retval) return 0;
 
 	if(!(retval->ptr = malloc(sizeof(struct agan_teximg)))) return err_nomem();
 
-	if(!(path = getstringvalue(arg))) return 0;
+	if(!(path = getstringvalue(str))) return 0;
 
 	if(aga_mkimg(&((struct agan_teximg*) retval->ptr)->img, path)) {
 		err_setstr(RuntimeError, "aga_mkimg() failed");
@@ -444,7 +454,7 @@ static object* agan_mkteximg(object* self, object* arg) {
 
 	if(aga_mkteximg(
 		&script_ctx->af_ctx, &((struct agan_teximg*) retval->ptr)->img,
-		&((struct agan_teximg*) retval->ptr)->tex)) {
+		&((struct agan_teximg*) retval->ptr)->tex, f)) {
 
 		err_setstr(RuntimeError, "aga_mkteximg() failed");
 		return 0;
@@ -1012,7 +1022,17 @@ static object* agan_mkobj(object* self, object* arg) {
 				if(!texcache ||
 					!(lookup = dictlookup(texcache, (char*) str))) {
 
-					if(!(obj->tex = agan_mkteximg(0, strobj))) return 0;
+					object* filter = script_ctx->tex_filter ? True : False;
+					object* call = newtupleobject(2);
+					if(!call) return 0;
+
+					INCREF(filter);
+
+					if(settupleitem(call, 0, strobj) == -1) return 0;
+					if(settupleitem(call, 1, filter) == -1)
+						return 0;
+
+					if(!(obj->tex = agan_mkteximg(0, call))) return 0;
 					if(dictinsert(texcache, (char*) str, obj->tex) == -1)
 						return 0;
 				}
@@ -1352,6 +1372,26 @@ static object* agan_clear(object* self, object* arg) {
 	return None;
 }
 
+static object* agan_nofilter(object* self, object* arg) {
+	(void) self;
+	(void) arg;
+
+	script_ctx->tex_filter = AF_FALSE;
+
+	INCREF(None);
+	return None;
+}
+
+static object* agan_yesfilter(object* self, object* arg) {
+	(void) self;
+	(void) arg;
+
+	script_ctx->tex_filter = AF_TRUE;
+
+	INCREF(None);
+	return None;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -1389,6 +1429,8 @@ enum af_err aga_mkmod(void) {
 		{ "fogparam", agan_fogparam },
 		{ "fogcol", agan_fogcol },
 		{ "clear", agan_clear },
+		{ "nofilter", agan_nofilter },
+		{ "yesfilter", agan_yesfilter },
 		{ 0, 0 }
 	};
 

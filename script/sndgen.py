@@ -5,7 +5,7 @@
 from sys import argv
 from os import system
 
-if len(argv) < 3:
+if len(argv) != 3:
 	print('usage: ' + argv[0] + ' <input> <output>')
 	exit(1)
 

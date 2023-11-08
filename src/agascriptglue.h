@@ -1392,6 +1392,57 @@ static object* agan_yesfilter(object* self, object* arg) {
 	return None;
 }
 
+/* Python lacks native bitwise ops @-@ */
+static object* agan_bitand(object* self, object* arg) {
+	object* a;
+	object* b;
+
+	long av, bv;
+
+	(void) self;
+
+	if(!arg || !is_tupleobject(arg) ||
+	   !(a = gettupleitem(arg, 0)) || !is_intobject(a) ||
+	   !(b = gettupleitem(arg, 1)) || !is_intobject(b)) {
+
+		err_setstr(RuntimeError, "bitand() arguments must be int and int");
+		return 0;
+	}
+
+	av = getintvalue(a);
+	if(err_occurred()) return 0;
+
+	bv = getintvalue(b);
+	if(err_occurred()) return 0;
+
+	return newintobject(av & bv);
+}
+
+static object* agan_bitshl(object* self, object* arg) {
+	object* a;
+	object* b;
+
+	long av, bv;
+
+	(void) self;
+
+	if(!arg || !is_tupleobject(arg) ||
+	   !(a = gettupleitem(arg, 0)) || !is_intobject(a) ||
+	   !(b = gettupleitem(arg, 1)) || !is_intobject(b)) {
+
+		err_setstr(RuntimeError, "bitshl() arguments must be int and int");
+		return 0;
+	}
+
+	av = getintvalue(a);
+	if(err_occurred()) return 0;
+
+	bv = getintvalue(b);
+	if(err_occurred()) return 0;
+
+	return newintobject(av << bv);
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -1431,6 +1482,8 @@ enum af_err aga_mkmod(void) {
 		{ "clear", agan_clear },
 		{ "nofilter", agan_nofilter },
 		{ "yesfilter", agan_yesfilter },
+		{ "bitand", agan_bitand },
+		{ "bitshl", agan_bitshl },
 		{ 0, 0 }
 	};
 

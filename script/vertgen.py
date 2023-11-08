@@ -17,7 +17,7 @@ from sys import argv
 
 VERTSZ = 3 + 4 + 2 + 3
 
-if len(argv) < 3:
+if len(argv) != 3:
     print('usage: ' + argv[0] + ' <input> <output>')
     exit(1)
 

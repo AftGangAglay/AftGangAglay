@@ -48,13 +48,19 @@ enum af_err aga_fmap(const char* path, af_uchar_t** ptr, af_size_t* size) {
 	if((fd = open(path, O_RDONLY)) == -1) {
 		return aga_af_patherrno(__FILE__, "open", path);
 	}
-	if(fstat(fd, &statbuf) == -1) return aga_af_errno(__FILE__, "stat");
+	if(fstat(fd, &statbuf) == -1) {
+		return aga_af_patherrno(__FILE__, "stat", path);
+	}
 	*size = statbuf.st_size;
 
 	*ptr = mmap(0, *size, PROT_READ, MAP_PRIVATE, fd, 0);
-	if(*ptr == (void*) -1) return aga_af_errno(__FILE__, "mmap");
+	if(*ptr == (void*) -1) {
+		return aga_af_patherrno(__FILE__, "mmap", path);
+	}
 
-	if(close(fd) == -1) return aga_af_errno(__FILE__, "close");
+	if(close(fd) == -1) {
+		return aga_af_patherrno(__FILE__, "close", path);
+	}
 
 	return AF_ERR_NONE;
 }

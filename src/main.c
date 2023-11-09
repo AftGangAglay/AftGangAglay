@@ -81,6 +81,10 @@ int main(int argc, char** argv) {
 
 	aga_log(__FILE__, "Tearing down...");
 
+	/* Need to flush before shutdown to avoid NSGL dying */
+	result = af_flush(&ctx.af_ctx);
+	if(result) aga_af_soft(__FILE__, "af_flush", result);
+
 	if(class) {
 		aga_af_chk(__FILE__, "aga_instcall", aga_instcall(&inst, "close"));
 		aga_af_chk(__FILE__, "aga_killscriptinst", aga_killscriptinst(&inst));

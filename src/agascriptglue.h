@@ -296,6 +296,7 @@ static object* agan_mkvertbuf(object* self, object* arg) {
 	result = af_mkbuf(&script_ctx->af_ctx, retval->ptr, AF_BUF_VERT);
 	if(aga_script_aferr("af_mkbuf", result)) return 0;
 
+	aga_log(__FILE__, "Creating mesh with `%zu' vertices", ((struct af_buf*) retval)->size / sizeof(struct aga_vertex));
 	result = af_upload(
 				&script_ctx->af_ctx, retval->ptr, nativeptr->ptr,
 				nativeptr->len);

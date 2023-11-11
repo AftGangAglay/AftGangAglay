@@ -380,6 +380,8 @@ static object* agan_drawbuf(object* self, object* arg) {
 	void* ptr;
 	long primitive;
 
+	enum af_err result;
+
 	(void) self;
 
 	if(!arg || !is_tupleobject(arg) ||
@@ -400,7 +402,8 @@ static object* agan_drawbuf(object* self, object* arg) {
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
-	if(agan_settransmat(t, AF_FALSE)) return 0;
+	result = agan_settransmat(t, AF_FALSE);
+	if(aga_script_aferr("agan_settransmat", result)) return 0;
 
 	if(af_drawbuf(&script_ctx->af_ctx, ptr, &script_ctx->vert, primitive)) {
 		err_setstr(RuntimeError, "af_drawbuf() failed");
@@ -1142,7 +1145,10 @@ static object* agan_putobj(object* self, object* arg) {
 	/* TODO: Cache `is_ident' for all matrices to avoid redundant reqs. */
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
-	if(obj->scaletex) agan_settransmat(obj->transform, AF_TRUE);
+	if(obj->scaletex) {
+		enum af_err result = agan_settransmat(obj->transform, AF_TRUE);
+		if(aga_script_aferr("agan_settransmat", result)) return 0;
+	}
 
 	if(!agan_drawbuf(0, call_tuple)) return 0;
 

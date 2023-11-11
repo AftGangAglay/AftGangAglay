@@ -50,6 +50,11 @@ int main(int argc, char** argv) {
 	glEnable(GL_CULL_FACE);
 	aga_af_chk(__FILE__, "glEnable", af_gl_chk());
 
+	glEnable(GL_BLEND);
+	aga_af_chk(__FILE__, "glEnable", af_gl_chk());
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	aga_af_chk(__FILE__, "glBlendFunc", af_gl_chk());
+
 	ctx.die = AF_FALSE;
 	while(!ctx.die) {
 		aga_af_chk(__FILE__, "aga_startstamp", aga_startstamp(&ts));

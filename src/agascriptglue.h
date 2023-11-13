@@ -983,7 +983,7 @@ static object* agan_mkobj(object* self, object* arg) {
 				object* filecache;
 				object* lookup;
 				if(!(modelcache =
-					dictlookup(script_ctx->agan_dict, "modelcache")) )return 0;
+					dictlookup(script_ctx->agan_dict, "modelcache"))) return 0;
 				if(!(filecache =
 					dictlookup(script_ctx->agan_dict, "filecache"))) return 0;
 
@@ -1449,6 +1449,40 @@ static object* agan_bitshl(object* self, object* arg) {
 	return newintobject(av << bv);
 }
 
+static object* agan_getobjmeta(object* self, object* arg) {
+	object* ret;
+	object* v;
+	struct agan_object* obj;
+
+	(void) self;
+
+	if(!arg || arg->ob_type != &aga_nativeptr_type) {
+		err_setstr(RuntimeError, "getobjmeta() argument must be nativeptr");
+		return 0;
+	}
+
+	obj = ((struct aga_nativeptr*) arg)->ptr;
+
+	if(!(ret = newdictobject())) return 0;
+
+	if(dictinsert(ret, "transform", obj->transform) == -1) return 0;
+	if(dictinsert(ret, "modelfile", obj->modelfile) == -1) return 0;
+	if(dictinsert(ret, "model", obj->model) == -1) return 0;
+	if(dictinsert(ret, "tex", obj->tex) == -1) return 0;
+	if(dictinsert(ret, "modelpath", obj->modelpath) == -1) return 0;
+	if(dictinsert(ret, "texpath", obj->texpath) == -1) return 0;
+
+	INCREF(v = obj->unlit ? True : False);
+	if(dictinsert(ret, "unlit", v) == -1) return 0;
+	INCREF(v = obj->scaletex ? True : False);
+	if(dictinsert(ret, "scaletex", v) == -1) return 0;
+
+	if(!(v = newintobject(obj->drawlist))) return 0;
+	if(dictinsert(ret, "drawlist", v) == -1) return 0;
+
+	return ret;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -1490,6 +1524,7 @@ enum af_err aga_mkmod(void) {
 		{ "yesfilter", agan_yesfilter },
 		{ "bitand", agan_bitand },
 		{ "bitshl", agan_bitshl },
+		{ "getobjmeta", agan_getobjmeta },
 		{ 0, 0 }
 	};
 

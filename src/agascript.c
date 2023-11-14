@@ -89,6 +89,9 @@ enum af_err aga_mkscripteng(
 
 	script_ctx = ctx;
 
+	scripteng->len = 0;
+	scripteng->classes = 0;
+
 	initall();
 	AF_CHK(aga_mkmod());
 

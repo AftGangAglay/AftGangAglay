@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
 
 	glEnable(GL_BLEND);
 	aga_af_chk(__FILE__, "glEnable", af_gl_chk());
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	aga_af_chk(__FILE__, "glBlendFunc", af_gl_chk());
 
 	ctx.die = AF_FALSE;
@@ -65,6 +65,20 @@ int main(int argc, char** argv) {
 		if(class) {
 			result = aga_instcall(&inst, "update");
 			if(result) aga_af_soft(__FILE__, "aga_instcall", result);
+		}
+		else {
+			float col[4] = { 0.6f, 0.3f, 0.8f, 1.0f };
+		        aga_af_chk(__FILE__, "af_clear",
+				af_clear(&ctx.af_ctx, col));
+			glDisable(GL_TEXTURE_2D);
+        		aga_af_chk(__FILE__, "glDisable", af_gl_chk());
+
+			aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
+	                        &ctx, -0.8f, 0.0f, "No project loaded or no "
+				"script files provided"));
+                        aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
+                                &ctx, -0.8f, -0.1f,
+				"Did you forget `-f' or `-C'"));
 		}
 
 		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(

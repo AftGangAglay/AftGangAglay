@@ -27,39 +27,18 @@
  */
 typedef char aga_fixed_buf_t[2048 + 1];
 
-struct aga_vertex {
-	float col[4];
-	float uv[2];
-	float norm[3];
-	float pos[3];
-};
-
 struct aga_ctx {
 	struct af_ctx af_ctx;
 
-	char** argv;
-	int argc;
-
-	/* TODO: Document what fields `agawwin' yoinks. */
-	void* dpy;
-	int dpy_fd;
-	int screen;
+	struct aga_winenv winenv;
 	struct aga_win win;
-	void* glx;
-	af_bool_t double_buffered;
-	af_ulong_t wm_delete;
 	af_bool_t die;
 
-	int keysyms_per_keycode;
-	int keycode_len;
-	int keycode_min;
-	af_ulong_t* keymap;
+	struct aga_keymap keymap;
 	af_bool_t* keystates;
 
 	int pointer_dx;
 	int pointer_dy;
-
-	unsigned font_base;
 
 	struct aga_snddev snddev;
 

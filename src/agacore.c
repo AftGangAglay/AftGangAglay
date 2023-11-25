@@ -10,6 +10,17 @@
 #include <agastd.h>
 #undef AGA_WANT_UNIX
 
+/*
+ * NOTE: This isn't actually used anywhere nowadays, but it's still polite to
+ * 		 Base our vertex definitions off of a struct.
+ */
+struct aga_vertex {
+	float col[4];
+	float uv[2];
+	float norm[3];
+	float pos[3];
+};
+
 static const struct af_vert_element vert_elements[] = {
 	{ AF_MEMBSIZE(struct aga_vertex, col ), AF_VERT_COL  },
 	{ AF_MEMBSIZE(struct aga_vertex, uv  ), AF_VERT_UV   },
@@ -123,11 +134,8 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 	result = aga_parseconf(ctx, confpath);
 	if(result) aga_af_soft(__FILE__, "aga_parseconf", result);
 
-	ctx->argc = argc;
-	ctx->argv = argv;
-
 	AF_CHK(aga_mkctxdpy(ctx, display));
-	AF_CHK(aga_mkwin(ctx, &ctx->win));
+	AF_CHK(aga_mkwin(ctx, &ctx->win, argc, argv));
 	AF_CHK(aga_glctx(ctx, &ctx->win));
 	AF_CHK(af_mkctx(&ctx->af_ctx, AF_FIDELITY_FAST));
 

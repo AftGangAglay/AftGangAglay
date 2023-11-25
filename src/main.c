@@ -74,17 +74,17 @@ int main(int argc, char** argv) {
 			aga_af_chk(__FILE__, "glDisable", af_gl_chk());
 
 			aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
-	                        &ctx, -0.8f, 0.0f, "No project loaded or no "
+							-0.8f, 0.0f, "No project loaded or no "
 				"script files provided"));
                         aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
-                                &ctx, -0.8f, -0.1f,
+							-0.8f, -0.1f,
 				"Did you forget `-f' or `-C'?"));
 		}
 
 		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
-			&ctx, -0.8f, 0.7f, "frametime: %zu", frame_us));
+			-0.8f, 0.7f, "frametime: %zu", frame_us));
 		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
-			&ctx, -0.8f, 0.6f, "fps: %lf",
+			-0.8f, 0.6f, "fps: %lf",
 			(1.0 / (double) frame_us) * 1e6));
 
 		result = af_flush(&ctx.af_ctx);

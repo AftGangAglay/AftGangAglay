@@ -60,6 +60,7 @@ static af_bool_t aga_script_glerr(const char* proc) {
 static object* agan_getkey(object* self, object* arg) {
 	long value;
 	object* retval = None;
+	struct aga_keymap* keymap = &script_ctx->keymap;
 
 	(void) self;
 
@@ -72,7 +73,7 @@ static object* agan_getkey(object* self, object* arg) {
 	if(err_occurred()) return 0;
 
 	if(script_ctx->keystates) {
-		if(value < script_ctx->keysyms_per_keycode * script_ctx->keycode_len) {
+		if(value < keymap->keysyms_per_keycode * keymap->keycode_len) {
 			retval = script_ctx->keystates[value] ? True : False;
 		}
 	}
@@ -1331,7 +1332,7 @@ static object* agan_text(object* self, object* arg) {
 	y = (float) getfloatvalue(f);
 	if(err_occurred()) return 0;
 
-	if(aga_script_aferr("aga_puttext", aga_puttext(script_ctx, x, y, text)))
+	if(aga_script_aferr("aga_puttext", aga_puttext(x, y, text)))
 		return 0;
 
 	INCREF(None);

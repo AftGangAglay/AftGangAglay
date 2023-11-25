@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
-# We're following the same vertex spec defined in `agacore.h'
+# We're following the same vertex spec defined in `agacore.c'
 # > struct aga_vertex {
 # >     float col[4];
 # >     float uv[2];

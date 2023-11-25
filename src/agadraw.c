@@ -8,12 +8,7 @@
 
 #include <afeirsa/afgl.h>
 
-enum af_err aga_puttext(
-		struct aga_ctx* ctx, float x, float y, const char* text) {
-
-	/* GL Text-less backends or no font or bad font shouldn't mean a crash. */
-	if(!ctx->font_base) return AF_ERR_NONE;
-
+enum af_err aga_puttext(float x, float y, const char* text) {
 	glDisable(GL_TEXTURE_2D);
 	AF_GL_CHK;
 
@@ -40,10 +35,11 @@ enum af_err aga_puttext(
 	glColor3f(1.0f, 1.0f, 1.0f);
 	AF_GL_CHK;
 
-	for(; *text; ++text) {
-		glCallList(ctx->font_base + (*text - (' ')));
-		AF_GL_CHK;
-	}
+	glListBase(AGA_FONT_LIST_BASE);
+	AF_GL_CHK;
+
+	glCallLists((int) af_strlen(text), GL_UNSIGNED_BYTE, text);
+	AF_GL_CHK;
 
 	glEnable(GL_TEXTURE_2D);
 	AF_GL_CHK;
@@ -54,9 +50,7 @@ enum af_err aga_puttext(
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_puttextfmt(
-		struct aga_ctx* ctx, float x, float y, const char* fmt, ...) {
-
+enum af_err aga_puttextfmt(float x, float y, const char* fmt, ...) {
 	aga_fixed_buf_t buf = { 0 };
 	va_list l;
 
@@ -64,5 +58,5 @@ enum af_err aga_puttextfmt(
 	if(vsprintf(buf, fmt, l) < 0) return aga_af_errno(__FILE__, "vsprintf");
 	va_end(l);
 
-	return aga_puttext(ctx, x, y, buf);
+	return aga_puttext(x, y, buf);
 }

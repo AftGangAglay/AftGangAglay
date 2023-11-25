@@ -6,6 +6,12 @@
 #ifndef AGA_W_WIN_H
 #define AGA_W_WIN_H
 
+/*
+ * NOTE: Everything in here is from the future! Microsoft only started
+ * 		 Supporting OpenGL in 1997-ish. Unfortunately shipping without Windows
+ * 		 Support would be a bit of a death sentence so here we are.
+ */
+
 #include <windows.h>
 #include <windowsx.h>
 
@@ -59,6 +65,7 @@ static LRESULT aga_winproc(
 
 	struct aga_ctx* ctx;
 	af_bool_t down = AF_TRUE;
+	struct aga_keymap* keymap;
 
 	if(msg == WM_NCCREATE) {
 		CREATESTRUCTA* create = (void*) l_param;
@@ -77,6 +84,8 @@ static LRESULT aga_winproc(
 		goto default_msg;
 	}
 
+	keymap = &ctx->keymap;
+
 	switch(msg) {
 		default: {
 			default_msg:;
@@ -92,10 +101,10 @@ static LRESULT aga_winproc(
 		}
 
 		case WM_MOUSEMOVE: {
-			ctx->pointer_dx = GET_X_LPARAM(l_param) - ctx->keycode_len;
-			ctx->pointer_dy = GET_Y_LPARAM(l_param) - ctx->keycode_min;
-			ctx->keycode_len = GET_X_LPARAM(l_param);
-			ctx->keycode_min = GET_Y_LPARAM(l_param);
+			ctx->pointer_dx = GET_X_LPARAM(l_param) - keymap->keycode_len;
+			ctx->pointer_dy = GET_Y_LPARAM(l_param) - keymap->keycode_min;
+			keymap->keycode_len = GET_X_LPARAM(l_param);
+			keymap->keycode_min = GET_Y_LPARAM(l_param);
 			return 0;
 		}
 
@@ -117,7 +126,7 @@ enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display) {
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(display);
 
-	if(!(ctx->dpy = GetModuleHandleA(0))) {
+	if(!(ctx->winenv.dpy = GetModuleHandleA(0))) {
 		return aga_af_winerr(__FILE__, "GetModuleHandleA");
 	}
 
@@ -132,7 +141,7 @@ enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display) {
 	class.lpszMenuName = 0;
 	class.lpszClassName = AGA_CLASS_NAME;
 
-	if(!(ctx->dpy_fd = RegisterClassA(&class))) {
+	if(!(ctx->winenv.dpy_fd = RegisterClassA(&class))) {
 		return aga_af_winerr(__FILE__, "RegisterClassA");
 	}
 
@@ -145,7 +154,7 @@ enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display) {
 enum af_err aga_killctxdpy(struct aga_ctx* ctx) {
 	AF_PARAM_CHK(ctx);
 
-	if(ctx->glx && !wglDeleteContext(ctx->glx)) {
+	if(ctx->winenv.glx && !wglDeleteContext(ctx->winenv.glx)) {
 		return aga_af_winerr(__FILE__, "wglDeleteContext");
 	}
 
@@ -210,11 +219,11 @@ enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win) {
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(win);
 
-	if(!(ctx->glx = wglCreateContext(win->storage))) {
+	if(!(ctx->winenv.glx = wglCreateContext(win->storage))) {
 		return aga_af_winerr(__FILE__, "wglCreateContext");
 	}
 
-	if(!wglMakeCurrent(win->storage, ctx->glx)) {
+	if(!wglMakeCurrent(win->storage, ctx->winenv.glx)) {
 		return aga_af_winerr(__FILE__, "wglMakeCurrent");
 	}
 

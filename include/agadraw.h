@@ -9,10 +9,7 @@
 #include <agacore.h>
 #include <afeirsa/aferr.h>
 
-enum af_err aga_puttext(
-		struct aga_ctx* ctx, float x, float y, const char* text);
-
-enum af_err aga_puttextfmt(
-		struct aga_ctx* ctx, float x, float y, const char* fmt, ...);
+enum af_err aga_puttext(float x, float y, const char* text);
+enum af_err aga_puttextfmt(float x, float y, const char* fmt, ...);
 
 #endif

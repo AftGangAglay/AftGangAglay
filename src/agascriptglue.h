@@ -1483,6 +1483,13 @@ static object* agan_getobjmeta(object* self, object* arg) {
 	return ret;
 }
 
+static object* agan_randnorm(object* self, object* arg) {
+	(void) self;
+	(void) arg;
+
+	return newfloatobject((double) rand() / (double) RAND_MAX);
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -1525,6 +1532,7 @@ enum af_err aga_mkmod(void) {
 		{ "bitand", agan_bitand },
 		{ "bitshl", agan_bitshl },
 		{ "getobjmeta", agan_getobjmeta },
+		{ "randnorm", agan_randnorm },
 		{ 0, 0 }
 	};
 

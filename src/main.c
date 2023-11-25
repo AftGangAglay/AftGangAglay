@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 		        aga_af_chk(__FILE__, "af_clear",
 				af_clear(&ctx.af_ctx, col));
 			glDisable(GL_TEXTURE_2D);
-        		aga_af_chk(__FILE__, "glDisable", af_gl_chk());
+			aga_af_chk(__FILE__, "glDisable", af_gl_chk());
 
 			aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
 	                        &ctx, -0.8f, 0.0f, "No project loaded or no "

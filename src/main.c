@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
 				"script files provided"));
                         aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
                                 &ctx, -0.8f, -0.1f,
-				"Did you forget `-f' or `-C'"));
+				"Did you forget `-f' or `-C'?"));
 		}
 
 		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(

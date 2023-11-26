@@ -28,88 +28,21 @@ static const struct af_vert_element vert_elements[] = {
 	{ AF_MEMBSIZE(struct aga_vertex, pos ), AF_VERT_POS  }
 };
 
-static enum af_err aga_parseconf(struct aga_ctx* ctx, const char* path) {
-	struct aga_conf_node* item;
-	struct aga_conf_node* v;
-	struct aga_settings* sets = &ctx->settings;
-
-	AF_PARAM_CHK(ctx);
-	AF_PARAM_CHK(path);
-
-	/* Set defaults */
-	{
-		sets->sensitivity = 0.25f;
-		sets->move_speed = 0.1f;
-
-		sets->width = 640;
-		sets->height = 480;
-		sets->fov = 60.0f;
-
-		sets->audio_enabled = AF_FALSE;
-		if(!sets->audio_dev) sets->audio_dev = "/dev/dsp";
-
-		if(!sets->startup_script) sets->startup_script = "script/main.py";
-		sets->python_path = "vendor/python/lib:script:script/aga";
-	}
-
-	af_memset(&ctx->conf, 0, sizeof(ctx->conf));
-
-	AF_CHK(aga_mkconf(path, &ctx->conf));
-
-	for(item = ctx->conf.children->children;
-		item < ctx->conf.children->children + ctx->conf.children->len;
-		++item) {
-
-		if(af_streql(item->name, "Input")) {
-			for(v = item->children; v < item->children + item->len; ++v) {
-				aga_confvar("Sensitivity", v, AGA_FLOAT, &sets->sensitivity);
-				aga_confvar("MoveSpeed", v, AGA_FLOAT, &sets->move_speed);
-			}
-		}
-		else if(af_streql(item->name, "Display")) {
-			for(v = item->children; v < item->children + item->len; ++v) {
-				aga_confvar("Width", v, AGA_INTEGER, &sets->width);
-				aga_confvar("Height", v, AGA_INTEGER, &sets->height);
-				aga_confvar("FOV", v, AGA_FLOAT, &sets->fov);
-			}
-		}
-		else if(af_streql(item->name, "Audio")) {
-			for(v = item->children; v < item->children + item->len; ++v) {
-				long enabled;
-				if(aga_confvar("Enabled", v, AGA_INTEGER, &enabled))
-					sets->audio_enabled = !!enabled;
-				aga_confvar("Device", v, AGA_STRING, &sets->audio_dev);
-			}
-		}
-		else if(af_streql(item->name, "Script")) {
-			for(v = item->children; v < item->children + item->len; ++v) {
-				aga_confvar("Startup", v, AGA_STRING, &sets->startup_script);
-				aga_confvar("Path", v, AGA_STRING, &sets->python_path);
-			}
-		}
-	}
-
-	return AF_ERR_NONE;
-}
-
 enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
-	const char* confpath = "aga.sgml";
 	enum af_err result;
-	const char* display = 0;
-	const char* chcwd = 0;
+
+	const char* confpath = "aga.sgml";
+	const char* display = getenv("DISPLAY");
+	const char* chcwd = ".";
+	const char* audio_dev = 0;
 
 	AF_PARAM_CHK(ctx);
-	AF_PARAM_CHK(argc);
 	AF_PARAM_CHK(argv);
-
-	ctx->settings.audio_dev = 0;
-	ctx->settings.startup_script = 0;
 
 #ifdef _POSIX_SOURCE
 	{
 		const char* helpstr =
-			"warn: usage: %s [-f config] [-s script] [-A dsp] [-D display] "
-			"[-C dir]";
+			"warn: usage: %s [-f config] [-A dsp] [-D display] [-C dir]";
 		int o;
 		while((o = 	getopt(argc, argv, "f:s:A:D:C:")) != -1) {
 			switch(o) {
@@ -118,8 +51,7 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 					goto break2;
 				}
 				case 'f': confpath = optarg; break;
-				case 's': ctx->settings.startup_script = optarg; break;
-				case 'A': ctx->settings.audio_dev = optarg; break;
+				case 'A': audio_dev = optarg; break;
 				case 'D': display = optarg; break;
 				case 'C': chcwd = optarg; break;
 			}
@@ -128,25 +60,44 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 	}
 #endif
 
-	if(!display) display = getenv("DISPLAY");
-	if(chcwd && chdir(chcwd) == -1) return aga_af_errno(__FILE__, "chdir");
+	if(chdir(chcwd) == -1) return aga_af_errno(__FILE__, "chdir");
 
-	result = aga_parseconf(ctx, confpath);
-	if(result) aga_af_soft(__FILE__, "aga_parseconf", result);
+	af_memset(&ctx->conf, 0, sizeof(ctx->conf));
+
+	result = aga_mkconf(confpath, &ctx->conf);
+	if(result) aga_af_soft(__FILE__, "aga_mkconf", result);
 
 	AF_CHK(aga_mkctxdpy(ctx, display));
 	AF_CHK(aga_mkwin(ctx, &ctx->win, argc, argv));
 	AF_CHK(aga_glctx(ctx, &ctx->win));
 	AF_CHK(af_mkctx(&ctx->af_ctx, AF_FIDELITY_FAST));
-
 	AF_CHK(af_mkvert(
 		&ctx->af_ctx, &ctx->vert, vert_elements, AF_ARRLEN(vert_elements)));
 
-	if(ctx->settings.audio_enabled) {
-		result = aga_mksnddev(ctx->settings.audio_dev, &ctx->snddev);
-		if(result) {
-			aga_af_soft(__FILE__, "aga_mksnddev", result);
-			ctx->settings.audio_enabled = AF_FALSE;
+	{
+		int v;
+		const char* enabled[] = { "Audio", "Enabled" };
+		const char* device[] = { "Audio", "Device" };
+
+		result = aga_conftree(
+			&ctx->conf, enabled, AF_ARRLEN(enabled), &v, AGA_INTEGER);
+		if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+
+		if(!audio_dev) {
+			result = aga_conftree(
+				&ctx->conf, device, AF_ARRLEN(device), &audio_dev, AGA_STRING);
+			if(result) {
+				aga_af_soft(__FILE__, "aga_conftree", result);
+				audio_dev = "/dev/dsp1";
+			}
+		}
+
+		if(ctx->audio_enabled) {
+			result = aga_mksnddev(audio_dev, &ctx->snddev);
+			if(result) {
+				aga_af_soft(__FILE__, "aga_mksnddev", result);
+				ctx->audio_enabled = AF_FALSE;
+			}
 		}
 	}
 
@@ -162,7 +113,7 @@ enum af_err aga_kill(struct aga_ctx* ctx) {
 	AF_CHK(aga_killwin(ctx, &ctx->win));
 	AF_CHK(aga_killctxdpy(ctx));
 
-	if(ctx->settings.audio_enabled) AF_CHK(aga_killsnddev(&ctx->snddev));
+	if(ctx->audio_enabled) AF_CHK(aga_killsnddev(&ctx->snddev));
 
 	AF_CHK(aga_killconf(&ctx->conf));
 

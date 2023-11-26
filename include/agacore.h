@@ -40,6 +40,7 @@ struct aga_ctx {
 	int pointer_dx;
 	int pointer_dy;
 
+	af_bool_t audio_enabled;
 	struct aga_snddev snddev;
 
 	/* TODO: Move to object definitions instead of as a flag here. */
@@ -50,24 +51,6 @@ struct aga_ctx {
 	struct af_vert vert;
 
 	struct aga_conf_node conf;
-	struct aga_settings {
-		/* Input */
-		float sensitivity;
-		float move_speed;
-
-		/* Display */
-		float fov;
-		unsigned width, height;
-
-		/* Audio */
-		af_bool_t audio_enabled;
-		const char* audio_dev;
-
-		/* Script */
-		const char* startup_script;
-		/* `:' separated list of search paths */
-		const char* python_path;
-	} settings;
 };
 
 enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv);

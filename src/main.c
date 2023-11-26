@@ -33,9 +33,26 @@ int main(int argc, char** argv) {
 
 	aga_af_chk(__FILE__, "aga_init", aga_init(&ctx, argc, argv));
 
-	result = aga_mkscripteng(
-		&ctx, &scripteng, ctx.settings.startup_script,
-		ctx.settings.python_path, argc, argv);
+	{
+		const char* startup_script = "script/main.py";
+		const char* python_path = "vendor/python/lib:script:script/aga";
+
+		const char* startup[] = { "Script", "Startup" };
+		const char* path[] = { "Script", "Path" };
+
+		result = aga_conftree(
+			&ctx.conf, startup, AF_ARRLEN(startup),
+			&startup_script, AGA_STRING);
+		if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+
+		result = aga_conftree(
+				&ctx.conf, path, AF_ARRLEN(path),
+				&python_path, AGA_STRING);
+		if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+
+		result = aga_mkscripteng(
+			&ctx, &scripteng, startup_script, python_path, argc, argv);
+	}
 	if(result) aga_af_soft(__FILE__, "aga_mkscripteng", result);
 	else {
 		aga_af_chk(__FILE__, "aga_findclass", aga_findclass(
@@ -74,11 +91,9 @@ int main(int argc, char** argv) {
 			aga_af_chk(__FILE__, "glDisable", af_gl_chk());
 
 			aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
-							-0.8f, 0.0f, "No project loaded or no "
-				"script files provided"));
-                        aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
-							-0.8f, -0.1f,
-				"Did you forget `-f' or `-C'?"));
+				-0.8f, 0.0f, "No project loaded or no script files provided"));
+			aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
+				-0.8f, -0.1f, "Did you forget `-f' or `-C'?"));
 		}
 
 		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(

@@ -16,6 +16,8 @@ struct aga_ctx;
 struct aga_win {
 	af_ulong_t xwin;
 	void* storage;
+	af_size_t width;
+	af_size_t height;
 };
 
 struct aga_keymap {

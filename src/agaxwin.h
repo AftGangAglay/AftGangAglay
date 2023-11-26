@@ -35,8 +35,8 @@ static const int double_buffer_fb[] = {
 };
 
 static void aga_centreptr(struct aga_ctx* ctx) {
-	int mid_x = (int) ctx->settings.width / 2;
-	int mid_y = (int) ctx->settings.height / 2;
+	int mid_x = (int) ctx->win.width / 2;
+	int mid_y = (int) ctx->win.height / 2;
 	XWarpPointer(
 		ctx->winenv.dpy, ctx->win.xwin, ctx->win.xwin,
 		0, 0, 0, 0, mid_x, mid_y);
@@ -138,16 +138,36 @@ enum af_err aga_mkwin(
 		struct aga_ctx* ctx, struct aga_win* win, int argc, char** argv) {
 
 	af_ulong_t black, white;
+	enum af_err result;
+
+	const char* width[] = { "Display", "Width" };
+	const char* height[] = { "Display", "Height" };
 
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(win);
+
+	win->width = 0;
+	win->height = 0;
+
+	result = aga_conftree(
+		&ctx->conf, width, AF_ARRLEN(width), &win->width, AGA_INTEGER);
+	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+
+	result = aga_conftree(
+		&ctx->conf, height, AF_ARRLEN(height), &win->height, AGA_INTEGER);
+	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+
+	if(!win->width) {
+		win->width = 640;
+		win->height = 480;
+	}
 
 	black = BlackPixel(ctx->winenv.dpy, ctx->winenv.screen);
 	white = WhitePixel(ctx->winenv.dpy, ctx->winenv.screen);
 
 	win->xwin = XCreateSimpleWindow(
 		ctx->winenv.dpy, RootWindow(ctx->winenv.dpy, ctx->winenv.screen),
-		0, 0, ctx->settings.width, ctx->settings.height,
+		0, 0, win->width, win->height,
 		8, white, black);
 
 	XSetStandardProperties(
@@ -291,8 +311,10 @@ enum af_err aga_poll(struct aga_ctx* ctx) {
 				}
 
 				case MotionNotify: {
-					int mid_x = (int) ctx->settings.width / 2;
-					int mid_y = (int) ctx->settings.height / 2;
+					int mid_x = (int) ctx->win.width / 2;
+					int mid_y = (int) ctx->win.height / 2;
+
+					if(event.xmotion.window != ctx->win.xwin) break;
 
 					if(event.xmotion.x != mid_x || event.xmotion.y != mid_y) {
 						aga_centreptr(ctx);

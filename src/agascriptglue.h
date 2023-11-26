@@ -129,14 +129,17 @@ static object* agan_setcam(object* self, object* arg) {
 	glLoadIdentity();
 	if(b) {
 		gluPerspective(
-			script_ctx->settings.fov,
-			(double) script_ctx->settings.width /
-			(double) script_ctx->settings.height,
+			/*
+			 * TODO: Make `setcam_persp' and `setcam_ortho' separate so that we
+			 * 		 Can de-hardcode FOV here.
+			 */
+			90.0f,
+			(double) script_ctx->win.width / (double) script_ctx->win.height,
 			0.1, 10000.0);
 	}
 	else {
-		double ar = (double) script_ctx->settings.height /
-			(double) script_ctx->settings.width;
+		double ar = (double) script_ctx->win.height /
+			(double) script_ctx->win.width;
 		glOrtho(-1.0, 1.0, -ar, ar, 0.001, 1.0);
 	}
 
@@ -184,51 +187,41 @@ static object* agan_setcam(object* self, object* arg) {
 }
 
 static object* agan_getconf(object* self, object* arg) {
-	object* conf;
-	object* val;
+	struct aga_conf_node* node;
+	const char** names;
+	af_size_t i, len;
+	object* v;
 
-	(void) self, (void) arg;
+	(void) self;
 
-	conf = newdictobject();
-	if(err_occurred()) return 0;
+	if(!arg || !is_listobject(arg)) {
+		err_setstr(RuntimeError, "getconf() argument must be list");
+		return 0;
+	}
 
-	val = newfloatobject(script_ctx->settings.sensitivity);
-	if(!val) return 0;
-	if(dictinsert(conf, "sensitivity", val) == -1) return 0;
+	if(!(names = malloc(sizeof(char*) * (len = getlistsize(arg)))))
+		return err_nomem();
 
-	val = newfloatobject(script_ctx->settings.move_speed);
-	if(!val) return 0;
-	if(dictinsert(conf, "move_speed", val)) return 0;
+	for(i = 0; i < len; ++i) {
+		v = getlistitem(arg, (int) i);
+		if(!(names[i] = getstringvalue(v))) return 0;
+	}
 
-	val = newfloatobject(script_ctx->settings.fov);
-	if(!val) return 0;
-	if(dictinsert(conf, "fov", val)) return 0;
+	if(aga_script_aferr("aga_conftree_raw", aga_conftree_raw(
+		script_ctx->conf.children, names, len, &node))) return 0;
 
-	val = newintobject(script_ctx->settings.width);
-	if(!val) return 0;
-	if(dictinsert(conf, "width", val)) return 0;
-
-	val = newintobject(script_ctx->settings.height);
-	if(!val) return 0;
-	if(dictinsert(conf, "height", val)) return 0;
-
-	val = newintobject(script_ctx->settings.audio_enabled);
-	if(!val) return 0;
-	if(dictinsert(conf, "audio_enabled", val)) return 0;
-
-	val = newstringobject((char*) script_ctx->settings.audio_dev);
-	if(!val) return 0;
-	if(dictinsert(conf, "audio_dev", val)) return 0;
-
-	val = newstringobject((char*) script_ctx->settings.startup_script);
-	if(!val) return 0;
-	if(dictinsert(conf, "startup_script", val)) return 0;
-
-	val = newstringobject((char*) script_ctx->settings.python_path);
-	if(!val) return 0;
-	if(dictinsert(conf, "python_path", val)) return 0;
-
-	return conf;
+	switch(node->type) {
+		default:
+			AF_FALLTHROUGH;
+			/* FALLTHRU */
+		case AGA_NONE: {
+			INCREF(None);
+			return None;
+		}
+		case AGA_STRING: return newstringobject(node->data.string);
+		case AGA_INTEGER: return newintobject(node->data.integer);
+		case AGA_FLOAT: return newfloatobject(node->data.flt);
+	}
 }
 
 static object* agan_mklargefile(object* self, object* arg) {
@@ -583,7 +576,7 @@ static object* agan_putclip(object* self, object* arg) {
 		return 0;
 	}
 
-	if(script_ctx->settings.audio_enabled) {
+	if(script_ctx->audio_enabled) {
 		if(aga_putclip(
 			&script_ctx->snddev, ((struct aga_nativeptr*) arg)->ptr)) {
 

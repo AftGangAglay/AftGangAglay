@@ -310,3 +310,46 @@ af_bool_t aga_confvar(
 
 	return AF_FALSE;
 }
+
+enum af_err aga_conftree_raw(
+		struct aga_conf_node* root, const char** names, af_size_t count,
+		struct aga_conf_node** out) {
+
+	af_size_t i;
+
+	AF_PARAM_CHK(root);
+	AF_PARAM_CHK(names);
+	AF_PARAM_CHK(out);
+
+	if(count == 0) {
+		*out = root;
+		return AF_ERR_NONE;
+	}
+
+	for(i = 0; i < root->len; ++i) {
+		struct aga_conf_node* node = &root->children[i];
+		if(af_streql(*names, node->name)) {
+			enum af_err result = aga_conftree_raw(
+				node, names + 1, count - 1, out);
+			if(!result) return result;
+		}
+	}
+
+	return AF_ERR_UNKNOWN;
+}
+
+enum af_err aga_conftree(
+		struct aga_conf_node* root, const char** names, af_size_t count,
+		void* value, enum aga_conf_type type) {
+
+	struct aga_conf_node* node;
+
+	AF_PARAM_CHK(root);
+	AF_PARAM_CHK(names);
+	AF_PARAM_CHK(value);
+
+	AF_CHK(aga_conftree_raw(root->children, names, count, &node));
+
+	if(aga_confvar(node->name, node, type, value)) return AF_ERR_NONE;
+	else return AF_ERR_UNKNOWN;
+}

@@ -9,6 +9,8 @@
 #include <agacore.h>
 #include <afeirsa/aferr.h>
 
+enum af_err aga_setdrawparam(void);
+
 enum af_err aga_puttext(float x, float y, const char* text);
 enum af_err aga_puttextfmt(float x, float y, const char* fmt, ...);
 

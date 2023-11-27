@@ -10,17 +10,12 @@
 #include <agascript.h>
 #include <agadraw.h>
 
-#include <afeirsa/afgl.h>
-
 int main(int argc, char** argv) {
 	struct aga_ctx ctx;
 
 	struct aga_scripteng scripteng;
 	struct aga_scriptclass* class = 0;
 	struct aga_scriptinst inst;
-
-	struct aga_timestamp ts;
-	af_size_t frame_us = 0;
 
 	enum af_err result;
 
@@ -64,18 +59,8 @@ int main(int argc, char** argv) {
 		if(result) aga_af_soft(__FILE__, "aga_instcall", result);
 	}
 
-	glEnable(GL_CULL_FACE);
-	aga_af_chk(__FILE__, "glEnable", af_gl_chk());
-
-	glEnable(GL_BLEND);
-	aga_af_chk(__FILE__, "glEnable", af_gl_chk());
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	aga_af_chk(__FILE__, "glBlendFunc", af_gl_chk());
-
 	ctx.die = AF_FALSE;
 	while(!ctx.die) {
-		aga_af_chk(__FILE__, "aga_startstamp", aga_startstamp(&ts));
-
 		result = aga_poll(&ctx);
 		if(result) aga_af_soft(__FILE__, "aga_poll", result);
 
@@ -85,29 +70,17 @@ int main(int argc, char** argv) {
 		}
 		else {
 			float col[4] = { 0.6f, 0.3f, 0.8f, 1.0f };
-		        aga_af_chk(__FILE__, "af_clear",
-				af_clear(&ctx.af_ctx, col));
-			glDisable(GL_TEXTURE_2D);
-			aga_af_chk(__FILE__, "glDisable", af_gl_chk());
-
+			aga_af_chk(__FILE__, "af_clear", af_clear(&ctx.af_ctx, col));
 			aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
 				-0.8f, 0.0f, "No project loaded or no script files provided"));
 			aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
 				-0.8f, -0.1f, "Did you forget `-f' or `-C'?"));
 		}
 
-		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
-			-0.8f, 0.7f, "frametime: %zu", frame_us));
-		aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
-			-0.8f, 0.6f, "fps: %lf",
-			(1.0 / (double) frame_us) * 1e6));
-
 		result = af_flush(&ctx.af_ctx);
 		if(result) aga_af_soft(__FILE__, "af_flush", result);
 
-		aga_af_chk(__FILE__, "aga_endstamp", aga_endstamp(&ts, &frame_us));
-
-		if(!ctx.die) {
+		if(!ctx.die) { /* Window is already dead/dying if `die' is set. */
 			result = aga_swapbuf(&ctx, &ctx.win);
 			if(result) aga_af_soft(__FILE__, "aga_swapbuf", result);
 		}

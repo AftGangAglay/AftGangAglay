@@ -8,6 +8,19 @@
 
 #include <afeirsa/afgl.h>
 
+enum af_err aga_setdrawparam(void) {
+	glEnable(GL_CULL_FACE);
+	AF_GL_CHK;
+
+	glEnable(GL_BLEND);
+	AF_GL_CHK;
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	AF_GL_CHK;
+
+	return AF_ERR_NONE;
+}
+
 enum af_err aga_puttext(float x, float y, const char* text) {
 	glDisable(GL_TEXTURE_2D);
 	AF_GL_CHK;

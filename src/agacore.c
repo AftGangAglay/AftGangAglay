@@ -5,6 +5,7 @@
 
 #include <agacore.h>
 #include <agalog.h>
+#include <agadraw.h>
 
 #define AGA_WANT_UNIX
 #include <agastd.h>
@@ -73,6 +74,8 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 	AF_CHK(af_mkctx(&ctx->af_ctx, AF_FIDELITY_FAST));
 	AF_CHK(af_mkvert(
 		&ctx->af_ctx, &ctx->vert, vert_elements, AF_ARRLEN(vert_elements)));
+
+	AF_CHK(aga_setdrawparam());
 
 	{
 		int v;

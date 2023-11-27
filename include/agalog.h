@@ -31,8 +31,12 @@ enum aga_logsev {
  */
 extern struct aga_logctx aga_logctx;
 
-enum af_err aga_mklog(const char** targets, af_size_t len);
-enum af_err aga_killlog(void);
+void aga_mklog(const char** targets, af_size_t len);
+/*
+ * NOTE: Called during fatal signals and `_fini' - you probably don't need to
+ * 		 Call this yourself.
+ */
+void aga_killlog(void);
 
 void aga_loghdr(void* s, const char* loc, enum aga_logsev sev);
 

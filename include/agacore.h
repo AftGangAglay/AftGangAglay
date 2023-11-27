@@ -17,6 +17,12 @@
 # if __has_attribute(noreturn)
 #  define AGA_NORETURN __attribute__((noreturn))
 # endif
+# if __has_attribute(destructor)
+#  define AGA_DESTRUCTOR __attribute__((destructor))
+# endif
+# if __has_attribute(used)
+#  define AGA_USED __attribute__((used))
+# endif
 #endif
 
 /*

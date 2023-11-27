@@ -17,10 +17,12 @@ static void aga_onabrt(int signum) {
 	aga_killlog();
 }
 
-enum af_err aga_mklog(const char** targets, af_size_t len) {
-	af_size_t i;
+AGA_USED AGA_DESTRUCTOR void aga_ondestr(void) {
+	aga_killlog();
+}
 
-	AF_PARAM_CHK(targets);
+void aga_mklog(const char** targets, af_size_t len) {
+	af_size_t i;
 
 	aga_logctx.len = len;
 
@@ -38,12 +40,11 @@ enum af_err aga_mklog(const char** targets, af_size_t len) {
 			}
 		}
 	}
-	signal(SIGABRT, aga_onabrt);
 
-	return AF_ERR_NONE;
+	signal(SIGABRT, aga_onabrt);
 }
 
-enum af_err aga_killlog(void) {
+void aga_killlog(void) {
 	af_size_t i;
 	for(i = 0; i < aga_logctx.len; ++i) {
 		FILE* s = aga_logctx.targets[i];
@@ -52,8 +53,6 @@ enum af_err aga_killlog(void) {
 		if(fflush(s) == EOF) perror("fflush");
 		if(fclose(s) == EOF) perror("fclose");
 	}
-
-	return AF_ERR_NONE;
 }
 
 void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {

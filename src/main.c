@@ -12,17 +12,14 @@
 
 int main(int argc, char** argv) {
 	struct aga_ctx ctx;
+	enum af_err result;
 
 	struct aga_scripteng scripteng;
 	struct aga_scriptclass* class = 0;
 	struct aga_scriptinst inst;
 
-	enum af_err result;
-
 	const char* logfiles[] = { AGA_SYSOUT, "aga.log" };
-
-	aga_af_chk(
-		__FILE__, "aga_mklog", aga_mklog(logfiles, AF_ARRLEN(logfiles)));
+	aga_mklog(logfiles, AF_ARRLEN(logfiles));
 
 	aga_log(__FILE__, "Breathing in the chemicals...");
 
@@ -101,7 +98,6 @@ int main(int argc, char** argv) {
 	aga_af_chk(__FILE__, "aga_kill", aga_kill(&ctx));
 
 	aga_log(__FILE__, "Bye-bye!");
-	aga_af_chk(__FILE__, "aga_killlog", aga_killlog());
 
 	return 0;
 }

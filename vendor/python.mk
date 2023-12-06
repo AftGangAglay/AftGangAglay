@@ -52,6 +52,7 @@ graminit.c graminit.h: $(PYTHON_SOURCEROOT)/Grammar $(PYTHONGEN)
 
 all: $(LIBPYTHON)
 
+clean: clean_python
 .PHONY: clean_python
 clean_python:
 	rm -f $(LIBPYTHON)

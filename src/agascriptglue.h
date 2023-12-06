@@ -204,11 +204,19 @@ static object* agan_getconf(object* self, object* arg) {
 
 	for(i = 0; i < len; ++i) {
 		v = getlistitem(arg, (int) i);
-		if(!(names[i] = getstringvalue(v))) return 0;
+		if(!(names[i] = getstringvalue(v))) {
+			free(names);
+			return 0;
+		}
 	}
 
 	if(aga_script_aferr("aga_conftree_raw", aga_conftree_raw(
-		script_ctx->conf.children, names, len, &node))) return 0;
+		script_ctx->conf.children, names, len, &node))) {
+
+		free(names);
+		return 0;
+	}
+	free(names);
 
 	switch(node->type) {
 		default:
@@ -1030,6 +1038,7 @@ static object* agan_mkobj(object* self, object* arg) {
 						return 0;
 
 					if(!(obj->tex = agan_mkteximg(0, call))) return 0;
+
 					if(dictinsert(texcache, (char*) str, obj->tex) == -1)
 						return 0;
 				}
@@ -1484,6 +1493,16 @@ static object* agan_randnorm(object* self, object* arg) {
 	return newfloatobject((double) rand() / (double) RAND_MAX);
 }
 
+static object* agan_die(object* self, object* arg) {
+	(void) self;
+	(void) arg;
+
+	script_ctx->die = AF_TRUE;
+
+	INCREF(None);
+	return None;
+}
+
 enum af_err aga_mkmod(void) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -1527,6 +1546,7 @@ enum af_err aga_mkmod(void) {
 		{ "bitshl", agan_bitshl },
 		{ "getobjmeta", agan_getobjmeta },
 		{ "randnorm", agan_randnorm },
+		{ "die", agan_die },
 		{ 0, 0 }
 	};
 

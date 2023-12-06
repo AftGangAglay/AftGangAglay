@@ -134,7 +134,7 @@ enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display) {
 	class.lpfnWndProc = (WNDPROC) aga_winproc;
 	class.cbClsExtra = 0;
 	class.cbWndExtra = 0;
-	class.hInstance = ctx->dpy;
+	class.hInstance = ctx->winenv.dpy;
 	class.hIcon = 0;
 	class.hCursor = 0;
 	class.hbrBackground = 0;
@@ -144,6 +144,9 @@ enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display) {
 	if(!(ctx->winenv.dpy_fd = RegisterClassA(&class))) {
 		return aga_af_winerr(__FILE__, "RegisterClassA");
 	}
+
+	ctx->keymap.keysyms_per_keycode = 1;
+	ctx->keymap.keycode_len = 0xFF;
 
 	ctx->keystates = calloc(0xFF, sizeof(af_bool_t)); /* VK_OEM_CLEAR + 1 */
 	AF_VERIFY(ctx->keystates, AF_ERR_MEM);
@@ -165,18 +168,38 @@ enum af_err aga_killctxdpy(struct aga_ctx* ctx) {
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_mkwin(struct aga_ctx* ctx, struct aga_win* win) {
+enum af_err aga_mkwin(
+		struct aga_ctx* ctx, struct aga_win* win, int argc, char** argv) {
+
 	int ind;
+	enum af_err result;
+
+	const char* width[] = { "Display", "Width" };
+	const char* height[] = { "Display", "Height" };
+
+	(void) argc;
+	(void) argv;
 
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(win);
+
+	win->width = 0;
+	win->height = 0;
+
+	result = aga_conftree(
+		&ctx->conf, width, AF_ARRLEN(width), &win->width, AGA_INTEGER);
+	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+
+	result = aga_conftree(
+		&ctx->conf, height, AF_ARRLEN(height), &win->height, AGA_INTEGER);
+	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
 
 	win->xwin = (af_ulong_t) CreateWindowA(
 		AGA_CLASS_NAME, "Aft Gang Aglay",
 		WS_CAPTION | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT,
-		ctx->settings.width, ctx->settings.height,
-		0, 0, ctx->dpy, ctx);
+		win->width, win->height,
+		0, 0, ctx->winenv.dpy, ctx);
 	if(!win->xwin) return aga_af_winerr(__FILE__, "CreateWindowA");
 	if(!ShowWindow((void*) win->xwin, SW_SHOWNORMAL)) {
 		return aga_af_winerr(__FILE__, "ShowWindow");
@@ -225,6 +248,14 @@ enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win) {
 
 	if(!wglMakeCurrent(win->storage, ctx->winenv.glx)) {
 		return aga_af_winerr(__FILE__, "wglMakeCurrent");
+	}
+
+	if(!SelectObject(win->storage, GetStockObject(SYSTEM_FONT))) {
+		return aga_af_winerr(__FILE__, "SelectObject");
+	}
+
+	if(!wglUseFontBitmaps(win->storage, 0, 255, AGA_FONT_LIST_BASE)) {
+		return aga_af_winerr(__FILE__, "wglUseFontBitmaps");
 	}
 
 	SetCapture((void*) win->xwin);

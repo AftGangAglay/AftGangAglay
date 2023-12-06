@@ -40,6 +40,8 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 	AF_PARAM_CHK(ctx);
 	AF_PARAM_CHK(argv);
 
+	ctx->audio_enabled = AF_FALSE;
+
 #ifdef _POSIX_SOURCE
 	{
 		const char* helpstr =

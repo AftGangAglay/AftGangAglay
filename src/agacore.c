@@ -63,6 +63,8 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 	}
 #endif
 
+	aga_log(__FILE__, "Starting context init...");
+
 	if(chdir(chcwd) == -1) return aga_af_errno(__FILE__, "chdir");
 
 	af_memset(&ctx->conf, 0, sizeof(ctx->conf));
@@ -70,10 +72,27 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 	result = aga_mkconf(confpath, &ctx->conf);
 	if(result) aga_af_soft(__FILE__, "aga_mkconf", result);
 
-	AF_CHK(aga_mkctxdpy(ctx, display));
-	AF_CHK(aga_mkwin(ctx, &ctx->win, argc, argv));
-	AF_CHK(aga_glctx(ctx, &ctx->win));
-	AF_CHK(af_mkctx(&ctx->af_ctx, AF_FIDELITY_FAST));
+	aga_log(__FILE__, "Config loaded from `%s'", confpath);
+
+	if((result = aga_mkctxdpy(ctx, display))) {
+		aga_af_soft(__FILE__, "aga_mkctxdpy", result);
+		return result;
+	}
+	if((result = aga_mkwin(ctx, &ctx->win, argc, argv))) {
+		aga_af_soft(__FILE__, "aga_mkwin", result);
+		return result;
+	}
+	if((result = aga_glctx(ctx, &ctx->win))) {
+		aga_af_soft(__FILE__, "aga_glctx", result);
+		return result;
+	}
+	if((result = af_mkctx(&ctx->af_ctx, AF_FIDELITY_FAST))) {
+		aga_af_soft(__FILE__, "af_mkctx", result);
+		return result;
+	}
+
+	aga_log(__FILE__, "Acquired GL context");
+
 	AF_CHK(af_mkvert(
 		&ctx->af_ctx, &ctx->vert, vert_elements, AF_ARRLEN(vert_elements)));
 
@@ -105,6 +124,8 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 			}
 		}
 	}
+
+	aga_log(__FILE__, "Done!");
 
 	return AF_ERR_NONE;
 }

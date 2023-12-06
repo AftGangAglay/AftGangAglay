@@ -124,7 +124,8 @@ enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display) {
 	WNDCLASSA class;
 
 	AF_PARAM_CHK(ctx);
-	AF_PARAM_CHK(display);
+
+	(void) display;
 
 	if(!(ctx->winenv.dpy = GetModuleHandleA(0))) {
 		return aga_af_winerr(__FILE__, "GetModuleHandleA");

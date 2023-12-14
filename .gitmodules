@@ -1,16 +1,16 @@
 [submodule "vendor/www"]
 	path = vendor/www
 	branch = trunk
-	url = https://github.com/Th3T3chn0G1t/libwww93
+	url = https://github.com/AftGangAglay/libwww93
 [submodule "vendor/python"]
 	path = vendor/python
 	branch = trunk
-	url = https://github.com/Th3T3chn0G1t/python0.9.1
+	url = https://github.com/AftGangAglay/python0.9.1
 [submodule "vendor/afeirsa"]
 	path = vendor/afeirsa
 	branch = trunk
-	url = https://github.com/Th3T3chn0G1t/Afeirsa
+	url = https://github.com/AftGangAglay/Afeirsa
 [submodule "vendor/libtiff"]
 	path = vendor/libtiff
 	branch = trunk
-	url = https://github.com/Th3T3chn0G1t/libtiff3.4beta18
+	url = https://github.com/AftGangAglay/libtiff3.4beta18

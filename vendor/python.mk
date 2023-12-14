@@ -3,6 +3,9 @@ PYTHON_SOURCEROOT = $(PYTHON_ROOT)/src
 
 PYTHON_IFLAGS = -isystem $(PYTHON_SOURCEROOT)
 
+PYTHON_GRAMINIT = $(PYTHON_SOURCEROOT)/graminit.c $(PYTHON_SOURCEROOT)/graminit.h
+PYTHON_GRAMINIT_OBJECT = $(PYTHON_SOURCEROOT)/graminit.o
+
 LIBPYTHON_SOURCES = acceler.c bltinmodule.c ceval.c classobject.c \
                compile.c dictobject.c errors.c fgetsintr.c \
                fileobject.c floatobject.c frameobject.c \
@@ -20,42 +23,38 @@ LIBPYTHON_OBJECTS = $(LIBPYTHON_SOURCES:.c=.o)
 
 LIBPYTHON = vendor/libpython.a
 
-LIBPYTHON_CFLAGS = -w -DSYSV
-LIBPYTHON_CFLAGS += -Wno-incompatible-function-pointer-types
+LIBPYTHON_CFLAGS = -w -DSYSV -Wno-incompatible-function-pointer-types
 ifdef WINDOWS
-	LIBPYTHON_CFLAGS += -D_WINDOWS -DNO_LSTAT
+        LIBPYTHON_CFLAGS += -D_WINDOWS -DNO_LSTAT
 endif
 
-PYTHONGEN_SOURCES = acceler.c fgetsintr.c grammar1.c \
-               intrcheck.c listnode.c node.c parser.c \
-               parsetok.c strdup.c tokenizer.c bitset.c \
-               firstsets.c grammar.c metagrammar.c pgen.c \
-               pgenmain.c printgrammar.c
+PYTHONGEN_SOURCES = pgenmain.c acceler.c fgetsintr.c grammar1.c \
+                           intrcheck.c listnode.c node.c parser.c \
+                           parsetok.c strdup.c tokenizer.c bitset.c \
+                           firstsets.c grammar.c metagrammar.c pgen.c \
+                           printgrammar.c
 PYTHONGEN_SOURCES := $(addprefix $(PYTHON_SOURCEROOT)/,$(PYTHONGEN_SOURCES))
 PYTHONGEN_OBJECTS = $(PYTHONGEN_SOURCES:.c=.o)
 
 PYTHONGEN = $(PYTHON_SOURCEROOT)/pgenmain
 
 $(LIBPYTHON): CFLAGS += $(LIBPYTHON_CFLAGS)
-$(LIBPYTHON): LDFLAGS = -lm
-$(LIBPYTHON): $(LIBPYTHON_OBJECTS)
+$(LIBPYTHON): $(LIBPYTHON_OBJECTS) $(PYTHON_GRAMINIT_OBJECT)
 
-$(LIBPYTHON_OBJECTS): $(LIBPYTHON_SOURCES)
+$(filter-out $(PYTHONGEN_OBJECTS),$(LIBPYTHON_OBJECTS)): $(PYTHON_GRAMINIT)
 
-$(PYTHONGEN): LDFLAGS = -lm
+$(PYTHONGEN): LDLIBS = -lm
 $(PYTHONGEN): $(PYTHONGEN_OBJECTS)
 
-$(PYTHONGEN_OBJECTS): $(PYTHONGEN_SOURCES)
-
-graminit.c graminit.h: $(PYTHON_SOURCEROOT)/Grammar $(PYTHONGEN)
-	-$(CROSS_TOOL) $(PYTHONGEN) Grammar
+$(PYTHON_GRAMINIT): $(PYTHON_SOURCEROOT)/Grammar $(PYTHONGEN)
+	-$(CROSS_TOOL) $(PYTHONGEN) $< $(PYTHON_GRAMINIT)
 
 all: $(LIBPYTHON)
 
 clean: clean_python
 .PHONY: clean_python
 clean_python:
-	rm -f $(LIBPYTHON)
-	rm -f $(PYTHONGEN)
-	rm -f $(PYTHONGEN_OBJECTS)
-	rm -f $(LIBPYTHON_OBJECTS)	
+	rm -f $(call PATHSEP,$(LIBPYTHON))
+	rm -f $(call PATHSEP,$(PYTHONGEN))
+	rm -f $(call PATHSEP,$(PYTHONGEN_OBJECTS))
+	rm -f $(call PATHSEP,$(LIBPYTHON_OBJECTS))

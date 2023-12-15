@@ -9,6 +9,7 @@
 
 #define AGA_WANT_UNIX
 #include <agastd.h>
+
 #undef AGA_WANT_UNIX
 
 /*
@@ -65,10 +66,11 @@ enum af_err aga_init(struct aga_ctx* ctx, int argc, char** argv) {
 
 	aga_log(__FILE__, "Starting context init...");
 
-	if(chdir(chcwd) == -1) return aga_af_errno(__FILE__, "chdir");
+	if(chdir(chcwd) == -1) (void) aga_af_patherrno(__FILE__, "chdir", chcwd);
 
 	af_memset(&ctx->conf, 0, sizeof(ctx->conf));
 
+	ctx->conf_path = confpath;
 	result = aga_mkconf(confpath, &ctx->conf);
 	if(result) aga_af_soft(__FILE__, "aga_mkconf", result);
 
@@ -174,11 +176,6 @@ void aga_af_soft(const char* loc, const char* proc, enum af_err e) {
 	aga_log(loc, "err: %s: %s", proc, aga_af_errname(e));
 }
 
-void aga_errno_chk(const char* loc, const char* proc) {
-	aga_log(loc, "err: %s: %s", proc, strerror(errno));
-	abort();
-}
-
 enum af_err aga_af_errno(const char* loc, const char* proc) {
 	return aga_af_patherrno(loc, proc, 0);
 }
@@ -194,12 +191,20 @@ enum af_err aga_af_patherrno(
 		default: return AF_ERR_UNKNOWN;
 		case 0: return AF_ERR_NONE;
 
+#ifdef EBADF
 		case EBADF: return AF_ERR_BAD_PARAM;
+#endif
+#ifdef ENOMEM
 		case ENOMEM: return AF_ERR_MEM;
+#endif
+#ifdef EACCES
 		case EACCES:
 			AF_FALLTHROUGH;
 			/* FALLTHRU */
+#endif
+#ifdef EOPNOTSUPP
 		case EOPNOTSUPP: return AF_ERR_BAD_OP;
+#endif
 	}
 }
 

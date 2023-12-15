@@ -5,6 +5,8 @@
 
 #include <agacore.h>
 #include <agaio.h>
+#include <agalog.h>
+#define AGA_WANT_UNIX
 #include <agastd.h>
 
 #include <afeirsa/afeirsa.h>
@@ -31,13 +33,54 @@ enum af_err aga_read(const char* path, af_uchar_t** ptr, af_size_t* size) {
 	return AF_ERR_NONE;
 }
 
-#ifdef AGA_HAVE_MAP
-# include <unistd.h>
-# include <sys/mman.h>
-# include <sys/types.h>
-# include <sys/stat.h>
-# include <sys/fcntl.h>
+#ifdef AGA_HAVE_UNIX
 
+/*
+ * We take an unusual result value to signal to the main process that the spawn
+ * failed before we hit the user program.
+ */
+#define AGA_SPAWN_EXIT_MAGIC (113)
+
+enum af_err aga_spawn_sync(const char* program, char** argv, const char* wd) {
+	pid_t p;
+
+	if((p = fork()) == -1) return aga_af_errno(__FILE__, "fork");
+
+	if(!p) {
+		if(wd) {
+			if(chdir(wd) == -1) {
+				(void) aga_af_patherrno(__FILE__, "chdir", wd);
+				exit(AGA_SPAWN_EXIT_MAGIC);
+			}
+		}
+		if(execvp(program, argv) == -1) {
+			(void) aga_af_patherrno(__FILE__, "execvp", program);
+			exit(AGA_SPAWN_EXIT_MAGIC);
+		}
+	}
+	else {
+		int res;
+		if(waitpid(p, &res, 0) == -1) return aga_af_errno(__FILE__, "wait");
+		if((res = WEXITSTATUS(res))) {
+			if(res == AGA_SPAWN_EXIT_MAGIC) {
+				aga_log(__FILE__, "err: failed to start `%s'", program);
+			}
+			else {
+				aga_log(
+					__FILE__, "err: `%s' exited with exit code %i",
+					program, res);
+			}
+
+			return AF_ERR_UNKNOWN;
+		}
+		else aga_log(__FILE__, "`%s' exited with exit code 0", program);
+	}
+
+	return AF_ERR_NONE;
+}
+#endif
+
+#ifdef AGA_HAVE_MAP
 enum af_err aga_fmap(const char* path, af_uchar_t** ptr, af_size_t* size) {
 	struct stat statbuf;
 	int fd;

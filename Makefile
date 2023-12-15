@@ -59,9 +59,9 @@ ifdef GLXABI
 endif
 
 ifdef DEBUG
-	CFLAGS += -g -O0 -D_DEBUG
+	CFLAGS += -g -D_DEBUG
 else
-	CFLAGS += -DNDEBUG -Ofast
+	CFLAGS += -DNDEBUG -O
 endif
 
 ifdef NOSND

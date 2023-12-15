@@ -6,7 +6,9 @@
 #include <agacore.h>
 #include <agaimg.h>
 #include <agasnd.h>
+#include <agaio.h>
 #include <agalog.h>
+#include <agastd.h>
 #include <agascript.h>
 #include <agadraw.h>
 
@@ -24,6 +26,44 @@ int main(int argc, char** argv) {
 	aga_log(__FILE__, "Breathing in the chemicals...");
 
 	aga_af_chk(__FILE__, "aga_init", aga_init(&ctx, argc, argv));
+
+#ifdef _DEBUG
+	do {
+		const char* hook[] = { "Development", "PreHook" };
+		char* program = getenv("SHELL");
+		char* args[] = { 0 /* shell */, 0 /* -c */, 0 /* exec */, 0 };
+		char* pdir = strrchr(ctx.conf_path, '/');
+
+# ifdef _WINDOWS
+		if(!program) program = "cmd";
+		args[1] = "/c";
+# else
+		if(!program) program = "sh";
+		args[1] = "-c";
+# endif
+
+		args[0] = program;
+
+		result = aga_conftree(
+				&ctx.conf, hook, AF_ARRLEN(hook), &args[2], AGA_STRING);
+		if(result) break;
+
+		aga_log(__FILE__, "Executing project pre-run hook `%s'", args[2]);
+
+		if(pdir) {
+			af_size_t pdir_len = (af_size_t) (pdir - ctx.conf_path) + 1;
+			pdir = calloc(pdir_len + 1, sizeof(char));
+			if(!pdir) {
+				(void) aga_af_errno(__FILE__, "calloc");
+				break;
+			}
+			strncpy(pdir, ctx.conf_path, pdir_len);
+		}
+		result = aga_spawn_sync(program, args, pdir);
+		if(result) aga_af_soft(__FILE__, "aga_spawn_sync", result);
+		free(pdir);
+	} while(0);
+#endif
 
 	{
 		const char* startup_script = "script/main.py";

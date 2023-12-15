@@ -7,6 +7,7 @@
 #define AGA_STD_H
 
 #include <stdio.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
@@ -22,6 +23,11 @@
 #  include <fcntl.h>
 #  include <poll.h>
 #  include <getopt.h>
+#  include <sys/mman.h>
+#  include <sys/types.h>
+#  include <sys/stat.h>
+#  include <sys/fcntl.h>
+#  include <sys/wait.h>
 # endif
 # ifdef _WINDOWS
 #  include <direct.h>

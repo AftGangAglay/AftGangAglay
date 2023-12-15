@@ -24,6 +24,8 @@
  */
 enum af_err aga_read(const char* path, af_uchar_t** ptr, af_size_t* size);
 
+enum af_err aga_spawn_sync(const char* program, char** argv, const char* wd);
+
 #ifdef AGA_HAVE_MAP
 # define AGA_MK_LARGE_FILE_STRATEGY(path, ptr, size) \
 		aga_fmap((path), (ptr), (size))

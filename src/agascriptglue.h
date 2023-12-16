@@ -980,6 +980,9 @@ static object* agan_mkobj(object* self, object* arg) {
 			int unlit;
 			int scaletex;
 
+			/*
+			 * TODO: Handle materials.
+			 */
 			if(aga_confvar("Model", item, AGA_STRING, &str)) {
 				object* modelcache;
 				object* filecache;
@@ -1027,6 +1030,7 @@ static object* agan_mkobj(object* self, object* arg) {
 				if(!texcache ||
 					!(lookup = dictlookup(texcache, (char*) str))) {
 
+					/* TODO: Introduce proper parameter system in Afeirsa. */
 					object* filter = script_ctx->tex_filter ? True : False;
 					object* call = newtupleobject(2);
 					if(!call) return 0;

@@ -45,8 +45,6 @@ enum af_err aga_mkscriptinst(
 		struct aga_scriptclass* class, struct aga_scriptinst* inst);
 
 enum af_err aga_killscriptinst(struct aga_scriptinst* inst);
-
-/* TODO: Work out a sensible way to call with params/attrs. `af_datatype`? */
 enum af_err aga_instcall(struct aga_scriptinst* inst, const char* name);
 
 #endif

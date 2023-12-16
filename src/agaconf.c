@@ -103,10 +103,6 @@ void aga_sgml_start_element(
 
 	if((result = aga_sgml_push(me, node))) {
 		aga_af_soft(__FILE__, "aga_sgml_push", result);
-		/*
-		 * TODO: This can be a soft misuse of memory as we will leave haps in
-		 * 		 The child list.
-		 */
 		return;
 	}
 

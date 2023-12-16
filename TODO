@@ -1,9 +1,0 @@
-- Track down FreeWAIS
-- Use libwww for networking gamecode
-- Find older libtiff
-- Redo vg suppressions file for new windowing scheme
-- Physics
-- Texture parameter api
-- Material import/api
-- Adjust dependencies to lessen GNU std deps over base SUS/UNIX/POSIX.1
-	- Properly respect feature test macros for std calls

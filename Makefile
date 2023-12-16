@@ -47,10 +47,7 @@ LDLIBS += $(LIBDEPS)
 # glabi appends its own ldlibs
 CFLAGS += $(GLABI)
 
-ifndef WINDOWS
-	CFLAGS += -D_POSIX_SOURCE -DAGA_HAVE_UNIX
-else
-	CFLAGS += -D_WINDOWS
+ifdef WINDOWS
 	LDLIBS += -lgdi32
 endif
 

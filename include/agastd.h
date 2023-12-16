@@ -6,6 +6,8 @@
 #ifndef AGA_STD_H
 #define AGA_STD_H
 
+#include <agaenv.h>
+
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>

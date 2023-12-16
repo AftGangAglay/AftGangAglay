@@ -8,12 +8,6 @@
 
 #include <agacore.h>
 
-#ifdef _WINDOWS
-# define AGA_SYSOUT "CONOUT$"
-#else
-# define AGA_SYSOUT "/dev/stdout"
-#endif
-
 struct aga_logctx {
 	void** targets;
 	af_size_t len;

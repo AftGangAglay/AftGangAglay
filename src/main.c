@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 	struct aga_scriptclass* class = 0;
 	struct aga_scriptinst inst;
 
-	const char* logfiles[] = { AGA_SYSOUT, "aga.log" };
+	const char* logfiles[] = { 0 /* auto stdout */, "aga.log" };
 	aga_mklog(logfiles, AF_ARRLEN(logfiles));
 
 	aga_log(__FILE__, "Breathing in the chemicals...");

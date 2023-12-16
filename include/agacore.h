@@ -10,20 +10,9 @@
 #include <agascript.h>
 #include <agaconf.h>
 #include <agawin.h>
+#include <agaenv.h>
 
 #include <afeirsa/afeirsa.h>
-
-#ifdef AF_HAVE_GNU
-# if __has_attribute(noreturn)
-#  define AGA_NORETURN __attribute__((noreturn))
-# endif
-# if __has_attribute(destructor)
-#  define AGA_DESTRUCTOR __attribute__((destructor))
-# endif
-# if __has_attribute(used)
-#  define AGA_USED __attribute__((used))
-# endif
-#endif
 
 /*
  * NOTE: This exists for cases where we are forced to use fixed size buffers
@@ -71,16 +60,5 @@ enum af_err aga_af_errno(const char* loc, const char* proc);
 enum af_err aga_af_patherrno(
 		const char* loc, const char* proc, const char* path);
 void aga_af_soft(const char* loc, const char* proc, enum af_err e);
-
-void aga_boundf(float* f, float min, float max);
-
-struct aga_timestamp {
-	/* NOTE: Not supposed to be a public API time format. */
-	long sec;
-	long usec;
-};
-
-enum af_err aga_startstamp(struct aga_timestamp* ts);
-enum af_err aga_endstamp(const struct aga_timestamp* ts, af_size_t* us);
 
 #endif

@@ -4,10 +4,9 @@
  */
 
 #include <agalog.h>
-
-#define AGA_WANT_UNIX
 #include <agastd.h>
-#undef AGA_WANT_UNIX
+
+#define AGA_ISTTY(s) ((s) == stdout || (s) == stderr)
 
 struct aga_logctx aga_logctx;
 
@@ -35,7 +34,8 @@ void aga_mklog(const char** targets, af_size_t len) {
 	}
 	else {
 		for(i = 0; i < len; ++i) {
-			if(!(aga_logctx.targets[i] = fopen(targets[i], "w+"))) {
+			if(!targets[i]) aga_logctx.targets[i] = stdout;
+			else if(!(aga_logctx.targets[i] = fopen(targets[i], "w+"))) {
 				perror("fopen");
 			}
 		}
@@ -49,8 +49,8 @@ void aga_killlog(void) {
 	for(i = 0; i < aga_logctx.len; ++i) {
 		FILE* s = aga_logctx.targets[i];
 		if(!s) continue;
-		if(fileno(s) <= 2) continue;
 		if(fflush(s) == EOF) perror("fflush");
+		if(AGA_ISTTY(s)) continue;
 		if(fclose(s) == EOF) perror("fclose");
 	}
 }
@@ -61,11 +61,12 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 #define YLW ESC "33m"
 #define RED ESC "31m"
 #define END ESC "m"
-	const char* f = 0;
-	(void) sev;
+
+	const char* f;
 	if(!s) return;
-#ifdef AGA_HAVE_UNIX
-	if(isatty(fileno(s))) {
+
+	/* TODO: Enable virtual terminal sequences for Windows. */
+	if(AGA_ISTTY(s)) {
 		switch(sev) {
 			default: break;
 			case AGA_NORM: f = CYN "[%s]" END " "; break;
@@ -73,10 +74,10 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 			case AGA_ERR: f = RED "[%s]" END " "; break;
 		}
 	}
-	else
-#endif
-		f = "[%s] ";
+	else f = "[%s] ";
+
 	if(fprintf(s, f, loc) < 0) perror("fprintf");
+
 #undef ESC
 #undef CYN
 #undef YLW

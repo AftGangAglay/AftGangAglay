@@ -914,6 +914,7 @@ struct agan_object {
 
 	af_bool_t unlit;
 	af_bool_t scaletex;
+	af_bool_t filter;
 
 	object* tex;
 
@@ -979,6 +980,7 @@ static object* agan_mkobj(object* self, object* arg) {
 			object* flobj;
 			int unlit;
 			int scaletex;
+			int filter;
 
 			/*
 			 * TODO: Handle materials.
@@ -1031,14 +1033,12 @@ static object* agan_mkobj(object* self, object* arg) {
 					!(lookup = dictlookup(texcache, (char*) str))) {
 
 					/* TODO: Introduce proper parameter system in Afeirsa. */
-					object* filter = script_ctx->tex_filter ? True : False;
+					object* filter_obj = obj->filter ? True : False;
 					object* call = newtupleobject(2);
 					if(!call) return 0;
 
-					INCREF(filter);
-
 					if(settupleitem(call, 0, strobj) == -1) return 0;
-					if(settupleitem(call, 1, filter) == -1)
+					if(settupleitem(call, 1, filter_obj) == -1)
 						return 0;
 
 					if(!(obj->tex = agan_mkteximg(0, call))) return 0;
@@ -1052,6 +1052,8 @@ static object* agan_mkobj(object* self, object* arg) {
 				obj->unlit = !!unlit;
 			if(aga_confvar("ScaleTex", item, AGA_INTEGER, &scaletex))
 				obj->scaletex = !!scaletex;
+			if(aga_confvar("Filter", item, AGA_INTEGER, &filter))
+				obj->filter = !!filter;
 
 			if(af_streql(item->name, "Position")) {
 				if(!(aspect = getattr(obj->transform, "pos"))) return 0;
@@ -1276,6 +1278,13 @@ static object* agan_dumpobj(object* self, object* arg) {
 		return 0;
 	}
 
+	if(agan_dumpputs(
+		f, "\t<item name=\"Filter\" type=\"Integer\">%i</item>\n",
+		obj->filter)) {
+
+		return 0;
+	}
+
 	for(i = 0; i < AF_ARRLEN(aspects); ++i) {
 		object* attr;
 		af_size_t j;
@@ -1385,26 +1394,6 @@ static object* agan_clear(object* self, object* arg) {
 	return None;
 }
 
-static object* agan_nofilter(object* self, object* arg) {
-	(void) self;
-	(void) arg;
-
-	script_ctx->tex_filter = AF_FALSE;
-
-	INCREF(None);
-	return None;
-}
-
-static object* agan_yesfilter(object* self, object* arg) {
-	(void) self;
-	(void) arg;
-
-	script_ctx->tex_filter = AF_TRUE;
-
-	INCREF(None);
-	return None;
-}
-
 /* Python lacks native bitwise ops @-@ */
 static object* agan_bitand(object* self, object* arg) {
 	object* a;
@@ -1483,6 +1472,8 @@ static object* agan_getobjmeta(object* self, object* arg) {
 	if(dictinsert(ret, "unlit", v) == -1) return 0;
 	INCREF(v = obj->scaletex ? True : False);
 	if(dictinsert(ret, "scaletex", v) == -1) return 0;
+	INCREF(v = obj->filter ? True : False);
+	if(dictinsert(ret, "filter", v) == -1) return 0;
 
 	if(!(v = newintobject(obj->drawlist))) return 0;
 	if(dictinsert(ret, "drawlist", v) == -1) return 0;
@@ -1544,8 +1535,6 @@ enum af_err aga_mkmod(void) {
 		{ "fogparam", agan_fogparam },
 		{ "fogcol", agan_fogcol },
 		{ "clear", agan_clear },
-		{ "nofilter", agan_nofilter },
-		{ "yesfilter", agan_yesfilter },
 		{ "bitand", agan_bitand },
 		{ "bitshl", agan_bitshl },
 		{ "getobjmeta", agan_getobjmeta },

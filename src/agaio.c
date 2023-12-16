@@ -31,8 +31,7 @@ enum af_err aga_read(const char* path, af_uchar_t** ptr, af_size_t* size) {
 	return AF_ERR_NONE;
 }
 
-#ifdef AGA_HAVE_UNIX
-
+#ifdef AGA_HAVE_SPAWN
 /*
  * We take an unusual result value to signal to the main process that the spawn
  * failed before we hit the user program.

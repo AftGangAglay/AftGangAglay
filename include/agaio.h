@@ -6,7 +6,17 @@
 #ifndef AGA_IO_H
 #define AGA_IO_H
 
+#include <agaenv.h>
+
 #include <afeirsa/afeirsa.h>
+
+#if defined(AGA_HAVE_SYS_MMAN) && defined(AGA_HAVE_SYS_STAT)
+# define AGA_HAVE_MAP
+#endif
+
+#if defined(AGA_HAVE_SYS_WAIT) && defined(AGA_HAVE_UNISTD)
+# define AGA_HAVE_SPAWN
+#endif
 
 /*
  * NOTE: Writes out a heap-alloc'd pointer to `ptr'.
@@ -15,13 +25,16 @@
  */
 enum af_err aga_read(const char* path, af_uchar_t** ptr, af_size_t* size);
 
+#ifdef AGA_HAVE_SPAWN
 enum af_err aga_spawn_sync(const char* program, char** argv, const char* wd);
+#endif
 
 #ifdef AGA_HAVE_MAP
 # define AGA_MK_LARGE_FILE_STRATEGY(path, ptr, size) \
 		aga_fmap((path), (ptr), (size))
 # define AGA_KILL_LARGE_FILE_STRATEGY(ptr, size) \
 		aga_funmap((ptr), (size))
+
 enum af_err aga_fmap(const char* path, af_uchar_t** ptr, af_size_t* size);
 enum af_err aga_funmap(af_uchar_t* ptr, af_size_t size);
 #else

@@ -35,7 +35,7 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 
 	af_memset(&opts->config, 0, sizeof(opts->config));
 
-#ifdef AGA_HAVE_UNIX
+#ifdef AGA_HAVE_GETOPT
 	{
 		const char* help =
 			"warn: usage: %s [-f config] [-A dsp] [-D display] [-C dir]";

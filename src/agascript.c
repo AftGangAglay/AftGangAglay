@@ -11,6 +11,7 @@
 #include <agaimg.h>
 #include <agastd.h>
 #include <agadraw.h>
+#include <agawin.h>
 
 #include <afeirsa/afgl.h>
 

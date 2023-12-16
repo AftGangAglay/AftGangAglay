@@ -3,6 +3,7 @@
  * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
+#include <agawin.h>
 #include <agactx.h>
 #include <agalog.h>
 #include <agaerr.h>
@@ -16,6 +17,11 @@ int main(int argc, char** argv) {
 	struct aga_opts opts;
 	struct aga_ctx ctx;
 
+	struct aga_winenv env;
+	struct aga_win win;
+	struct aga_keymap keymap;
+	struct aga_pointer pointer;
+
 	struct aga_scripteng scripteng;
 	struct aga_scriptclass* class = 0;
 	struct aga_scriptinst inst;
@@ -25,14 +31,20 @@ int main(int argc, char** argv) {
 
 	aga_log(__FILE__, "Breathing in the chemicals...");
 
-	result = aga_cliopts(&opts, argc, argv);
-	if(result) aga_af_soft(__FILE__, "aga_cliopts", result);
+	aga_af_chk(__FILE__, "aga_setopts", aga_setopts(&opts, argc, argv));
+	aga_af_chk(__FILE__, "aga_mkwinenv", aga_mkwinenv(&env, opts.display));
+	aga_af_chk(__FILE__, "aga_mkkeymap", aga_mkkeymap(&keymap, &env));
+	aga_af_chk(__FILE__, "aga_mkwin",
+	   aga_mkwin(opts.width, opts.height, &env, &win, argc, argv));
+	aga_af_chk(__FILE__, "aga_glctx", aga_glctx(&env, &win));
 
-	aga_af_chk(__FILE__, "aga_init", aga_init(&ctx, &opts, argc, argv));
+	aga_af_chk(__FILE__, "aga_init", aga_init(&ctx, &opts));
+	ctx.pointer = &pointer;
+	ctx.keymap = &keymap;
 
 #ifdef _DEBUG
 	result = aga_prerun_hook(&opts);
-	if(result) aga_af_soft(__FILE__, "aga_cliopts", result);
+	if(result) aga_af_soft(__FILE__, "aga_setopts", result);
 #endif
 
 	result = aga_mkscripteng(
@@ -51,7 +63,7 @@ int main(int argc, char** argv) {
 
 	ctx.die = AF_FALSE;
 	while(!ctx.die) {
-		result = aga_poll(&ctx);
+		result = aga_poll(&env, &keymap, &win, &pointer, &ctx.die);
 		if(result) aga_af_soft(__FILE__, "aga_poll", result);
 
 		if(class) {
@@ -71,7 +83,7 @@ int main(int argc, char** argv) {
 		if(result) aga_af_soft(__FILE__, "af_flush", result);
 
 		if(!ctx.die) { /* Window is already dead/dying if `die' is set. */
-			result = aga_swapbuf(&ctx, &ctx.win);
+			result = aga_swapbuf(&env, &win);
 			if(result) aga_af_soft(__FILE__, "aga_swapbuf", result);
 		}
 	}
@@ -90,6 +102,10 @@ int main(int argc, char** argv) {
 	aga_af_chk(__FILE__, "aga_killscripteng", aga_killscripteng(&scripteng));
 	aga_af_chk(__FILE__, "aga_kill", aga_kill(&ctx));
 	aga_af_chk(__FILE__, "aga_killconf", aga_killconf(&opts.config));
+
+	aga_af_chk(__FILE__, "aga_killwin", aga_killwin(&env, &win));
+	aga_af_chk(__FILE__, "aga_killkeymap", aga_killkeymap(&keymap));
+	aga_af_chk(__FILE__, "aga_killctxdpy", aga_killctxdpy(&env));
 
 	aga_log(__FILE__, "Bye-bye!");
 

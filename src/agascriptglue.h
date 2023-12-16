@@ -60,7 +60,7 @@ static af_bool_t aga_script_glerr(const char* proc) {
 static object* agan_getkey(object* self, object* arg) {
 	long value;
 	object* retval = None;
-	struct aga_keymap* keymap = &script_ctx->keymap;
+	struct aga_keymap* keymap = script_ctx->keymap;
 
 	(void) self;
 
@@ -72,9 +72,9 @@ static object* agan_getkey(object* self, object* arg) {
 	value = getintvalue(arg);
 	if(err_occurred()) return 0;
 
-	if(script_ctx->keystates) {
+	if(keymap->keystates) {
 		if(value < keymap->keysyms_per_keycode * keymap->keycode_len) {
-			retval = script_ctx->keystates[value] ? True : False;
+			retval = keymap->keystates[value] ? True : False;
 		}
 	}
 
@@ -92,10 +92,10 @@ static object* agan_getmotion(object* self, object* arg) {
 	retval = newlistobject(2);
 	if(!retval) return 0;
 
-	x = newfloatobject(script_ctx->pointer_dx);
+	x = newfloatobject(script_ctx->pointer->dx);
 	if(!x) return 0;
 
-	y = newfloatobject(script_ctx->pointer_dy);
+	y = newfloatobject(script_ctx->pointer->dy);
 	if(!y) return 0;
 
 	if(setlistitem(retval, 0, x) == -1) return 0;
@@ -111,6 +111,8 @@ static object* agan_setcam(object* self, object* arg) {
 	object* mode;
 	af_bool_t b;
 
+	double ar;
+
 	(void) self;
 
 	if(!arg || !is_tupleobject(arg) ||
@@ -125,23 +127,16 @@ static object* agan_setcam(object* self, object* arg) {
 	b = !!getintvalue(mode);
 	if(err_occurred()) return 0;
 
+	ar = (double) script_ctx->opts->height / (double) script_ctx->opts->width;
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	if(b) {
-		gluPerspective(
-			/*
-			 * TODO: Make `setcam_persp' and `setcam_ortho' separate so that we
-			 * 		 Can de-hardcode FOV here.
-			 */
-			90.0f,
-			(double) script_ctx->win.width / (double) script_ctx->win.height,
-			0.1, 10000.0);
-	}
-	else {
-		double ar = (double) script_ctx->win.height /
-			(double) script_ctx->win.width;
-		glOrtho(-1.0, 1.0, -ar, ar, 0.001, 1.0);
-	}
+	/*
+	 * TODO: Make `setcam_persp' and `setcam_ortho' separate so that we
+	 * 		 Can de-hardcode FOV here.
+	 */
+	if(b) gluPerspective(90.0f, 1.0 / ar, 0.1, 10000.0);
+	else glOrtho(-1.0, 1.0, -ar, ar, 0.001, 1.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

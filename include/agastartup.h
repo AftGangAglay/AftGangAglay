@@ -21,11 +21,14 @@ struct aga_opts {
 	const char* startup_script;
 	const char* python_path;
 
+	af_size_t width;
+	af_size_t height;
+
 	struct aga_conf_node config;
 };
 
 /* NOTE: We try to leave sensible defaults in `opts' during failure states. */
-enum af_err aga_cliopts(struct aga_opts* opts, int argc, char** argv);
+enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv);
 
 enum af_err aga_prerun_hook(struct aga_opts* opts);
 

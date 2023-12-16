@@ -10,9 +10,6 @@
 
 #include <afeirsa/afeirsa.h>
 
-struct aga_opts;
-struct aga_ctx;
-
 struct aga_win {
 	af_ulong_t xwin;
 	void* storage;
@@ -25,6 +22,11 @@ struct aga_keymap {
 	int keycode_len;
 	int keycode_min;
 	af_ulong_t* keymap;
+	af_bool_t* keystates;
+};
+
+struct aga_pointer {
+	int dx, dy;
 };
 
 struct aga_winenv {
@@ -41,17 +43,22 @@ struct aga_winenv {
  * NOTE: Glyphs are generated as display lists corresponding to the ASCII value
  * 		 Of each printable character (i.e. `glCallList('a')')
  */
-enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display);
-enum af_err aga_killctxdpy(struct aga_ctx* ctx);
+enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display);
+enum af_err aga_killctxdpy(struct aga_winenv* env);
+
+enum af_err aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env);
+enum af_err aga_killkeymap(struct aga_keymap* keymap);
 
 enum af_err aga_mkwin(
-		struct aga_opts* opts, struct aga_winenv* env, struct aga_win* win,
-		int argc, char** argv);
-enum af_err aga_killwin(struct aga_ctx* ctx, struct aga_win* win);
+		af_size_t width, af_size_t height, struct aga_winenv* env,
+		struct aga_win* win, int argc, char** argv);
+enum af_err aga_killwin(struct aga_winenv* env, struct aga_win* win);
 
-enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win);
-enum af_err aga_swapbuf(struct aga_ctx* ctx, struct aga_win* win);
+enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win);
+enum af_err aga_swapbuf(struct aga_winenv* env, struct aga_win* win);
 
-enum af_err aga_poll(struct aga_ctx* ctx);
+enum af_err aga_poll(
+		struct aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
+		struct aga_pointer* pointer, af_bool_t* die);
 
 #endif

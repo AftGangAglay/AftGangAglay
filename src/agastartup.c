@@ -10,7 +10,7 @@
 #define AGA_WANT_UNIX
 #include <agastd.h>
 
-enum af_err aga_cliopts(struct aga_opts* opts, int argc, char** argv) {
+enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	enum af_err result;
 	int v;
 
@@ -18,6 +18,8 @@ enum af_err aga_cliopts(struct aga_opts* opts, int argc, char** argv) {
 	const char* device[] = { "Audio", "Device" };
 	const char* startup[] = { "Script", "Startup" };
 	const char* path[] = { "Script", "Path" };
+	const char* width[] = { "Display", "Width" };
+	const char* height[] = { "Display", "Height" };
 
 	AF_PARAM_CHK(opts);
 	AF_PARAM_CHK(argv);
@@ -28,6 +30,8 @@ enum af_err aga_cliopts(struct aga_opts* opts, int argc, char** argv) {
 	opts->audio_dev = "/dev/dsp1";
 	opts->startup_script = "script/main.py";
 	opts->python_path = "vendor/python/lib:script:script/AGAScriptLib";
+	opts->width = 640;
+	opts->height = 480;
 
 	af_memset(&opts->config, 0, sizeof(opts->config));
 
@@ -77,6 +81,14 @@ enum af_err aga_cliopts(struct aga_opts* opts, int argc, char** argv) {
 
 	result = aga_conftree(
 		&opts->config, path, AF_ARRLEN(path), &opts->python_path, AGA_STRING);
+	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+
+	result = aga_conftree(
+		&opts->config, width, AF_ARRLEN(width), &opts->width, AGA_INTEGER);
+	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+
+	result = aga_conftree(
+		&opts->config, height, AF_ARRLEN(height), &opts->height, AGA_INTEGER);
 	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
 
 	return AF_ERR_NONE;

@@ -120,7 +120,7 @@ static LRESULT aga_winproc(
  * (see libs/video/targets/).
  */
 
-enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display) {
+enum af_err aga_mkwinenv(struct aga_ctx* ctx, const char* display) {
 	WNDCLASSA class;
 
 	AF_PARAM_CHK(ctx);

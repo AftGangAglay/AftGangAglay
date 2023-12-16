@@ -3,7 +3,7 @@
  * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#include <agactx.h>
+#include <agawin.h>
 #include <agaerr.h>
 #include <agastartup.h>
 #include <agalog.h>

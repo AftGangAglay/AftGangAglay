@@ -26,9 +26,7 @@ static const struct af_vert_element vert_elements[] = {
 	{ AF_MEMBSIZE(struct aga_vertex, pos ), AF_VERT_POS  }
 };
 
-enum af_err aga_init(
-		struct aga_ctx* ctx, struct aga_opts* opts, int argc, char** argv) {
-
+enum af_err aga_init(struct aga_ctx* ctx, struct aga_opts* opts) {
 	enum af_err result;
 
 	AF_PARAM_CHK(ctx);
@@ -38,19 +36,6 @@ enum af_err aga_init(
 
 	ctx->opts = opts;
 
-	/* TODO: Move out windowing environment to separate conglomerated init. */
-	if((result = aga_mkctxdpy(ctx, opts->display))) {
-		aga_af_soft(__FILE__, "aga_mkctxdpy", result);
-		return result;
-	}
-	if((result = aga_mkwin(opts, &ctx->winenv, &ctx->win, argc, argv))) {
-		aga_af_soft(__FILE__, "aga_mkwin", result);
-		return result;
-	}
-	if((result = aga_glctx(ctx, &ctx->win))) {
-		aga_af_soft(__FILE__, "aga_glctx", result);
-		return result;
-	}
 	if((result = af_mkctx(&ctx->af_ctx, AF_FIDELITY_FAST))) {
 		aga_af_soft(__FILE__, "af_mkctx", result);
 		return result;
@@ -59,7 +44,8 @@ enum af_err aga_init(
 	aga_log(__FILE__, "Acquired GL context");
 
 	AF_CHK(af_mkvert(
-			&ctx->af_ctx, &ctx->vert, vert_elements, AF_ARRLEN(vert_elements)));
+			&ctx->af_ctx, &ctx->vert, vert_elements,
+			AF_ARRLEN(vert_elements)));
 
 	AF_CHK(aga_setdrawparam());
 
@@ -81,9 +67,6 @@ enum af_err aga_kill(struct aga_ctx* ctx) {
 
 	AF_CHK(af_killvert(&ctx->af_ctx, &ctx->vert));
 	AF_CHK(af_killctx(&ctx->af_ctx));
-
-	AF_CHK(aga_killwin(ctx, &ctx->win));
-	AF_CHK(aga_killctxdpy(ctx));
 
 	if(ctx->opts->audio_enabled) AF_CHK(aga_killsnddev(&ctx->snddev));
 

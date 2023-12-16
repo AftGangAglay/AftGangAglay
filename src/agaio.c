@@ -3,13 +3,11 @@
  * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#include <agacore.h>
 #include <agaio.h>
+#include <agaerr.h>
 #include <agalog.h>
 #define AGA_WANT_UNIX
 #include <agastd.h>
-
-#include <afeirsa/afeirsa.h>
 
 enum af_err aga_read(const char* path, af_uchar_t** ptr, af_size_t* size) {
 	FILE* f;

@@ -5,7 +5,7 @@
 
 #include <afeirsa/afeirsa.h>
 
-#include <agacore.h>
+#include <agaerr.h>
 #include <agaconf.h>
 #include <agalog.h>
 #include <agaio.h>

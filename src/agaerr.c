@@ -3,10 +3,9 @@
  * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#include <agacore.h>
-#include <agalog.h>
-
+#include <agaerr.h>
 #include <agastd.h>
+#include <agalog.h>
 
 const char* aga_af_errname(enum af_err e) {
 	switch(e) {
@@ -24,6 +23,14 @@ const char* aga_af_errname(enum af_err e) {
 	}
 
 	return "none";
+}
+
+AGA_NORETURN void aga_abort(void) {
+#ifdef _DEBUG
+	abort();
+#else
+	exit(EXIT_FAILURE);
+#endif
 }
 
 void aga_af_chk(const char* loc, const char* proc, enum af_err e) {

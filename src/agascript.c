@@ -3,15 +3,15 @@
  * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#include <agacore.h>
 #include <agascript.h>
 #include <agalog.h>
+#include <agaerr.h>
+#include <agactx.h>
 #include <agaio.h>
 #include <agaimg.h>
 #include <agastd.h>
 #include <agadraw.h>
 
-#include <afeirsa/afeirsa.h>
 #include <afeirsa/afgl.h>
 
 /* NOTE: This is cursed beyond cursed but old C code do be like that. */

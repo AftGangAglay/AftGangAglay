@@ -211,7 +211,7 @@ static object* agan_getconf(object* self, object* arg) {
 	}
 
 	if(aga_script_aferr("aga_conftree_raw", aga_conftree_raw(
-		script_ctx->conf.children, names, len, &node))) {
+		script_ctx->opts->config.children, names, len, &node))) {
 
 		free(names);
 		return 0;
@@ -584,7 +584,7 @@ static object* agan_putclip(object* self, object* arg) {
 		return 0;
 	}
 
-	if(script_ctx->audio_enabled) {
+	if(script_ctx->opts->audio_enabled) {
 		if(aga_putclip(
 			&script_ctx->snddev, ((struct aga_nativeptr*) arg)->ptr)) {
 

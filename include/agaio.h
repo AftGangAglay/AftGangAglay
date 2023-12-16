@@ -6,16 +6,7 @@
 #ifndef AGA_IO_H
 #define AGA_IO_H
 
-#include <afeirsa/aferr.h>
-#include <afeirsa/aftypes.h>
-
-/*
- * TODO: Currently not too fussed about adding Windows Virtual File mapping.
- * 	     Will get to it at some point.
- */
-#ifndef _WINDOWS
-# define AGA_HAVE_MAP
-#endif
+#include <afeirsa/afeirsa.h>
 
 /*
  * NOTE: Writes out a heap-alloc'd pointer to `ptr'.

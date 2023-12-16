@@ -4,7 +4,10 @@
  */
 
 #include <agadraw.h>
+#include <agawin.h>
+#include <agalog.h>
 #include <agastd.h>
+#include <agaerr.h>
 
 #include <afeirsa/afgl.h>
 

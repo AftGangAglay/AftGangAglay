@@ -4,18 +4,16 @@
  */
 
 #include <agasnd.h>
-#include <agacore.h>
-#include <agalog.h>
-#include <agamath.h>
 
 #ifndef AGA_NOSND
 
-# include <sys/ioctl.h>
-# include <sys/soundcard.h>
-
 # define AGA_WANT_UNIX
 # include <agastd.h>
-# undef AGA_WANT_UNIX
+# include <agalog.h>
+# include <agaerr.h>
+
+# include <sys/ioctl.h>
+# include <sys/soundcard.h>
 
 enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 	af_bool_t busy_msg = AF_FALSE;
@@ -111,7 +109,9 @@ enum af_err aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip) {
 
 	clip->pos += written;
 	if(clip->pos < clip->len) {
-		af_size_t cpy = AGA_MIN(sizeof(snddev->buf), clip->len - clip->pos);
+		af_size_t sz = sizeof(snddev->buf);
+		af_size_t rem = clip->len - clip->pos;
+		af_size_t cpy = sz < rem ? sz : rem;
 		af_memcpy(snddev->buf, &clip->pcm[clip->pos], cpy);
 	}
 

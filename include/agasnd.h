@@ -6,8 +6,7 @@
 #ifndef AGA_SND_H
 #define AGA_SND_H
 
-#include <afeirsa/aferr.h>
-#include <afeirsa/aftypes.h>
+#include <afeirsa/afeirsa.h>
 
 enum aga_snd_conf {
 	AGA_SND_SAMPLERATE = 8000,

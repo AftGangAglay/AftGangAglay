@@ -13,6 +13,9 @@
 # if __has_attribute(used)
 #  define AGA_USED __attribute__((used))
 # endif
+# if __has_attribute(noreturn)
+#  define AGA_NORETURN __attribute__((noreturn))
+# endif
 #endif
 
 #ifdef __has_include

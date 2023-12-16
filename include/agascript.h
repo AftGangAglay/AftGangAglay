@@ -6,8 +6,7 @@
 #ifndef AGA_SCRIPT_H
 #define AGA_SCRIPT_H
 
-#include <afeirsa/aftypes.h>
-#include <afeirsa/aferr.h>
+#include <afeirsa/afeirsa.h>
 
 struct aga_ctx;
 

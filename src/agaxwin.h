@@ -6,9 +6,6 @@
 #ifndef AGA_X_WIN_H
 #define AGA_X_WIN_H
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-
 static const int single_buffer_fb[] = {
 		GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
 		GLX_RENDER_TYPE, GLX_RGBA_BIT,
@@ -135,7 +132,8 @@ enum af_err aga_killctxdpy(struct aga_ctx* ctx) {
 }
 
 enum af_err aga_mkwin(
-		struct aga_ctx* ctx, struct aga_win* win, int argc, char** argv) {
+		struct aga_opts* opts, struct aga_winenv* env, struct aga_win* win,
+		int argc, char** argv) {
 
 	af_ulong_t black, white;
 	enum af_err result;
@@ -143,18 +141,19 @@ enum af_err aga_mkwin(
 	const char* width[] = { "Display", "Width" };
 	const char* height[] = { "Display", "Height" };
 
-	AF_PARAM_CHK(ctx);
+	AF_PARAM_CHK(opts);
+	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
 	win->width = 0;
 	win->height = 0;
 
 	result = aga_conftree(
-		&ctx->conf, width, AF_ARRLEN(width), &win->width, AGA_INTEGER);
+		&opts->config, width, AF_ARRLEN(width), &win->width, AGA_INTEGER);
 	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-		&ctx->conf, height, AF_ARRLEN(height), &win->height, AGA_INTEGER);
+		&opts->config, height, AF_ARRLEN(height), &win->height, AGA_INTEGER);
 	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
 
 	if(!win->width) {
@@ -162,23 +161,23 @@ enum af_err aga_mkwin(
 		win->height = 480;
 	}
 
-	black = BlackPixel(ctx->winenv.dpy, ctx->winenv.screen);
-	white = WhitePixel(ctx->winenv.dpy, ctx->winenv.screen);
+	black = BlackPixel(env->dpy, env->screen);
+	white = WhitePixel(env->dpy, env->screen);
 
 	win->xwin = XCreateSimpleWindow(
-		ctx->winenv.dpy, RootWindow(ctx->winenv.dpy, ctx->winenv.screen),
+		env->dpy, RootWindow(env->dpy, env->screen),
 		0, 0, win->width, win->height,
 		8, white, black);
 
 	XSetStandardProperties(
-		ctx->winenv.dpy, win->xwin, "Aft Gang Aglay", "", None, argv, argc, 0);
+		env->dpy, win->xwin, "Aft Gang Aglay", "", None, argv, argc, 0);
 
 	XSelectInput(
-		ctx->winenv.dpy, win->xwin,
+		env->dpy, win->xwin,
 		KeyPressMask | KeyReleaseMask | PointerMotionMask);
-	XSetWMProtocols(ctx->winenv.dpy, win->xwin, &ctx->winenv.wm_delete, 1);
+	XSetWMProtocols(env->dpy, win->xwin, &env->wm_delete, 1);
 
-	XMapRaised(ctx->winenv.dpy, win->xwin);
+	XMapRaised(env->dpy, win->xwin);
 
 	return AF_ERR_NONE;
 }

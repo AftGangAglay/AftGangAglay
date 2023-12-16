@@ -4,6 +4,7 @@
  */
 
 #include <agalog.h>
+#include <agaenv.h>
 #include <agastd.h>
 
 #define AGA_ISTTY(s) ((s) == stdout || (s) == stderr)

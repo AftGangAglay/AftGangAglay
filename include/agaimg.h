@@ -3,8 +3,8 @@
  * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#ifndef AGA_PCX_H
-#define AGA_PCX_H
+#ifndef AGA_IMG_H
+#define AGA_IMG_H
 
 #include <afeirsa/afeirsa.h>
 

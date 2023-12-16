@@ -20,6 +20,7 @@
 #include <signal.h>
 
 #ifdef AGA_WANT_UNIX
+# undef AGA_WANT_UNIX
 # ifdef AGA_HAVE_UNIX
 #  include <unistd.h>
 #  include <fcntl.h>

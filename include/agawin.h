@@ -6,11 +6,11 @@
 #ifndef AGA_WIN_H
 #define AGA_WIN_H
 
-#include <afeirsa/aftypes.h>
-#include <afeirsa/aferr.h>
-
 #define AGA_FONT_LIST_BASE (1000)
 
+#include <afeirsa/afeirsa.h>
+
+struct aga_opts;
 struct aga_ctx;
 
 struct aga_win {
@@ -45,7 +45,8 @@ enum af_err aga_mkctxdpy(struct aga_ctx* ctx, const char* display);
 enum af_err aga_killctxdpy(struct aga_ctx* ctx);
 
 enum af_err aga_mkwin(
-		struct aga_ctx* ctx, struct aga_win* win, int argc, char** argv);
+		struct aga_opts* opts, struct aga_winenv* env, struct aga_win* win,
+		int argc, char** argv);
 enum af_err aga_killwin(struct aga_ctx* ctx, struct aga_win* win);
 
 enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win);

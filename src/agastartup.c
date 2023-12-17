@@ -94,6 +94,7 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	return AF_ERR_NONE;
 }
 
+#ifdef AGA_HAVE_SPAWN
 enum af_err aga_prerun_hook(struct aga_opts* opts) {
 	enum af_err result;
 
@@ -102,26 +103,26 @@ enum af_err aga_prerun_hook(struct aga_opts* opts) {
 	char* args[] = { 0 /* shell */, 0 /* -c */, 0 /* exec */, 0 };
 	char* project_path;
 
-#ifndef _DEBUG
+# ifndef _DEBUG
 	aga_log(__FILE__, "warn: Executing pre-run hook in non-debug build");
-#endif
+# endif
 
 	AF_PARAM_CHK(opts);
 
 	project_path = strrchr(opts->config_file, '/');
 
-#ifdef _WINDOWS
+# ifdef _WINDOWS
 	if(!program) program = "cmd";
 	args[1] = "/c";
-#else
+# else
 	if(!program) program = "sh";
 	args[1] = "-c";
-#endif
+# endif
 
 	args[0] = program;
 
 	AF_CHK(aga_conftree(
-			&opts->config, hook, AF_ARRLEN(hook), &args[2], AGA_STRING));
+		&opts->config, hook, AF_ARRLEN(hook), &args[2], AGA_STRING));
 
 	aga_log(__FILE__, "Executing project pre-run hook `%s'", args[2]);
 
@@ -138,3 +139,4 @@ enum af_err aga_prerun_hook(struct aga_opts* opts) {
 
 	return AF_ERR_NONE;
 }
+#endif

@@ -8,6 +8,7 @@
 #include <agalog.h>
 #include <agaerr.h>
 #include <agadraw.h>
+#include <agaio.h>
 #include <agastartup.h>
 #include <agascript.h>
 
@@ -43,8 +44,10 @@ int main(int argc, char** argv) {
 	ctx.keymap = &keymap;
 
 #ifdef _DEBUG
+# ifdef AGA_HAVE_SPAWN
 	result = aga_prerun_hook(&opts);
 	if(result) aga_af_soft(__FILE__, "aga_setopts", result);
+# endif
 #endif
 
 	result = aga_mkscripteng(

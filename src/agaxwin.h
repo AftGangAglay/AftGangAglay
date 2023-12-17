@@ -34,7 +34,7 @@ static const int double_buffer_fb[] = {
 static void aga_centreptr(struct aga_winenv* env, struct aga_win* win) {
 	int mid_x = (int) win->width / 2;
 	int mid_y = (int) win->height / 2;
-	XWarpPointer(env->dpy, win->xwin, win->xwin, 0, 0, 0, 0, mid_x, mid_y);
+	XWarpPointer(env->dpy, win->win.xwin, win->win.xwin, 0, 0, 0, 0, mid_x, mid_y);
 }
 
 static int aga_xerr_handler(Display* dpy, XErrorEvent* err) {
@@ -151,18 +151,18 @@ enum af_err aga_mkwin(
 	win->width = width;
 	win->height = height;
 
-	win->xwin = XCreateSimpleWindow(
+	win->win.xwin = XCreateSimpleWindow(
 		env->dpy, RootWindow(env->dpy, env->screen), 0, 0, width, height, 8,
 		white, black);
 
 	XSetStandardProperties(
-		env->dpy, win->xwin, "Aft Gang Aglay", "", None, argv, argc, 0);
+		env->dpy, win->win.xwin, "Aft Gang Aglay", "", None, argv, argc, 0);
 
 	XSelectInput(
-		env->dpy, win->xwin, mask);
-	XSetWMProtocols(env->dpy, win->xwin, &env->wm_delete, 1);
+		env->dpy, win->win.xwin, mask);
+	XSetWMProtocols(env->dpy, win->win.xwin, &env->wm_delete, 1);
 
-	XMapRaised(env->dpy, win->xwin);
+	XMapRaised(env->dpy, win->win.xwin);
 
 	return AF_ERR_NONE;
 }
@@ -171,7 +171,7 @@ enum af_err aga_killwin(struct aga_winenv* env, struct aga_win* win) {
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
-	XDestroyWindow(env->dpy, win->xwin);
+	XDestroyWindow(env->dpy, win->win.xwin);
 
 	return AF_ERR_NONE;
 }
@@ -194,20 +194,24 @@ enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	XFontStruct* info;
 	unsigned current = 0;
 
+	int res;
+
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
-	AF_VERIFY(glXMakeContextCurrent(env->dpy, win->xwin, win->xwin, env->glx),
-		AF_ERR_UNKNOWN);
-	XSetInputFocus(env->dpy, win->xwin, RevertToNone, CurrentTime);
+	res = glXMakeContextCurrent(
+		env->dpy, win->win.xwin, win->win.xwin, env->glx);
+	AF_VERIFY(res, AF_ERR_UNKNOWN);
+
+	XSetInputFocus(env->dpy, win->win.xwin, RevertToNone, CurrentTime);
 
 	aga_centreptr(env, win);
 
-	bitmap = XCreateBitmapFromData(env->dpy, win->xwin, empty, 1, 1);
+	bitmap = XCreateBitmapFromData(env->dpy, win->win.xwin, empty, 1, 1);
 	AF_VERIFY(bitmap, AF_ERR_UNKNOWN);
 
 	cur = XCreatePixmapCursor(env->dpy, bitmap, bitmap, &black, &black, 0, 0);
-	XDefineCursor(env->dpy, win->xwin, cur);
+	XDefineCursor(env->dpy, win->win.xwin, cur);
 	XFreePixmap(env->dpy, cur);
 	XFreeCursor(env->dpy, cur);
 
@@ -246,7 +250,7 @@ enum af_err aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
-	if(env->double_buffered) glXSwapBuffers(env->dpy, win->xwin);
+	if(env->double_buffered) glXSwapBuffers(env->dpy, win->win.xwin);
 
 	return AF_ERR_NONE;
 }
@@ -298,7 +302,7 @@ enum af_err aga_poll(
 					int mid_x = (int) win->width / 2;
 					int mid_y = (int) win->height / 2;
 
-					if(event.xmotion.window != win->xwin) break;
+					if(event.xmotion.window != win->win.xwin) break;
 
 					if(event.xmotion.x != mid_x || event.xmotion.y != mid_y) {
 						aga_centreptr(env, win);
@@ -311,7 +315,7 @@ enum af_err aga_poll(
 				}
 
 				case ClientMessage: {
-					if(event.xclient.window == win->xwin) {
+					if(event.xclient.window == win->win.xwin) {
 						*die = AF_TRUE;
 					}
 					break;

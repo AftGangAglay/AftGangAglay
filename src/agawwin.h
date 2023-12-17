@@ -60,6 +60,12 @@ static enum af_err aga_af_winerr(const char* loc, const char* proc) {
 #define AGA_AF_WINCHK(proc) \
 	aga_af_chk(__FILE__, proc, aga_af_winerr(__FILE__, proc))
 
+struct aga_winproc_pack {
+	struct aga_keymap* keymap;
+	struct aga_pointer* pointer;
+	af_bool_t* die;
+};
+
 static LRESULT aga_winproc(
 		HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param) {
 
@@ -84,7 +90,7 @@ static LRESULT aga_winproc(
 		goto default_msg;
 	}
 
-	keymap = &ctx->keymap;
+	keymap = ctx->keymap;
 
 	switch(msg) {
 		default: {
@@ -96,13 +102,13 @@ static LRESULT aga_winproc(
 			AF_FALLTHROUGH;
 			/* FALLTHRU */
 		case WM_KEYDOWN: {
-			ctx->keystates[w_param] = down;
+			keymap->keystates[w_param] = down;
 			return 0;
 		}
 
 		case WM_MOUSEMOVE: {
-			ctx->pointer_dx = GET_X_LPARAM(l_param) - keymap->keycode_len;
-			ctx->pointer_dy = GET_Y_LPARAM(l_param) - keymap->keycode_min;
+			ctx->pointer->dx = GET_X_LPARAM(l_param) - keymap->keycode_len;
+			ctx->pointer->dy = GET_Y_LPARAM(l_param) - keymap->keycode_min;
 			keymap->keycode_len = GET_X_LPARAM(l_param);
 			keymap->keycode_min = GET_Y_LPARAM(l_param);
 			return 0;
@@ -120,14 +126,14 @@ static LRESULT aga_winproc(
  * (see libs/video/targets/).
  */
 
-enum af_err aga_mkwinenv(struct aga_ctx* ctx, const char* display) {
+enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	WNDCLASSA class;
 
-	AF_PARAM_CHK(ctx);
+	AF_PARAM_CHK(env);
 
 	(void) display;
 
-	if(!(ctx->winenv.dpy = GetModuleHandleA(0))) {
+	if(!(env->dpy = GetModuleHandleA(0))) {
 		return aga_af_winerr(__FILE__, "GetModuleHandleA");
 	}
 
@@ -135,30 +141,24 @@ enum af_err aga_mkwinenv(struct aga_ctx* ctx, const char* display) {
 	class.lpfnWndProc = (WNDPROC) aga_winproc;
 	class.cbClsExtra = 0;
 	class.cbWndExtra = 0;
-	class.hInstance = ctx->winenv.dpy;
+	class.hInstance = env->dpy;
 	class.hIcon = 0;
 	class.hCursor = 0;
 	class.hbrBackground = 0;
 	class.lpszMenuName = 0;
 	class.lpszClassName = AGA_CLASS_NAME;
 
-	if(!(ctx->winenv.dpy_fd = RegisterClassA(&class))) {
+	if(!(env->dpy_fd = RegisterClassA(&class))) {
 		return aga_af_winerr(__FILE__, "RegisterClassA");
 	}
-
-	ctx->keymap.keysyms_per_keycode = 1;
-	ctx->keymap.keycode_len = 0xFF;
-
-	ctx->keystates = calloc(0xFF, sizeof(af_bool_t)); /* VK_OEM_CLEAR + 1 */
-	AF_VERIFY(ctx->keystates, AF_ERR_MEM);
 
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_killctxdpy(struct aga_ctx* ctx) {
-	AF_PARAM_CHK(ctx);
+enum af_err aga_killwinenv(struct aga_winenv* env) {
+	AF_PARAM_CHK(env);
 
-	if(ctx->winenv.glx && !wglDeleteContext(ctx->winenv.glx)) {
+	if(env->glx && !wglDeleteContext(env->glx)) {
 		return aga_af_winerr(__FILE__, "wglDeleteContext");
 	}
 
@@ -169,44 +169,50 @@ enum af_err aga_killctxdpy(struct aga_ctx* ctx) {
 	return AF_ERR_NONE;
 }
 
+enum af_err aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
+	AF_PARAM_CHK(keymap);
+	AF_PARAM_CHK(env);
+
+	keymap->keysyms_per_keycode = 1;
+	keymap->keycode_len = 0xFF;
+
+	keymap->keystates = calloc(0xFF, sizeof(af_bool_t)); /* VK_OEM_CLEAR + 1 */
+	AF_VERIFY(keymap->keystates, AF_ERR_MEM);
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_killkeymap(struct aga_keymap* keymap) {
+	AF_PARAM_CHK(keymap);
+
+	return AF_ERR_NONE;
+}
+
 enum af_err aga_mkwin(
-		struct aga_ctx* ctx, struct aga_win* win, int argc, char** argv) {
+		af_size_t width, af_size_t height, struct aga_winenv* env,
+		struct aga_win* win, int argc, char** argv) {
 
 	int ind;
-	enum af_err result;
-
-	const char* width[] = { "Display", "Width" };
-	const char* height[] = { "Display", "Height" };
+	long mask = WS_CAPTION | WS_VISIBLE | WS_OVERLAPPEDWINDOW;
 
 	(void) argc;
 	(void) argv;
 
-	AF_PARAM_CHK(ctx);
+	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
-	win->width = 0;
-	win->height = 0;
+	win->width = width;
+	win->height = height;
 
-	result = aga_conftree(
-		&ctx->conf, width, AF_ARRLEN(width), &win->width, AGA_INTEGER);
-	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
-
-	result = aga_conftree(
-		&ctx->conf, height, AF_ARRLEN(height), &win->height, AGA_INTEGER);
-	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
-
-	win->xwin = (af_ulong_t) CreateWindowA(
-		AGA_CLASS_NAME, "Aft Gang Aglay",
-		WS_CAPTION | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT,
-		win->width, win->height,
-		0, 0, ctx->winenv.dpy, ctx);
-	if(!win->xwin) return aga_af_winerr(__FILE__, "CreateWindowA");
-	if(!ShowWindow((void*) win->xwin, SW_SHOWNORMAL)) {
+	win->win.hwnd = CreateWindowA(
+		AGA_CLASS_NAME, "Aft Gang Aglay", mask, CW_USEDEFAULT, CW_USEDEFAULT,
+		width, height, 0, 0, env->dpy, 0);
+	if(!win->win.hwnd) return aga_af_winerr(__FILE__, "CreateWindowA");
+	if(!ShowWindow((void*) win->win.hwnd, SW_SHOWNORMAL)) {
 		return aga_af_winerr(__FILE__, "ShowWindow");
 	}
 
-	if(!(win->storage = GetDC((void*) win->xwin)))  {
+	if(!(win->storage = GetDC((void*) win->win.hwnd)))  {
 		return aga_af_winerr(__FILE__, "GetDC");
 	}
 
@@ -220,8 +226,8 @@ enum af_err aga_mkwin(
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_killwin(struct aga_ctx* ctx, struct aga_win* win) {
-	AF_PARAM_CHK(ctx);
+enum af_err aga_killwin(struct aga_winenv* env, struct aga_win* win) {
+	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
 	/*
@@ -237,17 +243,17 @@ enum af_err aga_killwin(struct aga_ctx* ctx, struct aga_win* win) {
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win) {
+enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	RECT r;
 
-	AF_PARAM_CHK(ctx);
+	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
-	if(!(ctx->winenv.glx = wglCreateContext(win->storage))) {
+	if(!(env->glx = wglCreateContext(win->storage))) {
 		return aga_af_winerr(__FILE__, "wglCreateContext");
 	}
 
-	if(!wglMakeCurrent(win->storage, ctx->winenv.glx)) {
+	if(!wglMakeCurrent(win->storage, env->glx)) {
 		return aga_af_winerr(__FILE__, "wglMakeCurrent");
 	}
 
@@ -259,8 +265,8 @@ enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win) {
 		return aga_af_winerr(__FILE__, "wglUseFontBitmaps");
 	}
 
-	SetCapture((void*) win->xwin);
-	if(!GetWindowRect((void*) win->xwin, &r)) {
+	SetCapture((void*) win->win.hwnd);
+	if(!GetWindowRect((void*) win->win.hwnd, &r)) {
 		return aga_af_winerr(__FILE__, "GetWindowRect");
 	}
 	if(!ClipCursor(&r)) return aga_af_winerr(__FILE__, "ClipCursor");
@@ -268,8 +274,8 @@ enum af_err aga_glctx(struct aga_ctx* ctx, struct aga_win* win) {
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_swapbuf(struct aga_ctx* ctx, struct aga_win* win) {
-	AF_PARAM_CHK(ctx);
+enum af_err aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
+	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
 	if(!SwapBuffers(win->storage)) {
@@ -279,10 +285,17 @@ enum af_err aga_swapbuf(struct aga_ctx* ctx, struct aga_win* win) {
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_poll(struct aga_ctx* ctx) {
+enum af_err aga_poll(
+		struct aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
+		struct aga_pointer* pointer, af_bool_t* die) {
+
 	MSG msg;
 
-	AF_PARAM_CHK(ctx);
+	AF_PARAM_CHK(env);
+	AF_PARAM_CHK(keymap);
+	AF_PARAM_CHK(win);
+	AF_PARAM_CHK(pointer);
+	AF_PARAM_CHK(die);
 
 	while(PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
 		TranslateMessage(&msg);

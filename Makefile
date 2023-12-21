@@ -17,13 +17,22 @@ ifndef RANLIB
 	RANLIB = ranlib
 endif
 
-ifdef WINDOWS
+ifdef WINDOWS_SHELL
 	RM = del
-endif
-
 define PATHREM
 	$(RM) $(subst /,\\,$(1))
 endef
+else
+define PATHREM
+	$(RM) $(1)
+endef
+endif
+
+ifdef WINDOWS
+	EXE = .exe
+%.exe: %.o
+	$(CC) -o $@ $(LDFLAGS) $(filter %.o,$^) $(LOADLIBES) $(LDLIBS)
+endif
 
 (%): %
 %.a:
@@ -42,7 +51,7 @@ SOURCES = $(wildcard src/*.c)
 HEADERS = $(wildcard include/*.h) $(wildcard src/*.h)
 OBJECTS = $(SOURCES:.c=.o)
 
-OUT = src/main
+OUT = src/main$(EXE)
 
 CFLAGS += -Iinclude
 CFLAGS += -std=c89 -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
@@ -52,6 +61,8 @@ LDLIBS += -lm
 CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS) $(AFEIRSA_IFLAGS) $(LIBTIFF_IFLAGS)
 LIBDEPS = $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) $(LIBTIFF)
 LDLIBS += $(LIBDEPS)
+
+include $(AFEIRSA_ROOT)/build/glabi.mk
 
 # glabi appends its own ldlibs
 CFLAGS += $(GLABI)

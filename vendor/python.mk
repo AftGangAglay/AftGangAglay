@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+
 PYTHON_ROOT = vendor/python
 PYTHON_SOURCEROOT = $(PYTHON_ROOT)/src
 
@@ -36,7 +39,7 @@ PYTHONGEN_SOURCES = pgenmain.c acceler.c fgetsintr.c grammar1.c \
 PYTHONGEN_SOURCES := $(addprefix $(PYTHON_SOURCEROOT)/,$(PYTHONGEN_SOURCES))
 PYTHONGEN_OBJECTS = $(PYTHONGEN_SOURCES:.c=.o)
 
-PYTHONGEN = $(PYTHON_SOURCEROOT)/pgenmain
+PYTHONGEN = $(PYTHON_SOURCEROOT)/pgenmain$(EXE)
 
 $(LIBPYTHON): CFLAGS += $(LIBPYTHON_CFLAGS)
 $(LIBPYTHON): $(LIBPYTHON_OBJECTS) $(PYTHON_GRAMINIT_OBJECT)

@@ -25,17 +25,15 @@ ifdef APPLE
 endif
 
 ifdef DEBUG
-	WWW_CFLAGS += -g -O0 -D_DEBUG -DDEBUG
+	WWW_CFLAGS += -g -D_DEBUG -DDEBUG
 else
-	WWW_CFLAGS += -DNDEBUG -Ofast
+	WWW_CFLAGS += -DNDEBUG -O
 endif
 
 all: $(LIBWWW)
 
+$(LIBWWW): CFLAGS = $(WWW_CFLAGS)
 $(LIBWWW): $(WWW_OBJECTS)
-
-$(WWW_OBJECTS): CFLAGS = $(WWW_CFLAGS)
-$(WWW_OBJECTS): $(WWW_SOURCES)
 
 clean: clean_www
 .PHONY: clean_www

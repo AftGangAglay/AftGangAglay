@@ -3,8 +3,6 @@
 
 AFEIRSA_ROOT = vendor/afeirsa
 
-include $(AFEIRSA_ROOT)/build/glabi.mk
-
 LIBAFEIRSA = $(AFEIRSA_ROOT)/src/libafeirsa.a
 AFEIRSA_CFLAGS = $(GLABI)
 AFEIRSA_IFLAGS = -isystem $(AFEIRSA_ROOT)/include $(PUBLIC_IFLAGS)

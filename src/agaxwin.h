@@ -292,8 +292,10 @@ enum af_err aga_poll(
 						(keycode - keymap->keycode_min) *
 						keymap->keysyms_per_keycode;
 					af_ulong_t keysym = keymap->keymap[keysym_idx];
+					af_size_t bound = keymap->keysyms_per_keycode *
+						keymap->keycode_len;
 
-					keymap->keystates[keysym] = press;
+					if(keysym < bound) keymap->keystates[keysym] = press;
 
 					break;
 				}

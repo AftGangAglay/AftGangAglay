@@ -32,6 +32,7 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	opts->python_path = "vendor/python/lib:script:script/AGAScriptLib";
 	opts->width = 640;
 	opts->height = 480;
+	opts->audio_enabled = AF_TRUE;
 
 	af_memset(&opts->config, 0, sizeof(opts->config));
 

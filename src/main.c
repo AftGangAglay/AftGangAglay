@@ -32,7 +32,9 @@ int main(int argc, char** argv) {
 
 	aga_log(__FILE__, "Breathing in the chemicals...");
 
-	aga_af_chk(__FILE__, "aga_setopts", aga_setopts(&opts, argc, argv));
+    result = aga_setopts(&opts, argc, argv);
+	if(result) aga_af_soft(__FILE__, "aga_setopts", result);
+
 	aga_af_chk(__FILE__, "aga_mkwinenv", aga_mkwinenv(&env, opts.display));
 	aga_af_chk(__FILE__, "aga_mkkeymap", aga_mkkeymap(&keymap, &env));
 	aga_af_chk(__FILE__, "aga_mkwin",
@@ -108,7 +110,7 @@ int main(int argc, char** argv) {
 
 	aga_af_chk(__FILE__, "aga_killwin", aga_killwin(&env, &win));
 	aga_af_chk(__FILE__, "aga_killkeymap", aga_killkeymap(&keymap));
-	aga_af_chk(__FILE__, "aga_killctxdpy", aga_killctxdpy(&env));
+	aga_af_chk(__FILE__, "aga_killwinenv", aga_killwinenv(&env));
 
 	aga_log(__FILE__, "Bye-bye!");
 

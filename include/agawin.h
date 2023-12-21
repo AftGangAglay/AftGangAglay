@@ -47,7 +47,7 @@ struct aga_winenv {
  * 		 Of each printable character (i.e. `glCallList('a')')
  */
 enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display);
-enum af_err aga_killctxdpy(struct aga_winenv* env);
+enum af_err aga_killwinenv(struct aga_winenv* env);
 
 enum af_err aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env);
 enum af_err aga_killkeymap(struct aga_keymap* keymap);

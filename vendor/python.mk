@@ -28,7 +28,7 @@ LIBPYTHON = vendor/libpython.a
 
 LIBPYTHON_CFLAGS = -w -DSYSV -Wno-incompatible-function-pointer-types
 ifdef WINDOWS
-        LIBPYTHON_CFLAGS += -D_WINDOWS -DNO_LSTAT
+        LIBPYTHON_CFLAGS += -D_WINDOWS -DNO_LSTAT -include setjmpex.h
 endif
 
 PYTHONGEN_SOURCES = pgenmain.c acceler.c fgetsintr.c grammar1.c \

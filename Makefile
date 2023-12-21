@@ -32,6 +32,7 @@ ifdef WINDOWS
 	EXE = .exe
 %.exe: %.o
 	$(CC) -o $@ $(LDFLAGS) $(filter %.o,$^) $(LOADLIBES) $(LDLIBS)
+%: %.o
 endif
 
 (%): %

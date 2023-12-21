@@ -94,7 +94,7 @@ enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_killctxdpy(struct aga_winenv* env) {
+enum af_err aga_killwinenv(struct aga_winenv* env) {
 	AF_PARAM_CHK(env);
 
 	glXDestroyContext(env->dpy, env->glx);

@@ -26,7 +26,7 @@ endif
 all: $(LIBTIFF)
 
 $(LIBTIFF_ROOT)/Makefile:
-	cd $(LIBTIFF_ROOT) && (./configure $(LIBTIFF_CONFIG_FLAGS) << yes)
+	cd $(LIBTIFF_ROOT) && ($(UNIX_SHELL) -c "./configure $(LIBTIFF_CONFIG_FLAGS) << yes")
 
 LIBTIFF_MAKE_FLAGS = COPTS="$(LIBTIFF_CFLAGS)" CC="$(CC)"
 LIBTIFF_MAKE_FLAGS += CROSS_TOOL="$(CROSS_TOOL)"
@@ -40,10 +40,10 @@ clean: clean_libtiff
 .PHONY: clean_libtiff
 clean_libtiff:
 	-$(MAKE) -C $(LIBTIFF_ROOT) clean
-	rm -f $(LIBTIFF_ROOT)/config.log
-	rm -f $(LIBTIFF_ROOT)/Makefile
-	rm -f $(LIBTIFF_ROOT)/port.h
-	rm -f $(LIBTIFF_ROOT)/libtiff/Makefile
-	rm -f $(LIBTIFF_ROOT)/man/Makefile
-	rm -f $(LIBTIFF_ROOT)/tools/Makefile
-	rm -f $(LIBTIFF_ROOT)/port/install.sh
+	$(call PATHREM,$(LIBTIFF_ROOT)/config.log)
+	$(call PATHREM,$(LIBTIFF_ROOT)/Makefile)
+	$(call PATHREM,$(LIBTIFF_ROOT)/port.h)
+	$(call PATHREM,$(LIBTIFF_ROOT)/libtiff/Makefile)
+	$(call PATHREM,$(LIBTIFF_ROOT)/man/Makefile)
+	$(call PATHREM,$(LIBTIFF_ROOT)/tools/Makefile)
+	$(call PATHREM,$(LIBTIFF_ROOT)/port/install.sh)

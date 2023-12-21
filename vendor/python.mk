@@ -54,7 +54,7 @@ all: $(LIBPYTHON)
 clean: clean_python
 .PHONY: clean_python
 clean_python:
-	rm -f $(call PATHSEP,$(LIBPYTHON))
-	rm -f $(call PATHSEP,$(PYTHONGEN))
-	rm -f $(call PATHSEP,$(PYTHONGEN_OBJECTS))
-	rm -f $(call PATHSEP,$(LIBPYTHON_OBJECTS))
+	$(call PATHREM,$(LIBPYTHON))
+	$(call PATHREM,$(PYTHONGEN))
+	$(call PATHREM,$(PYTHONGEN_OBJECTS))
+	$(call PATHREM,$(LIBPYTHON_OBJECTS))

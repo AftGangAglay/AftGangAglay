@@ -40,5 +40,5 @@ $(WWW_OBJECTS): $(WWW_SOURCES)
 clean: clean_www
 .PHONY: clean_www
 clean_www:
-	rm -f $(WWW_OBJECTS)
-	rm -f $(LIBWWW)
+	$(call PATHREM,$(WWW_OBJECTS))
+	$(call PATHREM,$(LIBWWW))

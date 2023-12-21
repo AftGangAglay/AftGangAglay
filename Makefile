@@ -8,6 +8,7 @@ endif
 ifdef APPLE
 	NOSND = 1
 endif
+
 ifdef WINDOWS
 	NOSND = 1
 endif
@@ -15,6 +16,14 @@ endif
 ifndef RANLIB
 	RANLIB = ranlib
 endif
+
+ifdef WINDOWS
+	RM = del
+endif
+
+define PATHREM
+	$(RM) $(subst /,\\,$(1))
+endef
 
 (%): %
 %.a:
@@ -75,8 +84,8 @@ $(OBJECTS): $(HEADERS)
 
 .PHONY: clean
 clean:
-	rm -f $(OBJECTS)
-	rm -f $(OUT)
+	$(call PATHREM,$(OBJECTS))
+	$(call PATHREM,$(OUT))
 
 PREFIX = /usr/local
 

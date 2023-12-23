@@ -7,6 +7,12 @@
 #include <agaenv.h>
 #include <agastd.h>
 
+#ifdef _DEBUG
+# define AGA_LOG_DEFAULT_STREAM (stderr)
+#else
+# define AGA_LOG_DEFAULT_STREAM (stdout)
+#endif
+
 #define AGA_ISTTY(s) ((s) == stdout || (s) == stderr)
 
 struct aga_logctx aga_logctx;
@@ -28,14 +34,14 @@ void aga_mklog(const char** targets, af_size_t len) {
 
 	if(!(aga_logctx.targets = malloc(len * sizeof(FILE*)))) {
 		static FILE* so[1];
-		so[0] = stdout;
+		so[0] = AGA_LOG_DEFAULT_STREAM;
 		perror("malloc");
 		aga_logctx.targets = (void**) so;
 		aga_logctx.len = 1;
 	}
 	else {
 		for(i = 0; i < len; ++i) {
-			if(!targets[i]) aga_logctx.targets[i] = stdout;
+			if(!targets[i]) aga_logctx.targets[i] = AGA_LOG_DEFAULT_STREAM;
 			else if(!(aga_logctx.targets[i] = fopen(targets[i], "w+"))) {
 				perror("fopen");
 			}

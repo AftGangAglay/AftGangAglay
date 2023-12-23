@@ -7,7 +7,6 @@
 #include <agaerr.h>
 #include <agastartup.h>
 #include <agalog.h>
-#include <agactx.h>
 #define AGA_WANT_UNIX
 #include <agastd.h>
 

@@ -8,16 +8,16 @@
 
 #include <afeirsa/afeirsa.h>
 
-struct aga_ctx;
-
-struct aga_scriptmethod {
-	void* method;
-	char* name;
-};
+#define AGA_SCRIPT_KEYMAP ("keymap")
+#define AGA_SCRIPT_POINTER ("pointer")
+#define AGA_SCRIPT_OPTS ("opts")
+#define AGA_SCRIPT_AFCTX ("afctx")
+#define AGA_SCRIPT_AFVERT ("afvert")
+#define AGA_SCRIPT_SNDDEV ("snddev")
+#define AGA_SCRIPT_DIE ("die")
 
 struct aga_scriptclass {
 	void* class;
-	char* name;
 };
 
 struct aga_scriptinst {
@@ -27,23 +27,22 @@ struct aga_scriptinst {
 
 struct aga_scripteng {
 	void* global;
-	struct aga_scriptclass* classes;
-	af_size_t len;
+	void* agandict;
 };
 
 enum af_err aga_mkscripteng(
-		struct aga_ctx* ctx, struct aga_scripteng* scripteng,
-		const char* script, const char* pypath, int argc, char** argv);
-
+		struct aga_scripteng* eng, const char* script,
+        const char* pypath, int argc, char** argv);
 enum af_err aga_killscripteng(struct aga_scripteng* eng);
 
-enum af_err aga_findclass(
-		struct aga_scripteng* eng, struct aga_scriptclass** class,
-		const char* name);
+enum af_err aga_setscriptptr(
+		struct aga_scripteng* eng, const char* key, void* value);
 
+enum af_err aga_findclass(
+		struct aga_scripteng* eng, struct aga_scriptclass* class,
+		const char* name);
 enum af_err aga_mkscriptinst(
 		struct aga_scriptclass* class, struct aga_scriptinst* inst);
-
 enum af_err aga_killscriptinst(struct aga_scriptinst* inst);
 enum af_err aga_instcall(struct aga_scriptinst* inst, const char* name);
 

@@ -6,21 +6,6 @@
 #ifndef AGA_SCRIPT_GLUE_H
 #define AGA_SCRIPT_GLUE_H
 
-struct aga_nativeptr {
-	OB_HEAD
-	void* ptr;
-	af_size_t len;
-};
-
-static void aga_nativeptr_dealloc(object* _) { (void) _; }
-
-static const typeobject aga_nativeptr_type = {
-	OB_HEAD_INIT(&Typetype)
-	0,
-	"nativeptr", sizeof(struct aga_nativeptr), 0,
-	aga_nativeptr_dealloc, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
 static af_bool_t aga_script_aferr(const char* proc, enum af_err err) {
 	aga_fixed_buf_t buf = { 0 };
 
@@ -57,12 +42,44 @@ static af_bool_t aga_script_glerr(const char* proc) {
 	return AF_TRUE;
 }
 
+/*
+ * NOTE: We need a bit of global state here to get engine system contexts etc.
+ * 		 Into script land because this version of Python's state is spread
+ * 		 Across every continent.
+ */
+static object* agan_dict;
+static object* aga_dict;
+
+static void* aga_getscriptptr(const char* key) {
+	object* ptr;
+
+	if(!key) {
+		err_setstr(RuntimeError, "unexpected null pointer");
+		return 0;
+	}
+
+	ptr = dictlookup(agan_dict, (char*) key);
+	if(!ptr) {
+		err_setstr(RuntimeError, "failed to resolve script nativeptr");
+		return 0;
+	}
+
+	if(ptr->ob_type != &aga_nativeptr_type) {
+		err_badarg();
+		return 0;
+	}
+
+	return ((struct aga_nativeptr*) ptr)->ptr;
+}
+
 static object* agan_getkey(object* self, object* arg) {
 	long value;
 	object* retval = None;
-	struct aga_keymap* keymap = script_ctx->keymap;
+	struct aga_keymap* keymap;
 
 	(void) self;
+
+	if(!(keymap = aga_getscriptptr(AGA_SCRIPT_KEYMAP))) return 0;
 
 	if(!arg || !is_intobject(arg)) {
 		err_setstr(TypeError, "getkey() argument must be int");
@@ -86,16 +103,19 @@ static object* agan_getmotion(object* self, object* arg) {
 	object* retval;
 	object* x;
 	object* y;
+	struct aga_pointer* pointer;
 
 	(void) self, (void) arg;
+
+	if(!(pointer = aga_getscriptptr(AGA_SCRIPT_POINTER))) return 0;
 
 	retval = newlistobject(2);
 	if(!retval) return 0;
 
-	x = newfloatobject(script_ctx->pointer->dx);
+	x = newfloatobject(pointer->dx);
 	if(!x) return 0;
 
-	y = newfloatobject(script_ctx->pointer->dy);
+	y = newfloatobject(pointer->dy);
 	if(!y) return 0;
 
 	if(setlistitem(retval, 0, x) == -1) return 0;
@@ -110,10 +130,13 @@ static object* agan_setcam(object* self, object* arg) {
 	object* t;
 	object* mode;
 	af_bool_t b;
-
 	double ar;
 
+	struct aga_opts* opts;
+
 	(void) self;
+
+	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
 
 	if(!arg || !is_tupleobject(arg) ||
 		!(t = gettupleitem(arg, 0)) || !is_classmemberobject(t) ||
@@ -127,7 +150,7 @@ static object* agan_setcam(object* self, object* arg) {
 	b = !!getintvalue(mode);
 	if(err_occurred()) return 0;
 
-	ar = (double) script_ctx->opts->height / (double) script_ctx->opts->width;
+	ar = (double) opts->height / (double) opts->width;
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -187,7 +210,11 @@ static object* agan_getconf(object* self, object* arg) {
 	af_size_t i, len;
 	object* v;
 
+	struct aga_opts* opts;
+
 	(void) self;
+
+	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
 
 	if(!arg || !is_listobject(arg)) {
 		err_setstr(RuntimeError, "getconf() argument must be list");
@@ -206,7 +233,7 @@ static object* agan_getconf(object* self, object* arg) {
 	}
 
 	if(aga_script_aferr("aga_conftree_raw", aga_conftree_raw(
-		script_ctx->opts->config.children, names, len, &node))) {
+		opts->config.children, names, len, &node))) {
 
 		free(names);
 		return 0;
@@ -276,7 +303,11 @@ static object* agan_mkvertbuf(object* self, object* arg) {
 	struct aga_nativeptr* retval;
 	enum af_err result;
 
+	struct af_ctx* af;
+
 	(void) self;
+
+	if(!(af = aga_getscriptptr(AGA_SCRIPT_AFCTX))) return 0;
 
 	if(!arg || arg->ob_type != &aga_nativeptr_type) {
 		err_setstr(RuntimeError, "mkvertbuf() argument must be nativeptr");
@@ -290,12 +321,10 @@ static object* agan_mkvertbuf(object* self, object* arg) {
 
 	if(!(retval->ptr = malloc(sizeof(struct af_buf)))) return err_nomem();
 
-	result = af_mkbuf(&script_ctx->af_ctx, retval->ptr, AF_BUF_VERT);
+	result = af_mkbuf(af, retval->ptr, AF_BUF_VERT);
 	if(aga_script_aferr("af_mkbuf", result)) return 0;
 
-	result = af_upload(
-				&script_ctx->af_ctx, retval->ptr, nativeptr->ptr,
-				nativeptr->len);
+	result = af_upload(af, retval->ptr, nativeptr->ptr, nativeptr->len);
 	if(aga_script_aferr("af_upload", result)) return 0;
 
 	return (object*) retval;
@@ -304,7 +333,11 @@ static object* agan_mkvertbuf(object* self, object* arg) {
 static object* agan_killvertbuf(object* self, object* arg) {
 	enum af_err result;
 
+	struct af_ctx* af;
+
 	(void) self;
+
+	if(!(af = aga_getscriptptr(AGA_SCRIPT_AFCTX))) return 0;
 
 	if(!arg || arg->ob_type != &aga_nativeptr_type) {
 		err_setstr(
@@ -312,8 +345,7 @@ static object* agan_killvertbuf(object* self, object* arg) {
 		return 0;
 	}
 
-	result = af_killbuf(
-				&script_ctx->af_ctx, ((struct aga_nativeptr*) arg)->ptr);
+	result = af_killbuf(af, ((struct aga_nativeptr*) arg)->ptr);
 	if(aga_script_aferr("af_killbuf", result)) return 0;
 
 	free(((struct aga_nativeptr*) arg)->ptr);
@@ -323,45 +355,43 @@ static object* agan_killvertbuf(object* self, object* arg) {
 }
 
 static enum af_err agan_settransmat(object* trans, af_bool_t scaleonly) {
-	{
-		const char* comps[] = { "pos", "rot", "scale" };
-		object* comp;
-		object* xo;
-		object* yo;
-		object* zo;
-		float x, y, z;
-		af_size_t i;
+	const char* comps[] = { "pos", "rot", "scale" };
+	object* comp;
+	object* xo;
+	object* yo;
+	object* zo;
+	float x, y, z;
+	af_size_t i;
 
-		for(i = 0; i < 3; ++i) {
-			if(scaleonly && i != 2) continue;
-			if(!(comp = getattr(trans, (char*) comps[i]))) return 0;
-			if(!(xo = getlistitem(comp, 0))) return 0;
-			if(!(yo = getlistitem(comp, 1))) return 0;
-			if(!(zo = getlistitem(comp, 2))) return 0;
+	for(i = 0; i < 3; ++i) {
+		if(scaleonly && i != 2) continue;
+		if(!(comp = getattr(trans, (char*) comps[i]))) return 0;
+		if(!(xo = getlistitem(comp, 0))) return 0;
+		if(!(yo = getlistitem(comp, 1))) return 0;
+		if(!(zo = getlistitem(comp, 2))) return 0;
 
-			x = (float) getfloatvalue(xo);
-			if(err_occurred()) return 0;
-			y = (float) getfloatvalue(yo);
-			if(err_occurred()) return 0;
-			z = (float) getfloatvalue(zo);
-			if(err_occurred()) return 0;
+		x = (float) getfloatvalue(xo);
+		if(err_occurred()) return 0;
+		y = (float) getfloatvalue(yo);
+		if(err_occurred()) return 0;
+		z = (float) getfloatvalue(zo);
+		if(err_occurred()) return 0;
 
-			switch(i) {
-				default: break;
-				case 1: {
-					glRotatef(x, 1.0f, 0.0f, 0.0f);
-					glRotatef(y, 0.0f, 1.0f, 0.0f);
-					glRotatef(z, 0.0f, 0.0f, 1.0f);
-					break;
-				}
-				case 0: {
-					glTranslatef(x, y, z);
-					break;
-				}
-				case 2: {
-					glScalef(x, y, z);
-					break;
-				}
+		switch(i) {
+			default: break;
+			case 1: {
+				glRotatef(x, 1.0f, 0.0f, 0.0f);
+				glRotatef(y, 0.0f, 1.0f, 0.0f);
+				glRotatef(z, 0.0f, 0.0f, 1.0f);
+				break;
+			}
+			case 0: {
+				glTranslatef(x, y, z);
+				break;
+			}
+			case 2: {
+				glScalef(x, y, z);
+				break;
 			}
 		}
 	}
@@ -379,7 +409,13 @@ static object* agan_drawbuf(object* self, object* arg) {
 
 	enum af_err result;
 
+	struct af_ctx* af;
+	struct af_vert* vert;
+
 	(void) self;
+
+	if(!(af = aga_getscriptptr(AGA_SCRIPT_AFCTX))) return 0;
+	if(!(vert = aga_getscriptptr(AGA_SCRIPT_AFVERT))) return 0;
 
 	if(!arg || !is_tupleobject(arg) ||
 		!(v = gettupleitem(arg, 0)) || v->ob_type != &aga_nativeptr_type ||
@@ -402,7 +438,7 @@ static object* agan_drawbuf(object* self, object* arg) {
 	result = agan_settransmat(t, AF_FALSE);
 	if(aga_script_aferr("agan_settransmat", result)) return 0;
 
-	if(af_drawbuf(&script_ctx->af_ctx, ptr, &script_ctx->vert, primitive)) {
+	if(af_drawbuf(af, ptr, vert, primitive)) {
 		err_setstr(RuntimeError, "af_drawbuf() failed");
 		return 0;
 	}
@@ -423,11 +459,16 @@ static object* agan_mkteximg(object* self, object* arg) {
 	object* filter;
 
 	struct aga_nativeptr* retval;
+	struct agan_teximg* teximg;
 	const char* path;
 
 	af_bool_t f;
 
+	struct af_ctx* af;
+
 	(void) self;
+
+	if(!(af = aga_getscriptptr(AGA_SCRIPT_AFCTX))) return 0;
 
 	if(!arg || !is_tupleobject(arg) ||
 		!(str = gettupleitem(arg, 0)) || !is_stringobject(str) ||
@@ -444,18 +485,16 @@ static object* agan_mkteximg(object* self, object* arg) {
 	if(!retval) return 0;
 
 	if(!(retval->ptr = malloc(sizeof(struct agan_teximg)))) return err_nomem();
+	teximg = retval->ptr;
 
 	if(!(path = getstringvalue(str))) return 0;
 
-	if(aga_mkimg(&((struct agan_teximg*) retval->ptr)->img, path)) {
+	if(aga_mkimg(&teximg->img, path)) {
 		err_setstr(RuntimeError, "aga_mkimg() failed");
 		return 0;
 	}
 
-	if(aga_mkteximg(
-		&script_ctx->af_ctx, &((struct agan_teximg*) retval->ptr)->img,
-		&((struct agan_teximg*) retval->ptr)->tex, f)) {
-
+	if(aga_mkteximg(af, &teximg->img, &teximg->tex, f)) {
 		err_setstr(RuntimeError, "aga_mkteximg() failed");
 		return 0;
 	}
@@ -466,7 +505,11 @@ static object* agan_mkteximg(object* self, object* arg) {
 static object* agan_settex(object* self, object* arg) {
 	struct agan_teximg* teximg;
 
+	struct af_ctx* af;
+
 	(void) self;
+
+	if(!(af = aga_getscriptptr(AGA_SCRIPT_AFCTX))) return 0;
 
 	if (!arg || arg->ob_type != &aga_nativeptr_type) {
 		err_setstr(RuntimeError, "settex() argument must be nativeptr");
@@ -475,7 +518,7 @@ static object* agan_settex(object* self, object* arg) {
 
 	teximg = ((struct aga_nativeptr*) arg)->ptr;
 
-	if(af_settex(&script_ctx->af_ctx, &teximg->tex)) {
+	if(af_settex(af, &teximg->tex)) {
 		err_setstr(RuntimeError, "af_settex() failed");
 		return 0;
 	}
@@ -487,7 +530,11 @@ static object* agan_settex(object* self, object* arg) {
 static object* agan_killteximg(object* self, object* arg) {
 	struct agan_teximg* teximg;
 
+	struct af_ctx* af;
+
 	(void) self;
+
+	if(!(af = aga_getscriptptr(AGA_SCRIPT_AFCTX))) return 0;
 
 	if(!arg || arg->ob_type != &aga_nativeptr_type) {
 		err_setstr(
@@ -497,7 +544,7 @@ static object* agan_killteximg(object* self, object* arg) {
 
 	teximg = ((struct aga_nativeptr*) arg)->ptr;
 
-	if(af_killbuf(&script_ctx->af_ctx, &teximg->tex)) {
+	if(af_killbuf(af, &teximg->tex)) {
 		err_setstr(RuntimeError, "af_killbuf() failed");
 		return 0;
 	}
@@ -549,8 +596,7 @@ static object* agan_mkclip(object* self, object* arg) {
 	(void) self;
 
 	if(!arg || arg->ob_type != &aga_nativeptr_type) {
-		err_setstr(
-			RuntimeError, "mkclip() argument must be nativeptr");
+		err_setstr(RuntimeError, "mkclip() argument must be nativeptr");
 		return 0;
 	}
 
@@ -571,18 +617,21 @@ static object* agan_mkclip(object* self, object* arg) {
 }
 
 static object* agan_putclip(object* self, object* arg) {
+	struct aga_opts* opts;
+	struct aga_snddev* snd;
+
 	(void) self;
 
+	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
+	if(!(snd = aga_getscriptptr(AGA_SCRIPT_SNDDEV))) return 0;
+
 	if(!arg || arg->ob_type != &aga_nativeptr_type) {
-		err_setstr(
-			RuntimeError, "putclip() argument must be nativeptr");
+		err_setstr(RuntimeError, "putclip() argument must be nativeptr");
 		return 0;
 	}
 
-	if(script_ctx->opts->audio_enabled) {
-		if(aga_putclip(
-			&script_ctx->snddev, ((struct aga_nativeptr*) arg)->ptr)) {
-
+	if(opts->audio_enabled) {
+		if(aga_putclip(snd, ((struct aga_nativeptr*) arg)->ptr)) {
 			err_setstr(RuntimeError, "aga_putclip() failed");
 			return 0;
 		}
@@ -925,6 +974,7 @@ static object* agan_mkobj(object* self, object* arg) {
 	struct agan_object* obj;
 	const char* path;
 	enum af_err result;
+	object* trans;
 
 	(void) self;
 
@@ -943,16 +993,18 @@ static object* agan_mkobj(object* self, object* arg) {
 
 	obj = retval->ptr;
 
-	if(!(obj->transform = newclassmemberobject(script_ctx->transform_class))) {
+	if(!(trans = dictlookup(aga_dict, "transform"))) return 0;
+
+	if(!(obj->transform = newclassmemberobject(trans))) {
 		return 0;
 	}
 	{
-		struct aga_scriptclass class = { 0, "transform" };
+		struct aga_scriptclass class;
 		struct aga_scriptinst inst;
 		inst.class = &class;
 		inst.object = obj->transform;
+		class.class = trans;
 
-		class.class = script_ctx->transform_class;
 		result = aga_instcall(&inst, "create");
 		if(aga_script_aferr("aga_instcall", result)) return 0;
 	}
@@ -984,10 +1036,10 @@ static object* agan_mkobj(object* self, object* arg) {
 				object* modelcache;
 				object* filecache;
 				object* lookup;
-				if(!(modelcache =
-					dictlookup(script_ctx->agan_dict, "modelcache"))) return 0;
-				if(!(filecache =
-					dictlookup(script_ctx->agan_dict, "filecache"))) return 0;
+				if(!(modelcache = dictlookup(agan_dict, "modelcache"))) {
+					return 0;
+				}
+				if(!(filecache = dictlookup(agan_dict, "filecache"))) return 0;
 
 				if(!(strobj = newstringobject((char*) str))) return 0;
 				obj->modelpath = strobj;
@@ -1018,8 +1070,8 @@ static object* agan_mkobj(object* self, object* arg) {
 			if(aga_confvar("Texture", item, AGA_STRING, &str)) {
 				object* texcache;
 				object* lookup;
-				if(!(texcache =
-					dictlookup(script_ctx->agan_dict, "texcache"))) return 0;
+
+				if(!(texcache = dictlookup(agan_dict, "texcache"))) return 0;
 
 				if(!(strobj = newstringobject((char*) str))) return 0;
 				obj->texpath = strobj;
@@ -1368,11 +1420,14 @@ static object* agan_clear(object* self, object* arg) {
 	af_size_t i;
 	enum af_err result;
 
+	struct af_ctx* af;
+
 	(void) self;
 
+	if(!(af = aga_getscriptptr(AGA_SCRIPT_AFCTX))) return 0;
+
 	if(!arg || !is_listobject(arg)) {
-		err_setstr(
-			RuntimeError, "clear() argument must be list");
+		err_setstr(RuntimeError, "clear() argument must be list");
 		return 0;
 	}
 
@@ -1382,7 +1437,7 @@ static object* agan_clear(object* self, object* arg) {
 		if(err_occurred()) return 0;
 	}
 
-	result = af_clear(&script_ctx->af_ctx, col);
+	result = af_clear(af, col);
 	if(aga_script_aferr("af_clear", result)) return 0;
 
 	INCREF(None);
@@ -1484,16 +1539,20 @@ static object* agan_randnorm(object* self, object* arg) {
 }
 
 static object* agan_die(object* self, object* arg) {
+	af_bool_t* die;
+
 	(void) self;
 	(void) arg;
 
-	script_ctx->die = AF_TRUE;
+	if(!(die = aga_getscriptptr(AGA_SCRIPT_DIE))) return 0;
+
+	*die = AF_TRUE;
 
 	INCREF(None);
 	return None;
 }
 
-enum af_err aga_mkmod(void) {
+enum af_err aga_mkmod(object** dict) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
 		{ "setcam", agan_setcam },
@@ -1539,7 +1598,6 @@ enum af_err aga_mkmod(void) {
 	};
 
 	object* module = initmodule("agan", methods);
-	object* dict;
 	object* texcache;
 	object* modelcache;
 	object* filecache;
@@ -1557,25 +1615,24 @@ enum af_err aga_mkmod(void) {
 		aga_scripttrace();
 		return AF_ERR_UNKNOWN;
 	}
-	if(!(dict = getmoduledict(module))) {
+	if(!(agan_dict = getmoduledict(module))) {
 		aga_scripttrace();
 		return AF_ERR_UNKNOWN;
 	}
+	*dict = agan_dict;
 
-	if(dictinsert(dict, "texcache", texcache) == -1) {
+	if(dictinsert(agan_dict, "texcache", texcache) == -1) {
 		aga_scripttrace();
 		return AF_ERR_UNKNOWN;
 	}
-	if(dictinsert(dict, "modelcache", modelcache) == -1) {
+	if(dictinsert(agan_dict, "modelcache", modelcache) == -1) {
 		aga_scripttrace();
 		return AF_ERR_UNKNOWN;
 	}
-	if(dictinsert(dict, "filecache", filecache) == -1) {
+	if(dictinsert(agan_dict, "filecache", filecache) == -1) {
 		aga_scripttrace();
 		return AF_ERR_UNKNOWN;
 	}
-
-	script_ctx->agan_dict = dict;
 
 	return AF_ERR_NONE;
 }

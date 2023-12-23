@@ -69,28 +69,16 @@ struct aga_winproc_pack {
 static LRESULT aga_winproc(
 		HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param) {
 
-	struct aga_ctx* ctx;
+    struct aga_winproc_pack* pack;
 	af_bool_t down = AF_TRUE;
-	struct aga_keymap* keymap;
 
-	if(msg == WM_NCCREATE) {
-		CREATESTRUCTA* create = (void*) l_param;
-		ctx = create->lpCreateParams;
-
-		SetLastError(0);
-		SetWindowLongPtrA(wnd, GWLP_USERDATA, (LONG_PTR) ctx);
-		if(GetLastError()) AGA_AF_WINCHK("SetWindowLongPtrA");
-
-		return TRUE;
-	}
+	if(msg == WM_NCCREATE) return TRUE;
 
 	SetLastError(0);
-	if(!(ctx = (void*) GetWindowLongPtrA(wnd, GWLP_USERDATA))) {
+	if(!(pack = (void*) GetWindowLongPtrA(wnd, GWLP_USERDATA))) {
 		if(GetLastError()) AGA_AF_WINCHK("GetWindowLongPtrA");
 		goto default_msg;
 	}
-
-	keymap = ctx->keymap;
 
 	switch(msg) {
 		default: {
@@ -102,20 +90,21 @@ static LRESULT aga_winproc(
 			AF_FALLTHROUGH;
 			/* FALLTHRU */
 		case WM_KEYDOWN: {
-			keymap->keystates[w_param] = down;
+			pack->keymap->keystates[w_param] = down;
 			return 0;
 		}
 
 		case WM_MOUSEMOVE: {
-			ctx->pointer->dx = GET_X_LPARAM(l_param) - keymap->keycode_len;
-			ctx->pointer->dy = GET_Y_LPARAM(l_param) - keymap->keycode_min;
-			keymap->keycode_len = GET_X_LPARAM(l_param);
-			keymap->keycode_min = GET_Y_LPARAM(l_param);
+			pack->pointer->dx = GET_X_LPARAM(l_param) - pack->pointer->x;
+			pack->pointer->dy = GET_Y_LPARAM(l_param) - pack->pointer->y;
+            pack->pointer->x = GET_X_LPARAM(l_param);
+            pack->pointer->y = GET_Y_LPARAM(l_param);
 			return 0;
 		}
 
-		case WM_NCDESTROY: {
-			ctx->die = AF_TRUE;
+		case WM_CLOSE: {
+            if(!DestroyWindow(wnd)) (void) aga_af_winerr(__FILE__, "DestroyWindow");
+			*pack->die = AF_TRUE;
 			return 0;
 		}
 	}
@@ -290,12 +279,21 @@ enum af_err aga_poll(
 		struct aga_pointer* pointer, af_bool_t* die) {
 
 	MSG msg;
+    struct aga_winproc_pack pack;
 
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(keymap);
 	AF_PARAM_CHK(win);
 	AF_PARAM_CHK(pointer);
 	AF_PARAM_CHK(die);
+
+    pack.die = die;
+    pack.keymap = keymap;
+    pack.pointer = pointer;
+
+    SetLastError(0);
+    SetWindowLongPtrA(win->win.hwnd, GWLP_USERDATA, (LONG_PTR) &pack);
+    if(GetLastError()) AGA_AF_WINCHK("SetWindowLongPtrA");
 
 	while(PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
 		TranslateMessage(&msg);

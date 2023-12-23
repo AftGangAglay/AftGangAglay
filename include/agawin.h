@@ -30,6 +30,7 @@ struct aga_keymap {
 
 struct aga_pointer {
 	int dx, dy;
+    int x, y;
 };
 
 struct aga_winenv {

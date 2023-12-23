@@ -69,6 +69,7 @@ include $(AFEIRSA_ROOT)/build/glabi.mk
 CFLAGS += $(GLABI)
 
 ifdef WINDOWS
+	CFLAGS += -D_WINDOWS
 	LDLIBS += -lgdi32
 endif
 

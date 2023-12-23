@@ -12,6 +12,7 @@
 #include <agawin.h>
 #include <agastartup.h>
 #include <agasnd.h>
+#include <agastd.h>
 
 #include <afeirsa/afgl.h>
 

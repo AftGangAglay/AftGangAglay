@@ -12,6 +12,8 @@
  * 		 Support would be a bit of a death sentence so here we are.
  */
 
+#include <agaw32.h>
+
 #include <windows.h>
 #include <windowsx.h>
 
@@ -23,42 +25,6 @@ static const PIXELFORMATDESCRIPTOR pixel_format = {
 	PFD_TYPE_RGBA, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	32, 0, 0, PFD_MAIN_PLANE, 0, 0, 0, 0
 };
-
-static enum af_err aga_af_pathwinerr(
-		const char* loc, const char* proc, const char* path) {
-
-	if(loc) {
-		DWORD err = GetLastError();
-		LPSTR buf;
-		DWORD written;
-		if(!err) return AF_ERR_NONE;
-
-		written = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-			FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			0, err, 0, (LPSTR) &buf, 0, 0);
-		if(!written) {
-			aga_log(__FILE__, "err: FormatMessageA failed");
-			return AF_ERR_UNKNOWN;
-		}
-
-		if(path) aga_log(loc, "err: %s: %s `%s'", proc, buf, path);
-		else aga_log(loc, "err: %s: %s", proc, buf);
-
-		if(LocalFree(buf)) {
-			aga_log(__FILE__, "err: LocalFree failed");
-			return AF_ERR_UNKNOWN;
-		}
-	}
-
-	return AF_ERR_UNKNOWN;
-}
-
-static enum af_err aga_af_winerr(const char* loc, const char* proc) {
-	return aga_af_pathwinerr(loc, proc, 0);
-}
-
-#define AGA_AF_WINCHK(proc) \
-	aga_af_chk(__FILE__, proc, aga_af_winerr(__FILE__, proc))
 
 struct aga_winproc_pack {
 	struct aga_keymap* keymap;

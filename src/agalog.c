@@ -6,6 +6,7 @@
 #include <agalog.h>
 #include <agaenv.h>
 #include <agastd.h>
+#include <agaw32.h>
 
 #ifdef _DEBUG
 # define AGA_LOG_DEFAULT_STREAM (stderr)
@@ -30,6 +31,7 @@ AGA_USED AGA_DESTRUCTOR void aga_ondestr(void) {
 void aga_mklog(const char** targets, af_size_t len) {
 	af_size_t i;
 
+	aga_logctx.have_ansi = AF_TRUE;
 	aga_logctx.len = len;
 
 	if(!(aga_logctx.targets = malloc(len * sizeof(FILE*)))) {
@@ -47,6 +49,10 @@ void aga_mklog(const char** targets, af_size_t len) {
 			}
 		}
 	}
+
+#ifdef _WINDOWS
+	aga_setw32log();
+#endif
 
 	signal(SIGABRT, aga_onabrt);
 }
@@ -72,8 +78,7 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 	const char* f;
 	if(!s) return;
 
-	/* TODO: Enable virtual terminal sequences for Windows. */
-	if(AGA_ISTTY(s)) {
+	if(aga_logctx.have_ansi && AGA_ISTTY(s)) {
 		switch(sev) {
 			default: break;
 			case AGA_NORM: f = CYN "[%s]" END " "; break;

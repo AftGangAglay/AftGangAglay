@@ -19,6 +19,7 @@ typedef char aga_fixed_buf_t[2048 + 1];
 struct aga_logctx {
 	void** targets;
 	af_size_t len;
+	af_bool_t have_ansi;
 };
 
 enum aga_logsev {

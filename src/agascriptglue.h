@@ -351,7 +351,7 @@ static object* agan_killvertbuf(object* self, object* arg) {
 	return None;
 }
 
-static enum af_err agan_settransmat(object* trans, af_bool_t scaleonly) {
+static af_bool_t agan_settransmat(object* trans) {
 	const char* comps[] = { "pos", "rot", "scale" };
 	object* comp;
 	object* xo;
@@ -361,18 +361,17 @@ static enum af_err agan_settransmat(object* trans, af_bool_t scaleonly) {
 	af_size_t i;
 
 	for(i = 0; i < 3; ++i) {
-		if(scaleonly && i != 2) continue;
-		if(!(comp = getattr(trans, (char*) comps[i]))) return 0;
-		if(!(xo = getlistitem(comp, 0))) return 0;
-		if(!(yo = getlistitem(comp, 1))) return 0;
-		if(!(zo = getlistitem(comp, 2))) return 0;
+		if(!(comp = getattr(trans, (char*) comps[i]))) return AF_FALSE;
+		if(!(xo = getlistitem(comp, 0))) return AF_FALSE;
+		if(!(yo = getlistitem(comp, 1))) return AF_FALSE;
+		if(!(zo = getlistitem(comp, 2))) return AF_FALSE;
 
 		x = (float) getfloatvalue(xo);
-		if(err_occurred()) return 0;
+		if(err_occurred()) return AF_FALSE;
 		y = (float) getfloatvalue(yo);
-		if(err_occurred()) return 0;
+		if(err_occurred()) return AF_FALSE;
 		z = (float) getfloatvalue(zo);
-		if(err_occurred()) return 0;
+		if(err_occurred()) return AF_FALSE;
 
 		switch(i) {
 			default: break;
@@ -393,7 +392,7 @@ static enum af_err agan_settransmat(object* trans, af_bool_t scaleonly) {
 		}
 	}
 
-	return AF_ERR_NONE;
+	return AF_TRUE;
 }
 
 static object* agan_drawbuf(object* self, object* arg) {
@@ -403,8 +402,6 @@ static object* agan_drawbuf(object* self, object* arg) {
 
 	void* ptr;
 	long primitive;
-
-	enum af_err result;
 
 	struct af_ctx* af;
 	struct af_vert* vert;
@@ -432,8 +429,7 @@ static object* agan_drawbuf(object* self, object* arg) {
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
-	result = agan_settransmat(t, AF_FALSE);
-	if(aga_script_aferr("agan_settransmat", result)) return 0;
+	if(!agan_settransmat(t)) return 0;
 
 	if(af_drawbuf(af, ptr, vert, primitive)) {
 		err_setstr(RuntimeError, "af_drawbuf() failed");
@@ -848,8 +844,7 @@ static object* agan_mklight(object* self, object* arg) {
 }
 
 static object* agan_lightpos(object* self, object* arg) {
-	float pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	enum af_err result;
+	static const float pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 	object* t;
 	object* v;
@@ -874,8 +869,7 @@ static object* agan_lightpos(object* self, object* arg) {
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 
-	result = agan_settransmat(t, AF_FALSE);
-	if(aga_script_aferr("agan_settransmat", result)) return 0;
+	if(!agan_settransmat(t)) return 0;
 
 	glLightfv(light, GL_POSITION, pos);
 	if(aga_script_glerr("glLightfv")) return 0;
@@ -1197,10 +1191,7 @@ static object* agan_putobj(object* self, object* arg) {
 
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
-	if(obj->scaletex) {
-		enum af_err result = agan_settransmat(obj->transform, AF_TRUE);
-		if(aga_script_aferr("agan_settransmat", result)) return 0;
-	}
+	if(obj->scaletex && !agan_settransmat(obj->transform)) return 0;
 
 	if(!agan_drawbuf(0, call_tuple)) return 0;
 

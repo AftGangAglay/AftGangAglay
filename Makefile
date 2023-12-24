@@ -49,7 +49,7 @@ include vendor/afeirsa.mk
 include vendor/libtiff.mk
 
 SOURCES = $(wildcard src/*.c)
-HEADERS = $(wildcard include/*.h) $(wildcard src/*.h)
+HEADERS = $(wildcard include/*.h)
 OBJECTS = $(SOURCES:.c=.o)
 
 OUT = src/main$(EXE)
@@ -94,6 +94,14 @@ all: $(OUT)
 $(OUT): $(OBJECTS) $(LIBDEPS)
 
 $(OBJECTS): $(HEADERS)
+
+src/agascript.o: src/agascriptglue.h
+
+ifdef WINDOWS
+src/agawin.o: src/agawwin.h
+else
+src/agawin.o: src/agaxwin.h
+endif
 
 .PHONY: clean
 clean:

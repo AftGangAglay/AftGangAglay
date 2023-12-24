@@ -12,13 +12,10 @@ WWW_DISABLED = $(WWW_SOURCEROOT)/HTWAIS.c
 WWW_SOURCES := $(filter-out $(WWW_DISABLED),$(WWW_SOURCES))
 WWW_OBJECTS = $(WWW_SOURCES:.c=.o)
 
-WWW_CFLAGS = -std=c89 -ansi -D_SVID_SOURCE -w
+WWW_CFLAGS = -D_SVID_SOURCE -w
 ifdef WINDOWS
 	WWW_CFLAGS += -D_WINDOWS -DTCP_INCLUDES_DONE -DNO_GROUPS -include winsock.h
 endif
-
-# `clang' treats this as an error and doesn't disable it with `-w'.
-WWW_CFLAGS += -Wno-incompatible-function-pointer-types
 
 ifdef APPLE
 	WWW_CFLAGS += -DNeXT
@@ -30,10 +27,9 @@ else
 	WWW_CFLAGS += -DNDEBUG -O
 endif
 
-all: $(LIBWWW)
-
-$(LIBWWW): CFLAGS = $(WWW_CFLAGS)
 $(LIBWWW): $(WWW_OBJECTS)
+
+$(WWW_OBJECTS): CFLAGS += $(WWW_CFLAGS)
 
 clean: clean_www
 .PHONY: clean_www

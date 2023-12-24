@@ -39,63 +39,61 @@ ifdef WINDOWS
 %: %.o
 endif
 
+ARFLAGS = -rc
+
 (%): %
 %.a:
 	$(AR) $(ARFLAGS) $@ $?
 	$(RANLIB) $@
-
-.PHONY: SUBMAKE
-SUBMAKE:
 
 include vendor/www.mk
 include vendor/python.mk
 include vendor/afeirsa.mk
 include vendor/libtiff.mk
 
-SOURCES = $(wildcard src/*.c)
-HEADERS = $(wildcard include/*.h)
-OBJECTS = $(SOURCES:.c=.o)
+AGA_SOURCES = $(wildcard src/*.c)
+AGA_HEADERS = $(wildcard include/*.h)
+AGA_OBJECTS = $(AGA_SOURCES:.c=.o)
 
-OUT = src/main$(EXE)
+AGA_OUT = src/main$(EXE)
 
-CFLAGS += -Iinclude
-CFLAGS += -std=c89 -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
-
-LDLIBS += -lm
-
-CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS) $(AFEIRSA_IFLAGS) $(LIBTIFF_IFLAGS)
-LIBDEPS = $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) $(LIBTIFF)
-LDLIBS += $(LIBDEPS)
-
-include $(AFEIRSA_ROOT)/build/glabi.mk
-
-# glabi appends its own ldlibs
-CFLAGS += $(GLABI)
-
-ifdef WINDOWS
-	CFLAGS += -D_WINDOWS
-	LDLIBS += -lgdi32 -lshell32
-	LDFLAGS += -Wl,-subsystem,windows
-endif
-
-ifdef GLXABI
-	LDLIBS += -lX11
-endif
-
+CFLAGS = -std=c89
 ifdef DEBUG
 	CFLAGS += -g -D_DEBUG
 else
 	CFLAGS += -DNDEBUG -O
 endif
 
+DIAGNOSTICS = -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
+
+AGA_CFLAGS += -Iinclude $(DIAGNOSTICS) $(GLABI_CFLAGS)
+
+AGA_CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS) $(AFEIRSA_IFLAGS)
+AGA_CFLAGS += $(LIBTIFF_IFLAGS)
+
+AGA_LIBDEPS = $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) $(LIBTIFF)
+AGA_LDLIBS += $(AGA_LIBDEPS) $(GLABI_LDLIBS) -lm
+
+ifdef WINDOWS
+	AGA_CFLAGS += -D_WINDOWS
+	AGA_LDLIBS += -lgdi32 -lshell32
+	AGA_LDFLAGS += -Wl,-subsystem,windows
+endif
+
+ifdef GLXABI
+	AGA_LDLIBS += -lX11
+endif
+
 ifdef NOSND
-	CFLAGS += -DAGA_NOSND
+	AGA_CFLAGS += -DAGA_NOSND
 endif
 
 ifdef WINDOWS
-RCFILES = $(wildcard res/*.rc)
-RESFILES = $(RCFILES:.rc=.res)
-RESOBJECTS = $(RCFILES:.rc=.o)
+	AGA_RCFILES = $(wildcard res/*.rc)
+	AGA_RESFILES = $(AGA_RCFILES:.rc=.res)
+	AGA_RESOBJECTS = $(AGA_RCFILES:.rc=.o)
+
+	AGA_OBJECTS += $(AGA_RESOBJECTS)
 
 %.res: %.rc
 	$(WINDRES) -i $< -o $@
@@ -103,26 +101,25 @@ RESOBJECTS = $(RCFILES:.rc=.o)
 %.o: %.rc
 	$(WINDRES) -i $< -o $@
 
-OBJECTS += $(RESOBJECTS)
+$(AGA_OUT):	$(AGA_RESFILES)
 
-$(OUT):	$(RESFILES)
-
-.PHONY: clean_res
 clean: clean_res
-
+.PHONY: clean_res
 clean_res:
-	$(call PATHREM,$(RESFILES))
-	$(call PATHREM,$(RESOBJECTS))
-
+	$(call PATHREM,$(AGA_RESFILES))
+	$(call PATHREM,$(AGA_RESOBJECTS))
 endif
 
 .DEFAULT_GOAL := all
 .PHONY: all
-all: $(OUT)
+all: $(AGA_OUT)
 
-$(OUT): $(OBJECTS) $(LIBDEPS)
+$(AGA_OUT): LDFLAGS += $(AGA_LDFLAGS)
+$(AGA_OUT): LDLIBS += $(AGA_LDLIBS)
+$(AGA_OUT): $(AGA_OBJECTS) $(AGA_LIBDEPS)
 
-$(OBJECTS): $(HEADERS)
+$(AGA_OBJECTS): CFLAGS += $(AGA_CFLAGS)
+$(AGA_OBJECTS): $(AGA_HEADERS)
 
 src/agascript.o: src/agascriptglue.h
 
@@ -134,8 +131,8 @@ endif
 
 .PHONY: clean
 clean:
-	$(call PATHREM,$(OBJECTS))
-	$(call PATHREM,$(OUT))
+	$(call PATHREM,$(AGA_OBJECTS))
+	$(call PATHREM,$(AGA_OUT))
 
 PREFIX = /usr/local
 

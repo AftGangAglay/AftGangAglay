@@ -119,6 +119,8 @@ int main(int argc, char** argv) {
 		result = af_flush(&af);
 		if(result) aga_af_soft(__FILE__, "af_flush", result);
 
+		aga_af_chk(__FILE__, "malloc", AF_ERR_MEM);
+
 		if(!die) { /* Window is already dead/dying if `die' is set. */
 			result = aga_swapbuf(&env, &win);
 			if(result) aga_af_soft(__FILE__, "aga_swapbuf", result);
@@ -153,3 +155,17 @@ int main(int argc, char** argv) {
 
 	return 0;
 }
+
+#ifdef _WINDOWS
+int WinMain(void* inst, void* prev, char* cmd, int showcmd) {
+	extern int __argc;
+	extern char ** __argv;
+
+	(void) inst;
+	(void) prev;
+	(void) cmd;
+	(void) showcmd;
+
+	return main(__argc, __argv);
+}
+#endif

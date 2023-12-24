@@ -35,7 +35,7 @@ AGA_NORETURN void aga_abort(void) {
 		"https://github.com/AftGangAglay/AftGangAglay/issues/new";
 
 	af_bool_t res;
-	(void) aga_diag(msg, "Fatal Error", &res);
+	(void) aga_diag(msg, "Fatal Error", &res, AF_TRUE);
 
 	if(res) (void) aga_shellopen(report_uri);
 

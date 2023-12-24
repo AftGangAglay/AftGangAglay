@@ -17,6 +17,10 @@ ifndef RANLIB
 	RANLIB = ranlib
 endif
 
+ifndef WINDRES
+	WINDRES = windres
+endif
+
 ifdef WINDOWS_SHELL
 	RM = del
 define PATHREM
@@ -71,6 +75,7 @@ CFLAGS += $(GLABI)
 ifdef WINDOWS
 	CFLAGS += -D_WINDOWS
 	LDLIBS += -lgdi32 -lshell32
+	LDFLAGS += -Wl,-subsystem,windows
 endif
 
 ifdef GLXABI
@@ -85,6 +90,22 @@ endif
 
 ifdef NOSND
 	CFLAGS += -DAGA_NOSND
+endif
+
+ifdef WINDOWS
+RCFILES = $(wildcard res/*.rc)
+RESFILES = $(RCFILES:.rc=.res)
+RESOBJECTS = $(RCFILES:.rc=.o)
+
+%.res: %.rc
+	$(WINDRES) -i $< -o $@
+
+%.o: %.rc
+	$(WINDRES) -i $< -o $@
+
+OBJECTS += $(RESOBJECTS)
+
+$(OUT):	$(RESFILES)
 endif
 
 .DEFAULT_GOAL := all

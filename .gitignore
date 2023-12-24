@@ -7,6 +7,8 @@ src/*
 !src/*.c
 !src/*.h
 
+res/*.res
+
 *.log
 
 .idea

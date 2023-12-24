@@ -72,7 +72,8 @@ enum af_err aga_poll(
 		struct aga_pointer* pointer, af_bool_t* die);
 
 enum af_err aga_diag(
-		const char* message, const char* title, af_bool_t* response);
+		const char* message, const char* title, af_bool_t* response,
+		af_bool_t is_error);
 
 enum af_err aga_shellopen(const char* uri);
 

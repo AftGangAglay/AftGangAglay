@@ -102,7 +102,7 @@ enum af_err aga_mkwinenv(union aga_winenv* env, const char* display) {
 	class.cbClsExtra = 0;
 	class.cbWndExtra = 0;
 	class.hInstance = env->win32.module;
-	class.hIcon = 0;
+	class.hIcon = LoadIconA(env->win32.module, "AGAIcon");
 	class.hCursor = 0;
 	class.hbrBackground = 0;
 	class.lpszMenuName = 0;
@@ -276,9 +276,11 @@ enum af_err aga_poll(
 }
 
 enum af_err aga_diag(
-		const char* message, const char* title, af_bool_t* response) {
+		const char* message, const char* title, af_bool_t* response,
+		af_bool_t is_error) {
 
-	DWORD flags = MB_YESNO | MB_ICONINFORMATION | MB_TASKMODAL;
+	DWORD icon = is_error ? MB_ICONERROR : MB_ICONINFORMATION;
+	DWORD flags = MB_YESNO | MB_TASKMODAL | icon;
 	int res;
 
 	AF_PARAM_CHK(message);

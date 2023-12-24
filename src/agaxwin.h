@@ -332,7 +332,8 @@ enum af_err aga_poll(
 /* TODO: Use `xdg' for diag/shellopen when available. */
 
 enum af_err aga_diag(
-		const char* message, const char* title, af_bool_t* response) {
+		const char* message, const char* title, af_bool_t* response,
+		af_bool_t is_error) {
 
 	AF_PARAM_CHK(message);
 	AF_PARAM_CHK(title);
@@ -340,8 +341,9 @@ enum af_err aga_diag(
 
 	if(isatty(stdin)) {
 		int c = 'N';
+		const char* err = is_error ? "err: " : "";
 
-		aga_log(__FILE__, "%s: %s (Y/N)", title, message);
+		aga_log(__FILE__, "%s%s: %s (Y/N)", err, title, message);
 		if((c = getchar()) == EOF) {
 			if(ferror(stdin)) return aga_af_errno(__FILE__, "getchar");
 		}

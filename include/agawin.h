@@ -15,7 +15,7 @@ struct aga_win {
 		af_ulong_t xwin;
 		void* hwnd;
 	} win;
-	void* storage;
+	void* dc;
 	af_size_t width;
 	af_size_t height;
 };
@@ -33,36 +33,42 @@ struct aga_pointer {
     int x, y;
 };
 
-struct aga_winenv {
-	/* TODO: Document what fields `agawwin' yoinks. */
-	void* dpy;
-	int dpy_fd;
-	int screen;
-	void* glx;
-	af_bool_t double_buffered;
-	af_ulong_t wm_delete;
+union aga_winenv {
+	struct {
+		void* dpy;
+		int dpy_fd;
+		int screen;
+		void* glx;
+		af_bool_t double_buffered;
+		af_ulong_t wm_delete;
+	} x;
+	struct {
+		void* module;
+		int class;
+		void* wgl;
+	} win32;
 };
 
 /*
  * NOTE: Glyphs are generated as display lists corresponding to the ASCII value
  * 		 Of each printable character (i.e. `glCallList('a')')
  */
-enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display);
-enum af_err aga_killwinenv(struct aga_winenv* env);
+enum af_err aga_mkwinenv(union aga_winenv* env, const char* display);
+enum af_err aga_killwinenv(union aga_winenv* env);
 
-enum af_err aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env);
+enum af_err aga_mkkeymap(struct aga_keymap* keymap, union aga_winenv* env);
 enum af_err aga_killkeymap(struct aga_keymap* keymap);
 
 enum af_err aga_mkwin(
-		af_size_t width, af_size_t height, struct aga_winenv* env,
+		af_size_t width, af_size_t height, union aga_winenv* env,
 		struct aga_win* win, int argc, char** argv);
-enum af_err aga_killwin(struct aga_winenv* env, struct aga_win* win);
+enum af_err aga_killwin(union aga_winenv* env, struct aga_win* win);
 
-enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win);
-enum af_err aga_swapbuf(struct aga_winenv* env, struct aga_win* win);
+enum af_err aga_glctx(union aga_winenv* env, struct aga_win* win);
+enum af_err aga_swapbuf(union aga_winenv* env, struct aga_win* win);
 
 enum af_err aga_poll(
-		struct aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
+		union aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
 		struct aga_pointer* pointer, af_bool_t* die);
 
 #endif

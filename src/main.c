@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
 
     struct aga_snddev snd;
 
-	struct aga_winenv env;
+	union aga_winenv env;
 	struct aga_win win;
 	struct aga_keymap keymap;
 	struct aga_pointer pointer;

@@ -1,7 +1,10 @@
 *.o
+*.obj
 *.a
+*.lib
 *.so
 *.dylib
+*.dll
 
 src/*
 !src/*.c

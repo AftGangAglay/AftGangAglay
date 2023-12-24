@@ -20,6 +20,7 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	const char* path[] = { "Script", "Path" };
 	const char* width[] = { "Display", "Width" };
 	const char* height[] = { "Display", "Height" };
+	const char* fov[] = { "Display", "FOV" };
 
 	AF_PARAM_CHK(opts);
 	AF_PARAM_CHK(argv);
@@ -32,6 +33,7 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	opts->python_path = "vendor/python/lib:script:script/AGAScriptLib";
 	opts->width = 640;
 	opts->height = 480;
+	opts->fov = 90.0f;
 	opts->audio_enabled = AF_TRUE;
 
 	af_memset(&opts->config, 0, sizeof(opts->config));
@@ -90,6 +92,10 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 
 	result = aga_conftree(
 		&opts->config, height, AF_ARRLEN(height), &opts->height, AGA_INTEGER);
+	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+
+	result = aga_conftree(
+		&opts->config, fov, AF_ARRLEN(fov), &opts->fov, AGA_FLOAT);
 	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
 
 	return AF_ERR_NONE;

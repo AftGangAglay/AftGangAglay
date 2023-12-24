@@ -24,6 +24,8 @@ struct aga_opts {
 	af_size_t width;
 	af_size_t height;
 
+	float fov;
+
 	struct aga_conf_node config;
 };
 

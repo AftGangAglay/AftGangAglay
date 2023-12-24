@@ -154,11 +154,8 @@ static object* agan_setcam(object* self, object* arg) {
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	/*
-	 * TODO: Make `setcam_persp' and `setcam_ortho' separate so that we
-	 * 		 Can de-hardcode FOV here.
-	 */
-	if(b) gluPerspective(90.0f, 1.0 / ar, 0.1, 10000.0);
+
+	if(b) gluPerspective(opts->fov, 1.0 / ar, 0.1, 10000.0);
 	else glOrtho(-1.0, 1.0, -ar, ar, 0.001, 1.0);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -1079,7 +1076,6 @@ static object* agan_mkobj(object* self, object* arg) {
 				if(!texcache ||
 					!(lookup = dictlookup(texcache, (char*) str))) {
 
-					/* TODO: Introduce proper parameter system in Afeirsa. */
 					object* filter_obj = obj->filter ? True : False;
 					object* call = newtupleobject(2);
 					if(!call) return 0;
@@ -1198,7 +1194,7 @@ static object* agan_putobj(object* self, object* arg) {
 		if(!agan_yeslight(0, 0)) return 0;
 		if(!agan_yesfog(0, 0)) return 0;
 	}
-	/* TODO: Cache `is_ident' for all matrices to avoid redundant reqs. */
+
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	if(obj->scaletex) {

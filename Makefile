@@ -70,7 +70,7 @@ CFLAGS += $(GLABI)
 
 ifdef WINDOWS
 	CFLAGS += -D_WINDOWS
-	LDLIBS += -lgdi32
+	LDLIBS += -lgdi32 -lshell32
 endif
 
 ifdef GLXABI

@@ -55,12 +55,10 @@ void aga_setw32log(void) {
 #endif
 
 	HANDLE con = GetStdHandle(handle);
-	DWORD mode;
+	DWORD mode = 0;
 
 	if(!GetConsoleMode(con, &mode)) {
-		aga_logctx.have_ansi = AF_FALSE;
 		(void) aga_af_winerr(__FILE__, "GetConsoleMode");
-		aga_log(__FILE__, "We don't seem to have ANSI terminal support");
 	}
 
 	if(!SetConsoleMode(con, mode | ENABLE_VIRTUAL_TERMINAL_INPUT)) {

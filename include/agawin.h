@@ -71,4 +71,9 @@ enum af_err aga_poll(
 		union aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
 		struct aga_pointer* pointer, af_bool_t* die);
 
+enum af_err aga_diag(
+		const char* message, const char* title, af_bool_t* response);
+
+enum af_err aga_shellopen(const char* uri);
+
 #endif

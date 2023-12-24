@@ -6,6 +6,7 @@
 #include <agaerr.h>
 #include <agastd.h>
 #include <agalog.h>
+#include <agawin.h>
 
 const char* aga_af_errname(enum af_err e) {
 	switch(e) {
@@ -26,6 +27,18 @@ const char* aga_af_errname(enum af_err e) {
 }
 
 AGA_NORETURN void aga_abort(void) {
+	static const char msg[] =
+		"AftGangAglay has encountered a fatal error and cannot continue.\n"
+		"Would you like to report the issue?\n"
+		"Please include the file `aga.log' along with your report.";
+	static const char report_uri[] =
+		"https://github.com/AftGangAglay/AftGangAglay/issues/new";
+
+	af_bool_t res;
+	(void) aga_diag(msg, "Fatal Error", &res);
+
+	if(res) (void) aga_shellopen(report_uri);
+
 #ifdef _DEBUG
 	abort();
 #else
@@ -36,7 +49,7 @@ AGA_NORETURN void aga_abort(void) {
 void aga_af_chk(const char* loc, const char* proc, enum af_err e) {
 	if(!e) return;
 	aga_af_soft(loc, proc, e);
-	abort();
+	aga_abort();
 }
 
 void aga_af_soft(const char* loc, const char* proc, enum af_err e) {

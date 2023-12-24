@@ -329,4 +329,35 @@ enum af_err aga_poll(
 	return AF_ERR_NONE;
 }
 
+/* TODO: Use `xdg' for diag/shellopen when available. */
+
+enum af_err aga_diag(
+		const char* message, const char* title, af_bool_t* response) {
+
+	AF_PARAM_CHK(message);
+	AF_PARAM_CHK(title);
+	AF_PARAM_CHK(response);
+
+	if(isatty(stdin)) {
+		int c = 'N';
+
+		aga_log(__FILE__, "%s: %s (Y/N)", title, message);
+		if((c = getchar()) == EOF) {
+			if(ferror(stdin)) return aga_af_errno(__FILE__, "getchar");
+		}
+		*response = (toupper(c) == 'Y');
+	}
+	else *response = AF_FALSE;
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_shellopen(const char* uri) {
+	AF_PARAM_CHK(uri);
+
+	aga_log(__FILE__, "%s", uri);
+
+	return AF_ERR_NONE;
+}
+
 #endif

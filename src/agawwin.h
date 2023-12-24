@@ -26,10 +26,13 @@ static const PIXELFORMATDESCRIPTOR pixel_format = {
 	32, 0, 0, PFD_MAIN_PLANE, 0, 0, 0, 0
 };
 
+#define AGA_WINPROC_PACK_MAGIC (0x547123AA)
+
 struct aga_winproc_pack {
 	struct aga_keymap* keymap;
 	struct aga_pointer* pointer;
 	af_bool_t* die;
+	af_uint_t magic;
 };
 
 static LRESULT aga_winproc(
@@ -45,6 +48,8 @@ static LRESULT aga_winproc(
 		if(GetLastError()) AGA_AF_WINCHK("GetWindowLongPtrA");
 		goto default_msg;
 	}
+
+	if(pack->magic != AGA_WINPROC_PACK_MAGIC) goto default_msg;
 
 	switch(msg) {
 		default: {
@@ -256,6 +261,7 @@ enum af_err aga_poll(
     pack.die = die;
     pack.keymap = keymap;
     pack.pointer = pointer;
+	pack.magic = AGA_WINPROC_PACK_MAGIC;
 
     SetLastError(0);
     SetWindowLongPtrA(win->win.hwnd, GWLP_USERDATA, (LONG_PTR) &pack);
@@ -267,6 +273,37 @@ enum af_err aga_poll(
 	}
 
 	return AF_ERR_NONE;
+}
+
+enum af_err aga_diag(
+		const char* message, const char* title, af_bool_t* response) {
+
+	DWORD flags = MB_YESNO | MB_ICONINFORMATION | MB_TASKMODAL;
+	int res;
+
+	AF_PARAM_CHK(message);
+	AF_PARAM_CHK(title);
+	AF_PARAM_CHK(response);
+
+	if(!(res = MessageBoxA(0, message, title, flags))) {
+		return aga_af_winerr(__FILE__, "MessageBoxA");
+	}
+
+	*response = (res == IDYES);
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_shellopen(const char* uri) {
+	int flags = SW_SHOWNORMAL;
+
+	AF_PARAM_CHK(uri);
+
+	if((INT_PTR) ShellExecuteA(0, 0, uri, 0, 0, flags) > 32) {
+		return AF_ERR_NONE;
+	}
+
+	return aga_af_pathwinerr(__FILE__, "ShellExecuteA", uri);
 }
 
 #endif

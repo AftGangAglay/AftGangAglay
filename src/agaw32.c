@@ -10,6 +10,22 @@
 
 #include <windows.h>
 
+#include <stdlib.h>
+
+int WinMain(
+		HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
+		int nShowCmd) {
+
+	extern int main(int, char**);
+
+	(void) hInstance;
+	(void) hPrevInstance;
+	(void) lpCmdLine;
+	(void) nShowCmd;
+
+	return main(__argc, __argv);
+}
+
 enum af_err aga_af_pathwinerr(
 		const char* loc, const char* proc, const char* path) {
 

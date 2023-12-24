@@ -155,17 +155,3 @@ int main(int argc, char** argv) {
 
 	return 0;
 }
-
-#ifdef _WINDOWS
-int WinMain(void* inst, void* prev, char* cmd, int showcmd) {
-	extern int __argc;
-	extern char ** __argv;
-
-	(void) inst;
-	(void) prev;
-	(void) cmd;
-	(void) showcmd;
-
-	return main(__argc, __argv);
-}
-#endif

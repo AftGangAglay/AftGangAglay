@@ -106,6 +106,14 @@ RESOBJECTS = $(RCFILES:.rc=.o)
 OBJECTS += $(RESOBJECTS)
 
 $(OUT):	$(RESFILES)
+
+.PHONY: clean_res
+clean: clean_res
+
+clean_res:
+	$(call PATHREM,$(RESFILES))
+	$(call PATHREM,$(RESOBJECTS))
+
 endif
 
 .DEFAULT_GOAL := all

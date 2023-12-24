@@ -51,6 +51,7 @@ $(LIBTIFF_GENERATED): $(MKG3STATES)
 clean: clean_libtiff
 .PHONY: clean_libtiff
 clean_libtiff:
+	$(call PATHREM,$(MKG3STATES_OBJECT))
 	$(call PATHREM,$(MKG3STATES))
 	$(call PATHREM,$(LIBTIFF_OBJECTS))
 	$(call PATHREM,$(LIBTIFF_GENERATED))

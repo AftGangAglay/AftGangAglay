@@ -18,6 +18,18 @@
 # endif
 #endif
 
+#ifndef AGA_DESTRUCTOR
+# define AGA_DESTRUCTOR
+#endif
+
+#ifndef AGA_USED
+# define AGA_USED
+#endif
+
+#ifndef AGA_NORETURN
+# define AGA_NORETURN
+#endif
+
 #ifdef __has_include
 # if __has_include(<unistd.h>)
 #  define AGA_HAVE_UNISTD

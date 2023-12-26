@@ -40,7 +40,12 @@ AGA_NORETURN void aga_abort(void) {
 	if(res) (void) aga_shellopen(report_uri);
 
 #ifdef _DEBUG
+# ifdef _WINDOWS
+	__debugbreak();
+	AGA_UNREACHABLE;
+# else
 	abort();
+# endif
 #else
 	exit(EXIT_FAILURE);
 #endif

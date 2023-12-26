@@ -18,6 +18,12 @@
 # endif
 #endif
 
+#ifdef __has_builtin
+# if __has_builtin(__builtin_unreachable)
+#  define AGA_UNREACHABLE __builtin_unreachable()
+# endif
+#endif
+
 #ifndef AGA_DESTRUCTOR
 # define AGA_DESTRUCTOR
 #endif
@@ -28,6 +34,10 @@
 
 #ifndef AGA_NORETURN
 # define AGA_NORETURN
+#endif
+
+#ifndef AGA_UNREACHABLE
+# define AGA_UNREACHABLE
 #endif
 
 #ifdef __has_include

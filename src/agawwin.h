@@ -153,7 +153,7 @@ enum af_err aga_mkwin(
 		struct aga_win* win, int argc, char** argv) {
 
 	int ind;
-	long mask = WS_CAPTION | WS_VISIBLE | WS_OVERLAPPEDWINDOW;
+	long mask = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
 
 	(void) argc;
 	(void) argv;

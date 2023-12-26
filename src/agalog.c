@@ -75,7 +75,7 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 #define RED ESC "31m"
 #define END ESC "m"
 
-	const char* f;
+	const char* f = "[%s] ";
 	if(!s) return;
 
 	if(aga_logctx.have_ansi && AGA_ISTTY(s)) {
@@ -86,7 +86,6 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 			case AGA_ERR: f = RED "[%s]" END " "; break;
 		}
 	}
-	else f = "[%s] ";
 
 	if(fprintf(s, f, loc) < 0) perror("fprintf");
 

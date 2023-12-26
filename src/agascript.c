@@ -17,7 +17,7 @@
 #include <afeirsa/afgl.h>
 
 /* NOTE: This is cursed beyond cursed but old C code do be like that. */
-#define main __attribute__((weak)) main
+#define main fake_main
 #include <pythonmain.c>
 #include <config.c>
 #include <traceback.h>
@@ -129,7 +129,7 @@ static enum af_err aga_compilescript(const char* script, object** dict) {
 
 enum af_err aga_mkscripteng(
 		struct aga_scripteng* eng, const char* script,
-        const char* pypath, int argc, char** argv) {
+		const char* pypath, int argc, char** argv) {
 
 	object* aga;
 

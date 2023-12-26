@@ -119,8 +119,6 @@ int main(int argc, char** argv) {
 		result = af_flush(&af);
 		if(result) aga_af_soft(__FILE__, "af_flush", result);
 
-		aga_af_chk(__FILE__, "malloc", AF_ERR_MEM);
-
 		if(!die) { /* Window is already dead/dying if `die' is set. */
 			result = aga_swapbuf(&env, &win);
 			if(result) aga_af_soft(__FILE__, "aga_swapbuf", result);

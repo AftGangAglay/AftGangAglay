@@ -8,9 +8,9 @@
 
 #ifdef _WINDOWS
 
-#include <windows.h>
+#include <agastd.h>
 
-#include <stdlib.h>
+#include <windows.h>
 
 int WinMain(
 		HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,

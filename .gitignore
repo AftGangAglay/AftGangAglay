@@ -5,6 +5,10 @@
 *.so
 *.dylib
 *.dll
+*.exe
+
+*.ilk
+*.pdb
 
 src/*
 !src/*.c

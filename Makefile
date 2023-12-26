@@ -37,6 +37,7 @@ ifdef WINDOWS
 %.exe: %.o
 	$(CC) -o $@ $(LDFLAGS) $(filter %.o,$^) $(LOADLIBES) $(LDLIBS)
 %: %.o
+%: %.c
 endif
 
 ARFLAGS = -rc
@@ -75,7 +76,7 @@ AGA_LIBDEPS = $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) $(LIBTIFF)
 AGA_LDLIBS += $(AGA_LIBDEPS) $(GLABI_LDLIBS) -lm
 
 ifdef WINDOWS
-	AGA_CFLAGS += -D_WINDOWS
+	CFLAGS += -D_WINDOWS
 	AGA_LDLIBS += -lgdi32 -lshell32
 	AGA_LDFLAGS += -Wl,-subsystem,windows
 endif

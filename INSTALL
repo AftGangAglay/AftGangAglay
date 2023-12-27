@@ -11,15 +11,21 @@ If a debug build is desired - `DEBUG=1' must be appended to the invocation.
 
 If cross-compiling, the variable `CROSS_TOOL' should be specified as a runner
 for targeted system commands (e.g. `CROSS_TOOL=wine' for Windows-targeting
-cross-compilation). This is an annoying feature of the older build systems
-present within dependencies. Builds make use of GNU/Make implicit rules,
-and should respect all toolchain variables therein - with the addition of
-`RANLIB'.
-
-Builds have only presently been tested on a Linux machine - though should in
-principle work on any UNIX-esque shell environment.
+cross-compilation). Builds make use of GNU/Make implicit rules, and should
+respect all toolchain variables therein - with the addition of `RANLIB'.
 
 Tested/supported compilers are `gcc' and `clang' - of unknown minimum version.
+
+The `stdout' output of the build is a full reproduction of the build command
+list. i.e. `make > test.sh' will produce a script equivalent to running `make'
+without timestamping.
+
+        Visual C Support
+
+The `vcbuild.bat' script is provided to facilitate builds using only Microsoft
+Visual C tooling. These builds are not configurable and do not perform
+timestamping - as such using the Makefile system is recommended for active
+development.
 
 		Install
 
@@ -33,8 +39,8 @@ sound assets respectively.
         Other Prerequisites
 
 Your system will need the `GL/' headers available on a system-level if
-such is not already the case. Additionally, to build resources you will
-need the `pip' packages `pyassimp' and `numpy', aswell as `ffmpeg'.
+such is not already the case. On X based systems you will also need the
+relevant XLib development package.
 
 This file is part of AftGangAglay
 (https://github.com/AftGangAglay/AftGangAglay) which is licenced under the

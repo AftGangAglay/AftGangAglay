@@ -100,6 +100,8 @@ int main(int argc, char** argv) {
     aga_log(__FILE__, "Done!");
 
 	while(!die) {
+		pointer.dx = 0;
+		pointer.dy = 0;
 		result = aga_poll(&env, &keymap, &win, &pointer, &die);
 		if(result) aga_af_soft(__FILE__, "aga_poll", result);
 

@@ -16,6 +16,7 @@
 
 #include <windows.h>
 #include <windowsx.h>
+#include <hidusage.h>
 
 #define AGA_CLASS_NAME ("Aft Gang Aglay")
 
@@ -65,16 +66,60 @@ static LRESULT aga_winproc(
 			return 0;
 		}
 
+		case WM_INPUT: {
+			static const UINT err = (UINT) -1;
+			static const UINT header_size = sizeof(RAWINPUTHEADER);
+
+			UINT input_size;
+			UINT result;
+			HRAWINPUT hnd = (HRAWINPUT) l_param;
+			RAWINPUT* data;
+
+			/* We are in the bg and aren't consuming input. */
+			if(GET_RAWINPUT_CODE_WPARAM(w_param) == RIM_INPUTSINK) return 1;
+
+			result = GetRawInputData(
+				hnd, RID_INPUT, 0, &input_size, header_size);
+			if(result == err) {
+				(void) aga_af_winerr(__FILE__, "GetRawInputData");
+				return 0;
+			}
+
+			if(!(data = malloc(input_size))) {
+				(void) aga_af_errno(__FILE__, "malloc");
+				return 0;
+			}
+
+			result = GetRawInputData(
+				hnd, RID_INPUT, data, &input_size, header_size);
+			if(result == err) {
+				(void) aga_af_winerr(__FILE__, "GetRawInputData");
+				free(data);
+				return 0;
+			}
+
+			if(data->header.dwType == RIM_TYPEMOUSE) {
+				pack->pointer->dx = data->data.mouse.lLastX;
+				pack->pointer->dy = data->data.mouse.lLastY;
+			}
+
+			free(data);
+			return 0;
+		}
+
 		case WM_MOUSEMOVE: {
-			pack->pointer->dx = GET_X_LPARAM(l_param) - pack->pointer->x;
-			pack->pointer->dy = GET_Y_LPARAM(l_param) - pack->pointer->y;
             pack->pointer->x = GET_X_LPARAM(l_param);
             pack->pointer->y = GET_Y_LPARAM(l_param);
 			return 0;
 		}
 
 		case WM_CLOSE: {
-            if(!DestroyWindow(wnd)) (void) aga_af_winerr(__FILE__, "DestroyWindow");
+			if(!ReleaseDC(wnd, GetDC(wnd))) {
+				(void) aga_af_winerr(__FILE__, "ReleaseDC");
+			}
+            if(!DestroyWindow(wnd)) {
+				(void) aga_af_winerr(__FILE__, "DestroyWindow");
+			}
 			*pack->die = AF_TRUE;
 			return 0;
 		}
@@ -88,6 +133,8 @@ static LRESULT aga_winproc(
 
 enum af_err aga_mkwinenv(union aga_winenv* env, const char* display) {
 	WNDCLASSA class;
+	HICON icon;
+	HCURSOR cursor;
 
 	AF_PARAM_CHK(env);
 
@@ -97,13 +144,21 @@ enum af_err aga_mkwinenv(union aga_winenv* env, const char* display) {
 		return aga_af_winerr(__FILE__, "GetModuleHandleA");
 	}
 
+	if(!(icon = LoadIconA(env->win32.module, "AGAIcon"))) {
+		(void) aga_af_winerr(__FILE__, "LoadIconA");
+	}
+
+	if(!(cursor = LoadCursorA(0, IDC_ARROW))) {
+		(void) aga_af_winerr(__FILE__, "LoadIconA");
+	}
+
 	class.style = CS_GLOBALCLASS;
 	class.lpfnWndProc = (WNDPROC) aga_winproc;
 	class.cbClsExtra = 0;
 	class.cbWndExtra = 0;
 	class.hInstance = env->win32.module;
-	class.hIcon = LoadIconA(env->win32.module, "AGAIcon");
-	class.hCursor = 0;
+	class.hIcon = icon;
+	class.hCursor = cursor;
 	class.hbrBackground = 0;
 	class.lpszMenuName = 0;
 	class.lpszClassName = AGA_CLASS_NAME;
@@ -154,6 +209,8 @@ enum af_err aga_mkwin(
 
 	int ind;
 	long mask = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
+	RAWINPUTDEVICE mouse = {
+		HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0, 0 };
 
 	(void) argc;
 	(void) argv;
@@ -183,6 +240,11 @@ enum af_err aga_mkwin(
 		return aga_af_winerr(__FILE__, "SetPixelFormat");
 	}
 
+	mouse.hwndTarget = win->win.hwnd;
+	if(RegisterRawInputDevices(&mouse, 1, sizeof(mouse)) == FALSE) {
+		return aga_af_winerr(__FILE__, "RegisterRawInputDevices");
+	}
+
 	return AF_ERR_NONE;
 }
 
@@ -190,21 +252,11 @@ enum af_err aga_killwin(union aga_winenv* env, struct aga_win* win) {
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
-	/*
-	if(!ReleaseDC((void*) win->xwin, win->dc)) {
-		return aga_af_winerr(__FILE__, "ReleaseDC");
-	}
-
-	if(!DestroyWindow((void*) win->xwin)) {
-		return aga_af_winerr(__FILE__, "DestroyWindow");
-	}
-	 */
-
 	return AF_ERR_NONE;
 }
 
 enum af_err aga_glctx(union aga_winenv* env, struct aga_win* win) {
-	RECT r;
+	HGDIOBJ font;
 
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
@@ -217,19 +269,17 @@ enum af_err aga_glctx(union aga_winenv* env, struct aga_win* win) {
 		return aga_af_winerr(__FILE__, "wglMakeCurrent");
 	}
 
-	if(!SelectObject(win->dc, GetStockObject(SYSTEM_FONT))) {
+	if(!(font = GetStockObject(SYSTEM_FONT))) {
+		return aga_af_winerr(__FILE__, "GetStockObject");
+	}
+
+	if(!SelectObject(win->dc, font)) {
 		return aga_af_winerr(__FILE__, "SelectObject");
 	}
 
 	if(!wglUseFontBitmaps(win->dc, 0, 255, AGA_FONT_LIST_BASE)) {
 		return aga_af_winerr(__FILE__, "wglUseFontBitmaps");
 	}
-
-	SetCapture((void*) win->win.hwnd);
-	if(!GetWindowRect((void*) win->win.hwnd, &r)) {
-		return aga_af_winerr(__FILE__, "GetWindowRect");
-	}
-	if(!ClipCursor(&r)) return aga_af_winerr(__FILE__, "ClipCursor");
 
 	return AF_ERR_NONE;
 }

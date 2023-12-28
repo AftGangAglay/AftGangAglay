@@ -10,6 +10,9 @@
 
 enum af_err aga_setdrawparam(struct af_ctx* af, struct af_vert* vert);
 
+enum af_err aga_pushrawdraw(void);
+enum af_err aga_poprawdraw(void);
+
 enum af_err aga_puttext(float x, float y, const char* text);
 enum af_err aga_puttextfmt(float x, float y, const char* fmt, ...);
 

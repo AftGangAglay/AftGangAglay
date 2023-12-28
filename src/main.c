@@ -12,7 +12,10 @@
 #include <agascript.h>
 
 /*
- * Quick and dirty convenience macros to keep main clean.
+ * Quick and dirty convenience macros to keep main clean. Ideally in the future
+ * We can find a less janky way to achieve this but for now `main' has the
+ * Highest density of `agaerr' calls so these have a dramatic impact on
+ * Readability.
  */
 #define CHK(proc, param) aga_af_chk(__FILE__, #proc, proc param)
 #define SOFT(proc, param) \
@@ -47,7 +50,7 @@ int main(int argc, char** argv) {
 
 	aga_log(__FILE__, "Breathing in the chemicals...");
 
-	CHK(aga_setopts, (&opts, argc, argv));
+	SOFT(aga_setopts, (&opts, argc, argv));
 
     aga_log(__FILE__, "Initializing systems...");
 
@@ -110,11 +113,11 @@ int main(int argc, char** argv) {
 			static const char str1[] =
 				"No project loaded or no script files provided";
 			static const char str2[] = "Did you forget `-f' or `-C'?";
-			static const float col[4] = { 0.6f, 0.3f, 0.8f, 1.0f };
+			static const float col[] = { 0.6f, 0.3f, 0.8f, 1.0f };
 
 			CHK(af_clear, (&af, col));
-			CHK(aga_puttextfmt, (-0.8f, 0.0f, str1));
-			CHK(aga_puttextfmt, (-0.8f, -0.1f, str2));
+			CHK(aga_puttextfmt, (0.05f, 0.1f, str1));
+			CHK(aga_puttextfmt, (0.05f, 0.2f, str2));
 		}
 
 		SOFT(af_flush, (&af));

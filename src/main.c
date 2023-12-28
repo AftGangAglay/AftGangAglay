@@ -11,6 +11,16 @@
 #include <agastartup.h>
 #include <agascript.h>
 
+/*
+ * Quick and dirty convenience macros to keep main clean.
+ */
+#define CHK(proc, param) aga_af_chk(__FILE__, #proc, proc param)
+#define SOFT(proc, param) \
+	do { \
+        enum af_err soft_chk_result = proc param; \
+		if(soft_chk_result) aga_af_soft(__FILE__, #proc, soft_chk_result); \
+	} while(0)
+
 int main(int argc, char** argv) {
 	enum af_err result;
 
@@ -37,26 +47,24 @@ int main(int argc, char** argv) {
 
 	aga_log(__FILE__, "Breathing in the chemicals...");
 
-    result = aga_setopts(&opts, argc, argv);
-	if(result) aga_af_soft(__FILE__, "aga_setopts", result);
+	CHK(aga_setopts, (&opts, argc, argv));
 
     aga_log(__FILE__, "Initializing systems...");
 
-    aga_af_chk(__FILE__, "aga_mkwinenv", aga_mkwinenv(&env, opts.display));
-	aga_af_chk(__FILE__, "aga_mkkeymap", aga_mkkeymap(&keymap, &env));
-	aga_af_chk(__FILE__, "aga_mkwin",
-	   aga_mkwin(opts.width, opts.height, &env, &win, argc, argv));
-	aga_af_chk(__FILE__, "aga_glctx", aga_glctx(&env, &win));
-    aga_af_chk(__FILE__, "af_mkctx", af_mkctx(&af, AF_FIDELITY_FAST));
+    CHK(aga_mkwinenv, (&env, opts.display));
+	CHK(aga_mkkeymap, (&keymap, &env));
+	CHK(aga_mkwin, (opts.width, opts.height, &env, &win, argc, argv));
+
+	CHK(aga_glctx, (&env, &win));
+    CHK(af_mkctx, (&af, AF_FIDELITY_FAST));
 
     aga_log(__FILE__, "Acquired GL context");
 
-    aga_af_chk(__FILE__, "aga_setdrawparam", aga_setdrawparam(&af, &vert));
+    CHK(aga_setdrawparam, (&af, &vert));
 
 #ifdef _DEBUG
 # ifdef AGA_HAVE_SPAWN
-	result = aga_prerun_hook(&opts);
-	if(result) aga_af_soft(__FILE__, "aga_setopts", result);
+	SOFT(aga_prerun_hook, (&opts));
 # endif
 #endif
 
@@ -68,92 +76,73 @@ int main(int argc, char** argv) {
         }
     }
 
-    result = aga_mkscripteng(
+	result = aga_mkscripteng(
         &scripteng, opts.startup_script, opts.python_path, argc, argv);
 	if(result) aga_af_soft(__FILE__, "aga_mkscripteng", result);
 	else {
-		result = aga_setscriptptr(&scripteng, AGA_SCRIPT_KEYMAP, &keymap);
-		if(result) aga_af_soft(__FILE__, "aga_setscriptptr", result);
-		result = aga_setscriptptr(&scripteng, AGA_SCRIPT_POINTER, &pointer);
-		if(result) aga_af_soft(__FILE__, "aga_setscriptptr", result);
-		result = aga_setscriptptr(&scripteng, AGA_SCRIPT_OPTS, &opts);
-		if(result) aga_af_soft(__FILE__, "aga_setscriptptr", result);
-		result = aga_setscriptptr(&scripteng, AGA_SCRIPT_AFCTX, &af);
-		if(result) aga_af_soft(__FILE__, "aga_setscriptptr", result);
-		result = aga_setscriptptr(&scripteng, AGA_SCRIPT_AFVERT, &vert);
-		if(result) aga_af_soft(__FILE__, "aga_setscriptptr", result);
-		result = aga_setscriptptr(&scripteng, AGA_SCRIPT_SNDDEV, &snd);
-		if(result) aga_af_soft(__FILE__, "aga_setscriptptr", result);
-		result = aga_setscriptptr(&scripteng, AGA_SCRIPT_DIE, &die);
-		if(result) aga_af_soft(__FILE__, "aga_setscriptptr", result);
-		result = aga_setscriptptr(&scripteng, AGA_SCRIPT_WINENV, &env);
-		if(result) aga_af_soft(__FILE__, "aga_setscriptptr", result);
-		result = aga_setscriptptr(&scripteng, AGA_SCRIPT_WIN, &win);
-		if(result) aga_af_soft(__FILE__, "aga_setscriptptr", result);
+		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_KEYMAP, &keymap));
+		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_POINTER, &pointer));
+		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_OPTS, &opts));
+		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_AFCTX, &af));
+		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_AFVERT, &vert));
+		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_SNDDEV, &snd));
+		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_DIE, &die));
+		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_WINENV, &env));
+		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_WIN, &win));
 
-		aga_af_chk(__FILE__, "aga_findclass", aga_findclass(
-			&scripteng, &class, "game"));
-		aga_af_chk(__FILE__, "aga_mkscriptinst", aga_mkscriptinst(
-			&class, &inst));
+		CHK(aga_findclass, (&scripteng, &class, "game"));
+		CHK(aga_mkscriptinst, (&class, &inst));
 
-		result = aga_instcall(&inst, "create");
-		if(result) aga_af_soft(__FILE__, "aga_instcall", result);
+		SOFT(aga_instcall, (&inst, "create"));
+	    aga_log(__FILE__, "Hello, script engine!");
 	}
-    aga_log(__FILE__, "Hello, script engine!");
 
     aga_log(__FILE__, "Done!");
 
 	while(!die) {
 		pointer.dx = 0;
 		pointer.dy = 0;
-		result = aga_poll(&env, &keymap, &win, &pointer, &die);
-		if(result) aga_af_soft(__FILE__, "aga_poll", result);
 
-		if(class.class) {
-			result = aga_instcall(&inst, "update");
-			if(result) aga_af_soft(__FILE__, "aga_instcall", result);
-		}
+		SOFT(aga_poll, (&env, &keymap, &win, &pointer, &die));
+
+		if(class.class) SOFT(aga_instcall, (&inst, "update"));
 		else {
-			float col[4] = { 0.6f, 0.3f, 0.8f, 1.0f };
-			aga_af_chk(__FILE__, "af_clear", af_clear(&af, col));
-			aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
-				-0.8f, 0.0f, "No project loaded or no script files provided"));
-			aga_af_chk(__FILE__, "aga_puttextfmt", aga_puttextfmt(
-				-0.8f, -0.1f, "Did you forget `-f' or `-C'?"));
+			static const char str1[] =
+				"No project loaded or no script files provided";
+			static const char str2[] = "Did you forget `-f' or `-C'?";
+			static const float col[4] = { 0.6f, 0.3f, 0.8f, 1.0f };
+
+			CHK(af_clear, (&af, col));
+			CHK(aga_puttextfmt, (-0.8f, 0.0f, str1));
+			CHK(aga_puttextfmt, (-0.8f, -0.1f, str2));
 		}
 
-		result = af_flush(&af);
-		if(result) aga_af_soft(__FILE__, "af_flush", result);
+		SOFT(af_flush, (&af));
 
-		if(!die) { /* Window is already dead/dying if `die' is set. */
-			result = aga_swapbuf(&env, &win);
-			if(result) aga_af_soft(__FILE__, "aga_swapbuf", result);
-		}
+		/* Window is already dead/dying if `die' is set. */
+		if(!die) SOFT(aga_swapbuf, (&env, &win));
 	}
 
 	aga_log(__FILE__, "Tearing down...");
 
 	/* Need to flush before shutdown to avoid NSGL dying */
-	result = af_flush(&af);
-	if(result) aga_af_soft(__FILE__, "af_flush", result);
+	SOFT(af_flush, (&af));
 
 	if(class.class) {
-		aga_af_chk(__FILE__, "aga_instcall", aga_instcall(&inst, "close"));
-		aga_af_chk(__FILE__, "aga_killscriptinst", aga_killscriptinst(&inst));
+		SOFT(aga_instcall, (&inst, "close"));
+		SOFT(aga_killscriptinst, (&inst));
 	}
 
-	aga_af_chk(__FILE__, "aga_killscripteng", aga_killscripteng(&scripteng));
-    aga_af_chk(__FILE__, "af_killvert", af_killvert(&af, &vert));
-    aga_af_chk(__FILE__, "af_killctx", af_killctx(&af));
+	SOFT(aga_killscripteng, (&scripteng));
+    SOFT(af_killvert, (&af, &vert));
+    SOFT(af_killctx, (&af));
 
-    if(opts.audio_enabled) {
-        aga_af_chk(__FILE__, "aga_killsnddev", aga_killsnddev(&snd));
-    }
-	aga_af_chk(__FILE__, "aga_killconf", aga_killconf(&opts.config));
+    if(opts.audio_enabled) SOFT(aga_killsnddev, (&snd));
+	SOFT(aga_killconf, (&opts.config));
 
-	aga_af_chk(__FILE__, "aga_killwin", aga_killwin(&env, &win));
-	aga_af_chk(__FILE__, "aga_killkeymap", aga_killkeymap(&keymap));
-	aga_af_chk(__FILE__, "aga_killwinenv", aga_killwinenv(&env));
+	SOFT(aga_killwin, (&env, &win));
+	SOFT(aga_killkeymap, (&keymap));
+	SOFT(aga_killwinenv, (&env));
 
 	aga_log(__FILE__, "Bye-bye!");
 

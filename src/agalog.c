@@ -34,6 +34,8 @@ void aga_mklog(const char** targets, af_size_t len) {
 	aga_logctx.have_ansi = AF_TRUE;
 	aga_logctx.len = len;
 
+	if(setvbuf(AGA_LOG_DEFAULT_STREAM, 0, _IONBF, 0)) perror("setvbuf");
+
 	if(!(aga_logctx.targets = malloc(len * sizeof(FILE*)))) {
 		static FILE* so[1];
 		so[0] = AGA_LOG_DEFAULT_STREAM;

@@ -78,7 +78,9 @@ AGA_LDLIBS += $(AGA_LIBDEPS) $(GLABI_LDLIBS) -lm
 ifdef WINDOWS
 	CFLAGS += -D_WINDOWS
 	AGA_LDLIBS += -lgdi32 -lshell32
+ifndef DEBUG
 	AGA_LDFLAGS += -Wl,-subsystem,windows
+endif
 endif
 
 ifdef GLXABI

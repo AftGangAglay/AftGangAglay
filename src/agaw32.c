@@ -12,6 +12,7 @@
 
 #include <windows.h>
 
+#ifndef _DEBUG
 int WinMain(
 		HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
 		int nShowCmd) {
@@ -25,6 +26,7 @@ int WinMain(
 
 	return main(__argc, __argv);
 }
+#endif
 
 enum af_err aga_af_pathwinerr(
 		const char* loc, const char* proc, const char* path) {
@@ -72,6 +74,13 @@ void aga_setw32log(void) {
 
 	HANDLE con = GetStdHandle(handle);
 	DWORD mode = 0;
+
+	if(con == INVALID_HANDLE_VALUE) {
+		(void) aga_af_winerr(__FILE__, "GetStdHandle");
+		return;
+	}
+
+	if(!con) return;
 
 	if(!GetConsoleMode(con, &mode)) {
 		(void) aga_af_winerr(__FILE__, "GetConsoleMode");

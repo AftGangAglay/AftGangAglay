@@ -86,6 +86,10 @@ int main(int argc, char** argv) {
 		if(result) aga_af_soft(__FILE__, "aga_setscriptptr", result);
 		result = aga_setscriptptr(&scripteng, AGA_SCRIPT_DIE, &die);
 		if(result) aga_af_soft(__FILE__, "aga_setscriptptr", result);
+		result = aga_setscriptptr(&scripteng, AGA_SCRIPT_WINENV, &env);
+		if(result) aga_af_soft(__FILE__, "aga_setscriptptr", result);
+		result = aga_setscriptptr(&scripteng, AGA_SCRIPT_WIN, &win);
+		if(result) aga_af_soft(__FILE__, "aga_setscriptptr", result);
 
 		aga_af_chk(__FILE__, "aga_findclass", aga_findclass(
 			&scripteng, &class, "game"));
@@ -98,9 +102,6 @@ int main(int argc, char** argv) {
     aga_log(__FILE__, "Hello, script engine!");
 
     aga_log(__FILE__, "Done!");
-
-	result = aga_setcursor(&env, &win, AF_FALSE, AF_TRUE);
-	if(result) aga_af_soft(__FILE__, "aga_setcursor", result);
 
 	while(!die) {
 		pointer.dx = 0;

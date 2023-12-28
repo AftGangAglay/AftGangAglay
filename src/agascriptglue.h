@@ -1539,6 +1539,43 @@ static object* agan_die(object* self, object* arg) {
 	return None;
 }
 
+static object* agan_setcursor(object* self, object* arg) {
+	enum af_err result;
+
+	object* o;
+	object* v;
+
+	af_bool_t visible, captured;
+
+	union aga_winenv* env;
+	struct aga_win* win;
+
+	if(!(env = aga_getscriptptr(AGA_SCRIPT_WINENV))) return 0;
+	if(!(win = aga_getscriptptr(AGA_SCRIPT_WIN))) return 0;
+
+	(void) self;
+
+	if(!arg || !is_tupleobject(arg) ||
+		!(o = gettupleitem(arg, 0)) || !is_intobject(o) ||
+		!(v = gettupleitem(arg, 1)) || !is_intobject(v)) {
+
+		err_setstr(RuntimeError, "setcursor() arguments must be int and int");
+		return 0;
+	}
+
+	visible = !!getintvalue(o);
+	if(err_occurred()) return 0;
+
+	captured = !!getintvalue(v);
+	if(err_occurred()) return 0;
+
+	result = aga_setcursor(env, win, visible, captured);
+	if(aga_script_aferr("aga_setcursor", result)) return 0;
+
+	INCREF(None);
+	return None;
+}
+
 enum af_err aga_mkmod(object** dict) {
 	struct methodlist methods[] = {
 		{ "getkey", agan_getkey },
@@ -1581,6 +1618,7 @@ enum af_err aga_mkmod(object** dict) {
 		{ "getobjmeta", agan_getobjmeta },
 		{ "randnorm", agan_randnorm },
 		{ "die", agan_die },
+		{ "setcursor", agan_setcursor },
 		{ 0, 0 }
 	};
 

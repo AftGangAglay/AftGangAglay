@@ -15,6 +15,8 @@
 #define AGA_SCRIPT_AFVERT ("afvert")
 #define AGA_SCRIPT_SNDDEV ("snddev")
 #define AGA_SCRIPT_DIE ("die")
+#define AGA_SCRIPT_WINENV ("winenv")
+#define AGA_SCRIPT_WIN ("win")
 
 struct aga_scriptclass {
 	void* class;

@@ -46,6 +46,9 @@ union aga_winenv {
 		void* module;
 		int class;
 		void* wgl;
+		void* cursor;
+		af_bool_t visible;
+		af_bool_t captured;
 	} win32;
 };
 
@@ -63,6 +66,18 @@ enum af_err aga_mkwin(
 		af_size_t width, af_size_t height, union aga_winenv* env,
 		struct aga_win* win, int argc, char** argv);
 enum af_err aga_killwin(union aga_winenv* env, struct aga_win* win);
+
+/*
+ * NOTE: Cursor capture is a somewhat importable concept. As it stands, we
+ * 		 Consider the cursor to be captured if mouse deltas continue to be
+ * 		 Recorded as the mouse moves indefinitely in one direction and the
+ * 		 Cursor does not move outside the Window bounds - i.e. sliding the
+ * 		 Mouse to the left across your entire desk would continue to report
+ * 		 (-1, 0) and would not hover any other Windows to the left of `win'.
+ */
+enum af_err aga_setcursor(
+		union aga_winenv* env, struct aga_win* win, af_bool_t visible,
+		af_bool_t captured);
 
 enum af_err aga_glctx(union aga_winenv* env, struct aga_win* win);
 enum af_err aga_swapbuf(union aga_winenv* env, struct aga_win* win);

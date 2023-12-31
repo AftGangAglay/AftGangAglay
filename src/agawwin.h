@@ -293,26 +293,28 @@ static enum af_err aga_setclipcursor(struct aga_win* win, af_bool_t clip) {
 
 	AF_PARAM_CHK(win);
 
-	if(clip && !GetClientRect(win->win.hwnd, &rect)) {
-		return aga_af_winerr(__FILE__, "GetClientRect");
-	}
+	if(clip) {
+		if(!GetClientRect(win->win.hwnd, &rect)) {
+			return aga_af_winerr(__FILE__, "GetClientRect");
+		}
 
-	begin.x = rect.left;
-	begin.y = rect.top;
-	end.x = rect.right;
-	end.y = rect.bottom;
+		begin.x = rect.left;
+		begin.y = rect.top;
+		end.x = rect.right;
+		end.y = rect.bottom;
 
-	if(clip && !ClientToScreen(win->win.hwnd, &begin)) {
-		return aga_af_winerr(__FILE__, "ClientToScreen");
-	}
-	if(clip && !ClientToScreen(win->win.hwnd, &end)) {
-		return aga_af_winerr(__FILE__, "ClientToScreen");
-	}
+		if(!ClientToScreen(win->win.hwnd, &begin)) {
+			return aga_af_winerr(__FILE__, "ClientToScreen");
+		}
+		if(!ClientToScreen(win->win.hwnd, &end)) {
+			return aga_af_winerr(__FILE__, "ClientToScreen");
+		}
 
-	rect.left = begin.x;
-	rect.top = begin.y;
-	rect.right = end.x;
-	rect.bottom = end.y;
+		rect.left = begin.x;
+		rect.top = begin.y;
+		rect.right = end.x;
+		rect.bottom = end.y;
+	}
 
 	ClipCursor(clip ? &rect : 0);
 

@@ -279,7 +279,7 @@ enum af_err aga_glctx(union aga_winenv* env, struct aga_win* win) {
 		return aga_af_winerr(__FILE__, "SelectObject");
 	}
 
-	if(!wglUseFontBitmaps(win->dc, 0, 255, AGA_FONT_LIST_BASE)) {
+	if(!wglUseFontBitmaps(win->dc, 0, 256, AGA_FONT_LIST_BASE)) {
 		return aga_af_winerr(__FILE__, "wglUseFontBitmaps");
 	}
 

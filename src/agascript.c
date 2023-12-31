@@ -143,7 +143,12 @@ enum af_err aga_mkscripteng(
 
     aga_log(__FILE__, "Using python path `%s'", pypath);
 
-    setpythonpath((char *) pypath);
+	/*
+	 * NOTE: We do not respect `$PYTHONPATH' here as it's possible the user will have configurations relating to
+	 * 		 Modern Python installations stored there, and we don't want our ancient interpreter to try looking into
+	 * 		 The future.
+	 */
+    setpythonpath((char*) pypath);
 	setpythonargv(argc, argv);
 
 	AF_CHK(aga_compilescript(script, (object**) &eng->global));

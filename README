@@ -15,6 +15,10 @@ Ideally (where possible/appropriate), any task which can be undertaken by a
 dependency of the era should do so. Examples here are using Python 0.9.1 from
 1991 for scripting and using libwww to parse SGML for config.
 
+Versioning is semver based on the script engine interface, and not on the
+internal API of the engine - relying on native behaviours not exposed through
+the script engine may be unstable between versions.
+
 For build instructions, refer to the INSTALL file in this directory
 For licence information, refer to the LICENCE file in this directory
 For information regarding dependencies, refer to the README file in the

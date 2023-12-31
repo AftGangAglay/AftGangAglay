@@ -18,6 +18,7 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	const char* device[] = { "Audio", "Device" };
 	const char* startup[] = { "Script", "Startup" };
 	const char* path[] = { "Script", "Path" };
+	const char* version[] = { "General", "Version" };
 	const char* width[] = { "Display", "Width" };
 	const char* height[] = { "Display", "Height" };
 	const char* fov[] = { "Display", "FOV" };
@@ -35,6 +36,7 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	opts->height = 480;
 	opts->fov = 90.0f;
 	opts->audio_enabled = AF_TRUE;
+	opts->version = AGA_VERSION;
 
 	af_memset(&opts->config, 0, sizeof(opts->config));
 
@@ -69,6 +71,11 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 
 	result = aga_conftree(
 		&opts->config, enabled, AF_ARRLEN(enabled), &v, AGA_INTEGER);
+	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+
+	result = aga_conftree(
+			&opts->config, version, AF_ARRLEN(version), &opts->version,
+			AGA_STRING);
 	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
 
 	if(!opts->audio_dev) {

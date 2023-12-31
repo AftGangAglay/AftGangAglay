@@ -23,10 +23,12 @@ endif
 
 ifdef WINDOWS_SHELL
 	RM = del
+	CAT = type
 define PATHREM
 	$(RM) $(subst /,\\,$(1))
 endef
 else
+	CAT = cat
 define PATHREM
 	$(RM) $(1)
 endef
@@ -68,6 +70,7 @@ endif
 DIAGNOSTICS = -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
 
 AGA_CFLAGS += -Iinclude $(DIAGNOSTICS) $(GLABI_CFLAGS)
+AGA_CFLAGS += -DAGA_VERSION=\"$(shell $(CAT) VERSION)\"
 
 AGA_CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS) $(AFEIRSA_IFLAGS)
 AGA_CFLAGS += $(LIBTIFF_IFLAGS)

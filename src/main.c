@@ -79,6 +79,13 @@ int main(int argc, char** argv) {
         }
     }
 
+	if(!af_streql(opts.version, AGA_VERSION)) {
+		static const char err[] =
+			"err: Project version `%s' does not match engine version `"
+			AGA_VERSION "'";
+		aga_log(__FILE__, err, opts.version);
+	}
+
 	result = aga_mkscripteng(
         &scripteng, opts.startup_script, opts.python_path, argc, argv);
 	if(result) aga_af_soft(__FILE__, "aga_mkscripteng", result);

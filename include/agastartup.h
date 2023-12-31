@@ -14,6 +14,7 @@ struct aga_opts {
 	const char* config_file;
 	const char* display;
 	const char* chdir;
+	const char* version;
 
 	const char* audio_dev;
 	af_bool_t audio_enabled;

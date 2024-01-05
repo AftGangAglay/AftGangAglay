@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #include <agaerr.h>
@@ -27,6 +27,7 @@ const char* aga_af_errname(enum af_err e) {
 }
 
 AGA_NORETURN void aga_abort(void) {
+#ifdef NDEBUG
 	static const char msg[] =
 		"AftGangAglay has encountered a fatal error and cannot continue.\n"
 		"Would you like to report the issue?\n"
@@ -38,6 +39,7 @@ AGA_NORETURN void aga_abort(void) {
 	(void) aga_diag(msg, "Fatal Error", &res, AF_TRUE);
 
 	if(res) (void) aga_shellopen(report_uri);
+#endif
 
 #ifdef _DEBUG
 # ifdef _WINDOWS

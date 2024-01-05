@@ -1,10 +1,20 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #ifndef AGA_X_WIN_H
 #define AGA_X_WIN_H
+
+static const char* agax_chk_last = "xlib";
+
+#ifdef __GNUC__
+# pragma GCC diagnostic ignored "-Wpedantic"
+/* TODO: Check against return value for `0'. */
+# define AGAX_CHK(proc, param) ({ agax_chk_last = #proc; proc param; })
+#else
+# define AGAX_CHK(call) call
+#endif
 
 static const int single_buffer_fb[] = {
 	GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
@@ -34,15 +44,15 @@ static const int double_buffer_fb[] = {
 static void aga_centreptr(union aga_winenv* env, struct aga_win* win) {
 	int mid_x = (int) win->width / 2;
 	int mid_y = (int) win->height / 2;
-	XWarpPointer(env->x.dpy, win->win.xwin, win->win.xwin, 0, 0, 0, 0, mid_x, mid_y);
+	AGAX_CHK(XWarpPointer, (
+		env->x.dpy, win->win.xwin, win->win.xwin, 0, 0, 0, 0, mid_x, mid_y));
 }
 
 static int aga_xerr_handler(Display* dpy, XErrorEvent* err) {
 	aga_fixed_buf_t buf = { 0 };
 
 	XGetErrorText(dpy, err->error_code, buf, sizeof(buf));
-
-	aga_log(__FILE__, "err: xlib: %s", buf);
+	aga_log(__FILE__, "err: %s: %s", agax_chk_last, buf);
 
 	return 0;
 }
@@ -54,9 +64,10 @@ enum af_err aga_mkwinenv(union aga_winenv* env, const char* display) {
 
 	AF_PARAM_CHK(env);
 
-	XSetErrorHandler(aga_xerr_handler);
+	AGAX_CHK(XSetErrorHandler, (aga_xerr_handler));
 
-	AF_VERIFY(env->x.dpy = XOpenDisplay(display), AF_ERR_UNKNOWN);
+	env->x.dpy = AGAX_CHK(XOpenDisplay, (display));
+	AF_VERIFY(env->x.dpy, AF_ERR_UNKNOWN);
 
 	{
 		int fl;
@@ -72,13 +83,16 @@ enum af_err aga_mkwinenv(union aga_winenv* env, const char* display) {
 	}
 
 	env->x.screen = DefaultScreen(env->x.dpy);
-	env->x.wm_delete = XInternAtom(env->x.dpy, "WM_DELETE_WINDOW", True);
+	env->x.wm_delete = AGAX_CHK(XInternAtom, (
+		env->x.dpy, "WM_DELETE_WINDOW", True));
+	AF_VERIFY(env->x.wm_delete != None, AF_ERR_BAD_PARAM);
 
 	env->x.double_buffered = AF_TRUE;
 	fb = glXChooseFBConfig(env->x.dpy, env->x.screen, double_buffer_fb, &n_fb);
 	if(!fb) {
 		env->x.double_buffered = AF_FALSE;
-		fb = glXChooseFBConfig(env->x.dpy, env->x.screen, single_buffer_fb, &n_fb);
+		fb = glXChooseFBConfig(
+			env->x.dpy, env->x.screen, single_buffer_fb, &n_fb);
 		AF_VERIFY(fb, AF_ERR_UNKNOWN);
 	}
 
@@ -99,7 +113,7 @@ enum af_err aga_killwinenv(union aga_winenv* env) {
 
 	glXDestroyContext(env->x.dpy, env->x.glx);
 
-	XCloseDisplay(env->x.dpy);
+	AGAX_CHK(XCloseDisplay, (env->x.dpy));
 
 	return AF_ERR_NONE;
 }
@@ -110,17 +124,17 @@ enum af_err aga_mkkeymap(struct aga_keymap* keymap, union aga_winenv* env) {
 	AF_PARAM_CHK(keymap);
 	AF_PARAM_CHK(env);
 
-	XDisplayKeycodes(env->x.dpy, &min, &max);
+	AGAX_CHK(XDisplayKeycodes, (env->x.dpy, &min, &max));
 
 	keymap->keycode_len = max - min;
 	keymap->keycode_min = min;
 
-	keymap->keymap = XGetKeyboardMapping(
-		env->x.dpy, min, keymap->keycode_len, &keymap->keysyms_per_keycode);
+	keymap->keymap = AGAX_CHK(XGetKeyboardMapping, (
+		env->x.dpy, min, keymap->keycode_len, &keymap->keysyms_per_keycode));
+	AF_VERIFY(keymap->keymap, AF_ERR_UNKNOWN);
 
 	keymap->keystates = calloc(
-		keymap->keysyms_per_keycode * keymap->keycode_len,
-		sizeof(af_bool_t));
+		keymap->keysyms_per_keycode * keymap->keycode_len, sizeof(af_bool_t));
 	AF_VERIFY(keymap->keystates, AF_ERR_MEM);
 
 	return AF_ERR_NONE;
@@ -134,6 +148,21 @@ enum af_err aga_killkeymap(struct aga_keymap* keymap) {
 
 	return AF_ERR_NONE;
 }
+
+/*
+ * NOTE: Creating a pixmap from a bitmap seems to die under WSLg X, so for now
+ * we just use a sensible default cursor and hope the result isn't too
+ * obtrusive.
+ */
+/*
+Pixmap bitmap;
+XColor black_col = { 0 };
+char empty[8] = { 0 };
+bitmap = XCreatePixmapFromBitmapData(
+	env->x.dpy, win->win.xwin, empty, 1, 1, white, black, 1);
+AF_VERIFY(bitmap != None, AF_ERR_MEM);
+XFreePixmap(env->x.dpy, bitmap);
+ */
 
 enum af_err aga_mkwin(
 		af_size_t width, af_size_t height, union aga_winenv* env,
@@ -151,18 +180,59 @@ enum af_err aga_mkwin(
 	win->width = width;
 	win->height = height;
 
-	win->win.xwin = XCreateSimpleWindow(
-		env->x.dpy, RootWindow(env->x.dpy, env->x.screen), 0, 0, width, height, 8,
-		white, black);
+	win->win.xwin = AGAX_CHK(XCreateSimpleWindow, (
+		env->x.dpy, RootWindow(env->x.dpy, env->x.screen), 0, 0, width, height,
+		8, white, black));
+	AF_VERIFY(win->win.xwin != None, AF_ERR_UNKNOWN);
 
-	XSetStandardProperties(
-		env->x.dpy, win->win.xwin, "Aft Gang Aglay", "", None, argv, argc, 0);
+	AGAX_CHK(XSetStandardProperties, (
+		env->x.dpy, win->win.xwin, "Aft Gang Aglay", "", None, argv, argc, 0));
 
-	XSelectInput(
-		env->x.dpy, win->win.xwin, mask);
-	XSetWMProtocols(env->x.dpy, win->win.xwin, &env->x.wm_delete, 1);
+	AGAX_CHK(XSelectInput, (env->x.dpy, win->win.xwin, mask));
+	{
+		Atom* prots;
+		Atom* new_prots;
+		int count;
+		int res;
 
-	XMapRaised(env->x.dpy, win->win.xwin);
+		res = AGAX_CHK(XGetWMProtocols, (
+			env->x.dpy, win->win.xwin, &prots, &count));
+		if(!res) {
+			prots = 0;
+			count = 0;
+		}
+
+		new_prots = malloc((count + 1) * sizeof(Atom));
+		if(!new_prots) {
+			if(prots) XFree(prots);
+			return AF_ERR_MEM;
+		}
+
+		af_memcpy(new_prots, prots, count * sizeof(Atom));
+		new_prots[count] = env->x.wm_delete;
+		if(prots) XFree(prots);
+
+		res = AGAX_CHK(XSetWMProtocols, (
+			env->x.dpy, win->win.xwin, new_prots, count + 1));
+		if(!res) {
+			free(new_prots);
+			return AF_ERR_UNKNOWN;
+		}
+
+		free(new_prots);
+	}
+	AGAX_CHK(XSetInputFocus, (
+		env->x.dpy, win->win.xwin, RevertToNone, CurrentTime));
+
+	AGAX_CHK(XMapRaised, (
+		env->x.dpy, win->win.xwin));
+
+	win->blank_cursor = AGAX_CHK(XCreateFontCursor, (
+		env->x.dpy, XC_tcross));
+	AF_VERIFY(win->blank_cursor != None, AF_ERR_UNKNOWN);
+	win->arrow_cursor = AGAX_CHK(XCreateFontCursor, (
+		env->x.dpy, XC_arrow));
+	AF_VERIFY(win->arrow_cursor != None, AF_ERR_UNKNOWN);
 
 	return AF_ERR_NONE;
 }
@@ -171,7 +241,9 @@ enum af_err aga_killwin(union aga_winenv* env, struct aga_win* win) {
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
-	XDestroyWindow(env->x.dpy, win->win.xwin);
+	AGAX_CHK(XFreeCursor, (env->x.dpy, win->blank_cursor));
+	AGAX_CHK(XFreeCursor, (env->x.dpy, win->arrow_cursor));
+	AGAX_CHK(XDestroyWindow, (env->x.dpy, win->win.xwin));
 
 	return AF_ERR_NONE;
 }
@@ -183,11 +255,6 @@ enum af_err aga_glctx(union aga_winenv* env, struct aga_win* win) {
 		"*bold*",
 		"*"
 	};
-
-	Cursor cur;
-	Pixmap bitmap;
-	XColor black = { 0 };
-	char empty[8] = { 0 };
 
 	Font font;
 	int nfonts = 0;
@@ -203,18 +270,6 @@ enum af_err aga_glctx(union aga_winenv* env, struct aga_win* win) {
 		env->x.dpy, win->win.xwin, win->win.xwin, env->x.glx);
 	AF_VERIFY(res, AF_ERR_UNKNOWN);
 
-	XSetInputFocus(env->x.dpy, win->win.xwin, RevertToNone, CurrentTime);
-
-	aga_centreptr(env, win);
-
-	bitmap = XCreateBitmapFromData(env->x.dpy, win->win.xwin, empty, 1, 1);
-	AF_VERIFY(bitmap, AF_ERR_UNKNOWN);
-
-	cur = XCreatePixmapCursor(env->x.dpy, bitmap, bitmap, &black, &black, 0, 0);
-	XDefineCursor(env->x.dpy, win->win.xwin, cur);
-	XFreePixmap(env->x.dpy, cur);
-	XFreeCursor(env->x.dpy, cur);
-
 	while(AF_TRUE) {
 		char** fontname;
 		if(current >= AF_ARRLEN(names)) {
@@ -223,25 +278,46 @@ enum af_err aga_glctx(union aga_winenv* env, struct aga_win* win) {
 		}
 
 		aga_log(__FILE__, "Trying font pattern `%s'", names[current]);
-		fontname = XListFonts(env->x.dpy, names[current], 1, &nfonts);
+		fontname = AGAX_CHK(XListFonts, (
+			env->x.dpy, names[current], 1, &nfonts));
+
 		if(nfonts) {
+			AF_VERIFY(fontname, AF_ERR_UNKNOWN);
 			aga_log(__FILE__, "Using x11 font `%s'", *fontname);
-			XFreeFontNames(fontname);
+			AGAX_CHK(XFreeFontNames, (fontname));
 			break;
 		}
 
-		XFreeFontNames(fontname);
+		AGAX_CHK(XFreeFontNames, (fontname));
 		current++;
 	}
 
-	info = XLoadQueryFont(env->x.dpy, names[current]);
-
+	info = AGAX_CHK(XLoadQueryFont, (env->x.dpy, names[current]));
 	AF_VERIFY(info, AF_ERR_UNKNOWN);
 	font = info->fid;
 
 	glXUseXFont(font, 0, 256, AGA_FONT_LIST_BASE);
 
-	XUnloadFont(env->x.dpy, font);
+	AGAX_CHK(XUnloadFont, (env->x.dpy, font));
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_setcursor(
+		union aga_winenv* env, struct aga_win* win, af_bool_t visible,
+		af_bool_t captured) {
+
+	af_ulong_t cur;
+
+	AF_PARAM_CHK(env);
+	AF_PARAM_CHK(win);
+
+	cur = visible ? win->arrow_cursor : win->blank_cursor;
+	AGAX_CHK(XDefineCursor, (env->x.dpy, win->win.xwin, cur));
+
+	if(captured) {
+		aga_centreptr(env, win);
+	}
 
 	return AF_ERR_NONE;
 }
@@ -270,15 +346,20 @@ enum af_err aga_poll(
 	pollfd.fd = env->x.dpy_fd;
 	pollfd.events = POLLIN;
 
+	/*
+	 * TODO: This appears to fail under WSLg unless a timeout of 1ms is set
+	 * 		 Which feels like we're doing something deeply importable here.
+	 * 		 Let's try to figure this out!
+	 */
 	if((rdy = poll(&pollfd, 1, 0)) == -1) {
 		return aga_af_errno(__FILE__, "poll");
 	}
 
 	if(rdy && (pollfd.revents & POLLIN)) {
-		while(XPending(env->x.dpy) > 0) {
+		while(AGAX_CHK(XPending, (env->x.dpy)) > 0) {
 			af_bool_t press = AF_FALSE;
 
-			XNextEvent(env->x.dpy, &event);
+			AGAX_CHK(XNextEvent, (env->x.dpy, &event));
 
 			switch(event.type) {
 				default: break;
@@ -339,7 +420,7 @@ enum af_err aga_diag(
 	AF_PARAM_CHK(title);
 	AF_PARAM_CHK(response);
 
-	if(isatty(stdin)) {
+	if(isatty(STDIN_FILENO)) {
 		int c = 'N';
 		const char* err = is_error ? "err: " : "";
 

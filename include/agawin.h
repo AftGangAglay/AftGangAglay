@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #ifndef AGA_WIN_H
@@ -18,6 +18,8 @@ struct aga_win {
 	void* dc;
 	af_size_t width;
 	af_size_t height;
+	af_ulong_t blank_cursor;
+	af_ulong_t arrow_cursor;
 };
 
 struct aga_keymap {

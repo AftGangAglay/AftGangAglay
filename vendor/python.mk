@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+# Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
 PYTHON_ROOT = vendor/python
 PYTHON_SOURCEROOT = $(PYTHON_ROOT)/src
@@ -51,7 +51,7 @@ $(PYTHONGEN): LDLIBS = -lm
 $(PYTHONGEN): CFLAGS += $(LIBPYTHON_CFLAGS)
 $(PYTHONGEN): $(PYTHONGEN_OBJECTS)
 
-$(PYTHON_GRAMINIT): $(PYTHON_SOURCEROOT)/Grammar $(PYTHONGEN)
+$(PYTHON_GRAMINIT): $(PYTHON_SOURCEROOT)/gr/Grammar $(PYTHONGEN)
 	-$(CROSS_TOOL) $(PYTHONGEN) $< $(PYTHON_GRAMINIT)
 
 clean: clean_python

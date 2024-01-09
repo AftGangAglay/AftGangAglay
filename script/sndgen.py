@@ -9,4 +9,4 @@ if len(argv) != 3:
 	print('usage: ' + argv[0] + ' <input> <output>')
 	exit(1)
 
-system(f'ffmpeg -i {argv[1]} -f u8 -ar 8000 -ab 8k -ac 1 {argv[2]}')
+system('ffmpeg -i ' + argv[1] + ' -f u8 -ar 8000 -ab 8k -ac 1 ' + argv[2])

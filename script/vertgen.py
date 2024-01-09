@@ -44,7 +44,7 @@ with pyassimp.load(argv[1], processing=proc) as scene:
             if len(mesh.texturecoords):
                 a = mesh.texturecoords[0][i]
                 vertices.append(a[0])
-                vertices.append(a[1])
+                vertices.append(-a[1])
             else:
                 vertices.extend(zz)
 

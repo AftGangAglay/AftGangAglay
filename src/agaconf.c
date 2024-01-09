@@ -240,11 +240,11 @@ enum af_err aga_mkconf(const char* path, struct aga_conf_node* root) {
 	{
 		af_uchar_t* buf;
 		af_size_t size;
-		AF_CHK(AGA_MK_LARGE_FILE_STRATEGY(path, &buf, &size));
+		AF_CHK(aga_mklargefile(path, &buf, &size));
 
 		SGML_write(s, (char*) buf, (int) size);
 
-		AF_CHK(AGA_KILL_LARGE_FILE_STRATEGY(buf, size));
+		AF_CHK(aga_killlargefile(buf, size));
 	}
 
 	SGML_free(s);

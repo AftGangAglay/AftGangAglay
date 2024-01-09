@@ -78,7 +78,7 @@ enum af_err aga_spawn_sync(const char* program, char** argv, const char* wd) {
 #endif
 
 #ifdef AGA_HAVE_MAP
-enum af_err aga_fmap(const char* path, af_uchar_t** ptr, af_size_t* size) {
+enum af_err aga_mkfmap(const char* path, af_uchar_t** ptr, af_size_t* size) {
 	struct stat statbuf;
 	int fd;
 
@@ -105,7 +105,7 @@ enum af_err aga_fmap(const char* path, af_uchar_t** ptr, af_size_t* size) {
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_funmap(af_uchar_t* ptr, af_size_t size) {
+enum af_err aga_killfmap(af_uchar_t* ptr, af_size_t size) {
 	AF_PARAM_CHK(ptr);
 
 	if(munmap(ptr, size) == -1) return aga_af_errno(__FILE__, "munmap");
@@ -113,3 +113,22 @@ enum af_err aga_funmap(af_uchar_t* ptr, af_size_t size) {
 	return AF_ERR_NONE;
 }
 #endif
+
+enum af_err aga_mklargefile(
+		const char* path, af_uchar_t** ptr, af_size_t* size) {
+
+#ifdef AGA_HAVE_MAP
+	return aga_fmap(path, ptr, size);
+#else
+	return aga_read(path, ptr, size);
+#endif
+}
+enum af_err aga_killlargefile(af_uchar_t* ptr, af_size_t size) {
+#ifdef AGA_HAVE_MAP
+	return aga_killfmap(ptr, size);
+#else
+	free(ptr);
+	(void) size;
+	return AF_ERR_NONE;
+#endif
+}

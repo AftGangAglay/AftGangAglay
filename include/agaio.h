@@ -30,18 +30,12 @@ enum af_err aga_spawn_sync(const char* program, char** argv, const char* wd);
 #endif
 
 #ifdef AGA_HAVE_MAP
-# define AGA_MK_LARGE_FILE_STRATEGY(path, ptr, size) \
-		aga_fmap((path), (ptr), (size))
-# define AGA_KILL_LARGE_FILE_STRATEGY(ptr, size) \
-		aga_funmap((ptr), (size))
-
-enum af_err aga_fmap(const char* path, af_uchar_t** ptr, af_size_t* size);
-enum af_err aga_funmap(af_uchar_t* ptr, af_size_t size);
-#else
-# define AGA_MK_LARGE_FILE_STRATEGY(path, ptr, size) \
-		aga_read((path), (ptr), (size))
-# define AGA_KILL_LARGE_FILE_STRATEGY(ptr, size) \
-		(free((ptr)), AF_ERR_NONE)
+enum af_err aga_mkfmap(const char* path, af_uchar_t** ptr, af_size_t* size);
+enum af_err aga_killfmap(af_uchar_t* ptr, af_size_t size);
 #endif
+
+enum af_err aga_mklargefile(
+		const char* path, af_uchar_t** ptr, af_size_t* size);
+enum af_err aga_killlargefile(af_uchar_t* ptr, af_size_t size);
 
 #endif

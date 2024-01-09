@@ -11,7 +11,7 @@ static af_bool_t aga_script_aferr(const char* proc, enum af_err err) {
 
 	if(!err) return AF_FALSE;
 
-	if(sprintf(buf, "%s: %s\n", proc, aga_af_errname(err)) < 0) {
+	if(sprintf(buf, "%s: %s", proc, aga_af_errname(err)) < 0) {
 		aga_af_errno(__FILE__, "sprintf");
 		return AF_TRUE;
 	}
@@ -33,7 +33,7 @@ static af_bool_t aga_script_glerr(const char* proc) {
 		aga_log(__FILE__, "err: %s: %s", proc, s);
 	} while((tmp = glGetError()));
 
-	if(sprintf(buf, "%s: %s\n", proc, s) < 0) {
+	if(sprintf(buf, "%s: %s", proc, s) < 0) {
 		aga_af_errno(__FILE__, "sprintf");
 		return AF_TRUE;
 	}
@@ -267,9 +267,9 @@ static object* agan_mklargefile(object* self, object* arg) {
 	retval = NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
 	if(!retval) return 0;
 
-	result = AGA_MK_LARGE_FILE_STRATEGY(
-				path, (af_uchar_t**) &retval->ptr, &retval->len);
-	if(aga_script_aferr("AGA_MK_LARGE_FILE_STRATEGY", result)) return 0;
+	result = aga_mklargefile(
+		path, (af_uchar_t**) &retval->ptr, &retval->len);
+	if(aga_script_aferr("aga_mklargefile", result)) return 0;
 
 	return (object*) retval;
 }
@@ -288,8 +288,8 @@ static object* agan_killlargefile(object* self, object* arg) {
 
 	nativeptr = (struct aga_nativeptr*) arg;
 
-	result = AGA_KILL_LARGE_FILE_STRATEGY(nativeptr->ptr, nativeptr->len);
-	if(aga_script_aferr("AGA_KILL_LARGE_FILE_STRATEGY", result)) return 0;
+	result = aga_killlargefile(nativeptr->ptr, nativeptr->len);
+	if(aga_script_aferr("aga_killlargefile", result)) return 0;
 
 	INCREF(None);
 	return None;

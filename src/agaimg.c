@@ -4,64 +4,67 @@
  */
 
 #include <agaimg.h>
-#include <agalog.h>
+#include <agaio.h>
 #include <agastd.h>
 
-/* Hiding larger libs like libtiff is desireable */
-#include <tiff.h>
-#include <tiffio.h>
+#define AGA_IMG_COMP (4)
+#define AGA_IMG_MAGIC (0xA6A)
+#define AGA_IMG_FOOTER_SIZE (2 * sizeof(af_uint32_t))
 
 enum af_err aga_mkimg(struct aga_img* img, const char* path) {
-	TIFF* t;
-	int result;
-	af_uint32_t width, height;
+	static const af_uint32_t magic = AGA_IMG_MAGIC;
+
+	af_size_t size;
+	af_uchar_t* cdata;
 
 	AF_PARAM_CHK(img);
 	AF_PARAM_CHK(path);
 
-	if(!(t = TIFFOpen(path, "r"))) {
-		aga_log(__FILE__, "err: TIFFOpen: unknown `%s'", path);
-		return AF_ERR_UNKNOWN;
+	AF_CHK(aga_mklargefile(path, &img->data, &size));
+	cdata = img->data;
+
+	AF_VERIFY(size >= AGA_IMG_FOOTER_SIZE, AF_ERR_BAD_PARAM);
+
+#ifndef AF_VERIFY
+	if(!!memcmp(cdata + size - sizeof(magic), &magic, sizeof(magic))) {
+		return AF_ERR_BAD_PARAM;
 	}
+#else
+	(void) magic;
+#endif
 
-	/* We want to treat TIFFs as single images */
-	AF_VERIFY(TIFFLastDirectory(t), AF_ERR_BAD_PARAM);
+	af_memcpy(
+		&img->width, cdata + size - AGA_IMG_FOOTER_SIZE, AGA_IMG_FOOTER_SIZE);
 
-	result = TIFFGetField(t, TIFFTAG_IMAGEWIDTH, &width);
-	AF_VERIFY(result == 1, AF_ERR_UNKNOWN);
-	result = TIFFGetField(t, TIFFTAG_IMAGELENGTH, &height);
-	AF_VERIFY(result == 1, AF_ERR_UNKNOWN);
-
-	img->width = width;
-	img->height = height;
-
-	img->data = malloc(width * height * AGA_IMG_COMP);
-	AF_VERIFY(img->data, AF_ERR_MEM);
-
-	result = TIFFReadRGBAImage(t, width, height, img->data, 0);
-	AF_VERIFY(result == 1, AF_ERR_UNKNOWN);
-
-	TIFFClose(t);
+	/* Zero-size images are weird but shouldn't be a crash. */
+	if(img->width) {
+		af_size_t pixels = img->width * AGA_IMG_COMP;
+		img->height = (size - AGA_IMG_FOOTER_SIZE) / pixels;
+	}
+	else img->height = 0;
 
 	return AF_ERR_NONE;
 }
 
 enum af_err aga_killimg(struct aga_img* img) {
+	af_size_t size;
+
 	AF_PARAM_CHK(img);
 
-	free(img->data);
-
-	return AF_ERR_NONE;
+	size = (img->width * img->height) + AGA_IMG_FOOTER_SIZE;
+	return aga_killlargefile(img->data, size);
 }
 
 enum af_err aga_mkteximg(
 		struct af_ctx* ctx, struct aga_img* img, struct af_buf* tex,
 		af_bool_t filter) {
 
-	af_size_t img_size = img->width * img->height * AGA_IMG_COMP;
+	af_size_t img_size;
 
 	AF_PARAM_CHK(img);
 	AF_PARAM_CHK(tex);
+
+	img_size = img->width * img->height * AGA_IMG_COMP;
 
 	AF_CHK(af_mkbuf(ctx, tex, AF_BUF_TEX));
 

@@ -10,7 +10,3 @@
 	path = vendor/afeirsa
 	branch = trunk
 	url = https://github.com/AftGangAglay/Afeirsa
-[submodule "vendor/libtiff"]
-	path = vendor/libtiff
-	branch = trunk
-	url = https://github.com/AftGangAglay/libtiff3.4beta18

@@ -52,7 +52,6 @@ ARFLAGS = -rc
 include vendor/www.mk
 include vendor/python.mk
 include vendor/afeirsa.mk
-include vendor/libtiff.mk
 
 AGA_SOURCES = $(wildcard src/*.c)
 AGA_HEADERS = $(wildcard include/*.h)
@@ -73,9 +72,8 @@ AGA_CFLAGS += -Iinclude $(DIAGNOSTICS) $(GLABI_CFLAGS)
 AGA_CFLAGS += -DAGA_VERSION=\"$(shell $(CAT) VERSION)\"
 
 AGA_CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS) $(AFEIRSA_IFLAGS)
-AGA_CFLAGS += $(LIBTIFF_IFLAGS)
 
-AGA_LIBDEPS = $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA) $(LIBTIFF)
+AGA_LIBDEPS = $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA)
 AGA_LDLIBS += $(AGA_LIBDEPS) $(GLABI_LDLIBS) -lm
 
 ifdef WINDOWS

@@ -238,7 +238,7 @@ enum af_err aga_mkconf(const char* path, struct aga_conf_node* root) {
 	s = SGML_new(&dtd, (HTStructured*) &structured);
 
 	{
-		af_uchar_t* buf;
+		void* buf;
 		af_size_t size;
 		AF_CHK(aga_mklargefile(path, &buf, &size));
 

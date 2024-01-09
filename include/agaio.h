@@ -23,19 +23,18 @@
  * (I know this is suboptimal IO management, but it's just handy to have
  * around. Let's hope the OS FS cache smiles down on us.)
  */
-enum af_err aga_read(const char* path, af_uchar_t** ptr, af_size_t* size);
+enum af_err aga_read(const char* path, void** ptr, af_size_t* size);
 
 #ifdef AGA_HAVE_SPAWN
 enum af_err aga_spawn_sync(const char* program, char** argv, const char* wd);
 #endif
 
 #ifdef AGA_HAVE_MAP
-enum af_err aga_mkfmap(const char* path, af_uchar_t** ptr, af_size_t* size);
-enum af_err aga_killfmap(af_uchar_t* ptr, af_size_t size);
+enum af_err aga_mkfmap(const char* path, void** ptr, af_size_t* size);
+enum af_err aga_killfmap(void* ptr, af_size_t size);
 #endif
 
-enum af_err aga_mklargefile(
-		const char* path, af_uchar_t** ptr, af_size_t* size);
-enum af_err aga_killlargefile(af_uchar_t* ptr, af_size_t size);
+enum af_err aga_mklargefile(const char* path, void** ptr, af_size_t* size);
+enum af_err aga_killlargefile(void* ptr, af_size_t size);
 
 #endif

@@ -267,8 +267,7 @@ static object* agan_mklargefile(object* self, object* arg) {
 	retval = NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
 	if(!retval) return 0;
 
-	result = aga_mklargefile(
-		path, (af_uchar_t**) &retval->ptr, &retval->len);
+	result = aga_mklargefile(path, &retval->ptr, &retval->len);
 	if(aga_script_aferr("aga_mklargefile", result)) return 0;
 
 	return (object*) retval;
@@ -400,6 +399,8 @@ static object* agan_drawbuf(object* self, object* arg) {
 	object* o;
 	object* t;
 
+	enum af_err result;
+
 	void* ptr;
 	long primitive;
 
@@ -431,10 +432,8 @@ static object* agan_drawbuf(object* self, object* arg) {
 
 	if(!agan_settransmat(t)) return 0;
 
-	if(af_drawbuf(af, ptr, vert, primitive)) {
-		err_setstr(RuntimeError, "af_drawbuf() failed");
-		return 0;
-	}
+	result = af_drawbuf(af, ptr, vert, primitive);
+	if(aga_script_aferr("af_drawbuf", result)) return 0;
 
 	glPopMatrix();
 
@@ -450,6 +449,8 @@ struct agan_teximg {
 static object* agan_mkteximg(object* self, object* arg) {
 	object* str;
 	object* filter;
+
+	enum af_err result;
 
 	struct aga_nativeptr* retval;
 	struct agan_teximg* teximg;
@@ -482,20 +483,18 @@ static object* agan_mkteximg(object* self, object* arg) {
 
 	if(!(path = getstringvalue(str))) return 0;
 
-	if(aga_mkimg(&teximg->img, path)) {
-		err_setstr(RuntimeError, "aga_mkimg() failed");
-		return 0;
-	}
+	result = aga_mkimg(&teximg->img, path);
+	if(aga_script_aferr("aga_mkimg", result)) return 0;
 
-	if(aga_mkteximg(af, &teximg->img, &teximg->tex, f)) {
-		err_setstr(RuntimeError, "aga_mkteximg() failed");
-		return 0;
-	}
+	result = aga_mkteximg(af, &teximg->img, &teximg->tex, f);
+	if(aga_script_aferr("aga_mkteximg", result)) return 0;
 
 	return (object*) retval;
 }
 
 static object* agan_settex(object* self, object* arg) {
+	enum af_err result;
+
 	struct agan_teximg* teximg;
 
 	struct af_ctx* af;
@@ -511,16 +510,16 @@ static object* agan_settex(object* self, object* arg) {
 
 	teximg = ((struct aga_nativeptr*) arg)->ptr;
 
-	if(af_settex(af, &teximg->tex)) {
-		err_setstr(RuntimeError, "af_settex() failed");
-		return 0;
-	}
+	result = af_settex(af, &teximg->tex);
+	if(aga_script_aferr("af_settex", result)) return 0;
 
 	INCREF(None);
 	return None;
 }
 
 static object* agan_killteximg(object* self, object* arg) {
+	enum af_err result;
+
 	struct agan_teximg* teximg;
 
 	struct af_ctx* af;
@@ -537,15 +536,11 @@ static object* agan_killteximg(object* self, object* arg) {
 
 	teximg = ((struct aga_nativeptr*) arg)->ptr;
 
-	if(af_killbuf(af, &teximg->tex)) {
-		err_setstr(RuntimeError, "af_killbuf() failed");
-		return 0;
-	}
+	result = af_killbuf(af, &teximg->tex);
+	if(aga_script_aferr("af_killbuf", result)) return 0;
 
-	if(aga_killimg(&teximg->img)) {
-		err_setstr(RuntimeError, "aga_killimg() failed");
-		return 0;
-	}
+	result = aga_killimg(&teximg->img);
+	if(aga_script_aferr("aga_killimg", result)) return 0;
 
 	free(((struct aga_nativeptr*) arg)->ptr);
 
@@ -610,6 +605,8 @@ static object* agan_mkclip(object* self, object* arg) {
 }
 
 static object* agan_putclip(object* self, object* arg) {
+	enum af_err result;
+
 	struct aga_opts* opts;
 	struct aga_snddev* snd;
 
@@ -624,10 +621,8 @@ static object* agan_putclip(object* self, object* arg) {
 	}
 
 	if(opts->audio_enabled) {
-		if(aga_putclip(snd, ((struct aga_nativeptr*) arg)->ptr)) {
-			err_setstr(RuntimeError, "aga_putclip() failed");
-			return 0;
-		}
+		result = aga_putclip(snd, ((struct aga_nativeptr*) arg)->ptr);
+		if(aga_script_aferr("aga_putclip", result)) return 0;
 	}
 
 	INCREF(None);

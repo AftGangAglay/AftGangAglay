@@ -74,4 +74,4 @@ with pyassimp.load(argv[1], processing=proc) as scene:
 data_s = array(data, dtype=float32)
 
 with open(argv[2], 'wb+') as f:
-    f.write(bytes(data_s))
+    f.write(data_s.tobytes())

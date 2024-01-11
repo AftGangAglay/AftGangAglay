@@ -15,6 +15,8 @@ import pyassimp
 from pyassimp.postprocess import *
 from sys import argv
 
+# TODO: Add some magic to this and sndgen to verify the data is sensible.
+
 VERTSZ = 3 + 4 + 2 + 3
 
 if len(argv) != 3:

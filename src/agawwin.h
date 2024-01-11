@@ -310,10 +310,16 @@ static enum af_err aga_setclipcursor(struct aga_win* win, af_bool_t clip) {
 			return aga_af_winerr(__FILE__, "ClientToScreen");
 		}
 
+		/*
+		 * NOTE: There seems to be a bit of a wonky activation area for the
+		 * Resize cursor, so we have to do a bit of fanagling here. Better to
+		 * Have a too-small clip area than have the mouse "leaking" out of the
+		 * Side of the window.
+		 */
 		rect.left = begin.x;
-		rect.top = begin.y;
-		rect.right = end.x;
-		rect.bottom = end.y;
+		rect.top = begin.y + 1;
+		rect.right = end.x - 2;
+		rect.bottom = end.y - 1;
 	}
 
 	ClipCursor(clip ? &rect : 0);

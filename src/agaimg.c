@@ -1,19 +1,17 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #include <agaimg.h>
 #include <agaio.h>
 #include <agastd.h>
+#include <agapack.h>
 
 #define AGA_IMG_COMP (4)
-#define AGA_IMG_MAGIC (0xA6A)
 #define AGA_IMG_FOOTER_SIZE (2 * sizeof(af_uint32_t))
 
 enum af_err aga_mkimg(struct aga_img* img, const char* path) {
-	static const af_uint32_t magic = AGA_IMG_MAGIC;
-
 	af_size_t size;
 	af_uchar_t* cdata;
 
@@ -25,13 +23,10 @@ enum af_err aga_mkimg(struct aga_img* img, const char* path) {
 
 	AF_VERIFY(size >= AGA_IMG_FOOTER_SIZE, AF_ERR_BAD_PARAM);
 
-#ifndef AF_VERIFY
-	if(!!memcmp(cdata + size - sizeof(magic), &magic, sizeof(magic))) {
+	if(AGA_MAGIC_SET(cdata, size)) {
+
 		return AF_ERR_BAD_PARAM;
 	}
-#else
-	(void) magic;
-#endif
 
 	af_memcpy(
 		&img->width, cdata + size - AGA_IMG_FOOTER_SIZE, AGA_IMG_FOOTER_SIZE);

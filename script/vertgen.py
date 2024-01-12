@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+# Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
 # We're following the same vertex spec defined in `agacore.c'
 # > struct aga_vertex {
@@ -14,10 +14,12 @@ from numpy import float32, array
 import pyassimp
 from pyassimp.postprocess import *
 from sys import argv
+from struct import pack
 
 # TODO: Add some magic to this and sndgen to verify the data is sensible.
 
 VERTSZ = 3 + 4 + 2 + 3
+MAGIC = 0xA6A
 
 if len(argv) != 3:
     print('usage: ' + argv[0] + ' <input> <output>')
@@ -76,4 +78,4 @@ with pyassimp.load(argv[1], processing=proc) as scene:
 data_s = array(data, dtype=float32)
 
 with open(argv[2], 'wb+') as f:
-    f.write(data_s.tobytes())
+    f.write(data_s.tobytes() + pack('I', MAGIC))

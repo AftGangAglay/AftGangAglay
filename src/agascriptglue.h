@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #ifndef AGA_SCRIPT_GLUE_H
@@ -955,6 +955,11 @@ struct agan_object {
 };
 
 static object* agan_putobj(object* self, object* arg);
+
+/*
+ * TODO: Failure states here are super leaky - we can probably compartmentalise
+ * 		 This function a lot more to help remedy this.
+ */
 static object* agan_mkobj(object* self, object* arg) {
 	struct aga_nativeptr* retval;
 	struct agan_object* obj;
@@ -1033,8 +1038,33 @@ static object* agan_mkobj(object* self, object* arg) {
 				if(!filecache ||
 					!(lookup = dictlookup(filecache, (char*) str))) {
 
+					struct aga_nativeptr* nativeptr;
 					if(!(obj->modelfile = agan_mklargefile(0, strobj)))
 						return 0;
+
+					nativeptr = (struct aga_nativeptr*) obj->modelfile;
+
+					if(nativeptr->len < sizeof(AGA_MAGIC)) {
+						/*
+						 * TODO: Add a helper to set formatted exception
+						 *		 Strings.
+						 */
+						err_setstr(RuntimeError, "Model file was too short");
+						return 0;
+					}
+
+					if(AGA_MAGIC_SET(nativeptr->ptr, nativeptr->len)) {
+						err_setstr(
+							RuntimeError, "Model file magic was incorrect");
+						return 0;
+					}
+
+					/*
+					 * TODO: When we get around to actually unloading file data
+					 * 		 We need to remember to add this len back on!
+					 */
+					nativeptr->len -= sizeof(AGA_MAGIC);
+
 					if(dictinsert(
 						filecache, (char*) str, obj->modelfile) == -1) {
 

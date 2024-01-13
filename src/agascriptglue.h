@@ -1045,17 +1045,16 @@ static object* agan_mkobj(object* self, object* arg) {
 					nativeptr = (struct aga_nativeptr*) obj->modelfile;
 
 					if(nativeptr->len < sizeof(AGA_MAGIC)) {
-						/*
-						 * TODO: Add a helper to set formatted exception
-						 *		 Strings.
-						 */
-						err_setstr(RuntimeError, "Model file was too short");
+						char* s = getstringvalue(strobj);
+						if(!s) return 0;
+
+						aga_scripterrf("Model file `%s' was too short", s);
 						return 0;
 					}
 
 					if(AGA_MAGIC_SET(nativeptr->ptr, nativeptr->len)) {
-						err_setstr(
-							RuntimeError, "Model file magic was incorrect");
+						aga_scripterrf(
+							"Model file `%s' magic was incorrect");
 						return 0;
 					}
 

@@ -16,8 +16,6 @@ from pyassimp.postprocess import *
 from sys import argv
 from struct import pack
 
-# TODO: Add some magic to this and sndgen to verify the data is sensible.
-
 VERTSZ = 3 + 4 + 2 + 3
 MAGIC = 0xA6A
 

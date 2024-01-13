@@ -89,6 +89,21 @@ static void aga_scripttrace(void) {
 	}
 }
 
+static void aga_scripterrf(const char* fmt, ...) {
+	va_list l;
+	aga_fixed_buf_t buf = { 0 };
+
+	va_start(l, fmt);
+
+	if(vsprintf(buf, fmt, l) < 0) {
+		aga_af_errno(__FILE__, "vsprintf");
+		err_setstr(RuntimeError, (char*) fmt);
+	}
+	else err_setstr(RuntimeError, buf);
+
+	va_end(l);
+}
+
 #include "agascriptglue.h"
 
 static enum af_err aga_compilescript(const char* script, object** dict) {

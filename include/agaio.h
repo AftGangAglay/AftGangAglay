@@ -18,6 +18,9 @@
 # define AGA_HAVE_SPAWN
 #endif
 
+/* Convenience checked-wrapper for `vfprintf' */
+enum af_err aga_fprintf(void* f, const char* fmt, ...);
+
 /*
  * NOTE: Writes out a heap-alloc'd pointer to `ptr'.
  * (I know this is suboptimal IO management, but it's just handy to have

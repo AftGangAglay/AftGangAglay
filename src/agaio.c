@@ -9,6 +9,19 @@
 #define AGA_WANT_UNIX
 #include <agastd.h>
 
+enum af_err aga_fprintf(void* f, const char* fmt, ...) {
+	va_list l;
+	va_start(l, fmt);
+
+	if(vfprintf(f, fmt, l) == EOF) {
+		return aga_af_errno(__FILE__, "vfprintf");
+	}
+
+	va_end(l);
+
+	return AF_ERR_NONE;
+}
+
 enum af_err aga_read(const char* path, void** ptr, af_size_t* size) {
 	FILE* f;
 	long off;

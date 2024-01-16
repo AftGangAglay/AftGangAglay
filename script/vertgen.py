@@ -17,7 +17,6 @@ from sys import argv
 from struct import pack
 
 VERTSZ = 3 + 4 + 2 + 3
-MAGIC = 0xA6A
 
 if len(argv) != 3:
     print('usage: ' + argv[0] + ' <input> <output>')
@@ -76,4 +75,4 @@ with pyassimp.load(argv[1], processing=proc) as scene:
 data_s = array(data, dtype=float32)
 
 with open(argv[2], 'wb+') as f:
-    f.write(data_s.tobytes() + pack('I', MAGIC))
+    f.write(data_s.tobytes())

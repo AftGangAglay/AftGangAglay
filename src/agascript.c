@@ -14,6 +14,7 @@
 #include <agasnd.h>
 #include <agastd.h>
 #include <agapack.h>
+#include <agascripthelp.h>
 
 #include <afeirsa/afgl.h>
 
@@ -34,7 +35,9 @@ void donedict(void);
 void doneerrors(void);
 void freeaccel(void);
 
-object* call_function(object* func, object* arg);
+typedef object* aga_pyobject_t;
+
+aga_pyobject_t call_function(aga_pyobject_t func, aga_pyobject_t arg);
 
 #ifdef _DEBUG
 /* The extra debug info this enables is a bit too verbose. */
@@ -47,7 +50,7 @@ struct aga_nativeptr {
 	af_size_t len;
 };
 
-static void aga_nativeptr_dealloc(object* _) { (void) _; }
+static void aga_nativeptr_dealloc(aga_pyobject_t _) { (void) _; }
 
 static const typeobject aga_nativeptr_type = {
 	OB_HEAD_INIT(&Typetype)
@@ -56,13 +59,20 @@ static const typeobject aga_nativeptr_type = {
 	aga_nativeptr_dealloc, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
+#define is_nativeptrobject(o) ((o)->ob_type == &aga_nativeptr_type)
+
+static aga_pyobject_t newnativeptrobject(void) {
+	return (aga_pyobject_t)
+		NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
+}
+
 static void aga_scripttrace(void) {
-	object* exc;
-	object* val;
+	aga_pyobject_t exc;
+	aga_pyobject_t val;
 
 	if(err_occurred()) {
 		af_size_t i;
-		object* v = tb_fetch();
+		aga_pyobject_t v = tb_fetch();
 
 		err_get(&exc, &val);
 		for(i = 0; i < aga_logctx.len; ++i) {
@@ -89,6 +99,7 @@ static void aga_scripttrace(void) {
 	}
 }
 
+/*
 static void aga_scripterrf(const char* fmt, ...) {
 	va_list l;
 	aga_fixed_buf_t buf = { 0 };
@@ -103,13 +114,80 @@ static void aga_scripterrf(const char* fmt, ...) {
 
 	va_end(l);
 }
+*/
+
+static af_bool_t aga_script_aferr(const char* proc, enum af_err err) {
+	aga_fixed_buf_t buf = { 0 };
+
+	if(!err) return AF_FALSE;
+
+	if(sprintf(buf, "%s: %s", proc, aga_af_errname(err)) < 0) {
+		aga_af_errno(__FILE__, "sprintf");
+		return AF_TRUE;
+	}
+	err_setstr(RuntimeError, buf);
+
+	return AF_TRUE;
+}
+
+static af_bool_t aga_script_glerr(const char* proc) {
+	aga_fixed_buf_t buf = { 0 };
+	af_uint_t err;
+	af_uint_t tmp = glGetError();
+	const char* s;
+	if(!tmp) return AF_FALSE;
+
+	do {
+		err = tmp;
+		s = (const char*) gluErrorString(err);
+		aga_log(__FILE__, "err: %s: %s", proc, s);
+	} while((tmp = glGetError()));
+
+	if(sprintf(buf, "%s: %s", proc, s) < 0) {
+		aga_af_errno(__FILE__, "sprintf");
+		return AF_TRUE;
+	}
+	err_setstr(RuntimeError, buf);
+
+	return AF_TRUE;
+}
+
+/*
+ * NOTE: We need a bit of global state here to get engine system contexts etc.
+ * 		 Into script land because this version of Python's state is spread
+ * 		 Across every continent.
+ */
+static aga_pyobject_t agan_dict;
+static aga_pyobject_t aga_dict;
+
+static void* aga_getscriptptr(const char* key) {
+	aga_pyobject_t ptr;
+
+	if(!key) {
+		err_setstr(RuntimeError, "unexpected null pointer");
+		return 0;
+	}
+
+	ptr = dictlookup(agan_dict, (char*) key);
+	if(!ptr) {
+		err_setstr(RuntimeError, "failed to resolve script nativeptr");
+		return 0;
+	}
+
+	if(ptr->ob_type != &aga_nativeptr_type) {
+		err_badarg();
+		return 0;
+	}
+
+	return ((struct aga_nativeptr*) ptr)->ptr;
+}
 
 #include "agascriptglue.h"
 
-static enum af_err aga_compilescript(const char* script, object** dict) {
+static enum af_err aga_compilescript(const char* script, aga_pyobject_t* dict) {
 	FILE* f;
-	object* module;
-	object* result;
+	aga_pyobject_t module;
+	aga_pyobject_t result;
 	node* node;
 	int err;
 	codeobject* code;
@@ -147,7 +225,7 @@ enum af_err aga_mkscripteng(
 		struct aga_scripteng* eng, const char* script,
 		const char* pypath, int argc, char** argv) {
 
-	object* aga;
+	aga_pyobject_t aga;
 
     AF_PARAM_CHK(eng);
     AF_PARAM_CHK(script);
@@ -155,7 +233,7 @@ enum af_err aga_mkscripteng(
     AF_PARAM_CHK(argv);
 
 	initall();
-	AF_CHK(aga_mkmod((object**) &eng->agandict));
+	AF_CHK(aga_mkmod((aga_pyobject_t*) &eng->agandict));
 
     aga_log(__FILE__, "Using python path `%s'", pypath);
 
@@ -167,7 +245,7 @@ enum af_err aga_mkscripteng(
     setpythonpath((char*) pypath);
 	setpythonargv(argc, argv);
 
-	AF_CHK(aga_compilescript(script, (object**) &eng->global));
+	AF_CHK(aga_compilescript(script, (aga_pyobject_t*) &eng->global));
 
 	if(!(aga = dictlookup(eng->global, "aga"))) {
 		aga_scripttrace();
@@ -186,7 +264,6 @@ enum af_err aga_killscripteng(struct aga_scripteng* eng) {
 	AF_PARAM_CHK(eng);
 
 	flushline();
-	AF_CHK(aga_killmod());
 	doneimport();
 	donebuiltin();
 	donesys();
@@ -203,7 +280,7 @@ enum af_err aga_killscripteng(struct aga_scripteng* eng) {
 enum af_err aga_setscriptptr(
 		struct aga_scripteng* eng, const char* key, void* value) {
 
-	object* nativeptr;
+	aga_pyobject_t nativeptr;
 
 	AF_PARAM_CHK(eng);
 	AF_PARAM_CHK(key);
@@ -236,7 +313,7 @@ enum af_err aga_findclass(
 		return AF_ERR_UNKNOWN;
 	}
 
-	if(!is_classobject((object*) class->class)) return AF_ERR_UNKNOWN;
+	if(!is_classobject((aga_pyobject_t) class->class)) return AF_ERR_UNKNOWN;
 
 	return AF_ERR_NONE;
 }
@@ -260,14 +337,14 @@ enum af_err aga_mkscriptinst(
 enum af_err aga_killscriptinst(struct aga_scriptinst* inst) {
 	AF_PARAM_CHK(inst);
 
-	DECREF((object*) inst->object);
+	DECREF((aga_pyobject_t) inst->object);
 
 	return AF_ERR_NONE;
 }
 
 enum af_err aga_instcall(struct aga_scriptinst* inst, const char* name) {
-	object* proc;
-	object* methodcall;
+	aga_pyobject_t proc;
+	aga_pyobject_t methodcall;
 
 	AF_PARAM_CHK(inst);
 	AF_PARAM_CHK(name);

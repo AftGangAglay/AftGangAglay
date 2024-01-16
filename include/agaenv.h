@@ -13,6 +13,9 @@
 # if __has_attribute(used)
 #  define AGA_USED __attribute__((used))
 # endif
+# if __has_attribute(unused)
+#  define AGA_UNUSED __attribute__((unused))
+# endif
 # if __has_attribute(noreturn)
 #  define AGA_NORETURN __attribute__((noreturn))
 # endif
@@ -30,6 +33,10 @@
 
 #ifndef AGA_USED
 # define AGA_USED
+#endif
+
+#ifndef AGA_UNUSED
+# define AGA_UNUSED
 #endif
 
 #ifndef AGA_NORETURN

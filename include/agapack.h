@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #ifndef AGA_PACK_H
@@ -8,15 +8,37 @@
 
 #include <afeirsa/afeirsa.h>
 
-#define AGA_MAGIC ((af_uint32_t) 0xA6A)
-static const af_uint32_t aga_magic_global = AGA_MAGIC;
+struct aga_respack;
+struct aga_res {
+	af_size_t refcount;
+	af_size_t offset; /* Offset into main buffer, not `data' member. */
 
-#ifdef AF_VERIFY
-# define AGA_MAGIC_SET(ptr, len) \
-	(!!memcmp((char*) ptr + len - sizeof(aga_magic_global), \
-		&aga_magic_global, sizeof(aga_magic_global)))
-#else
-# define AGA_MAGIC_SET(ptr, len) (AF_TRUE)
-#endif
+	void* data;
+	af_size_t size;
+
+	struct aga_respack* pack;
+
+	struct aga_conf_node* conf;
+};
+
+struct aga_respack {
+	char dummy;
+};
+
+enum af_err aga_mkrespack(const char* path, struct aga_respack* pack);
+enum af_err aga_killrespack(struct aga_respack* pack);
+
+/* Also counts as an acquire - i.e. initial refcount is 0. */
+enum af_err aga_mkres(
+		struct aga_respack* pack, const char* path, struct aga_res** res);
+
+/*
+ * NOTE: You should ensure that you acquire after any potential error
+ * 		 Conditions during object init, and before any potential error
+ * 		 Conditions during object destroy in order to avoid holding onto refs
+ * 		 For invalid objects.
+ */
+enum af_err aga_acquireres(struct aga_res* res);
+enum af_err aga_releaseres(struct aga_res* res);
 
 #endif

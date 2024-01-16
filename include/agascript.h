@@ -17,6 +17,7 @@
 #define AGA_SCRIPT_DIE ("die")
 #define AGA_SCRIPT_WINENV ("winenv")
 #define AGA_SCRIPT_WIN ("win")
+#define AGA_SCRIPT_PACK ("respack")
 
 struct aga_scriptclass {
 	void* class;

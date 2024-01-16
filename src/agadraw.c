@@ -36,6 +36,9 @@ enum af_err aga_setdrawparam(struct af_ctx* af, struct af_vert* vert) {
 	glEnable(GL_BLEND);
 	AF_GL_CHK;
 
+	glEnable(GL_FOG);
+	AF_GL_CHK;
+
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	AF_GL_CHK;
 

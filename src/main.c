@@ -7,6 +7,7 @@
 #include <agasnd.h>
 #include <agalog.h>
 #include <agaerr.h>
+#include <agapack.h>
 #include <agadraw.h>
 #include <agastartup.h>
 #include <agascript.h>
@@ -31,6 +32,8 @@ int main(int argc, char** argv) {
 
     struct af_ctx af;
     struct af_vert vert;
+
+	struct aga_respack pack;
 
     struct aga_snddev snd;
 
@@ -99,6 +102,7 @@ int main(int argc, char** argv) {
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_DIE, &die));
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_WINENV, &env));
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_WIN, &win));
+		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_PACK, &pack));
 
 		CHK(aga_findclass, (&scripteng, &class, "game"));
 		CHK(aga_mkscriptinst, (&class, &inst));

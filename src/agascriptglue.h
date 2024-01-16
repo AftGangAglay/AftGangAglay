@@ -6,6 +6,7 @@
 #ifndef AGA_SCRIPT_GLUE_H
 #define AGA_SCRIPT_GLUE_H
 
+/* TODO: Object/scene-based lighting. */
 #define AGAN_LIGHT_INVAL (~0UL)
 /* GL1.0 doesn't use `GL_MAX_LIGHTS'. */
 #define AGAN_MAXLIGHT (7)
@@ -63,24 +64,6 @@ static af_bool_t agan_settransmat(aga_pyobject_t trans, af_bool_t inv) {
 
 	return AF_TRUE;
 }
-
-#define AGA_PUTITEM_STR(f, name, value) \
-	if(aga_script_aferr("aga_fprintf", aga_fprintf( \
-		f, "\t<item name=\"%s\" type=\"String\">%s</item>\n", name, value))) \
-        \
-		return 0
-
-#define AGA_PUTITEM_INT(f, name, value) \
-	if(aga_script_aferr("aga_fprintf", aga_fprintf( \
-		f, "\t<item name=\"%s\" type=\"Integer\">%s</item>\n", name, value))) \
-		\
-		return 0
-
-#define AGA_PUTITEM_FLOAT(f, name, value) \
-	if(aga_script_aferr("aga_fprintf", aga_fprintf( \
-		f, "\t<item name=\"%s\" type=\"Float\">%s</item>\n", name, value))) \
-		\
-		return 0
 
 AGA_SCRIPTPROC(getkey) {
 	long value;
@@ -633,78 +616,6 @@ AGA_SCRIPTPROC(killobj) {
 	AGA_NONERET;
 }
 
-AGA_SCRIPTPROC(dumpobj) {
-	enum af_err result;
-
-	aga_pyobject_t path, o;
-	struct aga_nativeptr* nativeptr;
-	struct agan_object* obj;
-
-	const char* s;
-	FILE* f;
-	af_size_t i;
-
-	if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
-		!AGA_ARG(path, 1, string)) {
-
-		AGA_ARGERR("dumpobj", "nativeptr and string");
-	}
-
-	nativeptr = (struct aga_nativeptr*) o;
-	obj = nativeptr->ptr;
-
-	AGA_SCRIPTVAL(s, path, string);
-	if(!(f = fopen(s, "w+"))) {
-		aga_af_patherrno(__FILE__, "fopen", s);
-		return 0;
-	}
-
-	result = aga_fprintf(f, "<root>\n");
-	if(aga_script_aferr("aga_fprintf", result)) return 0;
-
-	/* TODO: Use res conf node to get this once implemented. */
-	AGA_PUTITEM_STR(f, "Model", "AAAAAAAAAAAAAAAAAAAAA");
-	AGA_PUTITEM_STR(f, "Texture", "AAAAAAAAAAAAAAAAAAAAAAAA");
-
-	AGA_PUTITEM_INT(f, "Unlit", !!"AAAAAAAAAAAAAAAAAAAAAAAA");
-	AGA_PUTITEM_INT(f, "ScaleTex", !!"AAAAAAAAAAAAAAAAAAAAAAAA");
-	AGA_PUTITEM_INT(f, "Filter", !!"AAAAAAAAAAAAAAAAAAAAAAAA");
-
-	for(i = 0; i < AF_ARRLEN(agan_conf_components); ++i) {
-		aga_pyobject_t attr;
-		af_size_t j;
-
-		result = aga_fprintf(
-			f, "\t<item name=\"%s\">\n", agan_conf_components[i]);
-		if(aga_script_aferr("aga_fprintf", result)) return 0;
-
-		AGA_GETATTR(obj->transform, agan_trans_components[i], attr);
-
-		for(j = 0; j < AF_ARRLEN(agan_conf_components); ++j) {
-			aga_pyobject_t flobj;
-			float fl;
-
-			AGA_GETLISTITEM(attr, j, flobj);
-			AGA_SCRIPTVAL(fl, flobj, float);
-
-			AGA_PUTITEM_FLOAT(f, agan_conf_components[j], fl);
-		}
-
-		result = aga_fprintf(f, "\t</item>\n");
-		if(aga_script_aferr("aga_fprintf", result)) return 0;
-	}
-
-	result = aga_fprintf(f, "\t</root>\n");
-	if(aga_script_aferr("aga_fprintf", result)) return 0;
-
-	if(fclose(f) == EOF) {
-		aga_af_errno(__FILE__, "fclose");
-		return 0;
-	}
-
-	AGA_NONERET;
-}
-
 AGA_SCRIPTPROC(text) {
 	const char* text;
 	aga_pyobject_t str, t, f;
@@ -871,7 +782,6 @@ enum af_err aga_mkmod(aga_pyobject_t* dict) {
 		_(mkobj),
 		_(putobj),
 		_(killobj),
-		_(dumpobj),
 		_(getobjtrans),
 
 		/* Maths */

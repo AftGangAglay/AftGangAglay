@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #ifndef AGA_IO_H
@@ -17,9 +17,6 @@
 #if defined(AGA_HAVE_SYS_WAIT) && defined(AGA_HAVE_UNISTD)
 # define AGA_HAVE_SPAWN
 #endif
-
-/* Convenience checked-wrapper for `vfprintf' */
-enum af_err aga_fprintf(void* f, const char* fmt, ...);
 
 /*
  * NOTE: Writes out a heap-alloc'd pointer to `ptr'.

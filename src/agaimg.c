@@ -44,20 +44,3 @@ enum af_err aga_killimg(struct aga_img* img) {
 
 	return AF_ERR_NONE;
 }
-
-enum af_err aga_mkteximg(
-		struct af_ctx* ctx, struct aga_img* img, struct af_buf* tex,
-		af_bool_t filter) {
-
-	AF_PARAM_CHK(img);
-	AF_PARAM_CHK(tex);
-
-	AF_CHK(af_mkbuf(ctx, tex, AF_BUF_TEX));
-
-	tex->tex_width = img->width;
-	tex->tex_filter = filter;
-
-	AF_CHK(af_upload(ctx, tex, img->res->data, img->res->size));
-
-	return AF_ERR_NONE;
-}

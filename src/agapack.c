@@ -21,6 +21,12 @@ enum af_err aga_killrespack(struct aga_respack* pack) {
 	return AF_ERR_NONE;
 }
 
+enum af_err aga_sweeprespack(struct aga_respack* pack) {
+	AF_PARAM_CHK(pack);
+
+	return AF_ERR_NONE;
+}
+
 enum af_err aga_mkres(
 		struct aga_respack* pack, const char* path, struct aga_res** res) {
 
@@ -36,16 +42,18 @@ enum af_err aga_mkres(
 	return aga_mklargefile(path, &(*res)->data, &(*res)->size);
 }
 
+/* aga_log(__FILE__, "Killing resource `0x%p'...", *res); */
+/*
 static enum af_err aga_killres(struct aga_res* res) {
 	AF_PARAM_CHK(res);
 
-	/* aga_log(__FILE__, "Killing resource `0x%p'...", *res); */
 	AF_CHK(aga_killlargefile(res->data, res->size));
 
 	free(res);
 
 	return AF_ERR_NONE;
 }
+*/
 
 enum af_err aga_acquireres(struct aga_res* res) {
 	AF_PARAM_CHK(res);
@@ -58,7 +66,7 @@ enum af_err aga_acquireres(struct aga_res* res) {
 enum af_err aga_releaseres(struct aga_res* res) {
 	AF_PARAM_CHK(res);
 
-	if(--res->refcount <= 0) return aga_killres(res);
+	if(res->refcount) --res->refcount;
 
 	return AF_ERR_NONE;
 }

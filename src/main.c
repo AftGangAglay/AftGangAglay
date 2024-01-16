@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #include <agawin.h>
@@ -130,6 +130,8 @@ int main(int argc, char** argv) {
 			CHK(aga_puttextfmt, (0.05f, 0.1f, str1));
 			CHK(aga_puttextfmt, (0.05f, 0.2f, str2));
 		}
+
+		SOFT(aga_sweeprespack, (&pack));
 
 		SOFT(af_flush, (&af));
 

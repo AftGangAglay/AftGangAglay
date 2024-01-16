@@ -14,18 +14,7 @@ static af_bool_t aga_light_cap_warned = AF_FALSE;
 static af_bool_t aga_light_start_warned = AF_FALSE;
 
 struct agan_object {
-	struct aga_img img;
-	struct af_buf tex;
-
-	struct aga_res* modelres;
-	struct af_buf model;
-
 	aga_pyobject_t transform;
-
-	af_bool_t unlit;
-	af_bool_t scaletex;
-	af_bool_t filter;
-
 	af_uint_t drawlist;
 };
 
@@ -421,6 +410,10 @@ AGA_SCRIPTPROC(mkobj) {
 	struct agan_object* obj;
 	struct aga_nativeptr* nativeptr;
 
+	struct aga_img img;
+	struct af_buf model, tex;
+	int unlit, scaletex, filter;
+
 	struct aga_respack* pack;
 	struct af_ctx* af;
 	struct af_vert* vert;
@@ -463,6 +456,7 @@ AGA_SCRIPTPROC(mkobj) {
 		struct aga_conf_node* it;
 		struct aga_conf_node* v;
 		const char* str;
+		struct aga_res* res;
 
 		result = aga_mkconf(path, &conf);
 		if(aga_script_aferr("aga_mkconf", result)) return 0;
@@ -470,57 +464,62 @@ AGA_SCRIPTPROC(mkobj) {
 		root = conf.children;
 		for(it = root->children; it < root->children + root->len; ++it) {
 			aga_pyobject_t flobj;
-			int unlit, scaletex, filter;
 
 			/*
 			 * TODO: Handle materials.
 			 */
 			if(aga_confvar("Model", it, AGA_STRING, &str)) {
-				result = aga_mkres(pack, str, &obj->modelres);
+				result = aga_mkres(pack, str, &res);
 				if(aga_script_aferr("aga_mkres", result)) return 0;
 
-				result = af_mkbuf(af, &obj->model, AF_BUF_VERT);
+				result = aga_releaseres(res);
+				if(aga_script_aferr("aga_releaseres", result)) return 0;
+
+				result = af_mkbuf(af, &model, AF_BUF_VERT);
 				if(aga_script_aferr("af_mkbuf", result)) return 0;
 
-				result = af_upload(
-					af, &obj->model, obj->modelres->data, obj->modelres->size);
+				result = af_upload(af, &model, res->data, res->size);
 				if(aga_script_aferr("af_upload", result)) return 0;
 
 				continue;
 			}
 
 			if(aga_confvar("Texture", it, AGA_STRING, &str)) {
-				struct aga_res* res;
-
 				/* TODO: Fix leaky error states here once we remove "img". */
 				result = aga_mkres(pack, str, &res);
 				if(aga_script_aferr("aga_mkres", result)) return 0;
 
-				result = aga_mkimg(&obj->img, res);
+				result = aga_releaseres(res);
+				if(aga_script_aferr("aga_releaseres", result)) return 0;
+
+				result = aga_mkimg(&img, res);
 				if(aga_script_aferr("aga_mkimg", result)) return 0;
 
 				/* NOTE: Filter mode must appear above texture entry. */
-				result = aga_mkteximg(af, &obj->img, &obj->tex, obj->filter);
-				if(aga_script_aferr("aga_mkteximg", result)) return 0;
+				result = af_mkbuf(af, &tex, AF_BUF_TEX);
+				if(aga_script_aferr("af_mkbuf", result)) return 0;
 
-				result = aga_releaseres(res);
-				if(aga_script_aferr("aga_releaseres", result)) return 0;
+				tex.tex_width = img.width;
+				tex.tex_filter = filter;
+
+				result = af_upload(af, &tex, res->data, res->size);
+				if(aga_script_aferr("af_upload", result)) return 0;
 
 				continue;
 			}
 
 			if(aga_confvar("Unlit", it, AGA_INTEGER, &unlit)) {
-				obj->unlit = !!unlit;
+				unlit = !!unlit;
 				continue;
 			}
 
 			if(aga_confvar("ScaleTex", it, AGA_INTEGER, &scaletex)) {
-				obj->scaletex = !!scaletex;
+				scaletex = !!scaletex;
 				continue;
 			}
 
 			if(aga_confvar("Filter", it, AGA_INTEGER, &filter)) {
-				obj->filter = !!filter;
+				filter = !!filter;
 				continue;
 			}
 
@@ -554,10 +553,10 @@ AGA_SCRIPTPROC(mkobj) {
 	obj->drawlist = glGenLists(1);
 	glNewList(obj->drawlist, GL_COMPILE);
 	{
-		result = af_settex(af, &obj->tex);
+		result = af_settex(af, &tex);
 		if(aga_script_aferr("af_settex", result)) return 0;
 
-		if(obj->unlit) {
+		if(unlit) {
 			glDisable(GL_LIGHTING);
 			if(aga_script_glerr("glDisable")) return 0;
 
@@ -574,21 +573,30 @@ AGA_SCRIPTPROC(mkobj) {
 
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
-		/*if(obj->scaletex && !agan_settransmat(obj->transform, AF_FALSE)) {
+		if(scaletex && !agan_settransmat(obj->transform, AF_FALSE)) {
 			return 0;
-		}*/
+		}
 
 		glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
 		if(!agan_settransmat(obj->transform, AF_FALSE)) return 0;
 
-		result = af_drawbuf(af, &obj->model, vert, AF_TRIANGLES);
+		result = af_drawbuf(af, &model, vert, AF_TRIANGLES);
 		if(aga_script_aferr("af_drawbuf", result)) return 0;
 
 		glPopMatrix();
 	}
 	glEndList();
 	if(aga_script_glerr("glNewList")) return 0;
+
+	result = af_killbuf(af, &model);
+	if(aga_script_aferr("af_killbuf", result)) return 0;
+
+	result = af_killbuf(af, &tex);
+	if(aga_script_aferr("af_killbuf", result)) return 0;
+
+	result = aga_killimg(&img);
+	if(aga_script_aferr("aga_killimg", result)) return 0;
 
 	return (aga_pyobject_t) retval;
 }
@@ -658,9 +666,9 @@ AGA_SCRIPTPROC(dumpobj) {
 	AGA_PUTITEM_STR(f, "Model", "AAAAAAAAAAAAAAAAAAAAA");
 	AGA_PUTITEM_STR(f, "Texture", "AAAAAAAAAAAAAAAAAAAAAAAA");
 
-	AGA_PUTITEM_INT(f, "Unlit", obj->unlit);
-	AGA_PUTITEM_INT(f, "ScaleTex", obj->scaletex);
-	AGA_PUTITEM_INT(f, "Filter", obj->filter);
+	AGA_PUTITEM_INT(f, "Unlit", !!"AAAAAAAAAAAAAAAAAAAAAAAA");
+	AGA_PUTITEM_INT(f, "ScaleTex", !!"AAAAAAAAAAAAAAAAAAAAAAAA");
+	AGA_PUTITEM_INT(f, "Filter", !!"AAAAAAAAAAAAAAAAAAAAAAAA");
 
 	for(i = 0; i < AF_ARRLEN(agan_conf_components); ++i) {
 		aga_pyobject_t attr;

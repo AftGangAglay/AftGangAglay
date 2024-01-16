@@ -27,8 +27,9 @@ struct aga_respack {
 
 enum af_err aga_mkrespack(const char* path, struct aga_respack* pack);
 enum af_err aga_killrespack(struct aga_respack* pack);
+enum af_err aga_sweeprespack(struct aga_respack* pack);
 
-/* Also counts as an acquire - i.e. initial refcount is 0. */
+/* Also counts as an acquire - i.e. initial refcount is 1. */
 enum af_err aga_mkres(
 		struct aga_respack* pack, const char* path, struct aga_res** res);
 

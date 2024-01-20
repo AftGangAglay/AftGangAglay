@@ -86,7 +86,18 @@ enum af_err aga_killrespack(struct aga_respack* pack) {
 }
 
 enum af_err aga_sweeprespack(struct aga_respack* pack) {
+	af_size_t i;
+
 	AF_PARAM_CHK(pack);
+
+	for(i = 0; i < pack->len; ++i) {
+		struct aga_res* res = &pack->db[i];
+
+		if(res->refcount || !res->data) continue;
+
+		free(res->data);
+		res->data = 0;
+	}
 
 	return AF_ERR_NONE;
 }
@@ -98,26 +109,24 @@ enum af_err aga_mkres(
 	AF_PARAM_CHK(pack);
 	AF_PARAM_CHK(res);
 
-	AF_VERIFY(*res = calloc(1, sizeof(struct aga_res)), AF_ERR_MEM);
-	/* aga_log(__FILE__, "Loading resource `0x%p'...", *res); */
+	if(!(*res = aga_searchres(pack, path))) return AF_ERR_BAD_PARAM;
 
-	(*res)->refcount = 1;
+	if(!(*res)->data) {
+		af_size_t offset = pack->data_offset + (*res)->offset;
+		int result = fseek(pack->fp, (long) offset, SEEK_SET);
+		if(result == -1) return aga_af_errno(__FILE__, "fseek");
 
-	return aga_mklargefile(path, &(*res)->data, &(*res)->size);
-}
+		AF_VERIFY((*res)->data = malloc((*res)->size), AF_ERR_MEM);
 
-/* aga_log(__FILE__, "Killing resource `0x%p'...", *res); */
-/*
-static enum af_err aga_killres(struct aga_res* res) {
-	AF_PARAM_CHK(res);
+		if(fread((*res)->data, 1, (*res)->size, pack->fp) != (*res)->size) {
+			return aga_af_errno(__FILE__, "fread");
+		}
+	}
 
-	AF_CHK(aga_killlargefile(res->data, res->size));
-
-	free(res);
+	++(*res)->refcount;
 
 	return AF_ERR_NONE;
 }
-*/
 
 enum af_err aga_resfptr(
 		struct aga_respack* pack, const char* path, void** fp,

@@ -54,6 +54,7 @@ int main(int argc, char** argv) {
 	aga_log(__FILE__, "Breathing in the chemicals...");
 
 	SOFT(aga_setopts, (&opts, argc, argv));
+	SOFT(aga_mkrespack, (opts.respack, &pack));
 
     aga_log(__FILE__, "Initializing systems...");
 
@@ -159,6 +160,7 @@ int main(int argc, char** argv) {
 	SOFT(aga_killwin, (&env, &win));
 	SOFT(aga_killkeymap, (&keymap));
 	SOFT(aga_killwinenv, (&env));
+	SOFT(aga_killrespack, (&pack));
 
 	aga_log(__FILE__, "Bye-bye!");
 

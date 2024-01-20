@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #ifndef AGA_CONF_H
@@ -38,7 +38,10 @@ struct aga_conf_node {
 	af_size_t len;
 };
 
-enum af_err aga_mkconf(const char* path, struct aga_conf_node* root);
+/* Specify the filename of the config file being parsed for debug purposes. */
+extern const char* aga_conf_debug_file;
+
+enum af_err aga_mkconf(void* fp, af_size_t count, struct aga_conf_node* root);
 enum af_err aga_killconf(struct aga_conf_node* root);
 
 af_bool_t aga_confvar(
@@ -49,6 +52,9 @@ enum af_err aga_conftree_raw(
 		struct aga_conf_node* root, const char** names, af_size_t count,
 		struct aga_conf_node** out);
 
+enum af_err aga_conftree_nonroot(
+		struct aga_conf_node* root, const char** names, af_size_t count,
+		void* value, enum aga_conf_type type);
 enum af_err aga_conftree(
 		struct aga_conf_node* root, const char** names, af_size_t count,
 		void* value, enum aga_conf_type type);

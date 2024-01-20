@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #include <afeirsa/afeirsa.h>
@@ -34,14 +34,14 @@ enum aga_sgml_item_attribs {
 
 struct aga_sgml_structured {
 	const HTStructuredClass* class;
-	const char* file;
 
 	struct aga_conf_node* stack[1024];
 	af_size_t depth;
 };
 
-/* For whatever reason these are missing from the header */
-void SGML_write(HTStream* context, const char* str, int l);
+const char* aga_conf_debug_file = "<none>";
+
+void SGML_character(HTStream* context, char c);
 void SGML_free(HTStream* context);
 
 enum af_err aga_sgml_push(
@@ -117,8 +117,8 @@ void aga_sgml_start_element(
 			if(!attribute_present[AGA_ITEM_NAME]) {
 				aga_log(
 					__FILE__,
-					"warn: <item> element without name attrib in `%s'",
-					me->file);
+					"warn: <item> element without name attrib `%s'",
+					aga_conf_debug_file);
 			}
 			else {
 				const char* value = attribute_value[AGA_ITEM_NAME];
@@ -139,7 +139,7 @@ void aga_sgml_start_element(
 				else {
 					static const char fmt[] =
 						"warn: <item> element has unknown type `%s' in `%s'";
-					aga_log(__FILE__, fmt, typename, me->file);
+					aga_log(__FILE__, fmt, typename, aga_conf_debug_file);
 					node->type = AGA_NONE;
 				}
 			}
@@ -183,9 +183,8 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 	me->depth--;
 }
 
-enum af_err aga_mkconf(const char* path, struct aga_conf_node* root) {
-	HTStream* s;
-	HTStructuredClass class = {
+enum af_err aga_mkconf(void* fp, af_size_t count, struct aga_conf_node* root) {
+	static HTStructuredClass class = {
 		"",
 
 		(void(*)(HTStructured*)) aga_sgml_nil,
@@ -203,21 +202,22 @@ enum af_err aga_mkconf(const char* path, struct aga_conf_node* root) {
 
 		(void(*)(HTStructured*, int)) aga_sgml_nil
 	};
+
+	HTStream* s;
 	SGML_dtd dtd;
 	HTTag tags[AGA_ELEMENT_COUNT] = { 0 };
 	attr item_attributes[AGA_ITEM_ATTRIB_COUNT];
-	struct aga_sgml_structured structured = {
-		0, 0, { 0 }, 0
-	};
+	struct aga_sgml_structured structured = { 0, { 0 }, 0 };
+	af_size_t i;
+
 	af_memset(root, 0, sizeof(struct aga_conf_node));
-	structured.file = path;
 	AF_CHK(aga_sgml_push(&structured, root));
 
 	structured.class = &class;
 
 	/*
 	 * NOTE: If your SGML is misbehaving - give this a try.
-	 * 		 Should we have a way to set this at runtime?
+	 * TODO: Should we have a way to set this at runtime?
 	WWW_TraceFlag = 1;
 	 */
 
@@ -235,16 +235,17 @@ enum af_err aga_mkconf(const char* path, struct aga_conf_node* root) {
 	dtd.tags = tags;
 	dtd.number_of_tags = AF_ARRLEN(tags);
 
+	/* TODO: Leaky error conditions as usual. */
 	s = SGML_new(&dtd, (HTStructured*) &structured);
 
-	{
-		void* buf;
-		af_size_t size;
-		AF_CHK(aga_mklargefile(path, &buf, &size));
+	for(i = 0; i < count; ++i) {
+		int c = fgetc(fp);
 
-		SGML_write(s, (char*) buf, (int) size);
+		if(c == EOF) {
+			return aga_af_patherrno(__FILE__, "fgetc", aga_conf_debug_file);
+		}
 
-		AF_CHK(aga_killlargefile(buf, size));
+		SGML_character(s, (char) c);
 	}
 
 	SGML_free(s);
@@ -272,7 +273,6 @@ enum af_err aga_killconf(struct aga_conf_node* root) {
 
 	return AF_ERR_NONE;
 }
-
 
 af_bool_t aga_confvar(
 		const char* name, struct aga_conf_node* node, enum aga_conf_type type,
@@ -334,7 +334,7 @@ enum af_err aga_conftree_raw(
 	return AF_ERR_UNKNOWN;
 }
 
-enum af_err aga_conftree(
+enum af_err aga_conftree_nonroot(
 		struct aga_conf_node* root, const char** names, af_size_t count,
 		void* value, enum aga_conf_type type) {
 
@@ -344,8 +344,16 @@ enum af_err aga_conftree(
 	AF_PARAM_CHK(names);
 	AF_PARAM_CHK(value);
 
-	AF_CHK(aga_conftree_raw(root->children, names, count, &node));
+	AF_CHK(aga_conftree_raw(root, names, count, &node));
 
 	if(aga_confvar(node->name, node, type, value)) return AF_ERR_NONE;
 	else return AF_ERR_UNKNOWN;
+}
+
+/* TODO: This should be removed and we should review our invocations. */
+enum af_err aga_conftree(
+		struct aga_conf_node* root, const char** names, af_size_t count,
+		void* value, enum aga_conf_type type) {
+
+	return aga_conftree_nonroot(root->children, names, count, value, type);
 }

@@ -439,9 +439,14 @@ AGA_SCRIPTPROC(mkobj) {
 		struct aga_conf_node* it;
 		struct aga_conf_node* v;
 		const char* str;
+		void* conf_fp;
+		af_size_t conf_size;
 		struct aga_res* res;
 
-		result = aga_mkconf(path, &conf);
+		result = aga_resfptr(pack, path, &conf_fp, &conf_size);
+		if(aga_script_aferr("aga_resfptr", result)) return 0;
+
+		result = aga_mkconf(conf_fp, conf_size, &conf);
 		if(aga_script_aferr("aga_mkconf", result)) return 0;
 
 		root = conf.children;

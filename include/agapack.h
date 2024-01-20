@@ -6,12 +6,14 @@
 #ifndef AGA_PACK_H
 #define AGA_PACK_H
 
+#include <agaconf.h>
+
 #include <afeirsa/afeirsa.h>
 
 struct aga_respack;
 struct aga_res {
 	af_size_t refcount;
-	af_size_t offset; /* Offset into main buffer, not `data' member. */
+	af_size_t offset; /* Offset into pack data fields, not `data' member. */
 
 	void* data;
 	af_size_t size;
@@ -22,7 +24,15 @@ struct aga_res {
 };
 
 struct aga_respack {
-	char dummy;
+	void* fp;
+	af_size_t size;
+	af_size_t data_offset;
+
+	/* TODO: This should eventually be a hashmap. */
+	struct aga_res* db;
+	af_size_t len; /* Alias for `pack->root.children->len'. */
+
+	struct aga_conf_node root;
 };
 
 enum af_err aga_mkrespack(const char* path, struct aga_respack* pack);
@@ -32,6 +42,10 @@ enum af_err aga_sweeprespack(struct aga_respack* pack);
 /* Also counts as an acquire - i.e. initial refcount is 1. */
 enum af_err aga_mkres(
 		struct aga_respack* pack, const char* path, struct aga_res** res);
+
+enum af_err aga_resfptr(
+		struct aga_respack* pack, const char* path, void** fp,
+		af_size_t* size);
 
 /*
  * NOTE: You should ensure that you acquire after any potential error

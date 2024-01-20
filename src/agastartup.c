@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #include <agastartup.h>
@@ -32,6 +32,8 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	opts->audio_dev = "/dev/dsp1";
 	opts->startup_script = "script/main.py";
 	opts->python_path = "vendor/python/lib:script:script/AGAScriptLib";
+	/* TODO: Make this path not hardcoded! */
+	opts->respack = "agapack.raw";
 	opts->width = 640;
 	opts->height = 480;
 	opts->fov = 90.0f;
@@ -65,7 +67,16 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	}
 #endif
 
-	AF_CHK(aga_mkconf(opts->config_file, &opts->config));
+	{
+		void* fp;
+		af_size_t size;
+
+		/* TODO: Disentangle startup/opts/respack interdependency. */
+		AF_CHK(aga_open(opts->config_file, &fp, &size));
+		AF_CHK(aga_mkconf(fp, size, &opts->config));
+
+		if(fclose(fp) == EOF) return aga_af_errno(__FILE__, "fclose");
+	}
 
 	aga_log(__FILE__, "Config loaded from `%s'", opts->config_file);
 

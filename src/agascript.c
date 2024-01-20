@@ -185,23 +185,21 @@ static void* aga_getscriptptr(const char* key) {
 #include "agascriptglue.h"
 
 static enum af_err aga_compilescript(const char* script, aga_pyobject_t* dict) {
-	FILE* f;
+	void* fp;
+	af_size_t size;
 	aga_pyobject_t module;
 	aga_pyobject_t result;
 	node* node;
 	int err;
 	codeobject* code;
 
-	if(!(f = fopen(script, "r"))) {
-		return aga_af_patherrno(__FILE__, "fopen", script);
-	}
-
+	AF_CHK(aga_open(script, &fp, &size));
 	AF_VERIFY((module = add_module("__main__")), AF_ERR_UNKNOWN);
 
-	err = parsefile(f, (char*) script, &gram, file_input, 0, 0, &node);
+	err = parsefile(fp, (char*) script, &gram, file_input, 0, 0, &node);
 	AF_VERIFY(err == E_DONE, AF_ERR_UNKNOWN);
 
-	if(fclose(f) == EOF) (void) aga_af_errno(__FILE__, "fclose");
+	if(fclose(fp) == EOF) (void) aga_af_errno(__FILE__, "fclose");
 
 	AF_VERIFY(*dict = getmoduledict(module), AF_ERR_UNKNOWN);
 	AF_VERIFY(code = compile(node, (char*) script), AF_ERR_UNKNOWN);

@@ -10,27 +10,40 @@
 #include <agastd.h>
 
 enum af_err aga_read(const char* path, void** ptr, af_size_t* size) {
-	FILE* f;
-	long off;
+	void* fp;
 
 	AF_PARAM_CHK(path);
 	AF_PARAM_CHK(ptr);
 
-	if(!(f = fopen(path, "rb"))) {
+	AF_CHK(aga_open(path, &fp, size));
+
+	AF_VERIFY(*ptr = malloc(*size), AF_ERR_MEM);
+	if(fread(*ptr, sizeof(af_uchar_t), *size, fp) != *size) {
+		if(ferror(fp)) return aga_af_patherrno(__FILE__, "fread", path);
+		if(feof(fp)) aga_log(__FILE__, "warn: EOF during read of `%s'", path);
+	}
+	if(fclose(fp) == EOF) return aga_af_errno(__FILE__, "fclose");
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_open(const char* path, void** fp, af_size_t* size) {
+	long tell;
+
+	AF_PARAM_CHK(path);
+	AF_PARAM_CHK(fp);
+	AF_PARAM_CHK(size);
+
+	if(!(*fp = fopen(path, "rb"))) {
 		return aga_af_patherrno(__FILE__, "fopen", path);
 	}
 
-	if(fseek(f, 0, SEEK_END) == -1) return aga_af_errno(__FILE__, "fseek");
-	if((off = ftell(f)) == -1) return aga_af_errno(__FILE__, "ftell");
+	if(fseek(*fp, 0, SEEK_END) == -1) return aga_af_errno(__FILE__, "fseek");
 
-	rewind(f);
+	if((tell = ftell(*fp)) == -1) return aga_af_errno(__FILE__, "ftell");
+	*size = (af_size_t) tell;
 
-	AF_VERIFY(*ptr = malloc((af_size_t) off), AF_ERR_MEM);
-	if((*size = fread(*ptr, sizeof(af_uchar_t), off, f)) != (af_size_t) off) {
-		if(ferror(f)) return aga_af_patherrno(__FILE__, "fread", path);
-		if(feof(f)) aga_log(__FILE__, "warn: EOF during read of `%s'", path);
-	}
-	if(fclose(f) == EOF) return aga_af_errno(__FILE__, "fclose");
+	rewind(*fp);
 
 	return AF_ERR_NONE;
 }

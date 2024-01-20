@@ -25,6 +25,8 @@
  */
 enum af_err aga_read(const char* path, void** ptr, af_size_t* size);
 
+enum af_err aga_open(const char* path, void** fp, af_size_t* size);
+
 #ifdef AGA_HAVE_SPAWN
 enum af_err aga_spawn_sync(const char* program, char** argv, const char* wd);
 #endif

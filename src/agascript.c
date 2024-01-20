@@ -73,6 +73,7 @@ static void aga_scripttrace(void) {
 	if(err_occurred()) {
 		af_size_t i;
 		aga_pyobject_t v = tb_fetch();
+		if(!v) return;
 
 		err_get(&exc, &val);
 		for(i = 0; i < aga_logctx.len; ++i) {
@@ -158,7 +159,6 @@ static af_bool_t aga_script_glerr(const char* proc) {
  * 		 Across every continent.
  */
 static aga_pyobject_t agan_dict;
-static aga_pyobject_t aga_dict;
 
 static void* aga_getscriptptr(const char* key) {
 	aga_pyobject_t ptr;
@@ -223,8 +223,6 @@ enum af_err aga_mkscripteng(
 		struct aga_scripteng* eng, const char* script,
 		const char* pypath, int argc, char** argv) {
 
-	aga_pyobject_t aga;
-
     AF_PARAM_CHK(eng);
     AF_PARAM_CHK(script);
     AF_PARAM_CHK(pypath);
@@ -244,16 +242,6 @@ enum af_err aga_mkscripteng(
 	setpythonargv(argc, argv);
 
 	AF_CHK(aga_compilescript(script, (aga_pyobject_t*) &eng->global));
-
-	if(!(aga = dictlookup(eng->global, "aga"))) {
-		aga_scripttrace();
-		return AF_ERR_UNKNOWN;
-	}
-
-	if(!(aga_dict = getmoduledict(aga))) {
-		aga_scripttrace();
-		return AF_ERR_UNKNOWN;
-	}
 
 	return AF_ERR_NONE;
 }

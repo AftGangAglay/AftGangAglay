@@ -31,7 +31,7 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	opts->chdir = ".";
 	opts->audio_dev = "/dev/dsp1";
 	opts->startup_script = "script/main.py";
-	opts->python_path = "vendor/python/lib:script:script/AGAScriptLib";
+	opts->python_path = "script";
 	/* TODO: Make this path not hardcoded! */
 	opts->respack = "agapack.raw";
 	opts->width = 640;

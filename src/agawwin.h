@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #ifndef AGA_W_WIN_H
@@ -201,6 +201,8 @@ enum af_err aga_mkkeymap(struct aga_keymap* keymap, union aga_winenv* env) {
 
 enum af_err aga_killkeymap(struct aga_keymap* keymap) {
 	AF_PARAM_CHK(keymap);
+
+	free(keymap->keystates);
 
 	return AF_ERR_NONE;
 }

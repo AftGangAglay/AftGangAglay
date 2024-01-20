@@ -19,6 +19,9 @@
 #define AGA_SCRIPT_WIN ("win")
 #define AGA_SCRIPT_PACK ("respack")
 
+struct aga_res;
+struct aga_respack;
+
 struct aga_scriptclass {
 	void* class;
 };
@@ -34,8 +37,8 @@ struct aga_scripteng {
 };
 
 enum af_err aga_mkscripteng(
-		struct aga_scripteng* eng, const char* script,
-        const char* pypath, int argc, char** argv);
+		struct aga_scripteng* eng, const char* script, int argc,
+		char** argv, struct aga_respack* pack, const char* pypath);
 enum af_err aga_killscripteng(struct aga_scripteng* eng);
 
 enum af_err aga_setscriptptr(

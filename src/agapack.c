@@ -7,6 +7,7 @@
 #include <agaio.h>
 #include <agaerr.h>
 #include <agastd.h>
+#include <agascript.h>
 
 #define AGA_PACK_MAGIC ((af_uint32_t) 0xA6A)
 
@@ -112,9 +113,7 @@ enum af_err aga_mkres(
 	if(!(*res = aga_searchres(pack, path))) return AF_ERR_BAD_PARAM;
 
 	if(!(*res)->data) {
-		af_size_t offset = pack->data_offset + (*res)->offset;
-		int result = fseek(pack->fp, (long) offset, SEEK_SET);
-		if(result == -1) return aga_af_errno(__FILE__, "fseek");
+		AF_CHK(aga_resseek(*res, 0));
 
 		AF_VERIFY((*res)->data = malloc((*res)->size), AF_ERR_MEM);
 
@@ -133,20 +132,31 @@ enum af_err aga_resfptr(
 		af_size_t* size) {
 
 	struct aga_res* res;
-	int result;
-	af_size_t offset;
 
 	AF_PARAM_CHK(pack);
 	AF_PARAM_CHK(path);
 
 	if(!(res = aga_searchres(pack, path))) return AF_ERR_BAD_PARAM;
 
-	offset = pack->data_offset + res->offset;
-	result = fseek(pack->fp, (long) offset, SEEK_SET);
-	if(result == -1) return aga_af_errno(__FILE__, "fseek");
+	AF_CHK(aga_resseek(res, 0));
 
 	*fp = pack->fp;
 	*size = res->size;
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_resseek(struct aga_res* res, void** fp) {
+	int result;
+	af_size_t offset;
+
+	AF_PARAM_CHK(res);
+
+	offset = res->pack->data_offset + res->offset;
+	result = fseek(res->pack->fp, (long) offset, SEEK_SET);
+	if(result == -1) return aga_af_errno(__FILE__, "fseek");
+
+	if(fp) *fp = res->pack->fp;
 
 	return AF_ERR_NONE;
 }

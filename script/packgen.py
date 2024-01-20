@@ -16,9 +16,9 @@ size = 0
 
 for i in argv[2:]:
     f = open(i, 'rb')
-    sz = fstat(f.fileno()).st_size
-    file_list.append([ i, f, sz, off ])
-    off += sz
+    file_size = fstat(f.fileno()).st_size + int(i[-3:] == '.py')
+    file_list.append([ i, f, file_size, off ])
+    off += file_size
 
 conf = '<root>\n'
 for f in file_list:
@@ -41,4 +41,5 @@ with open(argv[1], 'wb+') as f:
 
     for i in file_list:
         f.write(i[1].read())
+        if i[0][-3:] == '.py': f.write(b'\xFF')
         i[1].close()

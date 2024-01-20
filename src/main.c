@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
 	}
 
 	result = aga_mkscripteng(
-        &scripteng, opts.startup_script, opts.python_path, argc, argv);
+        &scripteng, opts.startup_script, argc, argv, &pack, opts.python_path);
 	if(result) aga_af_soft(__FILE__, "aga_mkscripteng", result);
 	else {
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_KEYMAP, &keymap));
@@ -103,7 +103,8 @@ int main(int argc, char** argv) {
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_DIE, &die));
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_WINENV, &env));
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_WIN, &win));
-		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_PACK, &pack));
+		/* Pack gets set during script engine init. */
+		/* SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_PACK, &pack)); */
 
 		CHK(aga_findclass, (&scripteng, &class, "game"));
 		CHK(aga_mkscriptinst, (&class, &inst));
@@ -112,7 +113,7 @@ int main(int argc, char** argv) {
 	    aga_log(__FILE__, "Hello, script engine!");
 	}
 
-    aga_log(__FILE__, "Done!");
+	aga_log(__FILE__, "Done!");
 
 	while(!die) {
 		pointer.dx = 0;

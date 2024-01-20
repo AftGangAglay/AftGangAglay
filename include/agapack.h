@@ -46,6 +46,7 @@ enum af_err aga_mkres(
 enum af_err aga_resfptr(
 		struct aga_respack* pack, const char* path, void** fp,
 		af_size_t* size);
+enum af_err aga_resseek(struct aga_res* res, void** fp);
 
 /*
  * NOTE: You should ensure that you acquire after any potential error

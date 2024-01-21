@@ -9,24 +9,6 @@
 #define AGA_WANT_UNIX
 #include <agastd.h>
 
-enum af_err aga_read(const char* path, void** ptr, af_size_t* size) {
-	void* fp;
-
-	AF_PARAM_CHK(path);
-	AF_PARAM_CHK(ptr);
-
-	AF_CHK(aga_open(path, &fp, size));
-
-	AF_VERIFY(*ptr = malloc(*size), AF_ERR_MEM);
-	if(fread(*ptr, sizeof(af_uchar_t), *size, fp) != *size) {
-		if(ferror(fp)) return aga_af_patherrno(__FILE__, "fread", path);
-		if(feof(fp)) aga_log(__FILE__, "warn: EOF during read of `%s'", path);
-	}
-	if(fclose(fp) == EOF) return aga_af_errno(__FILE__, "fclose");
-
-	return AF_ERR_NONE;
-}
-
 enum af_err aga_open(const char* path, void** fp, af_size_t* size) {
 	long tell;
 
@@ -49,6 +31,7 @@ enum af_err aga_open(const char* path, void** fp, af_size_t* size) {
 }
 
 #ifdef AGA_HAVE_SPAWN
+# ifdef AGA_NIXSPAWN
 /*
  * We take an unusual result value to signal to the main process that the spawn
  * failed before we hit the user program.
@@ -57,6 +40,9 @@ enum af_err aga_open(const char* path, void** fp, af_size_t* size) {
 
 enum af_err aga_spawn_sync(const char* program, char** argv, const char* wd) {
 	pid_t p;
+
+	AF_PARAM_CHK(program);
+	AF_PARAM_CHK(argv);
 
 	if((p = fork()) == -1) return aga_af_errno(__FILE__, "fork");
 
@@ -92,60 +78,55 @@ enum af_err aga_spawn_sync(const char* program, char** argv, const char* wd) {
 
 	return AF_ERR_NONE;
 }
-#endif
+# elif defined(AGA_WINSPAWN)
+# include <agaw32.h>
 
-#ifdef AGA_HAVE_MAP
-enum af_err aga_mkfmap(const char* path, void** ptr, af_size_t* size) {
-	struct stat statbuf;
-	int fd;
+# include <windows.h>
 
-	AF_PARAM_CHK(path);
-	AF_PARAM_CHK(ptr);
+enum af_err aga_spawn_sync(const char* program, char** argv, const char* wd) {
+	af_size_t len = 0;
+	char* cli = 0;
 
-	if((fd = open(path, O_RDONLY)) == -1) {
-		return aga_af_patherrno(__FILE__, "open", path);
+	STARTUPINFOA startup = { 0 };
+	PROCESS_INFORMATION info = { 0 };
+	startup.cb = sizeof(startup);
+
+	AF_PARAM_CHK(program);
+	AF_PARAM_CHK(argv);
+
+	for(; *argv; ++argv) {
+		af_size_t l = af_strlen(*argv);
+		char* tmp = realloc(cli, len + l + 2);
+		if(!tmp) {
+			free(cli);
+			return aga_af_errno(__FILE__, "realloc");
+		}
+		cli = tmp;
+		af_memcpy(cli + len, *argv, l);
+		cli[len + l] = ' ';
+		len += l + 1;
 	}
-	if(fstat(fd, &statbuf) == -1) {
-		return aga_af_patherrno(__FILE__, "stat", path);
-	}
-	*size = statbuf.st_size;
+	cli[len] = 0;
 
-	*ptr = mmap(0, *size, PROT_READ, MAP_PRIVATE, fd, 0);
-	if(*ptr == (void*) -1) {
-		return aga_af_patherrno(__FILE__, "mmap", path);
+	if(!CreateProcessA(0, cli, 0, 0, FALSE, 0, 0, wd, &startup, &info)) {
+		free(cli);
+		return aga_af_winerr(__FILE__, "CreateProcessA");
 	}
 
-	if(close(fd) == -1) {
-		return aga_af_patherrno(__FILE__, "close", path);
+	free(cli);
+
+	if(WaitForSingleObject(info.hProcess, INFINITE) == WAIT_FAILED) {
+		return aga_af_winerr(__FILE__, "WaitForSingleObject");
+	}
+
+	if(!CloseHandle(info.hProcess)) {
+		return aga_af_winerr(__FILE__, "CloseHandle");
+	}
+	if(!CloseHandle(info.hThread)) {
+		return aga_af_winerr(__FILE__, "CloseHandle");
 	}
 
 	return AF_ERR_NONE;
 }
-
-enum af_err aga_killfmap(void* ptr, af_size_t size) {
-	AF_PARAM_CHK(ptr);
-
-	if(munmap(ptr, size) == -1) return aga_af_errno(__FILE__, "munmap");
-
-	return AF_ERR_NONE;
-}
+# endif
 #endif
-
-enum af_err aga_mklargefile(
-		const char* path, void** ptr, af_size_t* size) {
-
-#ifdef AGA_HAVE_MAP
-	return aga_mkfmap(path, ptr, size);
-#else
-	return aga_read(path, ptr, size);
-#endif
-}
-enum af_err aga_killlargefile(void* ptr, af_size_t size) {
-#ifdef AGA_HAVE_MAP
-	return aga_killfmap(ptr, size);
-#else
-	free(ptr);
-	(void) size;
-	return AF_ERR_NONE;
-#endif
-}

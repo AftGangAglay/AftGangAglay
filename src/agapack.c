@@ -115,6 +115,7 @@ enum af_err aga_mkres(
 	if(!(*res)->data) {
 		AF_CHK(aga_resseek(*res, 0));
 
+		/* TODO: Use mapping for large reads. */
 		AF_VERIFY((*res)->data = malloc((*res)->size), AF_ERR_MEM);
 
 		if(fread((*res)->data, 1, (*res)->size, pack->fp) != (*res)->size) {

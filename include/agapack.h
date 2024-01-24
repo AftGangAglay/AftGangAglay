@@ -35,6 +35,12 @@ struct aga_respack {
 	struct aga_conf_node root;
 };
 
+/*
+ * NOTE: This is only for situations where we can't get the context through
+ *		 Non-global data flow (i.e. filesystem intercepts).
+ */
+extern struct aga_respack* aga_global_pack;
+
 enum af_err aga_mkrespack(const char* path, struct aga_respack* pack);
 enum af_err aga_killrespack(struct aga_respack* pack);
 enum af_err aga_sweeprespack(struct aga_respack* pack);

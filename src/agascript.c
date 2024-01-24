@@ -100,7 +100,6 @@ static void aga_scripttrace(void) {
 	}
 }
 
-/*
 static void aga_scripterrf(const char* fmt, ...) {
 	va_list l;
 	aga_fixed_buf_t buf = { 0 };
@@ -115,51 +114,6 @@ static void aga_scripterrf(const char* fmt, ...) {
 
 	va_end(l);
 }
-*/
-
-/*
-enum af_err aga_addscriptmod(struct aga_res* res) {
-	void* fp;
-
-	aga_pyobject_t d, m, result;
-	node* n;
-	int err;
-	char* name;
-	af_size_t len = af_strlen(res->conf->name);
-
-	AF_PARAM_CHK(res);
-
-	AF_CHK(aga_resseek(res, &fp));
-	AF_VERIFY(name = calloc(len - 2, 1), AF_ERR_MEM);
-	af_memcpy(name, res->conf->name, len - 2);
-
-	err = parse_file(fp, res->conf->name, file_input, &n);
-	if(err != E_DONE) {
-		err_input(err);
-		aga_scripttrace();
-		return AF_ERR_UNKNOWN;
-	}
-
-	if(!(m = add_module(name))) {
-		freetree(n);
-		return AF_ERR_UNKNOWN;
-	}
-
-	if(!(d = getmoduledict(m))) {
-		aga_scripttrace();
-		return AF_ERR_UNKNOWN;
-	}
-
-	result = run_node(n, name, d, d);
-	if(err_occurred()) {
-		aga_scripttrace();
-		return AF_ERR_UNKNOWN;
-	}
-	if(result) { DECREF(result); }
-
-	return AF_ERR_NONE;
-}
-*/
 
 static af_bool_t aga_script_aferr(const char* proc, enum af_err err) {
 	aga_fixed_buf_t buf = { 0 };
@@ -227,34 +181,14 @@ static void* aga_getscriptptr(const char* key) {
 }
 
 FILE* pyopen_r(const char* path) {
-	struct aga_respack* pack;
-	af_size_t i;
+	FILE* fp = aga_open_r(path);
+    if(!fp) aga_scripterrf("`aga_open_r' failed for path `%s'", path);
 
-	if(!(pack = aga_getscriptptr(AGA_SCRIPT_PACK))) return 0;
-
-	for(i = 0; i < pack->len; ++i) {
-		struct aga_res* res = &pack->db[i];
-		if(af_streql(path, res->conf->name)) {
-			enum af_err result;
-			void* fp;
-
-			result = aga_resseek(res, &fp);
-			if(aga_script_aferr("aga_resseek", result)) return 0;
-
-			return fp;
-		}
-	}
-
-	return fopen(path, "rb");
+	return fp;
 }
 
 void pyclose(FILE* fp) {
-	struct aga_respack* pack;
-
-	if(!(pack = aga_getscriptptr(AGA_SCRIPT_PACK))) return;
-	if(fp == pack->fp) return;
-
-	fclose(fp);
+    aga_close(fp);
 }
 
 #include "agascriptglue.h"

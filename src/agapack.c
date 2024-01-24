@@ -16,6 +16,8 @@ struct aga_pack_header {
 	af_uint32_t magic;
 };
 
+struct aga_respack* aga_global_pack = 0;
+
 static struct aga_res* aga_searchres(
 		struct aga_respack* pack, const char* path) {
 
@@ -34,6 +36,8 @@ enum af_err aga_mkrespack(const char* path, struct aga_respack* pack) {
 
 	AF_PARAM_CHK(path);
 	AF_PARAM_CHK(pack);
+
+    aga_global_pack = pack;
 
 	pack->db = 0;
 	pack->len = 0;

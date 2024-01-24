@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #ifndef AGA_STD_H
@@ -58,5 +58,8 @@
 #  include <sys/stat.h>
 #  include <sys/wait.h>
  */
+
+FILE* aga_open_r(const char* path);
+void aga_close(FILE* fp);
 
 #endif

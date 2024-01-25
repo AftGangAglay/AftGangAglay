@@ -181,10 +181,7 @@ static void* aga_getscriptptr(const char* key) {
 }
 
 FILE* pyopen_r(const char* path) {
-	FILE* fp = aga_open_r(path);
-    if(!fp) aga_scripterrf("`aga_open_r' failed for path `%s'", path);
-
-	return fp;
+	return aga_open_r(path);
 }
 
 void pyclose(FILE* fp) {

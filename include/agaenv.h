@@ -69,6 +69,9 @@
 # if __has_include(<sys/types.h>)
 #  define AGA_HAVE_SYS_TYPES
 # endif
+# if __has_include(<fcntl.h>)
+#  define AGA_HAVE_FCNTL
+# endif
 # if __has_include(<sys/ioctl.h>)
 #  define AGA_HAVE_SYS_IOCTL
 # endif

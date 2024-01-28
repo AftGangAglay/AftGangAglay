@@ -45,7 +45,7 @@ static void aga_centreptr(struct aga_winenv* env, struct aga_win* win) {
 	int mid_x = (int) win->width / 2;
 	int mid_y = (int) win->height / 2;
 	AGAX_CHK(XWarpPointer, (
-		env->x.dpy, win->win.xwin, win->win.xwin, 0, 0, 0, 0, mid_x, mid_y));
+		env->dpy, win->xwin, win->xwin, 0, 0, 0, 0, mid_x, mid_y));
 }
 
 static int aga_xerr_handler(Display* dpy, XErrorEvent* err) {
@@ -66,42 +66,42 @@ enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display) {
 
 	AGAX_CHK(XSetErrorHandler, (aga_xerr_handler));
 
-	env->x.dpy = AGAX_CHK(XOpenDisplay, (display));
-	AF_VERIFY(env->x.dpy, AF_ERR_UNKNOWN);
+	env->dpy = AGAX_CHK(XOpenDisplay, (display));
+	AF_VERIFY(env->dpy, AF_ERR_UNKNOWN);
 
 	{
 		int fl;
 
-		env->x.dpy_fd = ConnectionNumber(env->x.dpy);
-		if((fl = fcntl(env->x.dpy_fd, F_GETFL)) == -1) {
+		env->dpy_fd = ConnectionNumber(env->dpy);
+		if((fl = fcntl(env->dpy_fd, F_GETFL)) == -1) {
 			return aga_af_errno(__FILE__, "fcntl");
 		}
 		fl |= O_NONBLOCK; /* TODO: We could use `O_ASYNC' for this. */
-		if(fcntl(env->x.dpy_fd, F_SETFL, fl) == -1) {
+		if(fcntl(env->dpy_fd, F_SETFL, fl) == -1) {
 			return aga_af_errno(__FILE__, "fcntl");
 		}
 	}
 
-	env->x.screen = DefaultScreen(env->x.dpy);
-	env->x.wm_delete = AGAX_CHK(XInternAtom, (
-		env->x.dpy, "WM_DELETE_WINDOW", True));
-	AF_VERIFY(env->x.wm_delete != None, AF_ERR_BAD_PARAM);
+	env->screen = DefaultScreen(env->dpy);
+	env->wm_delete = AGAX_CHK(XInternAtom, (
+		env->dpy, "WM_DELETE_WINDOW", True));
+	AF_VERIFY(env->wm_delete != None, AF_ERR_BAD_PARAM);
 
-	env->x.double_buffered = AF_TRUE;
-	fb = glXChooseFBConfig(env->x.dpy, env->x.screen, double_buffer_fb, &n_fb);
+	env->double_buffered = AF_TRUE;
+	fb = glXChooseFBConfig(env->dpy, env->screen, double_buffer_fb, &n_fb);
 	if(!fb) {
-		env->x.double_buffered = AF_FALSE;
+		env->double_buffered = AF_FALSE;
 		fb = glXChooseFBConfig(
-			env->x.dpy, env->x.screen, single_buffer_fb, &n_fb);
+			env->dpy, env->screen, single_buffer_fb, &n_fb);
 		AF_VERIFY(fb, AF_ERR_UNKNOWN);
 	}
 
 	/* TODO: `glXGetVisualFromFBConfig' is too new for us. */
-	vi = glXGetVisualFromFBConfig(env->x.dpy, *fb);
+	vi = glXGetVisualFromFBConfig(env->dpy, *fb);
 	AF_VERIFY(vi, AF_ERR_UNKNOWN);
 
-	env->x.glx = glXCreateContext(env->x.dpy, vi, 0, True);
-	AF_VERIFY(env->x.glx, AF_ERR_UNKNOWN);
+	env->glx = glXCreateContext(env->dpy, vi, 0, True);
+	AF_VERIFY(env->glx, AF_ERR_UNKNOWN);
 
 	XFree(vi);
 
@@ -111,9 +111,9 @@ enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display) {
 enum af_err aga_killwinenv(struct aga_winenv* env) {
 	AF_PARAM_CHK(env);
 
-	glXDestroyContext(env->x.dpy, env->x.glx);
+	glXDestroyContext(env->dpy, env->glx);
 
-	AGAX_CHK(XCloseDisplay, (env->x.dpy));
+	AGAX_CHK(XCloseDisplay, (env->dpy));
 
 	return AF_ERR_NONE;
 }
@@ -124,13 +124,13 @@ enum af_err aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
 	AF_PARAM_CHK(keymap);
 	AF_PARAM_CHK(env);
 
-	AGAX_CHK(XDisplayKeycodes, (env->x.dpy, &min, &max));
+	AGAX_CHK(XDisplayKeycodes, (env->dpy, &min, &max));
 
 	keymap->keycode_len = max - min;
 	keymap->keycode_min = min;
 
 	keymap->keymap = AGAX_CHK(XGetKeyboardMapping, (
-		env->x.dpy, min, keymap->keycode_len, &keymap->keysyms_per_keycode));
+		env->dpy, min, keymap->keycode_len, &keymap->keysyms_per_keycode));
 	AF_VERIFY(keymap->keymap, AF_ERR_UNKNOWN);
 
 	keymap->keystates = calloc(
@@ -159,9 +159,9 @@ Pixmap bitmap;
 XColor black_col = { 0 };
 char empty[8] = { 0 };
 bitmap = XCreatePixmapFromBitmapData(
-	env->x.dpy, win->win.xwin, empty, 1, 1, white, black, 1);
+	env->dpy, win->xwin, empty, 1, 1, white, black, 1);
 AF_VERIFY(bitmap != None, AF_ERR_MEM);
-XFreePixmap(env->x.dpy, bitmap);
+XFreePixmap(env->dpy, bitmap);
  */
 
 enum af_err aga_mkwin(
@@ -174,21 +174,21 @@ enum af_err aga_mkwin(
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
-	black = BlackPixel(env->x.dpy, env->x.screen);
-	white = WhitePixel(env->x.dpy, env->x.screen);
+	black = BlackPixel(env->dpy, env->screen);
+	white = WhitePixel(env->dpy, env->screen);
 
 	win->width = width;
 	win->height = height;
 
-	win->win.xwin = AGAX_CHK(XCreateSimpleWindow, (
-		env->x.dpy, RootWindow(env->x.dpy, env->x.screen), 0, 0, width, height,
+	win->xwin = AGAX_CHK(XCreateSimpleWindow, (
+		env->dpy, RootWindow(env->dpy, env->screen), 0, 0, width, height,
 		8, white, black));
-	AF_VERIFY(win->win.xwin != None, AF_ERR_UNKNOWN);
+	AF_VERIFY(win->xwin != None, AF_ERR_UNKNOWN);
 
 	AGAX_CHK(XSetStandardProperties, (
-		env->x.dpy, win->win.xwin, "Aft Gang Aglay", "", None, argv, argc, 0));
+		env->dpy, win->xwin, "Aft Gang Aglay", "", None, argv, argc, 0));
 
-	AGAX_CHK(XSelectInput, (env->x.dpy, win->win.xwin, mask));
+	AGAX_CHK(XSelectInput, (env->dpy, win->xwin, mask));
 	{
 		Atom* prots;
 		Atom* new_prots;
@@ -196,7 +196,7 @@ enum af_err aga_mkwin(
 		int res;
 
 		res = AGAX_CHK(XGetWMProtocols, (
-			env->x.dpy, win->win.xwin, &prots, &count));
+			env->dpy, win->xwin, &prots, &count));
 		if(!res) {
 			prots = 0;
 			count = 0;
@@ -209,11 +209,11 @@ enum af_err aga_mkwin(
 		}
 
 		af_memcpy(new_prots, prots, count * sizeof(Atom));
-		new_prots[count] = env->x.wm_delete;
+		new_prots[count] = env->wm_delete;
 		if(prots) XFree(prots);
 
 		res = AGAX_CHK(XSetWMProtocols, (
-			env->x.dpy, win->win.xwin, new_prots, count + 1));
+			env->dpy, win->xwin, new_prots, count + 1));
 		if(!res) {
 			free(new_prots);
 			return AF_ERR_UNKNOWN;
@@ -222,16 +222,16 @@ enum af_err aga_mkwin(
 		free(new_prots);
 	}
 	AGAX_CHK(XSetInputFocus, (
-		env->x.dpy, win->win.xwin, RevertToNone, CurrentTime));
+		env->dpy, win->xwin, RevertToNone, CurrentTime));
 
 	AGAX_CHK(XMapRaised, (
-		env->x.dpy, win->win.xwin));
+		env->dpy, win->xwin));
 
 	win->blank_cursor = AGAX_CHK(XCreateFontCursor, (
-		env->x.dpy, XC_tcross));
+		env->dpy, XC_tcross));
 	AF_VERIFY(win->blank_cursor != None, AF_ERR_UNKNOWN);
 	win->arrow_cursor = AGAX_CHK(XCreateFontCursor, (
-		env->x.dpy, XC_arrow));
+		env->dpy, XC_arrow));
 	AF_VERIFY(win->arrow_cursor != None, AF_ERR_UNKNOWN);
 
 	return AF_ERR_NONE;
@@ -241,9 +241,9 @@ enum af_err aga_killwin(struct aga_winenv* env, struct aga_win* win) {
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
-	AGAX_CHK(XFreeCursor, (env->x.dpy, win->blank_cursor));
-	AGAX_CHK(XFreeCursor, (env->x.dpy, win->arrow_cursor));
-	AGAX_CHK(XDestroyWindow, (env->x.dpy, win->win.xwin));
+	AGAX_CHK(XFreeCursor, (env->dpy, win->blank_cursor));
+	AGAX_CHK(XFreeCursor, (env->dpy, win->arrow_cursor));
+	AGAX_CHK(XDestroyWindow, (env->dpy, win->xwin));
 
 	return AF_ERR_NONE;
 }
@@ -267,7 +267,7 @@ enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	AF_PARAM_CHK(win);
 
 	res = glXMakeContextCurrent(
-		env->x.dpy, win->win.xwin, win->win.xwin, env->x.glx);
+		env->dpy, win->xwin, win->xwin, env->glx);
 	AF_VERIFY(res, AF_ERR_UNKNOWN);
 
 	while(AF_TRUE) {
@@ -279,7 +279,7 @@ enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 
 		aga_log(__FILE__, "Trying font pattern `%s'", names[current]);
 		fontname = AGAX_CHK(XListFonts, (
-			env->x.dpy, names[current], 1, &nfonts));
+			env->dpy, names[current], 1, &nfonts));
 
 		if(nfonts) {
 			AF_VERIFY(fontname, AF_ERR_UNKNOWN);
@@ -292,13 +292,13 @@ enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 		current++;
 	}
 
-	info = AGAX_CHK(XLoadQueryFont, (env->x.dpy, names[current]));
+	info = AGAX_CHK(XLoadQueryFont, (env->dpy, names[current]));
 	AF_VERIFY(info, AF_ERR_UNKNOWN);
 	font = info->fid;
 
 	glXUseXFont(font, 0, 256, AGA_FONT_LIST_BASE);
 
-	AGAX_CHK(XUnloadFont, (env->x.dpy, font));
+	AGAX_CHK(XUnloadFont, (env->dpy, font));
 
 	return AF_ERR_NONE;
 }
@@ -313,7 +313,7 @@ enum af_err aga_setcursor(
 	AF_PARAM_CHK(win);
 
 	cur = visible ? win->arrow_cursor : win->blank_cursor;
-	AGAX_CHK(XDefineCursor, (env->x.dpy, win->win.xwin, cur));
+	AGAX_CHK(XDefineCursor, (env->dpy, win->xwin, cur));
 
 	if(captured) {
 		aga_centreptr(env, win);
@@ -326,7 +326,7 @@ enum af_err aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
-	if(env->x.double_buffered) glXSwapBuffers(env->x.dpy, win->win.xwin);
+	if(env->double_buffered) glXSwapBuffers(env->dpy, win->xwin);
 
 	return AF_ERR_NONE;
 }
@@ -343,7 +343,7 @@ enum af_err aga_poll(
 	AF_PARAM_CHK(keymap);
 	AF_PARAM_CHK(pointer);
 
-	pollfd.fd = env->x.dpy_fd;
+	pollfd.fd = env->dpy_fd;
 	pollfd.events = POLLIN;
 
 	/*
@@ -356,10 +356,10 @@ enum af_err aga_poll(
 	}
 
 	if(rdy && (pollfd.revents & POLLIN)) {
-		while(AGAX_CHK(XPending, (env->x.dpy)) > 0) {
+		while(AGAX_CHK(XPending, (env->dpy)) > 0) {
 			af_bool_t press = AF_FALSE;
 
-			AGAX_CHK(XNextEvent, (env->x.dpy, &event));
+			AGAX_CHK(XNextEvent, (env->dpy, &event));
 
 			switch(event.type) {
 				default: break;
@@ -385,7 +385,7 @@ enum af_err aga_poll(
 					int mid_x = (int) win->width / 2;
 					int mid_y = (int) win->height / 2;
 
-					if(event.xmotion.window != win->win.xwin) break;
+					if(event.xmotion.window != win->xwin) break;
 
 					if(event.xmotion.x != mid_x || event.xmotion.y != mid_y) {
 						aga_centreptr(env, win);
@@ -398,7 +398,7 @@ enum af_err aga_poll(
 				}
 
 				case ClientMessage: {
-					if(event.xclient.window == win->win.xwin) {
+					if(event.xclient.window == win->xwin) {
 						*die = AF_TRUE;
 					}
 					break;

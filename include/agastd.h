@@ -39,6 +39,9 @@
 # ifdef AGA_HAVE_SYS_TYPES
 #  include <sys/types.h>
 # endif
+# ifdef AGA_HAVE_FCNTL
+#  include <fcntl.h>
+# endif
 # ifdef AGA_HAVE_SYS_WAIT
 #  include <sys/wait.h>
 # endif

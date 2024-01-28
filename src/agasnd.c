@@ -7,7 +7,8 @@
 #include <agaenv.h>
 
 #if defined(AGA_HAVE_POLL) && defined(AGA_HAVE_SYS_IOCTL) && \
-	defined(AGA_HAVE_SYS_SOUNDCARD)
+	defined(AGA_HAVE_SYS_SOUNDCARD) && defined(AGA_HAVE_SYS_TYPES) && \
+	defined(AGA_HAVE_FCNTL)
 # define AGA_HAVE_SOUND
 #endif
 

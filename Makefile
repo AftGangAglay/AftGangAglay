@@ -81,6 +81,13 @@ ifdef WINDOWS
 ifndef DEBUG
 	AGA_LDFLAGS += -Wl,-subsystem,windows
 endif
+else
+	# From `feature_test_macros(7)' on `_POSIX_C_SOURCE':
+	# """
+	# The value 1 exposes definitions conforming to
+	# POSIX.1-1990 and ISO C (1990).
+	# """
+	AGA_CFLAGS += -D_POSIX_C_SOURCE=1
 endif
 
 ifdef GLXABI
@@ -119,7 +126,7 @@ all: $(AGA_OUT)
 
 $(AGA_OUT): LDFLAGS += $(AGA_LDFLAGS)
 $(AGA_OUT): LDLIBS += $(AGA_LDLIBS)
-$(AGA_OUT): $(PYTHON_GRAMINIT_H) $(AGA_OBJECTS) $(AGA_LIBDEPS)
+$(AGA_OUT): $(AGA_OBJECTS) $(AGA_LIBDEPS)
 
 $(AGA_OBJECTS): CFLAGS += $(AGA_CFLAGS)
 $(AGA_OBJECTS): $(AGA_HEADERS)

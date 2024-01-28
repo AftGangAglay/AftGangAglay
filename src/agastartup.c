@@ -136,7 +136,7 @@ enum af_err aga_prerun_hook(struct aga_opts* opts) {
 
 	project_path = strrchr(opts->config_file, '/');
 
-# ifdef _WINDOWS
+# ifdef _WIN32
 	if(!program) program = "cmd.exe";
 	args[1] = "/c";
 # else

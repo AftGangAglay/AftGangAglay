@@ -17,7 +17,7 @@
 #if defined(AGA_HAVE_SYS_WAIT) && defined(AGA_HAVE_UNISTD)
 # define AGA_NIXSPAWN
 # define AGA_HAVE_SPAWN
-#elif defined(_WINDOWS)
+#elif defined(_WIN32)
 # define AGA_WINSPAWN
 # define AGA_HAVE_SPAWN
 #endif

@@ -9,7 +9,7 @@ set CFLAGS=%CFLAGS% /I include /I vendor\afeirsa\include
 set CFLAGS=%CFLAGS% /I vendor\www\Library\Implementation /I vendor\support
 set CFLAGS=%CFLAGS% /I vendor\python\src
 
-set CFLAGS=%CFLAGS% /D_DEBUG /DAF_WGL /DGL10_COMPAT /DNO_EXT /D_WINDOWS
+set CFLAGS=%CFLAGS% /D_DEBUG /DAF_WGL /DGL10_COMPAT /DNO_EXT
 set CFLAGS=%CFLAGS% /DNO_UNIX_IO /DNO_GROUPS /DUSE_STDLIB
 
 set LDFLAGS=/nologo /link /nologo /subsystem:windows /FORCE:UNRESOLVED

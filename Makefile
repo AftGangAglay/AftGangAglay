@@ -77,7 +77,6 @@ AGA_LIBDEPS = $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA)
 AGA_LDLIBS += $(AGA_LIBDEPS) $(GLABI_LDLIBS) -lm
 
 ifdef WINDOWS
-	CFLAGS += -D_WINDOWS
 	AGA_LDLIBS += -lgdi32 -lshell32
 ifndef DEBUG
 	AGA_LDFLAGS += -Wl,-subsystem,windows
@@ -146,3 +145,5 @@ install: $(INSTALLFILES)
 	install $(OUT) $(PREFIX)/bin/aftgangaglay
 	install script/vertgen.py $(PREFIX)/bin/aga-vertgen
 	install script/sndgen.py $(PREFIX)/bin/aga-sndgen
+	install script/imggen.py $(PREFIX)/bin/aga-imggen
+	install script/packgen.py $(PREFIX)/bin/aga-packgen

@@ -419,7 +419,7 @@ AGA_SCRIPTPROC(mkobj) {
 
 	struct aga_img img;
 	struct af_buf model, tex;
-	int unlit, scaletex, filter;
+	int unlit = 0, scaletex = 0, filter = 0;
 
 	struct aga_respack* pack;
 	struct af_ctx* af;

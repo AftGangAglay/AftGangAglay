@@ -6,7 +6,7 @@
 #include <agaw32.h>
 #include <agalog.h>
 
-#ifdef _WINDOWS
+#ifdef _WIN32
 
 #include <agastd.h>
 

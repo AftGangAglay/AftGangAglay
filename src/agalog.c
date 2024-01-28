@@ -52,7 +52,7 @@ void aga_mklog(const char** targets, af_size_t len) {
 		}
 	}
 
-#ifdef _WINDOWS
+#ifdef _WIN32
 	aga_setw32log();
 #endif
 

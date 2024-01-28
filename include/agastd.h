@@ -48,7 +48,7 @@
 # ifdef AGA_HAVE_SYS_SOUNDCARD
 #  include <sys/soundcard.h>
 # endif
-# ifdef _WINDOWS
+# ifdef _WIN32
 #  include <direct.h>
 # endif
 #endif

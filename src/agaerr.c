@@ -42,7 +42,7 @@ AGA_NORETURN void aga_abort(void) {
 #endif
 
 #ifdef _DEBUG
-# ifdef _WINDOWS
+# ifdef _WIN32
 	__debugbreak();
 	AGA_UNREACHABLE;
 # else

@@ -53,12 +53,6 @@
 # endif
 #endif
 
-/*
-#  include <sys/types.h>
-#  include <sys/stat.h>
-#  include <sys/wait.h>
- */
-
 FILE* aga_open_r(const char* path);
 void aga_close(FILE* fp);
 

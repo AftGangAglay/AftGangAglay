@@ -41,7 +41,7 @@ static const int double_buffer_fb[] = {
 	None
 };
 
-static void aga_centreptr(union aga_winenv* env, struct aga_win* win) {
+static void aga_centreptr(struct aga_winenv* env, struct aga_win* win) {
 	int mid_x = (int) win->width / 2;
 	int mid_y = (int) win->height / 2;
 	AGAX_CHK(XWarpPointer, (
@@ -57,7 +57,7 @@ static int aga_xerr_handler(Display* dpy, XErrorEvent* err) {
 	return 0;
 }
 
-enum af_err aga_mkwinenv(union aga_winenv* env, const char* display) {
+enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	GLXFBConfig* fb;
 	int n_fb;
 	XVisualInfo* vi;
@@ -108,7 +108,7 @@ enum af_err aga_mkwinenv(union aga_winenv* env, const char* display) {
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_killwinenv(union aga_winenv* env) {
+enum af_err aga_killwinenv(struct aga_winenv* env) {
 	AF_PARAM_CHK(env);
 
 	glXDestroyContext(env->x.dpy, env->x.glx);
@@ -118,7 +118,7 @@ enum af_err aga_killwinenv(union aga_winenv* env) {
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_mkkeymap(struct aga_keymap* keymap, union aga_winenv* env) {
+enum af_err aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
 	int min, max;
 
 	AF_PARAM_CHK(keymap);
@@ -165,7 +165,7 @@ XFreePixmap(env->x.dpy, bitmap);
  */
 
 enum af_err aga_mkwin(
-		af_size_t width, af_size_t height, union aga_winenv* env,
+		af_size_t width, af_size_t height, struct aga_winenv* env,
 		struct aga_win* win, int argc, char** argv) {
 
 	af_ulong_t black, white;
@@ -237,7 +237,7 @@ enum af_err aga_mkwin(
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_killwin(union aga_winenv* env, struct aga_win* win) {
+enum af_err aga_killwin(struct aga_winenv* env, struct aga_win* win) {
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
@@ -248,7 +248,7 @@ enum af_err aga_killwin(union aga_winenv* env, struct aga_win* win) {
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_glctx(union aga_winenv* env, struct aga_win* win) {
+enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	static const char* const names[] = {
 		"*bold*iso8859*",
 		"*iso8859*",
@@ -304,7 +304,7 @@ enum af_err aga_glctx(union aga_winenv* env, struct aga_win* win) {
 }
 
 enum af_err aga_setcursor(
-		union aga_winenv* env, struct aga_win* win, af_bool_t visible,
+		struct aga_winenv* env, struct aga_win* win, af_bool_t visible,
 		af_bool_t captured) {
 
 	af_ulong_t cur;
@@ -322,7 +322,7 @@ enum af_err aga_setcursor(
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_swapbuf(union aga_winenv* env, struct aga_win* win) {
+enum af_err aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
@@ -332,7 +332,7 @@ enum af_err aga_swapbuf(union aga_winenv* env, struct aga_win* win) {
 }
 
 enum af_err aga_poll(
-		union aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
+		struct aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
 		struct aga_pointer* pointer, af_bool_t* die) {
 
 	XEvent event;

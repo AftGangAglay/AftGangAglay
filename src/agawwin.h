@@ -131,7 +131,7 @@ static LRESULT aga_winproc(
  * (see libs/video/targets/).
  */
 
-enum af_err aga_mkwinenv(union aga_winenv* env, const char* display) {
+enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	WNDCLASSA class;
 	HICON icon;
 
@@ -139,18 +139,18 @@ enum af_err aga_mkwinenv(union aga_winenv* env, const char* display) {
 
 	(void) display;
 
-	env->win32.captured = AF_FALSE;
-	env->win32.visible = AF_TRUE;
+	env->captured = AF_FALSE;
+	env->visible = AF_TRUE;
 
-	if(!(env->win32.module = GetModuleHandleA(0))) {
+	if(!(env->module = GetModuleHandleA(0))) {
 		return aga_af_winerr(__FILE__, "GetModuleHandleA");
 	}
 
-	if(!(icon = LoadIconA(env->win32.module, "AGAIcon"))) {
+	if(!(icon = LoadIconA(env->module, "AGAIcon"))) {
 		(void) aga_af_winerr(__FILE__, "LoadIconA");
 	}
 
-	if(!(env->win32.cursor = LoadCursorA(0, IDC_ARROW))) {
+	if(!(env->cursor = LoadCursorA(0, IDC_ARROW))) {
 		(void) aga_af_winerr(__FILE__, "LoadIconA");
 	}
 
@@ -158,24 +158,24 @@ enum af_err aga_mkwinenv(union aga_winenv* env, const char* display) {
 	class.lpfnWndProc = (WNDPROC) aga_winproc;
 	class.cbClsExtra = 0;
 	class.cbWndExtra = 0;
-	class.hInstance = env->win32.module;
+	class.hInstance = env->module;
 	class.hIcon = icon;
 	class.hCursor = 0;
 	class.hbrBackground = 0;
 	class.lpszMenuName = 0;
 	class.lpszClassName = AGA_CLASS_NAME;
 
-	if(!(env->win32.class = RegisterClassA(&class))) {
+	if(!(env->class = RegisterClassA(&class))) {
 		return aga_af_winerr(__FILE__, "RegisterClassA");
 	}
 
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_killwinenv(union aga_winenv* env) {
+enum af_err aga_killwinenv(struct aga_winenv* env) {
 	AF_PARAM_CHK(env);
 
-	if(env->win32.wgl && !wglDeleteContext(env->win32.wgl)) {
+	if(env->wgl && !wglDeleteContext(env->wgl)) {
 		return aga_af_winerr(__FILE__, "wglDeleteContext");
 	}
 
@@ -186,7 +186,7 @@ enum af_err aga_killwinenv(union aga_winenv* env) {
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_mkkeymap(struct aga_keymap* keymap, union aga_winenv* env) {
+enum af_err aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
 	AF_PARAM_CHK(keymap);
 	AF_PARAM_CHK(env);
 
@@ -208,7 +208,7 @@ enum af_err aga_killkeymap(struct aga_keymap* keymap) {
 }
 
 enum af_err aga_mkwin(
-		af_size_t width, af_size_t height, union aga_winenv* env,
+		af_size_t width, af_size_t height, struct aga_winenv* env,
 		struct aga_win* win, int argc, char** argv) {
 
 	int ind;
@@ -225,15 +225,15 @@ enum af_err aga_mkwin(
 	win->width = width;
 	win->height = height;
 
-	win->win.hwnd = CreateWindowA(
+	win->hwnd = CreateWindowA(
 		AGA_CLASS_NAME, "Aft Gang Aglay", mask, CW_USEDEFAULT, CW_USEDEFAULT,
-		width, height, 0, 0, env->win32.module, 0);
-	if(!win->win.hwnd) return aga_af_winerr(__FILE__, "CreateWindowA");
-	if(!ShowWindow((void*) win->win.hwnd, SW_SHOWNORMAL)) {
+		width, height, 0, 0, env->module, 0);
+	if(!win->hwnd) return aga_af_winerr(__FILE__, "CreateWindowA");
+	if(!ShowWindow((void*) win->hwnd, SW_SHOWNORMAL)) {
 		return aga_af_winerr(__FILE__, "ShowWindow");
 	}
 
-	if(!(win->dc = GetDC((void*) win->win.hwnd)))  {
+	if(!(win->dc = GetDC((void*) win->hwnd)))  {
 		return aga_af_winerr(__FILE__, "GetDC");
 	}
 
@@ -244,7 +244,7 @@ enum af_err aga_mkwin(
 		return aga_af_winerr(__FILE__, "SetPixelFormat");
 	}
 
-	mouse.hwndTarget = win->win.hwnd;
+	mouse.hwndTarget = win->hwnd;
 	if(RegisterRawInputDevices(&mouse, 1, sizeof(mouse))) {
 		return aga_af_winerr(__FILE__, "RegisterRawInputDevices");
 	}
@@ -252,24 +252,24 @@ enum af_err aga_mkwin(
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_killwin(union aga_winenv* env, struct aga_win* win) {
+enum af_err aga_killwin(struct aga_winenv* env, struct aga_win* win) {
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_glctx(union aga_winenv* env, struct aga_win* win) {
+enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	HGDIOBJ font;
 
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
-	if(!(env->win32.wgl = wglCreateContext(win->dc))) {
+	if(!(env->wgl = wglCreateContext(win->dc))) {
 		return aga_af_winerr(__FILE__, "wglCreateContext");
 	}
 
-	if(!wglMakeCurrent(win->dc, env->win32.wgl)) {
+	if(!wglMakeCurrent(win->dc, env->wgl)) {
 		return aga_af_winerr(__FILE__, "wglMakeCurrent");
 	}
 
@@ -296,7 +296,7 @@ static enum af_err aga_setclipcursor(struct aga_win* win, af_bool_t clip) {
 	AF_PARAM_CHK(win);
 
 	if(clip) {
-		if(!GetClientRect(win->win.hwnd, &rect)) {
+		if(!GetClientRect(win->hwnd, &rect)) {
 			return aga_af_winerr(__FILE__, "GetClientRect");
 		}
 
@@ -305,10 +305,10 @@ static enum af_err aga_setclipcursor(struct aga_win* win, af_bool_t clip) {
 		end.x = rect.right;
 		end.y = rect.bottom;
 
-		if(!ClientToScreen(win->win.hwnd, &begin)) {
+		if(!ClientToScreen(win->hwnd, &begin)) {
 			return aga_af_winerr(__FILE__, "ClientToScreen");
 		}
-		if(!ClientToScreen(win->win.hwnd, &end)) {
+		if(!ClientToScreen(win->hwnd, &end)) {
 			return aga_af_winerr(__FILE__, "ClientToScreen");
 		}
 
@@ -330,22 +330,22 @@ static enum af_err aga_setclipcursor(struct aga_win* win, af_bool_t clip) {
 }
 
 enum af_err aga_setcursor(
-		union aga_winenv* env, struct aga_win* win, af_bool_t visible,
+		struct aga_winenv* env, struct aga_win* win, af_bool_t visible,
 		af_bool_t captured) {
 
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
-	SetCursor(visible ? env->win32.cursor : 0);
-	env->win32.visible = visible;
+	SetCursor(visible ? env->cursor : 0);
+	env->visible = visible;
 
 	AF_CHK(aga_setclipcursor(win, captured));
-	env->win32.captured = captured;
+	env->captured = captured;
 
 	return AF_ERR_NONE;
 }
 
-enum af_err aga_swapbuf(union aga_winenv* env, struct aga_win* win) {
+enum af_err aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
 	AF_PARAM_CHK(env);
 	AF_PARAM_CHK(win);
 
@@ -357,7 +357,7 @@ enum af_err aga_swapbuf(union aga_winenv* env, struct aga_win* win) {
 }
 
 enum af_err aga_poll(
-		union aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
+		struct aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
 		struct aga_pointer* pointer, af_bool_t* die) {
 
 	MSG msg;
@@ -374,14 +374,14 @@ enum af_err aga_poll(
     pack.pointer = pointer;
 	pack.magic = AGA_WINPROC_PACK_MAGIC;
 
-	if(env->win32.captured) {
-		AF_CHK(aga_setclipcursor(win, GetActiveWindow() == win->win.hwnd));
+	if(env->captured) {
+		AF_CHK(aga_setclipcursor(win, GetActiveWindow() == win->hwnd));
 	}
 
-	SetCursor(env->win32.visible ? env->win32.cursor : 0);
+	SetCursor(env->visible ? env->cursor : 0);
 
     SetLastError(0);
-    SetWindowLongPtrA(win->win.hwnd, GWLP_USERDATA, (LONG_PTR) &pack);
+    SetWindowLongPtrA(win->hwnd, GWLP_USERDATA, (LONG_PTR) &pack);
     if(GetLastError()) AGA_AF_WINCHK("SetWindowLongPtrA");
 
 	while(PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {

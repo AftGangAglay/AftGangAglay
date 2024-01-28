@@ -741,7 +741,7 @@ AGA_SCRIPTPROC(setcursor) {
 	aga_pyobject_t o, v;
 	af_bool_t visible, captured;
 
-	union aga_winenv* env;
+	struct aga_winenv* env;
 	struct aga_win* win;
 
 	if(!(env = aga_getscriptptr(AGA_SCRIPT_WINENV))) return 0;

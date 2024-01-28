@@ -100,6 +100,7 @@ static void aga_scripttrace(void) {
 	}
 }
 
+/*
 static void aga_scripterrf(const char* fmt, ...) {
 	va_list l;
 	aga_fixed_buf_t buf = { 0 };
@@ -114,6 +115,7 @@ static void aga_scripterrf(const char* fmt, ...) {
 
 	va_end(l);
 }
+*/
 
 static af_bool_t aga_script_aferr(const char* proc, enum af_err err) {
 	aga_fixed_buf_t buf = { 0 };

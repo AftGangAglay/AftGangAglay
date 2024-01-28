@@ -47,6 +47,8 @@ enum af_err aga_mkrespack(const char* path, struct aga_respack* pack) {
 
 	/* TODO: Fix leaky error conditions. */
 
+	/* TODO: Extract embedded resource file on Windows. */
+
 	if(!(pack->fp = fopen(path, "rb"))) {
 		return aga_af_patherrno(__FILE__, "fopen", path);
 	}

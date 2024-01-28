@@ -146,7 +146,7 @@ enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display) {
 		return aga_af_winerr(__FILE__, "GetModuleHandleA");
 	}
 
-	if(!(icon = LoadIconA(env->module, "AGAIcon"))) {
+	if(!(icon = LoadIconA(env->module, MAKEINTRESOURCEA(AGA_ICON_RESOURCE)))) {
 		(void) aga_af_winerr(__FILE__, "LoadIconA");
 	}
 

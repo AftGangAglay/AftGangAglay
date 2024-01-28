@@ -105,8 +105,12 @@ ifdef WINDOWS
 
 	AGA_OBJECTS += $(AGA_RESOBJECTS)
 
-%.res: %.rc
+%.res: %.rc $(EMBED)
+ifdef EMBED
+	$(WINDRES) -DAGA_PACK_PATH=$(EMBED) -i $< -o $@
+else
 	$(WINDRES) -i $< -o $@
+endif
 
 %.o: %.rc
 	$(WINDRES) -i $< -o $@

@@ -9,26 +9,138 @@
 #define AGA_WANT_UNIX
 #include <agastd.h>
 
-enum af_err aga_open(const char* path, void** fp, af_size_t* size) {
-	long tell;
-
-	AF_PARAM_CHK(path);
+enum af_err aga_fplen(void* fp, af_size_t* size) {
 	AF_PARAM_CHK(fp);
 	AF_PARAM_CHK(size);
 
-	if(!(*fp = fopen(path, "rb"))) {
-		return aga_af_patherrno(__FILE__, "fopen", path);
+#if defined(AGA_HAVE_SYS_STAT) && defined(AGA_HAVE_SYS_TYPES)
+	{
+		struct stat st;
+		int fd;
+		if((fd = fileno(fp)) == -1) return aga_af_errno(__FILE__, "fileno");
+		if(fstat(fd, &st) == -1) return aga_af_errno(__FILE__, "fstat");
+		*size = st.st_size;
 	}
+#else
+	{
+		long off;
+		long tell;
 
-	if(fseek(*fp, 0, SEEK_END) == -1) return aga_af_errno(__FILE__, "fseek");
+		if((off = ftell(fp)) == -1) return aga_af_errno(__FILE__, "ftell");
 
-	if((tell = ftell(*fp)) == -1) return aga_af_errno(__FILE__, "ftell");
-	*size = (af_size_t) tell;
+		if(fseek(fp, 0, SEEK_END) == -1) {
+			return aga_af_errno(__FILE__, "fseek");
+		}
+		if((tell = ftell(fp)) == -1) return aga_af_errno(__FILE__, "ftell");
+		*size = (af_size_t) tell;
 
-	rewind(*fp);
+		if(fseek(fp, off, SEEK_SET) == -1) {
+			return aga_af_errno(__FILE__, "fseek");
+		}
+	}
+#endif
 
 	return AF_ERR_NONE;
 }
+
+#ifdef AGA_HAVE_MAP
+# ifdef AGA_NIXMAP
+enum af_err aga_mkmapfd(void* fp, struct aga_mapfd* fd) {
+	AF_PARAM_CHK(fd);
+	AF_PARAM_CHK(fp);
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_killmapfd(struct aga_mapfd* fd) {
+	AF_PARAM_CHK(fd);
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_mkfmap(
+		struct aga_mapfd* fd, af_size_t off, af_size_t size, void** ptr) {
+
+	AF_PARAM_CHK(fd);
+	AF_PARAM_CHK(ptr);
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_killfmap(void* ptr, af_size_t size) {
+	AF_PARAM_CHK(ptr);
+
+	return AF_ERR_NONE;
+}
+# elif defined(AGA_WINMAP)
+# include <agaw32.h>
+
+# include <windows.h>
+
+enum af_err aga_mkmapfd(void* fp, struct aga_mapfd* fd) {
+	int fn;
+	void* hnd;
+	af_size_t size;
+	SECURITY_ATTRIBUTES attrib = { sizeof(attrib), 0, FALSE };
+
+	AF_PARAM_CHK(fd);
+	AF_PARAM_CHK(fp);
+
+	if((fn = fileno(fp)) == -1) return aga_af_errno(__FILE__, "fileno");
+	if((hnd = (void*) _get_osfhandle(fn)) == INVALID_HANDLE_VALUE) {
+		return aga_af_errno(__FILE__, "_get_osfhandle");
+	}
+
+	AF_CHK(aga_fplen(fp, &size));
+	AF_VERIFY(size != 0, AF_ERR_BAD_PARAM);
+
+	fd->mapping = CreateFileMappingA(hnd, &attrib, PAGE_READONLY, 0, 0, 0);
+	if(!fd->mapping) return aga_af_winerr(__FILE__, "CreateFileMappingA");
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_killmapfd(struct aga_mapfd* fd) {
+	AF_PARAM_CHK(fd);
+
+	if(!CloseHandle(fd->mapping)) {
+		return aga_af_winerr(__FILE__, "CloseHandle");
+	}
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_mkfmap(
+		struct aga_mapfd* fd, af_size_t off, af_size_t size, void** ptr) {
+
+	DWORD* p = (DWORD*) &off;
+
+	AF_PARAM_CHK(fd);
+	AF_PARAM_CHK(ptr);
+
+	/*
+	 * TODO: File offset needs to be a multiple of allocation granularity.
+	 * 		 This needs a bit more engineering on our part to avoid making
+	 * 		 A load of gaps in the respack to satisfy this. We'll probably need
+	 * 		 A registry of close addresses or get the caller to bookkeep re:
+	 * 		 The offset from the returned base mapping address. We'll have to
+	 * 		 See if Windows is okay with overlapping mappings under such a
+	 * 		 System as we ideally want each resource entry to be able to hold
+	 * 		 Its own mapping.
+	 */
+	*ptr = MapViewOfFile(fd->mapping, FILE_MAP_READ, p[0], p[1], size);
+	if(!*ptr) return aga_af_winerr(__FILE__, "MapViewOfFile");
+
+	return AF_ERR_NONE;
+}
+
+enum af_err aga_killfmap(void* ptr, af_size_t size) {
+	AF_PARAM_CHK(ptr);
+
+	return AF_ERR_NONE;
+}
+# endif
+#endif
 
 #ifdef AGA_HAVE_SPAWN
 # ifdef AGA_NIXSPAWN

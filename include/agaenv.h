@@ -51,9 +51,6 @@
 # if __has_include(<unistd.h>)
 #  define AGA_HAVE_UNISTD
 # endif
-# if __has_include(<fcntl.h>)
-#  define AGA_HAVE_FCNTL
-# endif
 # if __has_include(<getopt.h>)
 #  define AGA_HAVE_GETOPT
 # endif
@@ -63,11 +60,14 @@
 # if __has_include(<sys/mman.h>)
 #  define AGA_HAVE_SYS_MMAN
 # endif
+# if __has_include(<sys/wait.h>)
+#  define AGA_HAVE_SYS_WAIT
+# endif
 # if __has_include(<sys/stat.h>)
 #  define AGA_HAVE_SYS_STAT
 # endif
-# if __has_include(<sys/wait.h>)
-#  define AGA_HAVE_SYS_WAIT
+# if __has_include(<sys/types.h>)
+#  define AGA_HAVE_SYS_TYPES
 # endif
 # if __has_include(<sys/ioctl.h>)
 #  define AGA_HAVE_SYS_IOCTL

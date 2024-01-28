@@ -46,10 +46,15 @@ enum af_err aga_mkrespack(const char* path, struct aga_respack* pack) {
 	aga_log(__FILE__, "Loading resource pack `%s'...", path);
 
 	/* TODO: Fix leaky error conditions. */
-	AF_CHK(aga_open(path, &pack->fp, &pack->size));
+
+	if(!(pack->fp = fopen(path, "rb"))) {
+		return aga_af_patherrno(__FILE__, "fopen", path);
+	}
+
+	AF_CHK(aga_fplen(pack->fp, &pack->size));
 
 	if(fread(&hdr, 1, sizeof(hdr), pack->fp) != sizeof(hdr)) {
-		return aga_af_patherrno(__FILE__, "fread", path);
+		if(ferror(pack->fp)) return aga_af_patherrno(__FILE__, "fread", path);
 	}
 
 	AF_VERIFY(hdr.magic == AGA_PACK_MAGIC, AF_ERR_BAD_PARAM);

@@ -56,6 +56,7 @@ int main(int argc, char** argv) {
 
 	SOFT(aga_setopts, (&opts, argc, argv));
 	SOFT(aga_mkrespack, (opts.respack, &pack));
+	SOFT(aga_setconf, (&opts, &pack));
 
     aga_log(__FILE__, "Initializing systems...");
 

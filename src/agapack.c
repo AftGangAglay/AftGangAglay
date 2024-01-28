@@ -6,6 +6,7 @@
 #include <agapack.h>
 #include <agaio.h>
 #include <agaerr.h>
+#include <agalog.h>
 #include <agastd.h>
 #include <agascript.h>
 
@@ -42,6 +43,8 @@ enum af_err aga_mkrespack(const char* path, struct aga_respack* pack) {
 	pack->db = 0;
 	pack->len = 0;
 
+	aga_log(__FILE__, "Loading resource pack `%s'...", path);
+
 	/* TODO: Fix leaky error conditions. */
 	AF_CHK(aga_open(path, &pack->fp, &pack->size));
 
@@ -50,6 +53,7 @@ enum af_err aga_mkrespack(const char* path, struct aga_respack* pack) {
 	}
 
 	AF_VERIFY(hdr.magic == AGA_PACK_MAGIC, AF_ERR_BAD_PARAM);
+	aga_conf_debug_file = path;
 	AF_CHK(aga_mkconf(pack->fp, hdr.size, &pack->root));
 
 	pack->len = pack->root.children->len;
@@ -58,6 +62,7 @@ enum af_err aga_mkrespack(const char* path, struct aga_respack* pack) {
 	AF_VERIFY(pack->db, AF_ERR_MEM);
 
 	for(i = 0; i < pack->len; ++i) {
+		/* TODO: Non-fatally skip bad entries. */
 		static const char* off = "Offset";
 		static const char* size = "Size";
 
@@ -76,6 +81,8 @@ enum af_err aga_mkrespack(const char* path, struct aga_respack* pack) {
 		AF_CHK(result);
 		AF_VERIFY(res->offset + res->size < pack->size, AF_ERR_BAD_PARAM);
 	}
+
+	aga_log(__FILE__, "Loaded `%zu' resource entries", pack->len);
 
 	return AF_ERR_NONE;
 }

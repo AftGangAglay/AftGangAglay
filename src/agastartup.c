@@ -5,24 +5,13 @@
 
 #include <agastartup.h>
 #include <agalog.h>
+#include <agapack.h>
 #include <agaerr.h>
 #include <agaio.h>
 #define AGA_WANT_UNIX
 #include <agastd.h>
 
 enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
-	enum af_err result;
-	int v;
-
-	const char* enabled[] = { "Audio", "Enabled" };
-	const char* device[] = { "Audio", "Device" };
-	const char* startup[] = { "Script", "Startup" };
-	const char* path[] = { "Script", "Path" };
-	const char* version[] = { "General", "Version" };
-	const char* width[] = { "Display", "Width" };
-	const char* height[] = { "Display", "Height" };
-	const char* fov[] = { "Display", "FOV" };
-
 	AF_PARAM_CHK(opts);
 	AF_PARAM_CHK(argv);
 
@@ -32,7 +21,6 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	opts->audio_dev = "/dev/dsp1";
 	opts->startup_script = "script/main.py";
 	opts->python_path = "script";
-	/* TODO: Make this path not hardcoded! */
 	opts->respack = "agapack.raw";
 	opts->width = 640;
 	opts->height = 480;
@@ -45,7 +33,7 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 #ifdef AGA_HAVE_GETOPT
 	{
 		const char* help =
-			"warn: usage: %s [-f config] [-A dsp] [-D display] [-C dir]";
+			"warn: usage: %s [-f respack] [-A dsp] [-D display] [-C dir]";
 		int o;
 		while((o = 	getopt(argc, argv, "f:s:A:D:C:")) != -1) {
 			switch(o) {
@@ -53,7 +41,7 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 					aga_log(__FILE__, help, argv[0]);
 					goto break2;
 				}
-				case 'f': opts->config_file = optarg; break;
+				case 'f': opts->respack = optarg; break;
 				case 'A': opts->audio_dev = optarg; break;
 				case 'D': opts->display = optarg; break;
 				case 'C': opts->chdir = optarg; break;
@@ -67,37 +55,50 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	}
 #endif
 
-	{
-		void* fp;
-		af_size_t size;
+	return AF_ERR_NONE;
+}
 
-		/* TODO: Disentangle startup/opts/respack interdependency. */
-		AF_CHK(aga_open(opts->config_file, &fp, &size));
-		AF_CHK(aga_mkconf(fp, size, &opts->config));
+enum af_err aga_setconf(struct aga_opts* opts, struct aga_respack* pack) {
+	enum af_err result;
+	void* fp;
+	af_size_t size;
+	int v;
 
-		if(fclose(fp) == EOF) return aga_af_errno(__FILE__, "fclose");
-	}
+	const char* enabled[] = { "Audio", "Enabled" };
+	const char* device[] = { "Audio", "Device" };
+	const char* startup[] = { "Script", "Startup" };
+	const char* path[] = { "Script", "Path" };
+	const char* version[] = { "General", "Version" };
+	const char* width[] = { "Display", "Width" };
+	const char* height[] = { "Display", "Height" };
+	const char* fov[] = { "Display", "FOV" };
 
-	aga_log(__FILE__, "Config loaded from `%s'", opts->config_file);
+	AF_PARAM_CHK(opts);
+	AF_PARAM_CHK(pack);
+
+	AF_CHK(aga_resfptr(pack, opts->config_file, &fp, &size));
+	aga_conf_debug_file = opts->config_file;
+	AF_CHK(aga_mkconf(fp, size, &opts->config));
 
 	result = aga_conftree(
 		&opts->config, enabled, AF_ARRLEN(enabled), &v, AGA_INTEGER);
 	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-			&opts->config, version, AF_ARRLEN(version), &opts->version,
-			AGA_STRING);
+		&opts->config, version, AF_ARRLEN(version), &opts->version,
+		AGA_STRING);
 	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
 
 	if(!opts->audio_dev) {
 		result = aga_conftree(
-			&opts->config, device, AF_ARRLEN(device), &opts->audio_dev, AGA_STRING);
+			&opts->config, device, AF_ARRLEN(device), &opts->audio_dev,
+			AGA_STRING);
 		if(result) aga_af_soft(__FILE__, "aga_conftree", result);
 	}
 
 	result = aga_conftree(
-		&opts->config, startup, AF_ARRLEN(startup),
-		&opts->startup_script, AGA_STRING);
+		&opts->config, startup, AF_ARRLEN(startup), &opts->startup_script,
+		AGA_STRING);
 	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(

@@ -457,6 +457,7 @@ AGA_SCRIPTPROC(mkobj) {
 		result = aga_resfptr(pack, path, &conf_fp, &conf_size);
 		if(aga_script_aferr("aga_resfptr", result)) return 0;
 
+		aga_conf_debug_file = path;
 		result = aga_mkconf(conf_fp, conf_size, &conf);
 		if(aga_script_aferr("aga_mkconf", result)) return 0;
 

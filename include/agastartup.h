@@ -10,6 +10,8 @@
 
 #include <afeirsa/afeirsa.h>
 
+struct aga_respack;
+
 struct aga_opts {
 	const char* config_file;
 	const char* display;
@@ -34,6 +36,7 @@ struct aga_opts {
 
 /* NOTE: We try to leave sensible defaults in `opts' during failure states. */
 enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv);
+enum af_err aga_setconf(struct aga_opts* opts, struct aga_respack* pack);
 
 enum af_err aga_prerun_hook(struct aga_opts* opts);
 

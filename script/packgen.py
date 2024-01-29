@@ -14,10 +14,14 @@ file_list = []
 off = 0
 size = 0
 
+# TODO: Remove this "optimization" where we potentially hold open hundreds of
+#       FDs.
+#       Possibly replace with an archive update mode?
 for i in argv[2:]:
     f = open(i, 'rb')
-    file_size = fstat(f.fileno()).st_size + int(i[-3:] == '.py')
-    file_list.append([ i, f, file_size, off ])
+    ispy = (i[-3:] == '.py')
+    file_size = fstat(f.fileno()).st_size + (2 if ispy else 0)
+    file_list.append([ i, f, file_size, off, ispy ])
     off += file_size
 
 conf = '<root>\n'
@@ -41,5 +45,5 @@ with open(argv[1], 'wb+') as f:
 
     for i in file_list:
         f.write(i[1].read())
-        if i[0][-3:] == '.py': f.write(b'\xFF')
+        if i[4]: f.write(b'\n\xFF') # Writing the `\n' fixes a strange EOF bug.
         i[1].close()

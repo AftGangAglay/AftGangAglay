@@ -7,7 +7,6 @@
 #include <agalog.h>
 #include <agaerr.h>
 #include <agaio.h>
-#include <agaimg.h>
 #include <agadraw.h>
 #include <agawin.h>
 #include <agastartup.h>

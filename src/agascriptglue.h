@@ -417,7 +417,6 @@ AGA_SCRIPTPROC(mkobj) {
 	struct agan_object* obj;
 	struct aga_nativeptr* nativeptr;
 
-	struct aga_img img;
 	struct af_buf model, tex;
 	int unlit = 0, scaletex = 0, filter = 0;
 
@@ -485,22 +484,26 @@ AGA_SCRIPTPROC(mkobj) {
 			}
 
 			if(aga_confvar("Texture", it, AGA_STRING, &str)) {
-				/* TODO: Fix leaky error states here once we remove "img". */
+                static const char* width_path = "Width";
+                int width;
+
+                /* TODO: Fix leaky error states here once we remove "img". */
 				result = aga_mkres(pack, str, &res);
 				if(aga_script_aferr("aga_mkres", result)) return 0;
 
 				result = aga_releaseres(res);
 				if(aga_script_aferr("aga_releaseres", result)) return 0;
 
-				result = aga_mkimg(&img, res);
-				if(aga_script_aferr("aga_mkimg", result)) return 0;
-
 				/* NOTE: Filter mode must appear above texture entry. */
 				result = af_mkbuf(af, &tex, AF_BUF_TEX);
 				if(aga_script_aferr("af_mkbuf", result)) return 0;
 
-				tex.tex_width = img.width;
-				tex.tex_filter = filter;
+                result = aga_conftree_nonroot(
+                    res->conf, &width_path, 1, &width, AGA_INTEGER);
+                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
+
+                tex.tex_width = width;
+                tex.tex_filter = filter;
 
 				result = af_upload(af, &tex, res->data, res->size);
 				if(aga_script_aferr("af_upload", result)) return 0;
@@ -553,6 +556,8 @@ AGA_SCRIPTPROC(mkobj) {
 	}
 
 	obj->drawlist = glGenLists(1);
+    if(aga_script_glerr("glGenLists")) return 0;
+
 	glNewList(obj->drawlist, GL_COMPILE);
 	{
 		result = af_settex(af, &tex);
@@ -596,9 +601,6 @@ AGA_SCRIPTPROC(mkobj) {
 
 	result = af_killbuf(af, &tex);
 	if(aga_script_aferr("af_killbuf", result)) return 0;
-
-	result = aga_killimg(&img);
-	if(aga_script_aferr("aga_killimg", result)) return 0;
 
 	return (aga_pyobject_t) retval;
 }

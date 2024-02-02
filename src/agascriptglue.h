@@ -17,6 +17,8 @@ static af_bool_t aga_light_start_warned = AF_FALSE;
 struct agan_object {
 	aga_pyobject_t transform;
 	af_uint_t drawlist;
+    float min_extent[3];
+    float max_extent[3];
 };
 
 static const char* agan_trans_components[] = {
@@ -468,11 +470,37 @@ AGA_SCRIPTPROC(mkobj) {
 			 * TODO: Handle materials.
 			 */
 			if(aga_confvar("Model", it, AGA_STRING, &str)) {
+                static const char* min_x = "MinX";
+                static const char* min_y = "MinY";
+                static const char* min_z = "MinZ";
+                static const char* max_x = "MaxX";
+                static const char* max_y = "MaxY";
+                static const char* max_z = "MaxZ";
+
 				result = aga_mkres(pack, str, &res);
 				if(aga_script_aferr("aga_mkres", result)) return 0;
 
-				result = aga_releaseres(res);
-				if(aga_script_aferr("aga_releaseres", result)) return 0;
+                result = aga_releaseres(res);
+                if(aga_script_aferr("aga_releaseres", result)) return 0;
+
+                result = aga_conftree_nonroot(
+                    res->conf, &min_x, 1, &obj->max_extent[0], AGA_FLOAT);
+                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
+                result = aga_conftree_nonroot(
+                    res->conf, &min_y, 1, &obj->max_extent[1], AGA_FLOAT);
+                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
+                result = aga_conftree_nonroot(
+                    res->conf, &min_z, 1, &obj->max_extent[2], AGA_FLOAT);
+                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
+                result = aga_conftree_nonroot(
+                    res->conf, &max_x, 1, &obj->max_extent[0], AGA_FLOAT);
+                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
+                result = aga_conftree_nonroot(
+                    res->conf, &max_y, 1, &obj->max_extent[1], AGA_FLOAT);
+                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
+                result = aga_conftree_nonroot(
+                    res->conf, &max_z, 1, &obj->max_extent[2], AGA_FLOAT);
+                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
 
 				result = af_mkbuf(af, &model, AF_BUF_VERT);
 				if(aga_script_aferr("af_mkbuf", result)) return 0;
@@ -603,6 +631,66 @@ AGA_SCRIPTPROC(mkobj) {
 	if(aga_script_aferr("af_killbuf", result)) return 0;
 
 	return (aga_pyobject_t) retval;
+}
+
+AGA_SCRIPTPROC(inobj) {
+    aga_pyobject_t retval = False;
+    aga_pyobject_t o, point, flobj, scale, pos;
+    float pt[3];
+    float mins[3];
+    float maxs[3];
+    float f;
+    af_size_t i;
+    struct agan_object* obj;
+
+    if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
+       !AGA_ARG(point, 1, list)) {
+
+        AGA_ARGERR("inobj", "nativeptr and list");
+    }
+
+    obj = ((struct aga_nativeptr*) o)->ptr;
+    memcpy(mins, obj->min_extent, sizeof(mins));
+    memcpy(maxs, obj->max_extent, sizeof(maxs));
+
+    if(!(scale = dictlookup(obj->transform, "scale"))) return 0;
+    if(!(pos = dictlookup(obj->transform, "pos"))) return 0;
+
+    for(i = 0; i < 3; ++i) {
+        AGA_GETLISTITEM(point, i, flobj);
+        AGA_SCRIPTVAL(pt[i], flobj, float);
+
+        AGA_GETLISTITEM(scale, i, flobj);
+        AGA_SCRIPTVAL(f, flobj, float);
+
+        mins[i] *= f;
+        maxs[i] *= f;
+    }
+
+    for(i = 0; i < 3; ++i) {
+        AGA_GETLISTITEM(pos, i, flobj);
+        AGA_SCRIPTVAL(f, flobj, float);
+
+        mins[i] += f;
+        maxs[i] += f;
+    }
+
+    /* TODO: Once cells are implemented - check against current cell rad. */
+
+    aga_log(__FILE__, "is point (%f, %f, %f) > (%f, %f, %f)?",
+        pt[0], pt[1], pt[2],
+        mins[0], mins[1], mins[2]);
+    if(pt[0] > mins[0] && pt[1] > mins[1] && pt[2] > mins[2]) {
+        aga_log(__FILE__, "is point (%f, %f, %f) < (%f, %f, %f)?",
+            pt[0], pt[1], pt[2],
+            maxs[0], maxs[1], maxs[2]);
+        if(pt[0] < maxs[0] && pt[1] < maxs[1] && pt[2] < maxs[2]) {
+            retval = True;
+        }
+    }
+
+    INCREF(retval);
+    return retval;
 }
 
 AGA_SCRIPTPROC(putobj) {
@@ -824,7 +912,8 @@ enum af_err aga_mkmod(aga_pyobject_t* dict) {
 		_(lightparam),
 
 		/* Objects */
-		_(mkobj),
+        _(mkobj),
+        _(inobj),
 		_(putobj),
 		_(killobj),
 		_(getobjtrans),

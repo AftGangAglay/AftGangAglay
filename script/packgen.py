@@ -7,10 +7,12 @@ from os import fstat
 from struct import pack, unpack
 
 IMAGE_MAGIC = 0xA6A13600
+MODEL_MAGIC = 0xA6A3D700
 
 IMAGE = 1
 PYTHON = 2
-UNKNOWN = 3
+MODEL = 3
+UNKNOWN = 4
 
 FILENAME = 0
 FD = 1
@@ -19,6 +21,13 @@ OFFSET = 3
 TYPE = 4
 
 IMAGE_WIDTH = 5
+
+MODEL_MIN_X = 5
+MODEL_MIN_Y = 6
+MODEL_MIN_Z = 7
+MODEL_MAX_X = 8
+MODEL_MAX_Y = 9
+MODEL_MAX_Z = 10
 
 if len(argv) < 3:
     print('usage: ' + argv[0] + ' <output> <input...>')
@@ -37,18 +46,23 @@ for file in argv[2:]:
     f = open(file, 'rb')
     sz = fstat(f.fileno()).st_size
 
+    f.seek(-4, 2)
+    magic = unpack('I', f.read(4))[0]
     if file[-3:] == '.py':
         sz += 2
         ent[TYPE] = PYTHON
-    else:
-        f.seek(-4, 2)
-        if unpack("I", f.read(4))[0] == IMAGE_MAGIC:
-            sz -= 4
-            f.seek(-8, 2)
-            ent.append(unpack("I", f.read(4))[0]) # Read width
-            ent[TYPE] = IMAGE
-        else: ent[TYPE] = UNKNOWN
-        f.seek(0)
+    elif magic == IMAGE_MAGIC:
+        sz -= 8
+        f.seek(-8, 2)
+        ent.append(unpack('I', f.read(4))[0]) # Read width
+        ent[TYPE] = IMAGE
+    elif magic == MODEL_MAGIC:
+        sz -= 28
+        f.seek(-28, 2)
+        ent.extend(unpack('ffffff', f.read(24))) # Read extents
+        ent[TYPE] = MODEL
+    else: ent[TYPE] = UNKNOWN
+    f.seek(0)
 
     ent[FILENAME] = file
     ent[FD] = f
@@ -73,6 +87,26 @@ for f in file_list:
     if f[TYPE] == IMAGE:
         conf += '\t\t<item name="Width" type="Integer">\n'
         conf += '\t\t\t' + str(f[IMAGE_WIDTH]) + '\n'
+        conf += '\t\t</item>\n'
+
+    if f[TYPE] == MODEL:
+        conf += '\t\t<item name="MinX" type="Float">\n'
+        conf += '\t\t\t' + str(f[MODEL_MIN_X]) + '\n'
+        conf += '\t\t</item>\n'
+        conf += '\t\t<item name="MinY" type="Float">\n'
+        conf += '\t\t\t' + str(f[MODEL_MIN_Y]) + '\n'
+        conf += '\t\t</item>\n'
+        conf += '\t\t<item name="MinZ" type="Float">\n'
+        conf += '\t\t\t' + str(f[MODEL_MIN_Z]) + '\n'
+        conf += '\t\t</item>\n'
+        conf += '\t\t<item name="MaxX" type="Float">\n'
+        conf += '\t\t\t' + str(f[MODEL_MAX_X]) + '\n'
+        conf += '\t\t</item>\n'
+        conf += '\t\t<item name="MaxY" type="Float">\n'
+        conf += '\t\t\t' + str(f[MODEL_MAX_Y]) + '\n'
+        conf += '\t\t</item>\n'
+        conf += '\t\t<item name="MaxZ" type="Float">\n'
+        conf += '\t\t\t' + str(f[MODEL_MAX_Z]) + '\n'
         conf += '\t\t</item>\n'
 
     conf += '\t</item>\n'

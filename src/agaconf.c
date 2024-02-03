@@ -44,6 +44,10 @@ const char* aga_conf_debug_file = "<none>";
 void SGML_character(HTStream* context, char c);
 void SGML_free(HTStream* context);
 
+af_bool_t aga_isblank(char c) {
+	return c == ' ' || c == '\r' || c == '\t' || c == '\n';
+}
+
 enum af_err aga_sgml_push(
 		struct aga_sgml_structured* s, struct aga_conf_node* node) {
 
@@ -63,7 +67,7 @@ void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
 	void* newptr;
 
 	if(node->type == AGA_NONE) return;
-	if(c == ' ' || c == '\r' || c == '\t' || c == '\n') return;
+	if(!node->data.string && aga_isblank(c)) return;
 
 	newptr = realloc(node->data.string, ++node->scratch + 1);
 	if(!newptr) {
@@ -149,10 +153,20 @@ void aga_sgml_start_element(
 }
 
 void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
+	af_size_t i;
+
 	struct aga_conf_node* node = me->stack[me->depth - 1];
 	char* string = node->data.string;
 
 	(void) element_number;
+
+	for(i = 0; string && i <= node->scratch; ++i) {
+		af_size_t n = node->scratch - i;
+		char* c = &string[n];
+
+		if(aga_isblank(*c)) *c = 0;
+		else if(*c) break;
+	}
 
 	switch(node->type) {
 		default: break;

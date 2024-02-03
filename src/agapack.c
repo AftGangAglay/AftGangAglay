@@ -19,15 +19,23 @@ struct aga_pack_header {
 
 struct aga_respack* aga_global_pack = 0;
 
-static struct aga_res* aga_searchres(
-		struct aga_respack* pack, const char* path) {
+enum af_err aga_searchres(
+		struct aga_respack* pack, const char* path, struct aga_res** out) {
 
 	af_size_t i;
+
+	AF_PARAM_CHK(pack);
+	AF_PARAM_CHK(path);
+	AF_PARAM_CHK(out);
+
 	for(i = 0; i < pack->len; ++i) {
-		if(af_streql(pack->db[i].conf->name, path)) return &pack->db[i];
+		if(af_streql(pack->db[i].conf->name, path)) {
+			*out = &pack->db[i];
+			return AF_ERR_NONE;
+		}
 	}
 
-	return 0;
+	return AF_ERR_BAD_PARAM;
 }
 
 enum af_err aga_mkrespack(const char* path, struct aga_respack* pack) {
@@ -128,7 +136,7 @@ enum af_err aga_mkres(
 	AF_PARAM_CHK(pack);
 	AF_PARAM_CHK(res);
 
-	if(!(*res = aga_searchres(pack, path))) return AF_ERR_BAD_PARAM;
+	AF_CHK(aga_searchres(pack, path, res));
 
 	if(!(*res)->data) {
 		AF_CHK(aga_resseek(*res, 0));
@@ -155,7 +163,7 @@ enum af_err aga_resfptr(
 	AF_PARAM_CHK(pack);
 	AF_PARAM_CHK(path);
 
-	if(!(res = aga_searchres(pack, path))) return AF_ERR_BAD_PARAM;
+	AF_CHK(aga_searchres(pack, path, &res));
 
 	AF_CHK(aga_resseek(res, 0));
 

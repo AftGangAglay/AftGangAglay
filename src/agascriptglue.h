@@ -19,6 +19,7 @@ struct agan_object {
 	af_uint_t drawlist;
     float min_extent[3];
     float max_extent[3];
+	struct aga_res* res;
 };
 
 static const char* agan_trans_components[] = {
@@ -162,23 +163,20 @@ AGA_SCRIPTPROC(setcam) {
 	AGA_NONERET;
 }
 
-AGA_SCRIPTPROC(getconf) {
-	struct aga_conf_node* node;
+static aga_pyobject_t agan_scriptconf(
+		struct aga_conf_node* node, af_bool_t root, aga_pyobject_t list) {
+
+	const char* str;
+	struct aga_conf_node* out;
 	const char** names;
-	af_size_t i, len;
+	af_size_t i, len = getlistsize(list);
 	aga_pyobject_t v;
 
-	struct aga_opts* opts;
-
-	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
-
-	if(!AGA_ARGLIST(list)) AGA_ARGERR("getconf", "list");
-
-	if(!(names = malloc(sizeof(char*) * (len = getlistsize(arg)))))
+	if(!(names = malloc(sizeof(char*) * len)))
 		return err_nomem();
 
 	for(i = 0; i < len; ++i) {
-		AGA_GETLISTITEM(arg, i, v);
+		AGA_GETLISTITEM(list, i, v);
 		if(!(names[i] = getstringvalue(v))) {
 			free(names);
 			return 0;
@@ -186,22 +184,32 @@ AGA_SCRIPTPROC(getconf) {
 	}
 
 	if(aga_script_aferr("aga_conftree_raw", aga_conftree_raw(
-		opts->config.children, names, len, &node))) {
+			root ? node->children : node, names, len, &out))) {
 
 		free(names);
 		return 0;
 	}
 	free(names);
 
-	switch(node->type) {
+	str = out->data.string ? out->data.string : "";
+	switch(out->type) {
 		default:
 			AF_FALLTHROUGH;
 			/* FALLTHRU */
 		case AGA_NONE: AGA_NONERET;
-		case AGA_STRING: return newstringobject(node->data.string);
-		case AGA_INTEGER: return newintobject(node->data.integer);
-		case AGA_FLOAT: return newfloatobject(node->data.flt);
+		case AGA_STRING: return newstringobject((char*) str);
+		case AGA_INTEGER: return newintobject(out->data.integer);
+		case AGA_FLOAT: return newfloatobject(out->data.flt);
 	}
+}
+
+AGA_SCRIPTPROC(getconf) {
+	struct aga_opts* opts;
+
+	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
+
+	if(!AGA_ARGLIST(list)) AGA_ARGERR("getconf", "list");
+	return agan_scriptconf(&opts->config, AF_TRUE, arg);
 }
 
 AGA_SCRIPTPROC(log) {
@@ -455,6 +463,11 @@ AGA_SCRIPTPROC(mkobj) {
 		af_size_t conf_size;
 		struct aga_res* res;
 
+		result = aga_searchres(pack, path, &res);
+		if(aga_script_aferr("aga_searchres", result)) return 0;
+
+		obj->res = res;
+
 		result = aga_resfptr(pack, path, &conf_fp, &conf_size);
 		if(aga_script_aferr("aga_resfptr", result)) return 0;
 
@@ -635,19 +648,24 @@ AGA_SCRIPTPROC(mkobj) {
 
 AGA_SCRIPTPROC(inobj) {
     aga_pyobject_t retval = False;
-    aga_pyobject_t o, point, flobj, scale, pos;
+    aga_pyobject_t o, j, dbg, point, flobj, scale, pos;
     float pt[3];
     float mins[3];
     float maxs[3];
     float f;
+	af_bool_t p, d;
     af_size_t i;
     struct agan_object* obj;
 
     if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
-       !AGA_ARG(point, 1, list)) {
+       !AGA_ARG(point, 1, list) || !AGA_ARG(j, 2, int) ||
+	   !AGA_ARG(dbg, 3, int)) {
 
-        AGA_ARGERR("inobj", "nativeptr and list");
+        AGA_ARGERR("inobj", "nativeptr, list, int and int");
     }
+
+	AGA_SCRIPTBOOL(p, j);
+	AGA_SCRIPTBOOL(d, dbg);
 
     obj = ((struct aga_nativeptr*) o)->ptr;
     memcpy(mins, obj->min_extent, sizeof(mins));
@@ -677,20 +695,74 @@ AGA_SCRIPTPROC(inobj) {
 
     /* TODO: Once cells are implemented - check against current cell rad. */
 
-    aga_log(__FILE__, "is point (%f, %f, %f) > (%f, %f, %f)?",
-        pt[0], pt[1], pt[2],
-        mins[0], mins[1], mins[2]);
-    if(pt[0] > mins[0] && pt[1] > mins[1] && pt[2] > mins[2]) {
-        aga_log(__FILE__, "is point (%f, %f, %f) < (%f, %f, %f)?",
-            pt[0], pt[1], pt[2],
-            maxs[0], maxs[1], maxs[2]);
-        if(pt[0] < maxs[0] && pt[1] < maxs[1] && pt[2] < maxs[2]) {
+    if(pt[0] > mins[0] && (p || pt[1] > mins[1]) && pt[2] > mins[2]) {
+        if(pt[0] < maxs[0] && (p || pt[1] < maxs[1]) && pt[2] < maxs[2]) {
             retval = True;
         }
     }
 
+	if(d) {
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_DEPTH_TEST);
+		glBegin(GL_LINE_STRIP);
+		glColor3f(0.0f, 1.0f, 0.0f);
+			glVertex3f(mins[0], maxs[1], maxs[2]);
+			glVertex3f(maxs[0], maxs[1], maxs[2]);
+			glVertex3f(mins[0], mins[1], maxs[2]);
+			glVertex3f(maxs[0], mins[1], maxs[2]);
+			glVertex3f(maxs[0], mins[1], mins[2]);
+			glVertex3f(maxs[0], maxs[1], maxs[2]);
+			glVertex3f(maxs[0], maxs[1], mins[2]);
+			glVertex3f(mins[0], maxs[1], maxs[2]);
+			glVertex3f(mins[0], maxs[1], mins[2]);
+			glVertex3f(mins[0], mins[1], maxs[2]);
+			glVertex3f(mins[0], mins[1], mins[2]);
+			glVertex3f(maxs[0], mins[1], mins[2]);
+			glVertex3f(mins[0], maxs[1], mins[2]);
+			glVertex3f(maxs[0], maxs[1], mins[2]);
+		glEnd();
+		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_DEPTH_TEST);
+	}
+
     INCREF(retval);
     return retval;
+}
+
+/* TODO: Avoid reloading conf for every call. */
+AGA_SCRIPTPROC(objconf) {
+	enum af_err result;
+
+	void* fp;
+
+	aga_pyobject_t o, l, retval;
+
+	struct aga_conf_node conf;
+	struct agan_object* obj;
+
+	if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
+	   !AGA_ARG(l, 1, list)) {
+
+		AGA_ARGERR("objconf", "nativeptr and list");
+	}
+
+	obj = ((struct aga_nativeptr*) o)->ptr;
+
+	result = aga_resseek(obj->res, &fp);
+	if(aga_script_aferr("aga_resseek", result)) return 0;
+
+	result = aga_mkconf(fp, obj->res->size, &conf);
+	if(aga_script_aferr("aga_mkconf", result)) return 0;
+
+	retval = agan_scriptconf(&conf, AF_TRUE, l);
+	if(!retval) return 0;
+
+	result = aga_killconf(&conf);
+	if(aga_script_aferr("aga_killconf", result)) return 0;
+
+	return retval;
 }
 
 AGA_SCRIPTPROC(putobj) {
@@ -917,6 +989,7 @@ enum af_err aga_mkmod(aga_pyobject_t* dict) {
 		_(putobj),
 		_(killobj),
 		_(getobjtrans),
+		_(objconf),
 
 		/* Maths */
 		_(bitand),

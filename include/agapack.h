@@ -41,6 +41,9 @@ struct aga_respack {
  */
 extern struct aga_respack* aga_global_pack;
 
+enum af_err aga_searchres(
+		struct aga_respack* pack, const char* path, struct aga_res** out);
+
 enum af_err aga_mkrespack(const char* path, struct aga_respack* pack);
 enum af_err aga_killrespack(struct aga_respack* pack);
 enum af_err aga_sweeprespack(struct aga_respack* pack);

@@ -6,20 +6,47 @@
 #ifndef AGA_SCRIPT_GLUE_H
 #define AGA_SCRIPT_GLUE_H
 
-/* TODO: Object/scene-based lighting. */
-#define AGAN_LIGHT_INVAL (~0UL)
-/* GL1.0 doesn't use `GL_MAX_LIGHTS'. */
-#define AGAN_MAXLIGHT (7)
-static af_size_t aga_current_light = AGAN_LIGHT_INVAL;
-static af_bool_t aga_light_cap_warned = AF_FALSE;
-static af_bool_t aga_light_start_warned = AF_FALSE;
+/*
+ * TODO: Switch to unchecked List/Tuple/String accesses for release/noverify
+ * 		 Builds? Disable parameter type strictness for noverify+dist?
+ */
 
+struct agan_normcolor {
+	float r, g, b, a;
+};
+
+enum agan_lighttype {
+	AGAN_SPOT,
+	AGAN_POINT,
+	AGAN_DIRECTIONAL
+};
+
+struct agan_lightdata {
+	struct agan_normcolor ambient;
+	struct agan_normcolor diffuse;
+	struct agan_normcolor specular;
+
+	float constant_attenuation;
+	float linear_attenuation;
+	float quadratic_attenuation;
+
+	float direction[3];
+
+	enum agan_lighttype type;
+
+	af_uint8_t spot_exponent;
+	af_uint8_t light_index;
+};
+
+/* TODO: Central object/light registry and distribute handles. */
 struct agan_object {
 	aga_pyobject_t transform;
+	struct aga_res* res;
+	struct agan_lightdata* light_data;
+
 	af_uint_t drawlist;
     float min_extent[3];
     float max_extent[3];
-	struct aga_res* res;
 };
 
 static const char* agan_trans_components[] = {
@@ -68,28 +95,6 @@ static af_bool_t agan_settransmat(aga_pyobject_t trans, af_bool_t inv) {
 	}
 
 	return AF_TRUE;
-}
-
-AGA_SCRIPTPROC(mktrans) {
-	aga_pyobject_t new;
-	af_size_t i, j;
-
-	if(!(new = newdictobject())) return 0;
-
-	for(i = 0; i < AF_ARRLEN(agan_conf_components); ++i) {
-		const char* s = agan_trans_components[i];
-		aga_pyobject_t p = newlistobject(3);
-		if(!p) return 0;
-
-		for(j = 0; j < 3; ++j) {
-			aga_pyobject_t flobj;
-			AGA_NEWOBJ(flobj, float, (i == 2 ? 1.0 : 0.0));
-			AGA_SETLISTITEM(p, j, flobj);
-		}
-		if(dictinsert(new, (char*) s, p)) return 0;
-	}
-
-	return new;
 }
 
 AGA_SCRIPTPROC(getkey) {
@@ -290,126 +295,6 @@ AGA_SCRIPTPROC(fogcol) {
 
 	glFogfv(GL_FOG_COLOR, col);
 	if(aga_script_glerr("glFogfv")) return 0;
-
-	AGA_NONERET;
-}
-
-AGA_SCRIPTPROC(startlight) {
-	af_size_t i;
-
-	for(i = 0; i < AGAN_MAXLIGHT; ++i) {
-		glDisable(GL_LIGHT0 + i);
-		if(aga_script_glerr("glDisable")) return 0;
-	}
-	aga_current_light = GL_LIGHT0;
-
-	AGA_NONERET;
-}
-
-AGA_SCRIPTPROC(mklight) {
-	aga_pyobject_t retval;
-
-	if(aga_current_light == AGAN_LIGHT_INVAL) {
-		if(!aga_light_start_warned) {
-			aga_log(__FILE__, "warn: mklight() called before startlight()");
-			aga_light_start_warned = !aga_light_start_warned;
-		}
-
-		AGA_NONERET;
-	}
-
-	glEnable(aga_current_light);
-	if(aga_script_glerr("glEnable")) return 0;
-
-	AGA_NEWOBJ(retval, int, ((long) aga_current_light));
-
-	if(++aga_current_light >= GL_LIGHT0 + AGAN_MAXLIGHT) {
-		if(!aga_light_cap_warned) {
-			aga_log(__FILE__, "warn: light cap (%i) reached", AGAN_MAXLIGHT);
-			aga_light_cap_warned = !aga_light_cap_warned;
-		}
-		aga_current_light = AGAN_LIGHT_INVAL;
-
-		AGA_NONERET;
-	}
-
-	return retval;
-}
-
-AGA_SCRIPTPROC(lightpos) {
-	static const float pos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-	aga_pyobject_t t;
-	aga_pyobject_t v;
-
-	long light;
-
-	if(!AGA_ARGLIST(tuple) || !AGA_ARG(v, 0, int) ||
-		!AGA_ARG(t, 1, dict)) {
-
-		AGA_ARGERR("lightpos", "int and dict");
-	}
-
-	AGA_SCRIPTVAL(light, v, int);
-
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-
-	if(!agan_settransmat(t, AF_FALSE)) return 0;
-
-	glLightfv(light, GL_POSITION, pos);
-	if(aga_script_glerr("glLightfv")) return 0;
-
-	glPopMatrix();
-
-	AGA_NONERET;
-}
-
-/*
- * NOTE: Light params follow the following format:
- * 		 [ exp(0-128), const atten(norm), lin atten(norm), quad atten(norm) ]
- */
-AGA_SCRIPTPROC(lightparam) {
-	aga_pyobject_t l, o, v;
-
-	long light;
-	float f;
-
-	if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, int) || !AGA_ARG(l, 1, list)) {
-		AGA_ARGERR("lightparam", "int and list");
-	}
-
-	AGA_SCRIPTVAL(light, o, int);
-
-	if(light != GL_LIGHT0) {
-		static const float diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-		glLightfv(light, GL_DIFFUSE, diffuse);
-		if(aga_script_glerr("glLightf")) return 0;
-	}
-
-	AGA_GETLISTITEM(l, 0, v);
-	AGA_SCRIPTVAL(f, v, float);
-
-	glLightf(light, GL_SPOT_EXPONENT, f);
-	if(aga_script_glerr("glLightf")) return 0;
-
-	AGA_GETLISTITEM(l, 1, v);
-	AGA_SCRIPTVAL(f, v, float);
-
-	glLightf(light, GL_CONSTANT_ATTENUATION, f);
-	if(aga_script_glerr("glLightf")) return 0;
-
-	AGA_GETLISTITEM(l, 2, v);
-	AGA_SCRIPTVAL(f, v, float);
-
-	glLightf(light, GL_LINEAR_ATTENUATION, f);
-	if(aga_script_glerr("glLightf")) return 0;
-
-	AGA_GETLISTITEM(l, 3, v);
-	AGA_SCRIPTVAL(f, v, float);
-
-	glLightf(light, GL_QUADRATIC_ATTENUATION, f);
-	if(aga_script_glerr("glLightf")) return 0;
 
 	AGA_NONERET;
 }
@@ -875,10 +760,10 @@ AGA_SCRIPTPROC(bitshl) {
 	return newintobject(av << bv);
 }
 
-AGA_SCRIPTPROC(getobjtrans) {
+AGA_SCRIPTPROC(objtrans) {
 	struct agan_object* obj;
 
-	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("getobjtrans", "nativeptr");
+	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("objtrans", "nativeptr");
 
 	obj = ((struct aga_nativeptr*) arg)->ptr;
 
@@ -965,7 +850,6 @@ enum af_err aga_mkmod(aga_pyobject_t* dict) {
 		_(setcursor),
 
 		/* Drawing */
-		_(mktrans),
 		_(setcam),
 		_(text),
 		_(fogparam),
@@ -977,18 +861,12 @@ enum af_err aga_mkmod(aga_pyobject_t* dict) {
 		_(log),
 		_(die),
 
-		/* Lights */
-		_(startlight),
-		_(mklight),
-		_(lightpos),
-		_(lightparam),
-
 		/* Objects */
         _(mkobj),
         _(inobj),
 		_(putobj),
 		_(killobj),
-		_(getobjtrans),
+		_(objtrans),
 		_(objconf),
 
 		/* Maths */

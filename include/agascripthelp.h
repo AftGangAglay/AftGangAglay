@@ -11,6 +11,16 @@
  * 		 Overall verbosity of the Python glue code.
  */
 
+/*
+ * TODO: Fix inconsistent parameter order and remove some of the superfluous
+ * 		 Wrappers.
+ */
+
+/*
+ * TODO: Switch to evaluating macros where possible (i.e. make the API clearer
+ * 		 By a `x = MACRO(foo, bar);' pattern rather than `MACRO(x, foo, bar)').
+ */
+
 #define AGA_SCRIPTPROC(name) \
 	static aga_pyobject_t agan_##name(AGA_UNUSED aga_pyobject_t self, \
 			AGA_UNUSED aga_pyobject_t arg)

@@ -8,7 +8,7 @@
 
 #include <agaconf.h>
 
-#include <afeirsa/afeirsa.h>
+#include <agaresult.h>
 
 struct aga_respack;
 

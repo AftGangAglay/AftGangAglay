@@ -3,7 +3,7 @@
  * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#include <afeirsa/afeirsa.h>
+#include <agaresult.h>
 
 #include <agaerr.h>
 #include <agaconf.h>

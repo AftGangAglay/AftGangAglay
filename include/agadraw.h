@@ -6,7 +6,7 @@
 #ifndef AGA_DRAW_H
 #define AGA_DRAW_H
 
-#include <afeirsa/afeirsa.h>
+#include <agaresult.h>
 
 enum af_err aga_setdrawparam(struct af_ctx* af, struct af_vert* vert);
 

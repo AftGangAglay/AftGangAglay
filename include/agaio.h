@@ -8,7 +8,7 @@
 
 #include <agaenv.h>
 
-#include <afeirsa/afeirsa.h>
+#include <agaresult.h>
 
 #if defined(AGA_HAVE_SYS_MMAN)
 /*

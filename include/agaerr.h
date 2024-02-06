@@ -8,7 +8,7 @@
 
 #include <agaenv.h>
 
-#include <afeirsa/afeirsa.h>
+#include <agaresult.h>
 
 AGA_NORETURN void aga_abort(void);
 void aga_af_chk(const char* loc, const char* proc, enum af_err e);

@@ -8,7 +8,7 @@
 
 #define AGA_FONT_LIST_BASE (1000)
 
-#include <afeirsa/afeirsa.h>
+#include <agaresult.h>
 
 #ifdef AF_GLXABI
 struct aga_win {

@@ -6,7 +6,7 @@
 #ifndef AGA_SCRIPT_H
 #define AGA_SCRIPT_H
 
-#include <afeirsa/afeirsa.h>
+#include <agaresult.h>
 
 #define AGA_SCRIPT_KEYMAP ("keymap")
 #define AGA_SCRIPT_POINTER ("pointer")

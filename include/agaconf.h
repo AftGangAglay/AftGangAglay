@@ -6,7 +6,7 @@
 #ifndef AGA_CONF_H
 #define AGA_CONF_H
 
-#include <afeirsa/afeirsa.h>
+#include <agaresult.h>
 
 /*
  * NOTE: This is a pretty restrictive way to represent the quite versatile

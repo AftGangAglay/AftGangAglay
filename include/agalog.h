@@ -6,7 +6,7 @@
 #ifndef AGA_LOG_H
 #define AGA_LOG_H
 
-#include <afeirsa/afeirsa.h>
+#include <agaresult.h>
 
 /*
  * NOTE: This exists for cases where we are forced to use fixed size buffers

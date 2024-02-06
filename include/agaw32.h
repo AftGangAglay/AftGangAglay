@@ -6,7 +6,7 @@
 #ifndef AGA_W32_H
 #define AGA_W32_H
 
-#include <afeirsa/afeirsa.h>
+#include <agaresult.h>
 
 #define AGA_ICON_RESOURCE (10)
 #define AGA_EMBED_RESOURCE (11)

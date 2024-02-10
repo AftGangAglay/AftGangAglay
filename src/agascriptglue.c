@@ -3,51 +3,10 @@
  * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#ifndef AGA_SCRIPT_GLUE_H
-#define AGA_SCRIPT_GLUE_H
-
 /*
  * TODO: Switch to unchecked List/Tuple/String accesses for release/noverify
  * 		 Builds? Disable parameter type strictness for noverify+dist?
  */
-
-struct agan_normcolor {
-	float r, g, b, a;
-};
-
-enum agan_lighttype {
-	AGAN_SPOT,
-	AGAN_POINT,
-	AGAN_DIRECTIONAL
-};
-
-struct agan_lightdata {
-	struct agan_normcolor ambient;
-	struct agan_normcolor diffuse;
-	struct agan_normcolor specular;
-
-	float constant_attenuation;
-	float linear_attenuation;
-	float quadratic_attenuation;
-
-	float direction[3];
-
-	enum agan_lighttype type;
-
-	af_uint8_t spot_exponent;
-	af_uint8_t light_index;
-};
-
-/* TODO: Central object/light registry and distribute handles. */
-struct agan_object {
-	aga_pyobject_t transform;
-	struct aga_res* res;
-	struct agan_lightdata* light_data;
-
-	af_uint_t drawlist;
-    float min_extent[3];
-    float max_extent[3];
-};
 
 static const char* agan_trans_components[] = {
 	"pos", "rot", "scale" };
@@ -57,10 +16,10 @@ static const char* agan_conf_components[] = {
 
 static const char* agan_xyz[] = { "X", "Y", "Z" };
 
-static af_bool_t agan_settransmat(aga_pyobject_t trans, af_bool_t inv) {
+static aga_bool_t agan_settransmat(aga_pyobject_t trans, aga_bool_t inv) {
 	aga_pyobject_t comp, xo, yo, zo;
 	float x, y, z;
-	af_size_t i;
+	aga_size_t i;
 
 	for(i = inv ? 2 : 0; i < 3; inv ? --i : ++i) {
 		if(!(comp = dictlookup(trans, (char*) agan_trans_components[i]))) {
@@ -138,7 +97,7 @@ AGA_SCRIPTPROC(getmotion) {
 
 AGA_SCRIPTPROC(setcam) {
 	aga_pyobject_t t, mode;
-	af_bool_t b;
+	aga_bool_t b;
 	double ar;
 
 	struct aga_opts* opts;
@@ -169,12 +128,12 @@ AGA_SCRIPTPROC(setcam) {
 }
 
 static aga_pyobject_t agan_scriptconf(
-		struct aga_conf_node* node, af_bool_t root, aga_pyobject_t list) {
+		struct aga_conf_node* node, aga_bool_t root, aga_pyobject_t list) {
 
 	const char* str;
 	struct aga_conf_node* out;
 	const char** names;
-	af_size_t i, len = getlistsize(list);
+	aga_size_t i, len = getlistsize(list);
 	aga_pyobject_t v;
 
 	if(!(names = malloc(sizeof(char*) * len)))
@@ -188,7 +147,7 @@ static aga_pyobject_t agan_scriptconf(
 		}
 	}
 
-	if(aga_script_aferr("aga_conftree_raw", aga_conftree_raw(
+	if(aga_script_err("aga_conftree_raw", aga_conftree_raw(
 			root ? node->children : node, names, len, &out))) {
 
 		free(names);
@@ -198,9 +157,10 @@ static aga_pyobject_t agan_scriptconf(
 
 	str = out->data.string ? out->data.string : "";
 	switch(out->type) {
-		default:
-			AF_FALLTHROUGH;
+		default: {
+			AGA_FALLTHROUGH;
 			/* FALLTHRU */
+        }
 		case AGA_NONE: AGA_NONERET;
 		case AGA_STRING: return newstringobject((char*) str);
 		case AGA_INTEGER: return newintobject(out->data.integer);
@@ -229,7 +189,7 @@ AGA_SCRIPTPROC(log) {
 	AGA_SCRIPTVAL(loc, current_frame->f_code->co_filename, string);
 
 	if(!is_stringobject(arg)) {
-		af_size_t i;
+		aga_size_t i;
 		for(i = 0; i < aga_logctx.len; ++i) {
 			FILE* s = aga_logctx.targets[i];
 			aga_loghdr(s, loc, AGA_NORM);
@@ -283,7 +243,7 @@ AGA_SCRIPTPROC(fogparam) {
 
 AGA_SCRIPTPROC(fogcol) {
 	aga_pyobject_t v;
-	af_size_t i;
+	aga_size_t i;
 	float col[3];
 
 	if(!AGA_ARGLIST(list)) AGA_ARGERR("fogcol", "list");
@@ -304,26 +264,18 @@ AGA_SCRIPTPROC(fogcol) {
  * 		 This function a lot more to help remedy this.
  */
 AGA_SCRIPTPROC(mkobj) {
-	enum af_err result;
+	enum aga_result result;
 
-	af_size_t i;
+	aga_size_t i;
 	aga_pyobject_t retval;
 
 	struct agan_object* obj;
 	struct aga_nativeptr* nativeptr;
-
-	struct af_buf model, tex;
-	int unlit = 0, scaletex = 0, filter = 0;
-
+    int unlit = 0, scaletex = 0, filter = 0;
 	struct aga_respack* pack;
-	struct af_ctx* af;
-	struct af_vert* vert;
-
 	const char* path;
 
 	if(!(pack = aga_getscriptptr(AGA_SCRIPT_PACK))) return 0;
-	if(!(af = aga_getscriptptr(AGA_SCRIPT_AFCTX))) return 0;
-	if(!(vert = aga_getscriptptr(AGA_SCRIPT_AFVERT))) return 0;
 
 	if(!AGA_ARGLIST(string)) AGA_ARGERR("mkobj", "string");
 
@@ -345,20 +297,20 @@ AGA_SCRIPTPROC(mkobj) {
 		struct aga_conf_node* v;
 		const char* str;
 		void* conf_fp;
-		af_size_t conf_size;
+		aga_size_t conf_size;
 		struct aga_res* res;
 
 		result = aga_searchres(pack, path, &res);
-		if(aga_script_aferr("aga_searchres", result)) return 0;
+		if(aga_script_err("aga_searchres", result)) return 0;
 
 		obj->res = res;
 
 		result = aga_resfptr(pack, path, &conf_fp, &conf_size);
-		if(aga_script_aferr("aga_resfptr", result)) return 0;
+		if(aga_script_err("aga_resfptr", result)) return 0;
 
 		aga_conf_debug_file = path;
 		result = aga_mkconf(conf_fp, conf_size, &conf);
-		if(aga_script_aferr("aga_mkconf", result)) return 0;
+		if(aga_script_err("aga_mkconf", result)) return 0;
 
 		root = conf.children;
 		for(it = root->children; it < root->children + root->len; ++it) {
@@ -375,36 +327,24 @@ AGA_SCRIPTPROC(mkobj) {
                 static const char* max_y = "MaxY";
                 static const char* max_z = "MaxZ";
 
-				result = aga_mkres(pack, str, &res);
-				if(aga_script_aferr("aga_mkres", result)) return 0;
-
-                result = aga_releaseres(res);
-                if(aga_script_aferr("aga_releaseres", result)) return 0;
-
                 result = aga_conftree_nonroot(
                     res->conf, &min_x, 1, &obj->max_extent[0], AGA_FLOAT);
-                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
+                if(aga_script_err("aga_conftree_nonroot", result)) return 0;
                 result = aga_conftree_nonroot(
                     res->conf, &min_y, 1, &obj->max_extent[1], AGA_FLOAT);
-                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
+                if(aga_script_err("aga_conftree_nonroot", result)) return 0;
                 result = aga_conftree_nonroot(
                     res->conf, &min_z, 1, &obj->max_extent[2], AGA_FLOAT);
-                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
+                if(aga_script_err("aga_conftree_nonroot", result)) return 0;
                 result = aga_conftree_nonroot(
                     res->conf, &max_x, 1, &obj->max_extent[0], AGA_FLOAT);
-                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
+                if(aga_script_err("aga_conftree_nonroot", result)) return 0;
                 result = aga_conftree_nonroot(
                     res->conf, &max_y, 1, &obj->max_extent[1], AGA_FLOAT);
-                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
+                if(aga_script_err("aga_conftree_nonroot", result)) return 0;
                 result = aga_conftree_nonroot(
                     res->conf, &max_z, 1, &obj->max_extent[2], AGA_FLOAT);
-                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
-
-				result = af_mkbuf(af, &model, AF_BUF_VERT);
-				if(aga_script_aferr("af_mkbuf", result)) return 0;
-
-				result = af_upload(af, &model, res->data, res->size);
-				if(aga_script_aferr("af_upload", result)) return 0;
+                if(aga_script_err("aga_conftree_nonroot", result)) return 0;
 
 				continue;
 			}
@@ -415,24 +355,24 @@ AGA_SCRIPTPROC(mkobj) {
 
                 /* TODO: Fix leaky error states here once we remove "img". */
 				result = aga_mkres(pack, str, &res);
-				if(aga_script_aferr("aga_mkres", result)) return 0;
+				if(aga_script_err("aga_mkres", result)) return 0;
 
 				result = aga_releaseres(res);
-				if(aga_script_aferr("aga_releaseres", result)) return 0;
+				if(aga_script_err("aga_releaseres", result)) return 0;
 
 				/* NOTE: Filter mode must appear above texture entry. */
-				result = af_mkbuf(af, &tex, AF_BUF_TEX);
-				if(aga_script_aferr("af_mkbuf", result)) return 0;
+				result = aga_mkbuf(af, &tex, AF_BUF_TEX);
+				if(aga_script_err("aga_mkbuf", result)) return 0;
 
                 result = aga_conftree_nonroot(
                     res->conf, &width_path, 1, &width, AGA_INTEGER);
-                if(aga_script_aferr("aga_conftree_nonroot", result)) return 0;
+                if(aga_script_err("aga_conftree_nonroot", result)) return 0;
 
                 tex.tex_width = width;
                 tex.tex_filter = filter;
 
-				result = af_upload(af, &tex, res->data, res->size);
-				if(aga_script_aferr("af_upload", result)) return 0;
+				result = aga_upload(af, &tex, res->data, res->size);
+				if(aga_script_err("aga_upload", result)) return 0;
 
 				continue;
 			}
@@ -452,14 +392,14 @@ AGA_SCRIPTPROC(mkobj) {
 				continue;
 			}
 
-			for(i = 0; i < AF_ARRLEN(agan_conf_components); ++i) {
-				if(af_streql(it->name, agan_conf_components[i])) {
+			for(i = 0; i < AGA_LEN(agan_conf_components); ++i) {
+				if(aga_streql(it->name, agan_conf_components[i])) {
 					const char* s = agan_trans_components[i];
 					aga_pyobject_t p = newlistobject(3);
 					if(!p) return 0;
 
 					for(v = it->children; v < it->children + it->len; ++v) {
-						for(i = 0; i < AF_ARRLEN(agan_xyz); ++i) {
+						for(i = 0; i < AGA_LEN(agan_xyz); ++i) {
 							const char* c = agan_xyz[i];
 							float f;
 
@@ -478,7 +418,7 @@ AGA_SCRIPTPROC(mkobj) {
 		}
 
 		result = aga_killconf(&conf);
-		if(aga_script_aferr("aga_killconf", result)) return 0;
+		if(aga_script_err("aga_killconf", result)) return 0;
 	}
 
 	obj->drawlist = glGenLists(1);
@@ -486,8 +426,12 @@ AGA_SCRIPTPROC(mkobj) {
 
 	glNewList(obj->drawlist, GL_COMPILE);
 	{
-		result = af_settex(af, &tex);
-		if(aga_script_aferr("af_settex", result)) return 0;
+        struct aga_vertex v;
+        void* fp;
+        aga_size_t mdlsz;
+
+		result = aga_settex(af, &tex);
+		if(aga_script_err("aga_settex", result)) return 0;
 
 		if(unlit) {
 			glDisable(GL_LIGHTING);
@@ -514,19 +458,20 @@ AGA_SCRIPTPROC(mkobj) {
 		glPushMatrix();
 		if(!agan_settransmat(obj->transform, AF_FALSE)) return 0;
 
-		result = af_drawbuf(af, &model, vert, AF_TRIANGLES);
-		if(aga_script_aferr("af_drawbuf", result)) return 0;
+        for(i = 0; i < )
+		result = aga_drawbuf(af, &model, vert, AF_TRIANGLES);
+		if(aga_script_err("aga_drawbuf", result)) return 0;
 
 		glPopMatrix();
 	}
 	glEndList();
 	if(aga_script_glerr("glNewList")) return 0;
 
-	result = af_killbuf(af, &model);
-	if(aga_script_aferr("af_killbuf", result)) return 0;
+	result = aga_killbuf(af, &model);
+	if(aga_script_err("aga_killbuf", result)) return 0;
 
-	result = af_killbuf(af, &tex);
-	if(aga_script_aferr("af_killbuf", result)) return 0;
+	result = aga_killbuf(af, &tex);
+	if(aga_script_err("aga_killbuf", result)) return 0;
 
 	return (aga_pyobject_t) retval;
 }
@@ -538,8 +483,8 @@ AGA_SCRIPTPROC(inobj) {
     float mins[3];
     float maxs[3];
     float f;
-	af_bool_t p, d;
-    af_size_t i;
+	aga_bool_t p, d;
+    aga_size_t i;
     struct agan_object* obj;
 
     if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
@@ -618,7 +563,7 @@ AGA_SCRIPTPROC(inobj) {
 
 /* TODO: Avoid reloading conf for every call. */
 AGA_SCRIPTPROC(objconf) {
-	enum af_err result;
+	enum aga_result result;
 
 	void* fp;
 
@@ -636,16 +581,16 @@ AGA_SCRIPTPROC(objconf) {
 	obj = ((struct aga_nativeptr*) o)->ptr;
 
 	result = aga_resseek(obj->res, &fp);
-	if(aga_script_aferr("aga_resseek", result)) return 0;
+	if(aga_script_err("aga_resseek", result)) return 0;
 
 	result = aga_mkconf(fp, obj->res->size, &conf);
-	if(aga_script_aferr("aga_mkconf", result)) return 0;
+	if(aga_script_err("aga_mkconf", result)) return 0;
 
 	retval = agan_scriptconf(&conf, AF_TRUE, l);
 	if(!retval) return 0;
 
 	result = aga_killconf(&conf);
-	if(aga_script_aferr("aga_killconf", result)) return 0;
+	if(aga_script_err("aga_killconf", result)) return 0;
 
 	return retval;
 }
@@ -701,32 +646,28 @@ AGA_SCRIPTPROC(text) {
 	AGA_GETLISTITEM(t, 1, f);
 	AGA_SCRIPTVAL(y, f, float);
 
-	if(aga_script_aferr("aga_puttext", aga_puttext(x, y, text)))
+	if(aga_script_err("aga_puttext", aga_puttext(x, y, text)))
 		return 0;
 
 	AGA_NONERET;
 }
 
 AGA_SCRIPTPROC(clear) {
-	enum af_err result;
+	enum aga_result result;
 
 	aga_pyobject_t v;
 	float col[4];
-	af_size_t i;
-
-	struct af_ctx* af;
-
-	if(!(af = aga_getscriptptr(AGA_SCRIPT_AFCTX))) return 0;
+	aga_size_t i;
 
 	if(!AGA_ARGLIST(list)) AGA_ARGERR("clear", "list");
 
-	for(i = 0; i < AF_ARRLEN(col); ++i) {
+	for(i = 0; i < AGA_LEN(col); ++i) {
 		AGA_GETLISTITEM(arg, i, v);
 		AGA_SCRIPTVAL(col[i], v, float);
 	}
 
-	result = af_clear(af, col);
-	if(aga_script_aferr("af_clear", result)) return 0;
+	result = aga_clear(af, col);
+	if(aga_script_err("aga_clear", result)) return 0;
 
 	AGA_NONERET;
 }
@@ -775,7 +716,7 @@ AGA_SCRIPTPROC(randnorm) {
 }
 
 AGA_SCRIPTPROC(die) {
-	af_bool_t* die;
+	aga_bool_t* die;
 	if(!(die = aga_getscriptptr(AGA_SCRIPT_DIE))) return 0;
 	*die = AF_TRUE;
 
@@ -783,10 +724,10 @@ AGA_SCRIPTPROC(die) {
 }
 
 AGA_SCRIPTPROC(setcursor) {
-	enum af_err result;
+	enum aga_result result;
 
 	aga_pyobject_t o, v;
-	af_bool_t visible, captured;
+	aga_bool_t visible, captured;
 
 	struct aga_winenv* env;
 	struct aga_win* win;
@@ -802,45 +743,45 @@ AGA_SCRIPTPROC(setcursor) {
 	AGA_SCRIPTBOOL(captured, v);
 
 	result = aga_setcursor(env, win, visible, captured);
-	if(aga_script_aferr("aga_setcursor", result)) return 0;
+	if(aga_script_err("aga_setcursor", result)) return 0;
 
 	AGA_NONERET;
 }
 
-static enum af_err aga_insertfloat(const char* key, double value) {
+static enum aga_result aga_insertfloat(const char* key, double value) {
 	aga_pyobject_t o;
 	if(!(o = newfloatobject(value))) {
-		aga_scripttrace();
-		return AF_ERR_UNKNOWN;
+        aga_script_trace();
+		return AGA_RESULT_ERROR;
 	}
 	if(dictinsert(agan_dict, (char*) key, o) == -1) {
-		aga_scripttrace();
-		return AF_ERR_UNKNOWN;
+        aga_script_trace();
+		return AGA_RESULT_ERROR;
 	}
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-static enum af_err aga_insertint(const char* key, long value) {
+static enum aga_result aga_insertint(const char* key, long value) {
 	aga_pyobject_t o;
 	if(!(o = newintobject(value))) {
-		aga_scripttrace();
-		return AF_ERR_UNKNOWN;
+        aga_script_trace();
+		return AGA_RESULT_ERROR;
 	}
 	if(dictinsert(agan_dict, (char*) key, o) == -1) {
-		aga_scripttrace();
-		return AF_ERR_UNKNOWN;
+        aga_script_trace();
+		return AGA_RESULT_ERROR;
 	}
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-static enum af_err aga_setkeys(void);
-enum af_err aga_mkmod(aga_pyobject_t* dict) {
+static enum aga_result aga_setkeys(void);
+enum aga_result aga_mkmod(aga_pyobject_t* dict) {
 	static const double pi = 3.14159265358979323846;
 	static const double rads = pi / 180.0;
 
-	enum af_err result;
+	enum aga_result result;
 
 #define _(name) { #name, agan_##name }
 	struct methodlist methods[] = {
@@ -879,28 +820,28 @@ enum af_err aga_mkmod(aga_pyobject_t* dict) {
 #undef _
 
 	aga_pyobject_t module = initmodule("agan", methods);
-	AF_VERIFY(module, AF_ERR_UNKNOWN);
+	AGA_VERIFY(module, AGA_RESULT_ERROR);
 
 	if(!(agan_dict = getmoduledict(module))) {
-		aga_scripttrace();
-		return AF_ERR_UNKNOWN;
+        aga_script_trace();
+		return AGA_RESULT_ERROR;
 	}
 
-	AF_CHK(aga_insertfloat("PI", pi));
-	AF_CHK(aga_insertfloat("RADS", rads));
+	AGA_CHK(aga_insertfloat("PI", pi));
+	AGA_CHK(aga_insertfloat("RADS", rads));
 
 	if((result = aga_setkeys())) {
-		aga_scripttrace();
+        aga_script_trace();
 		return result;
 	}
 
 	*dict = agan_dict;
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-static enum af_err aga_setkeys(void) {
-#define _(name, value) AF_CHK(aga_insertint(name, value))
+static enum aga_result aga_setkeys(void) {
+#define _(name, value) AGA_CHK(aga_insertint(name, value))
 #ifdef AF_GLXABI
 /*
  * Values taken from `X11/keysymdef.h'
@@ -1162,7 +1103,5 @@ static enum af_err aga_setkeys(void) {
 #endif
 #undef _
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
-
-#endif

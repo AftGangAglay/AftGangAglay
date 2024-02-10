@@ -7,17 +7,24 @@
 #define AGA_ERR_H
 
 #include <agaenv.h>
-
 #include <agaresult.h>
 
-AGA_NORETURN void aga_abort(void);
-void aga_af_chk(const char* loc, const char* proc, enum af_err e);
+#define AGA_GL_CHK \
+	do { \
+		enum aga_result err = aga_gl_chk(); \
+		if(err) return err; \
+	} while(0)
 
-const char* aga_af_errname(enum af_err e);
+AGA_NORETURN void aga_abort(void);
+void aga_chk(const char* loc, const char* proc, enum aga_result e);
+
+const char* aga_aga_errname(enum aga_result e);
 /* NOTE: Pass null to `loc' to suppress error message printout. */
-enum af_err aga_af_errno(const char* loc, const char* proc);
-enum af_err aga_af_patherrno(
+enum aga_result aga_errno(const char* loc, const char* proc);
+enum aga_result aga_patherrno(
 		const char* loc, const char* proc, const char* path);
-void aga_af_soft(const char* loc, const char* proc, enum af_err e);
+void aga_soft(const char* loc, const char* proc, enum aga_result e);
+
+enum aga_result aga_gl_chk(void);
 
 #endif

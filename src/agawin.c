@@ -4,19 +4,10 @@
  */
 
 #include <agawin.h>
-#include <agaerr.h>
-#include <agastartup.h>
-#include <agalog.h>
-#define AGA_WANT_UNIX
-#include <agastd.h>
+#include <agagl.h>
 
-#include <afeirsa/afgl.h>
-
-#ifdef AF_GLXABI
-# include <X11/Xlib.h>
-# include <X11/Xutil.h>
-# include <X11/cursorfont.h>
+#ifdef AGA_GLX
 # include "agaxwin.h"
-#elif defined(AF_WGL)
+#elif defined(AGA_WGL)
 # include "agawwin.h"
 #endif

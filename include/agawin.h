@@ -10,32 +10,32 @@
 
 #include <agaresult.h>
 
-#ifdef AF_GLXABI
+#ifdef AGA_GLX
 struct aga_win {
-	af_size_t width, height;
-	af_ulong_t xwin;
-	af_ulong_t blank_cursor, arrow_cursor;
+	aga_size_t width, height;
+	aga_ulong_t xwin;
+	aga_ulong_t blank_cursor, arrow_cursor;
 };
 
 struct aga_keymap {
-	af_ulong_t* keymap;
-	af_bool_t* keystates;
+	aga_ulong_t* keymap;
+	aga_bool_t* keystates;
 	int keysyms_per_keycode, keycode_len, keycode_min;
 };
 
 struct aga_winenv {
 	void* dpy;
 	void* glx;
-	af_ulong_t wm_delete;
+	aga_ulong_t wm_delete;
 	int dpy_fd;
 	int screen;
-	af_bool_t double_buffered;
+	aga_bool_t double_buffered;
 };
-#elif defined(AF_WGL)
+#elif defined(AGA_WGL)
 struct aga_win {
 	void* hwnd;
 	void* dc;
-	af_size_t width, height;
+	aga_size_t width, height;
 };
 
 /*
@@ -43,8 +43,8 @@ struct aga_win {
  * 		 and `keycode_len' members here.
  */
 struct aga_keymap {
-	af_ulong_t* keymap;
-	af_bool_t* keystates;
+	aga_ulong_t* keymap;
+	aga_bool_t* keystates;
 	int keysyms_per_keycode, keycode_len;
 };
 
@@ -53,7 +53,7 @@ struct aga_winenv {
 	void* wgl;
 	void* cursor;
 	int class;
-	af_bool_t visible, captured;
+	aga_bool_t visible, captured;
 };
 #endif
 
@@ -66,16 +66,16 @@ struct aga_pointer {
  * NOTE: Glyphs are generated as display lists corresponding to the ASCII value
  * 		 Of each printable character (i.e. `glCallList('a')')
  */
-enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display);
-enum af_err aga_killwinenv(struct aga_winenv* env);
+enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display);
+enum aga_result aga_killwinenv(struct aga_winenv* env);
 
-enum af_err aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env);
-enum af_err aga_killkeymap(struct aga_keymap* keymap);
+enum aga_result aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env);
+enum aga_result aga_killkeymap(struct aga_keymap* keymap);
 
-enum af_err aga_mkwin(
-		af_size_t width, af_size_t height, struct aga_winenv* env,
+enum aga_result aga_mkwin(
+		aga_size_t width, aga_size_t height, struct aga_winenv* env,
 		struct aga_win* win, int argc, char** argv);
-enum af_err aga_killwin(struct aga_winenv* env, struct aga_win* win);
+enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win);
 
 /*
  * NOTE: Cursor capture is a somewhat importable concept. As it stands, we
@@ -85,21 +85,21 @@ enum af_err aga_killwin(struct aga_winenv* env, struct aga_win* win);
  * 		 Mouse to the left across your entire desk would continue to report
  * 		 (-1, 0) and would not hover any other Windows to the left of `win'.
  */
-enum af_err aga_setcursor(
-		struct aga_winenv* env, struct aga_win* win, af_bool_t visible,
-		af_bool_t captured);
+enum aga_result aga_setcursor(
+		struct aga_winenv* env, struct aga_win* win, aga_bool_t visible,
+		aga_bool_t captured);
 
-enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win);
-enum af_err aga_swapbuf(struct aga_winenv* env, struct aga_win* win);
+enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win);
+enum aga_result aga_swapbuf(struct aga_winenv* env, struct aga_win* win);
 
-enum af_err aga_poll(
+enum aga_result aga_poll(
 		struct aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
-		struct aga_pointer* pointer, af_bool_t* die);
+		struct aga_pointer* pointer, aga_bool_t* die);
 
-enum af_err aga_diag(
-		const char* message, const char* title, af_bool_t* response,
-		af_bool_t is_error);
+enum aga_result aga_diag(
+		const char* message, const char* title, aga_bool_t* response,
+		aga_bool_t is_error);
 
-enum af_err aga_shellopen(const char* uri);
+enum aga_result aga_shellopen(const char* uri);
 
 #endif

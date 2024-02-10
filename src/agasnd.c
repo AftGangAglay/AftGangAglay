@@ -18,19 +18,19 @@
 # include <agalog.h>
 # include <agaerr.h>
 
-enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
-	af_bool_t busy_msg = AF_FALSE;
+enum aga_result aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
+	aga_bool_t busy_msg = AF_FALSE;
 	unsigned value;
 
-	AF_PARAM_CHK(snddev);
-	AF_PARAM_CHK(dev);
+	AGA_PARAM_CHK(snddev);
+	AGA_PARAM_CHK(dev);
 
-	af_memset(snddev->buf, 0, sizeof(snddev->buf));
+	aga_memset(snddev->buf, 0, sizeof(snddev->buf));
 
 	do {
 		if((snddev->fd = open(dev, O_WRONLY | O_NONBLOCK)) == -1) {
 			if(errno != EBUSY) {
-				return aga_af_patherrno(__FILE__, "open", dev);
+				return aga_patherrno(__FILE__, "open", dev);
 			}
 			if(!busy_msg) {
 				aga_log(__FILE__, "Sound device `%s' busy. Waiting...", dev);
@@ -45,41 +45,41 @@ enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 
 	value = AGA_SND_SAMPLEBITS;
 	if(ioctl(snddev->fd, SOUND_PCM_WRITE_BITS, &value) == -1) {
-		return aga_af_errno(__FILE__, "ioctl");
+		return aga_errno(__FILE__, "ioctl");
 	}
 	value = AGA_SND_CHANNELS;
 	if(ioctl(snddev->fd, SOUND_PCM_WRITE_CHANNELS, &value) == -1) {
-		return aga_af_errno(__FILE__, "ioctl");
+		return aga_errno(__FILE__, "ioctl");
 	}
 	value = AGA_SND_SAMPLERATE;
 	if(ioctl(snddev->fd, SOUND_PCM_WRITE_RATE, &value) == -1) {
-		return aga_af_errno(__FILE__, "ioctl");
+		return aga_errno(__FILE__, "ioctl");
 	}
 	value = 1;
 	if(ioctl(snddev->fd, SOUND_PCM_NONBLOCK, &value) == -1) {
-		return aga_af_errno(__FILE__, "ioctl");
+		return aga_errno(__FILE__, "ioctl");
 	}
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_killsnddev(struct aga_snddev* snddev) {
-	AF_PARAM_CHK(snddev);
+enum aga_result aga_killsnddev(struct aga_snddev* snddev) {
+	AGA_PARAM_CHK(snddev);
 
 	if(ioctl(snddev->fd, SOUND_PCM_RESET) == -1) {
-		return aga_af_errno(__FILE__, "ioctl");
+		return aga_errno(__FILE__, "ioctl");
 	}
 
-	if(close(snddev->fd) == -1) return aga_af_errno(__FILE__, "close");
+	if(close(snddev->fd) == -1) return aga_errno(__FILE__, "close");
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_flushsnd(struct aga_snddev* snddev, af_size_t* written) {
+enum aga_result aga_flushsnd(struct aga_snddev* snddev, aga_size_t* written) {
 	struct pollfd pollfd;
 	int rdy;
 
-	AF_PARAM_CHK(snddev);
+	AGA_PARAM_CHK(snddev);
 
 	pollfd.fd = snddev->fd;
 	pollfd.events = POLLOUT;
@@ -87,7 +87,7 @@ enum af_err aga_flushsnd(struct aga_snddev* snddev, af_size_t* written) {
 	*written = 0;
 
 	if((rdy = poll(&pollfd, 1, 0)) == -1) {
-		return aga_af_errno(__FILE__, "poll");
+		return aga_errno(__FILE__, "poll");
 	}
 
 	if(rdy && (pollfd.revents & POLLOUT)) {
@@ -95,55 +95,55 @@ enum af_err aga_flushsnd(struct aga_snddev* snddev, af_size_t* written) {
 		*written = res;
 		if(res != sizeof(snddev->buf)) {
 			if(errno && errno != EAGAIN) {
-				return aga_af_errno(__FILE__, "write");
+				return aga_errno(__FILE__, "write");
 			}
 		}
 	}
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip) {
-	af_size_t written;
+enum aga_result aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip) {
+	aga_size_t written;
 
-	AF_PARAM_CHK(snddev);
-	AF_PARAM_CHK(clip);
+	AGA_PARAM_CHK(snddev);
+	AGA_PARAM_CHK(clip);
 
-	AF_CHK(aga_flushsnd(snddev, &written));
+	AGA_CHK(aga_flushsnd(snddev, &written));
 
 	clip->pos += written;
 	if(clip->pos < clip->len) {
-		af_size_t sz = sizeof(snddev->buf);
-		af_size_t rem = clip->len - clip->pos;
-		af_size_t cpy = sz < rem ? sz : rem;
-		af_memcpy(snddev->buf, &clip->pcm[clip->pos], cpy);
+		aga_size_t sz = sizeof(snddev->buf);
+		aga_size_t rem = clip->len - clip->pos;
+		aga_size_t cpy = sz < rem ? sz : rem;
+		aga_memcpy(snddev->buf, &clip->pcm[clip->pos], cpy);
 	}
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
 #else
-enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
+enum aga_result aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 	(void) snddev;
 	(void) dev;
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_killsnddev(struct aga_snddev* snddev) {
+enum aga_result aga_killsnddev(struct aga_snddev* snddev) {
 	(void) snddev;
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_flushsnd(struct aga_snddev* snddev, af_size_t* written) {
+enum aga_result aga_flushsnd(struct aga_snddev* snddev, aga_size_t* written) {
 	(void) snddev;
 	*written = 0;
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip) {
+enum aga_result aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip) {
 	(void) snddev;
 	(void) clip;
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
 #endif

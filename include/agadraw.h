@@ -8,12 +8,15 @@
 
 #include <agaresult.h>
 
-enum af_err aga_setdrawparam(struct af_ctx* af, struct af_vert* vert);
+enum aga_result aga_setdrawparam(void);
 
-enum af_err aga_pushrawdraw(void);
-enum af_err aga_poprawdraw(void);
+enum aga_result aga_pushrawdraw(void);
+enum aga_result aga_poprawdraw(void);
 
-enum af_err aga_puttext(float x, float y, const char* text);
-enum af_err aga_puttextfmt(float x, float y, const char* fmt, ...);
+enum aga_result aga_puttext(float x, float y, const char* text);
+enum aga_result aga_puttextfmt(float x, float y, const char* fmt, ...);
+
+enum aga_result aga_clear(const float* col);
+enum aga_result aga_flush(void);
 
 #endif

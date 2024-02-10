@@ -18,19 +18,19 @@ enum aga_snd_conf {
 
 struct aga_snddev {
 	int fd;
-	af_uint8_t buf[AGA_SND_SAMPLERATE];
+	aga_uint8_t buf[AGA_SND_SAMPLERATE];
 };
 
 struct aga_clip {
-	af_uchar_t* pcm;
-	af_size_t len;
-	af_size_t pos;
+	aga_uchar_t* pcm;
+	aga_size_t len;
+	aga_size_t pos;
 };
 
-enum af_err aga_mksnddev(const char* dev, struct aga_snddev* snddev);
-enum af_err aga_killsnddev(struct aga_snddev* snddev);
+enum aga_result aga_mksnddev(const char* dev, struct aga_snddev* snddev);
+enum aga_result aga_killsnddev(struct aga_snddev* snddev);
 
-enum af_err aga_flushsnd(struct aga_snddev* snddev, af_size_t* written);
-enum af_err aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip);
+enum aga_result aga_flushsnd(struct aga_snddev* snddev, aga_size_t* written);
+enum aga_result aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip);
 
 #endif

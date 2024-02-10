@@ -12,11 +12,11 @@
 
 struct aga_respack;
 struct aga_res {
-	af_size_t refcount;
-	af_size_t offset; /* Offset into pack data fields, not `data' member. */
+	aga_size_t refcount;
+	aga_size_t offset; /* Offset into pack data fields, not `data' member. */
 
 	void* data;
-	af_size_t size;
+	aga_size_t size;
 
 	struct aga_respack* pack;
 
@@ -25,12 +25,12 @@ struct aga_res {
 
 struct aga_respack {
 	void* fp;
-	af_size_t size;
-	af_size_t data_offset;
+	aga_size_t size;
+	aga_size_t data_offset;
 
 	/* TODO: This should eventually be a hashmap. */
 	struct aga_res* db;
-	af_size_t len; /* Alias for `pack->root.children->len'. */
+	aga_size_t len; /* Alias for `pack->root.children->len'. */
 
 	struct aga_conf_node root;
 };
@@ -41,21 +41,21 @@ struct aga_respack {
  */
 extern struct aga_respack* aga_global_pack;
 
-enum af_err aga_searchres(
+enum aga_result aga_searchres(
 		struct aga_respack* pack, const char* path, struct aga_res** out);
 
-enum af_err aga_mkrespack(const char* path, struct aga_respack* pack);
-enum af_err aga_killrespack(struct aga_respack* pack);
-enum af_err aga_sweeprespack(struct aga_respack* pack);
+enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack);
+enum aga_result aga_killrespack(struct aga_respack* pack);
+enum aga_result aga_sweeprespack(struct aga_respack* pack);
 
 /* Also counts as an acquire - i.e. initial refcount is 1. */
-enum af_err aga_mkres(
+enum aga_result aga_mkres(
 		struct aga_respack* pack, const char* path, struct aga_res** res);
 
-enum af_err aga_resfptr(
+enum aga_result aga_resfptr(
 		struct aga_respack* pack, const char* path, void** fp,
-		af_size_t* size);
-enum af_err aga_resseek(struct aga_res* res, void** fp);
+		aga_size_t* size);
+enum aga_result aga_resseek(struct aga_res* res, void** fp);
 
 /*
  * NOTE: You should ensure that you acquire after any potential error
@@ -63,7 +63,7 @@ enum af_err aga_resseek(struct aga_res* res, void** fp);
  * 		 Conditions during object destroy in order to avoid holding onto refs
  * 		 For invalid objects.
  */
-enum af_err aga_acquireres(struct aga_res* res);
-enum af_err aga_releaseres(struct aga_res* res);
+enum aga_result aga_acquireres(struct aga_res* res);
+enum aga_result aga_releaseres(struct aga_res* res);
 
 #endif

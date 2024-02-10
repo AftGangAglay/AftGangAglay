@@ -6,6 +6,10 @@
 #ifndef AGA_X_WIN_H
 #define AGA_X_WIN_H
 
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/cursorfont.h>
+
 static const char* agax_chk_last = "xlib";
 
 #ifdef __GNUC__
@@ -57,35 +61,35 @@ static int aga_xerr_handler(Display* dpy, XErrorEvent* err) {
 	return 0;
 }
 
-enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display) {
+enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	GLXFBConfig* fb;
 	int n_fb;
 	XVisualInfo* vi;
 
-	AF_PARAM_CHK(env);
+	AGA_PARAM_CHK(env);
 
 	AGAX_CHK(XSetErrorHandler, (aga_xerr_handler));
 
 	env->dpy = AGAX_CHK(XOpenDisplay, (display));
-	AF_VERIFY(env->dpy, AF_ERR_UNKNOWN);
+	AGA_VERIFY(env->dpy, AGA_RESULT_ERROR);
 
 	{
 		int fl;
 
 		env->dpy_fd = ConnectionNumber(env->dpy);
 		if((fl = fcntl(env->dpy_fd, F_GETFL)) == -1) {
-			return aga_af_errno(__FILE__, "fcntl");
+			return aga_errno(__FILE__, "fcntl");
 		}
 		fl |= O_NONBLOCK; /* TODO: We could use `O_ASYNC' for this. */
 		if(fcntl(env->dpy_fd, F_SETFL, fl) == -1) {
-			return aga_af_errno(__FILE__, "fcntl");
+			return aga_errno(__FILE__, "fcntl");
 		}
 	}
 
 	env->screen = DefaultScreen(env->dpy);
 	env->wm_delete = AGAX_CHK(XInternAtom, (
 		env->dpy, "WM_DELETE_WINDOW", True));
-	AF_VERIFY(env->wm_delete != None, AF_ERR_BAD_PARAM);
+	AGA_VERIFY(env->wm_delete != None, AGA_RESULT_BAD_PARAM);
 
 	env->double_buffered = AF_TRUE;
 	fb = glXChooseFBConfig(env->dpy, env->screen, double_buffer_fb, &n_fb);
@@ -93,36 +97,36 @@ enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display) {
 		env->double_buffered = AF_FALSE;
 		fb = glXChooseFBConfig(
 			env->dpy, env->screen, single_buffer_fb, &n_fb);
-		AF_VERIFY(fb, AF_ERR_UNKNOWN);
+		AGA_VERIFY(fb, AGA_RESULT_ERROR);
 	}
 
 	/* TODO: `glXGetVisualFromFBConfig' is too new for us. */
 	vi = glXGetVisualFromFBConfig(env->dpy, *fb);
-	AF_VERIFY(vi, AF_ERR_UNKNOWN);
+	AGA_VERIFY(vi, AGA_RESULT_ERROR);
 
 	env->glx = glXCreateContext(env->dpy, vi, 0, True);
-	AF_VERIFY(env->glx, AF_ERR_UNKNOWN);
+	AGA_VERIFY(env->glx, AGA_RESULT_ERROR);
 
 	XFree(vi);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_killwinenv(struct aga_winenv* env) {
-	AF_PARAM_CHK(env);
+enum aga_result aga_killwinenv(struct aga_winenv* env) {
+	AGA_PARAM_CHK(env);
 
 	glXDestroyContext(env->dpy, env->glx);
 
 	AGAX_CHK(XCloseDisplay, (env->dpy));
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
+enum aga_result aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
 	int min, max;
 
-	AF_PARAM_CHK(keymap);
-	AF_PARAM_CHK(env);
+	AGA_PARAM_CHK(keymap);
+	AGA_PARAM_CHK(env);
 
 	AGAX_CHK(XDisplayKeycodes, (env->dpy, &min, &max));
 
@@ -131,22 +135,22 @@ enum af_err aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
 
 	keymap->keymap = AGAX_CHK(XGetKeyboardMapping, (
 		env->dpy, min, keymap->keycode_len, &keymap->keysyms_per_keycode));
-	AF_VERIFY(keymap->keymap, AF_ERR_UNKNOWN);
+	AGA_VERIFY(keymap->keymap, AGA_RESULT_ERROR);
 
 	keymap->keystates = calloc(
-		keymap->keysyms_per_keycode * keymap->keycode_len, sizeof(af_bool_t));
-	AF_VERIFY(keymap->keystates, AF_ERR_MEM);
+		keymap->keysyms_per_keycode * keymap->keycode_len, sizeof(aga_bool_t));
+	AGA_VERIFY(keymap->keystates, AGA_RESULT_OOM);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_killkeymap(struct aga_keymap* keymap) {
-	AF_PARAM_CHK(keymap);
+enum aga_result aga_killkeymap(struct aga_keymap* keymap) {
+	AGA_PARAM_CHK(keymap);
 
 	XFree(keymap->keymap);
 	free(keymap->keystates);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
 /*
@@ -160,19 +164,19 @@ XColor black_col = { 0 };
 char empty[8] = { 0 };
 bitmap = XCreatePixmapFromBitmapData(
 	env->dpy, win->xwin, empty, 1, 1, white, black, 1);
-AF_VERIFY(bitmap != None, AF_ERR_MEM);
+AGA_VERIFY(bitmap != None, AGA_RESULT_OOM);
 XFreePixmap(env->dpy, bitmap);
  */
 
-enum af_err aga_mkwin(
-		af_size_t width, af_size_t height, struct aga_winenv* env,
+enum aga_result aga_mkwin(
+		aga_size_t width, aga_size_t height, struct aga_winenv* env,
 		struct aga_win* win, int argc, char** argv) {
 
-	af_ulong_t black, white;
+	aga_ulong_t black, white;
 	long mask = KeyPressMask | KeyReleaseMask | PointerMotionMask;
 
-	AF_PARAM_CHK(env);
-	AF_PARAM_CHK(win);
+	AGA_PARAM_CHK(env);
+	AGA_PARAM_CHK(win);
 
 	black = BlackPixel(env->dpy, env->screen);
 	white = WhitePixel(env->dpy, env->screen);
@@ -183,7 +187,7 @@ enum af_err aga_mkwin(
 	win->xwin = AGAX_CHK(XCreateSimpleWindow, (
 		env->dpy, RootWindow(env->dpy, env->screen), 0, 0, width, height,
 		8, white, black));
-	AF_VERIFY(win->xwin != None, AF_ERR_UNKNOWN);
+	AGA_VERIFY(win->xwin != None, AGA_RESULT_ERROR);
 
 	AGAX_CHK(XSetStandardProperties, (
 		env->dpy, win->xwin, "Aft Gang Aglay", "", None, argv, argc, 0));
@@ -205,10 +209,10 @@ enum af_err aga_mkwin(
 		new_prots = malloc((count + 1) * sizeof(Atom));
 		if(!new_prots) {
 			if(prots) XFree(prots);
-			return AF_ERR_MEM;
+			return AGA_RESULT_OOM;
 		}
 
-		af_memcpy(new_prots, prots, count * sizeof(Atom));
+		aga_memcpy(new_prots, prots, count * sizeof(Atom));
 		new_prots[count] = env->wm_delete;
 		if(prots) XFree(prots);
 
@@ -216,7 +220,7 @@ enum af_err aga_mkwin(
 			env->dpy, win->xwin, new_prots, count + 1));
 		if(!res) {
 			free(new_prots);
-			return AF_ERR_UNKNOWN;
+			return AGA_RESULT_ERROR;
 		}
 
 		free(new_prots);
@@ -229,26 +233,26 @@ enum af_err aga_mkwin(
 
 	win->blank_cursor = AGAX_CHK(XCreateFontCursor, (
 		env->dpy, XC_tcross));
-	AF_VERIFY(win->blank_cursor != None, AF_ERR_UNKNOWN);
+	AGA_VERIFY(win->blank_cursor != None, AGA_RESULT_ERROR);
 	win->arrow_cursor = AGAX_CHK(XCreateFontCursor, (
 		env->dpy, XC_arrow));
-	AF_VERIFY(win->arrow_cursor != None, AF_ERR_UNKNOWN);
+	AGA_VERIFY(win->arrow_cursor != None, AGA_RESULT_ERROR);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_killwin(struct aga_winenv* env, struct aga_win* win) {
-	AF_PARAM_CHK(env);
-	AF_PARAM_CHK(win);
+enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win) {
+	AGA_PARAM_CHK(env);
+	AGA_PARAM_CHK(win);
 
 	AGAX_CHK(XFreeCursor, (env->dpy, win->blank_cursor));
 	AGAX_CHK(XFreeCursor, (env->dpy, win->arrow_cursor));
 	AGAX_CHK(XDestroyWindow, (env->dpy, win->xwin));
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win) {
+enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	static const char* const names[] = {
 		"*bold*iso8859*",
 		"*iso8859*",
@@ -263,18 +267,18 @@ enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 
 	int res;
 
-	AF_PARAM_CHK(env);
-	AF_PARAM_CHK(win);
+	AGA_PARAM_CHK(env);
+	AGA_PARAM_CHK(win);
 
 	res = glXMakeContextCurrent(
 		env->dpy, win->xwin, win->xwin, env->glx);
-	AF_VERIFY(res, AF_ERR_UNKNOWN);
+	AGA_VERIFY(res, AGA_RESULT_ERROR);
 
 	while(AF_TRUE) {
 		char** fontname;
-		if(current >= AF_ARRLEN(names)) {
+		if(current >= AGA_LEN(names)) {
 			aga_log(__FILE__, "err: no fonts available");
-			return AF_ERR_BAD_OP;
+			return AGA_RESULT_BAD_OP;
 		}
 
 		aga_log(__FILE__, "Trying font pattern `%s'", names[current]);
@@ -282,7 +286,7 @@ enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 			env->dpy, names[current], 1, &nfonts));
 
 		if(nfonts) {
-			AF_VERIFY(fontname, AF_ERR_UNKNOWN);
+			AGA_VERIFY(fontname, AGA_RESULT_ERROR);
 			aga_log(__FILE__, "Using x11 font `%s'", *fontname);
 			AGAX_CHK(XFreeFontNames, (fontname));
 			break;
@@ -293,24 +297,24 @@ enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	}
 
 	info = AGAX_CHK(XLoadQueryFont, (env->dpy, names[current]));
-	AF_VERIFY(info, AF_ERR_UNKNOWN);
+	AGA_VERIFY(info, AGA_RESULT_ERROR);
 	font = info->fid;
 
 	glXUseXFont(font, 0, 256, AGA_FONT_LIST_BASE);
 
 	AGAX_CHK(XUnloadFont, (env->dpy, font));
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_setcursor(
-		struct aga_winenv* env, struct aga_win* win, af_bool_t visible,
-		af_bool_t captured) {
+enum aga_result aga_setcursor(
+		struct aga_winenv* env, struct aga_win* win, aga_bool_t visible,
+		aga_bool_t captured) {
 
-	af_ulong_t cur;
+	aga_ulong_t cur;
 
-	AF_PARAM_CHK(env);
-	AF_PARAM_CHK(win);
+	AGA_PARAM_CHK(env);
+	AGA_PARAM_CHK(win);
 
 	cur = visible ? win->arrow_cursor : win->blank_cursor;
 	AGAX_CHK(XDefineCursor, (env->dpy, win->xwin, cur));
@@ -319,29 +323,29 @@ enum af_err aga_setcursor(
 		aga_centreptr(env, win);
 	}
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
-	AF_PARAM_CHK(env);
-	AF_PARAM_CHK(win);
+enum aga_result aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
+	AGA_PARAM_CHK(env);
+	AGA_PARAM_CHK(win);
 
 	if(env->double_buffered) glXSwapBuffers(env->dpy, win->xwin);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_poll(
+enum aga_result aga_poll(
 		struct aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
-		struct aga_pointer* pointer, af_bool_t* die) {
+		struct aga_pointer* pointer, aga_bool_t* die) {
 
 	XEvent event;
 	struct pollfd pollfd;
 	int rdy;
 
-	AF_PARAM_CHK(env);
-	AF_PARAM_CHK(keymap);
-	AF_PARAM_CHK(pointer);
+	AGA_PARAM_CHK(env);
+	AGA_PARAM_CHK(keymap);
+	AGA_PARAM_CHK(pointer);
 
 	pollfd.fd = env->dpy_fd;
 	pollfd.events = POLLIN;
@@ -352,12 +356,12 @@ enum af_err aga_poll(
 	 * 		 Let's try to figure this out!
 	 */
 	if((rdy = poll(&pollfd, 1, 0)) == -1) {
-		return aga_af_errno(__FILE__, "poll");
+		return aga_errno(__FILE__, "poll");
 	}
 
 	if(rdy && (pollfd.revents & POLLIN)) {
 		while(AGAX_CHK(XPending, (env->dpy)) > 0) {
-			af_bool_t press = AF_FALSE;
+			aga_bool_t press = AF_FALSE;
 
 			AGAX_CHK(XNextEvent, (env->dpy, &event));
 
@@ -365,15 +369,15 @@ enum af_err aga_poll(
 				default: break;
 
 				case KeyPress: press = AF_TRUE;
-					AF_FALLTHROUGH;
+					AGA_FALLTHROUGH;
 					/* FALLTHRU */
 				case KeyRelease: {
 					unsigned keycode = event.xkey.keycode;
-					af_size_t keysym_idx =
+					aga_size_t keysym_idx =
 						(keycode - keymap->keycode_min) *
 						keymap->keysyms_per_keycode;
-					af_ulong_t keysym = keymap->keymap[keysym_idx];
-					af_size_t bound = keymap->keysyms_per_keycode *
+					aga_ulong_t keysym = keymap->keymap[keysym_idx];
+					aga_size_t bound = keymap->keysyms_per_keycode *
 						keymap->keycode_len;
 
 					if(keysym < bound) keymap->keystates[keysym] = press;
@@ -407,18 +411,18 @@ enum af_err aga_poll(
 		}
 	}
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
 /* TODO: Use `xdg' for diag/shellopen when available. */
 
-enum af_err aga_diag(
-		const char* message, const char* title, af_bool_t* response,
-		af_bool_t is_error) {
+enum aga_result aga_diag(
+		const char* message, const char* title, aga_bool_t* response,
+		aga_bool_t is_error) {
 
-	AF_PARAM_CHK(message);
-	AF_PARAM_CHK(title);
-	AF_PARAM_CHK(response);
+	AGA_PARAM_CHK(message);
+	AGA_PARAM_CHK(title);
+	AGA_PARAM_CHK(response);
 
 	if(isatty(STDIN_FILENO)) {
 		int c = 'N';
@@ -426,21 +430,21 @@ enum af_err aga_diag(
 
 		aga_log(__FILE__, "%s%s: %s (Y/N)", err, title, message);
 		if((c = getchar()) == EOF) {
-			if(ferror(stdin)) return aga_af_errno(__FILE__, "getchar");
+			if(ferror(stdin)) return aga_errno(__FILE__, "getchar");
 		}
 		*response = (toupper(c) == 'Y');
 	}
 	else *response = AF_FALSE;
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_shellopen(const char* uri) {
-	AF_PARAM_CHK(uri);
+enum aga_result aga_shellopen(const char* uri) {
+	AGA_PARAM_CHK(uri);
 
 	aga_log(__FILE__, "%s", uri);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
 #endif

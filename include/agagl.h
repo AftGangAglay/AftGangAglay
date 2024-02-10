@@ -6,12 +6,6 @@
 #ifndef AGA_GL_H
 #define AGA_GL_H
 
-#if defined(_WIN32)
-# define AGA_WGL
-#else
-# define AGA_GLX
-#endif
-
 #ifdef AGA_WGL
 /*
  * This is super annoying as it leaks a load of garbage into scope.

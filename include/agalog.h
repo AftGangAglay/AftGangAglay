@@ -18,8 +18,8 @@ typedef char aga_fixed_buf_t[2048 + 1];
 
 struct aga_logctx {
 	void** targets;
-	af_size_t len;
-	af_bool_t have_ansi;
+	aga_size_t len;
+	aga_bool_t have_ansi;
 };
 
 enum aga_logsev {
@@ -34,7 +34,7 @@ enum aga_logsev {
  */
 extern struct aga_logctx aga_logctx;
 
-void aga_mklog(const char** targets, af_size_t len);
+void aga_mklog(const char** targets, aga_size_t len);
 /*
  * NOTE: Called during fatal signals and `_fini' - you probably don't need to
  * 		 Call this yourself.

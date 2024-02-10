@@ -11,9 +11,9 @@
 #define AGA_WANT_UNIX
 #include <agastd.h>
 
-enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
-	AF_PARAM_CHK(opts);
-	AF_PARAM_CHK(argv);
+enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
+	AGA_PARAM_CHK(opts);
+	AGA_PARAM_CHK(argv);
 
 	opts->config_file = "aga.sgml";
 	opts->display = getenv("DISPLAY");
@@ -28,7 +28,7 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	opts->audio_enabled = AF_TRUE;
 	opts->version = AGA_VERSION;
 
-	af_memset(&opts->config, 0, sizeof(opts->config));
+	aga_memset(&opts->config, 0, sizeof(opts->config));
 
 #ifdef AGA_HAVE_GETOPT
 	{
@@ -51,17 +51,17 @@ enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	}
 
 	if(chdir(opts->chdir) == -1) {
-		(void) aga_af_patherrno(__FILE__, "chdir", opts->chdir);
+		(void) aga_patherrno(__FILE__, "chdir", opts->chdir);
 	}
 #endif
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_setconf(struct aga_opts* opts, struct aga_respack* pack) {
-	enum af_err result;
+enum aga_result aga_setconf(struct aga_opts* opts, struct aga_respack* pack) {
+	enum aga_result result;
 	void* fp;
-	af_size_t size;
+	aga_size_t size;
 	int v;
 
 	const char* enabled[] = { "Audio", "Enabled" };
@@ -73,56 +73,56 @@ enum af_err aga_setconf(struct aga_opts* opts, struct aga_respack* pack) {
 	const char* height[] = { "Display", "Height" };
 	const char* fov[] = { "Display", "FOV" };
 
-	AF_PARAM_CHK(opts);
-	AF_PARAM_CHK(pack);
+	AGA_PARAM_CHK(opts);
+	AGA_PARAM_CHK(pack);
 
-	AF_CHK(aga_resfptr(pack, opts->config_file, &fp, &size));
+	AGA_CHK(aga_resfptr(pack, opts->config_file, &fp, &size));
 	aga_conf_debug_file = opts->config_file;
-	AF_CHK(aga_mkconf(fp, size, &opts->config));
+	AGA_CHK(aga_mkconf(fp, size, &opts->config));
 
 	result = aga_conftree(
-		&opts->config, enabled, AF_ARRLEN(enabled), &v, AGA_INTEGER);
-	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+		&opts->config, enabled, AGA_LEN(enabled), &v, AGA_INTEGER);
+	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-		&opts->config, version, AF_ARRLEN(version), &opts->version,
+		&opts->config, version, AGA_LEN(version), &opts->version,
 		AGA_STRING);
-	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
 	if(!opts->audio_dev) {
 		result = aga_conftree(
-			&opts->config, device, AF_ARRLEN(device), &opts->audio_dev,
+			&opts->config, device, AGA_LEN(device), &opts->audio_dev,
 			AGA_STRING);
-		if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+		if(result) aga_soft(__FILE__, "aga_conftree", result);
 	}
 
 	result = aga_conftree(
-		&opts->config, startup, AF_ARRLEN(startup), &opts->startup_script,
+		&opts->config, startup, AGA_LEN(startup), &opts->startup_script,
 		AGA_STRING);
-	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-		&opts->config, path, AF_ARRLEN(path), &opts->python_path, AGA_STRING);
-	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+		&opts->config, path, AGA_LEN(path), &opts->python_path, AGA_STRING);
+	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-		&opts->config, width, AF_ARRLEN(width), &opts->width, AGA_INTEGER);
-	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+		&opts->config, width, AGA_LEN(width), &opts->width, AGA_INTEGER);
+	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-		&opts->config, height, AF_ARRLEN(height), &opts->height, AGA_INTEGER);
-	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+		&opts->config, height, AGA_LEN(height), &opts->height, AGA_INTEGER);
+	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-		&opts->config, fov, AF_ARRLEN(fov), &opts->fov, AGA_FLOAT);
-	if(result) aga_af_soft(__FILE__, "aga_conftree", result);
+		&opts->config, fov, AGA_LEN(fov), &opts->fov, AGA_FLOAT);
+	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
 #ifdef AGA_HAVE_SPAWN
-enum af_err aga_prerun_hook(struct aga_opts* opts) {
-	enum af_err result;
+enum aga_result aga_prerun_hook(struct aga_opts* opts) {
+	enum aga_result result;
 
 	const char* hook[] = { "Development", "PreHook" };
 	char* program = getenv("SHELL");
@@ -133,7 +133,7 @@ enum af_err aga_prerun_hook(struct aga_opts* opts) {
 	aga_log(__FILE__, "warn: Executing pre-run hook in non-debug build");
 # endif
 
-	AF_PARAM_CHK(opts);
+	AGA_PARAM_CHK(opts);
 
 	project_path = strrchr(opts->config_file, '/');
 
@@ -147,22 +147,22 @@ enum af_err aga_prerun_hook(struct aga_opts* opts) {
 
 	args[0] = program;
 
-	AF_CHK(aga_conftree(
-		&opts->config, hook, AF_ARRLEN(hook), &args[2], AGA_STRING));
+	AGA_CHK(aga_conftree(
+		&opts->config, hook, AGA_LEN(hook), &args[2], AGA_STRING));
 
 	aga_log(__FILE__, "Executing project pre-run hook `%s'", args[2]);
 
 	if(project_path) {
-		af_size_t len = (af_size_t) (project_path - opts->config_file) + 1;
-		AF_VERIFY(project_path = calloc(len + 1, sizeof(char)), AF_ERR_MEM);
+		aga_size_t len = (aga_size_t) (project_path - opts->config_file) + 1;
+		AGA_VERIFY(project_path = calloc(len + 1, sizeof(char)), AGA_RESULT_OOM);
 		strncpy(project_path, opts->config_file, len);
 	}
 
 	result = aga_spawn_sync(program, args, project_path);
-	if(result) aga_af_soft(__FILE__, "aga_spawn_sync", result);
+	if(result) aga_soft(__FILE__, "aga_spawn_sync", result);
 
 	free(project_path);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 #endif

@@ -12,11 +12,11 @@
 #define AGA_EMBED_RESOURCE (11)
 
 #define AGA_AF_WINCHK(proc) \
-	aga_af_chk(__FILE__, proc, aga_af_winerr(__FILE__, proc))
+	aga_chk(__FILE__, proc, aga_aga_winerr(__FILE__, proc))
 
-enum af_err aga_af_pathwinerr(
+enum aga_result aga_aga_pathwinerr(
 		const char* loc, const char* proc, const char* path);
-enum af_err aga_af_winerr(const char* loc, const char* proc);
+enum aga_result aga_aga_winerr(const char* loc, const char* proc);
 
 void aga_setw32log(void);
 

@@ -14,7 +14,6 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
-#include <math.h>
 #include <ctype.h>
 #include <errno.h>
 #include <signal.h>

@@ -9,6 +9,7 @@
 #include <agaconf.h>
 #include <agalog.h>
 #include <agaio.h>
+#include <agautil.h>
 
 /* Very nasty dependency to leak - keep it contained! */
 #include <SGML.h>
@@ -36,7 +37,7 @@ struct aga_sgml_structured {
 	const HTStructuredClass* class;
 
 	struct aga_conf_node* stack[1024];
-	af_size_t depth;
+	aga_size_t depth;
 };
 
 const char* aga_conf_debug_file = "<none>";
@@ -44,21 +45,21 @@ const char* aga_conf_debug_file = "<none>";
 void SGML_character(HTStream* context, char c);
 void SGML_free(HTStream* context);
 
-af_bool_t aga_isblank(char c) {
+aga_bool_t aga_isblank(char c) {
 	return c == ' ' || c == '\r' || c == '\t' || c == '\n';
 }
 
-enum af_err aga_sgml_push(
+enum aga_result aga_sgml_push(
 		struct aga_sgml_structured* s, struct aga_conf_node* node) {
 
-	AF_PARAM_CHK(s);
-	AF_PARAM_CHK(node);
+	AGA_PARAM_CHK(s);
+	AGA_PARAM_CHK(node);
 
-	AF_VERIFY(s->depth <= AGA_CONF_MAX_DEPTH, AF_ERR_MEM); /* AF_ERR_STACK */
+	AGA_VERIFY(s->depth <= AGA_CONF_MAX_DEPTH, AGA_RESULT_OOM);
 
 	s->stack[s->depth++] = node;
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
 void aga_sgml_nil(void) {}
@@ -71,7 +72,7 @@ void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
 
 	newptr = realloc(node->data.string, ++node->scratch + 1);
 	if(!newptr) {
-		aga_af_errno(__FILE__, "realloc");
+		aga_errno(__FILE__, "realloc");
 		free(node->data.string);
 		node->data.string = 0;
 	}
@@ -88,13 +89,13 @@ void aga_sgml_start_element(
 	struct aga_conf_node* parent = me->stack[me->depth - 1];
 	struct aga_conf_node* node;
 	void* newptr;
-	enum af_err result;
+	enum aga_result result;
 
-	af_size_t sz = ++parent->len * sizeof(struct aga_conf_node);
+	aga_size_t sz = ++parent->len * sizeof(struct aga_conf_node);
 
 	newptr = realloc(parent->children, sz);
 	if(!newptr) {
-		aga_af_errno(__FILE__, "realloc");
+		aga_errno(__FILE__, "realloc");
 		free(parent->children);
 		parent->children = 0;
 		parent->len = 0;
@@ -103,10 +104,10 @@ void aga_sgml_start_element(
 	parent->children = newptr;
 
 	node = &parent->children[parent->len - 1];
-	af_memset(node, 0, sizeof(struct aga_conf_node));
+	memset(node, 0, sizeof(struct aga_conf_node));
 
 	if((result = aga_sgml_push(me, node))) {
-		aga_af_soft(__FILE__, "aga_sgml_push", result);
+		aga_soft(__FILE__, "aga_sgml_push", result);
 		return;
 	}
 
@@ -126,20 +127,20 @@ void aga_sgml_start_element(
 			}
 			else {
 				const char* value = attribute_value[AGA_ITEM_NAME];
-				af_size_t len = af_strlen(value);
+				aga_size_t len = strlen(value);
 				if(!(node->name = malloc(len + 1))) {
-					aga_af_errno(__FILE__, "malloc");
+					aga_errno(__FILE__, "malloc");
 					return;
 				}
-				af_memcpy(node->name, value, len + 1);
+				memcpy(node->name, value, len + 1);
 			}
 
 			if(!attribute_present[AGA_ITEM_TYPE]) node->type = AGA_NONE;
 			else {
 				const char* typename = attribute_value[AGA_ITEM_TYPE];
-				if(af_streql(typename, "Integer")) node->type = AGA_INTEGER;
-				else if(af_streql(typename, "String")) node->type = AGA_STRING;
-				else if(af_streql(typename, "Float")) node->type = AGA_FLOAT;
+				if(aga_streql(typename, "Integer")) node->type = AGA_INTEGER;
+				else if(aga_streql(typename, "String")) node->type = AGA_STRING;
+				else if(aga_streql(typename, "Float")) node->type = AGA_FLOAT;
 				else {
 					static const char fmt[] =
 						"warn: <item> element has unknown type `%s' in `%s'";
@@ -153,7 +154,7 @@ void aga_sgml_start_element(
 }
 
 void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
-	af_size_t i;
+	aga_size_t i;
 
 	struct aga_conf_node* node = me->stack[me->depth - 1];
 	char* string = node->data.string;
@@ -161,7 +162,7 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 	(void) element_number;
 
 	for(i = 0; string && i <= node->scratch; ++i) {
-		af_size_t n = node->scratch - i;
+		aga_size_t n = node->scratch - i;
 		char* c = &string[n];
 
 		if(aga_isblank(*c)) *c = 0;
@@ -197,7 +198,7 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 	me->depth--;
 }
 
-enum af_err aga_mkconf(void* fp, af_size_t count, struct aga_conf_node* root) {
+enum aga_result aga_mkconf(void* fp, aga_size_t count, struct aga_conf_node* root) {
 	static HTStructuredClass class = {
 		"",
 
@@ -222,10 +223,10 @@ enum af_err aga_mkconf(void* fp, af_size_t count, struct aga_conf_node* root) {
 	HTTag tags[AGA_ELEMENT_COUNT] = { 0 };
 	attr item_attributes[AGA_ITEM_ATTRIB_COUNT];
 	struct aga_sgml_structured structured = { 0, { 0 }, 0 };
-	af_size_t i;
+	aga_size_t i;
 
-	af_memset(root, 0, sizeof(struct aga_conf_node));
-	AF_CHK(aga_sgml_push(&structured, root));
+	memset(root, 0, sizeof(struct aga_conf_node));
+	AGA_CHK(aga_sgml_push(&structured, root));
 
 	structured.class = &class;
 
@@ -241,13 +242,13 @@ enum af_err aga_mkconf(void* fp, af_size_t count, struct aga_conf_node* root) {
 	tags[AGA_NODE_ITEM].name = "item";
 	tags[AGA_NODE_ITEM].contents = SGML_CDATA;
 	tags[AGA_NODE_ITEM].attributes = item_attributes;
-	tags[AGA_NODE_ITEM].number_of_attributes = AF_ARRLEN(item_attributes);
+	tags[AGA_NODE_ITEM].number_of_attributes = AGA_LEN(item_attributes);
 
 	item_attributes[AGA_ITEM_NAME].name = "name";
 	item_attributes[AGA_ITEM_TYPE].name = "type";
 
 	dtd.tags = tags;
-	dtd.number_of_tags = AF_ARRLEN(tags);
+	dtd.number_of_tags = AGA_LEN(tags);
 
 	/* TODO: Leaky error conditions as usual. */
 	s = SGML_new(&dtd, (HTStructured*) &structured);
@@ -256,7 +257,7 @@ enum af_err aga_mkconf(void* fp, af_size_t count, struct aga_conf_node* root) {
 		int c = fgetc(fp);
 
 		if(c == EOF) {
-			return aga_af_patherrno(__FILE__, "fgetc", aga_conf_debug_file);
+			return aga_patherrno(__FILE__, "fgetc", aga_conf_debug_file);
 		}
 
 		SGML_character(s, (char) c);
@@ -264,11 +265,11 @@ enum af_err aga_mkconf(void* fp, af_size_t count, struct aga_conf_node* root) {
 
 	SGML_free(s);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
 void aga_free_node(struct aga_conf_node* node) {
-	af_size_t i;
+	aga_size_t i;
 
 	for(i = 0; i < node->len; ++i) {
 		aga_free_node(&node->children[i]);
@@ -280,27 +281,28 @@ void aga_free_node(struct aga_conf_node* node) {
 	free(node->children);
 }
 
-enum af_err aga_killconf(struct aga_conf_node* root) {
-	AF_PARAM_CHK(root);
+enum aga_result aga_killconf(struct aga_conf_node* root) {
+	AGA_PARAM_CHK(root);
 
 	aga_free_node(root);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-af_bool_t aga_confvar(
+aga_bool_t aga_confvar(
 		const char* name, struct aga_conf_node* node, enum aga_conf_type type,
 		void* value) {
 
-	if(af_streql(node->name, name)) {
+	if(aga_streql(node->name, name)) {
 		if(node->type != type) {
 			aga_log(__FILE__, "warn: wrong type for field `%s'", name);
 			return AF_TRUE;
 		}
 		switch(type) {
-			default:
-				AF_FALLTHROUGH;
+			default: {
+                AGA_FALLTHROUGH;
 				/* FALLTHRU */
+            }
 			case AGA_NONE: break;
 			case AGA_STRING: {
 				*(char**) value = node->data.string;
@@ -321,52 +323,52 @@ af_bool_t aga_confvar(
 	return AF_FALSE;
 }
 
-enum af_err aga_conftree_raw(
-		struct aga_conf_node* root, const char** names, af_size_t count,
+enum aga_result aga_conftree_raw(
+		struct aga_conf_node* root, const char** names, aga_size_t count,
 		struct aga_conf_node** out) {
 
-	af_size_t i;
+	aga_size_t i;
 
-	AF_PARAM_CHK(root);
-	AF_PARAM_CHK(names);
-	AF_PARAM_CHK(out);
+	AGA_PARAM_CHK(root);
+	AGA_PARAM_CHK(names);
+	AGA_PARAM_CHK(out);
 
 	if(count == 0) {
 		*out = root;
-		return AF_ERR_NONE;
+		return AGA_RESULT_OK;
 	}
 
 	for(i = 0; i < root->len; ++i) {
 		struct aga_conf_node* node = &root->children[i];
-		if(af_streql(*names, node->name)) {
-			enum af_err result = aga_conftree_raw(
+		if(aga_streql(*names, node->name)) {
+			enum aga_result result = aga_conftree_raw(
 				node, names + 1, count - 1, out);
 			if(!result) return result;
 		}
 	}
 
-	return AF_ERR_UNKNOWN;
+	return AGA_RESULT_ERROR;
 }
 
-enum af_err aga_conftree_nonroot(
-		struct aga_conf_node* root, const char** names, af_size_t count,
+enum aga_result aga_conftree_nonroot(
+		struct aga_conf_node* root, const char** names, aga_size_t count,
 		void* value, enum aga_conf_type type) {
 
 	struct aga_conf_node* node;
 
-	AF_PARAM_CHK(root);
-	AF_PARAM_CHK(names);
-	AF_PARAM_CHK(value);
+	AGA_PARAM_CHK(root);
+	AGA_PARAM_CHK(names);
+	AGA_PARAM_CHK(value);
 
-	AF_CHK(aga_conftree_raw(root, names, count, &node));
+	AGA_CHK(aga_conftree_raw(root, names, count, &node));
 
-	if(aga_confvar(node->name, node, type, value)) return AF_ERR_NONE;
-	else return AF_ERR_UNKNOWN;
+	if(aga_confvar(node->name, node, type, value)) return AGA_RESULT_OK;
+	else return AGA_RESULT_ERROR;
 }
 
 /* TODO: This should be removed and we should review our invocations. */
-enum af_err aga_conftree(
-		struct aga_conf_node* root, const char** names, af_size_t count,
+enum aga_result aga_conftree(
+		struct aga_conf_node* root, const char** names, aga_size_t count,
 		void* value, enum aga_conf_type type) {
 
 	return aga_conftree_nonroot(root->children, names, count, value, type);

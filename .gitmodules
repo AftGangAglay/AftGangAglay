@@ -6,7 +6,3 @@
 	path = vendor/python
 	branch = trunk
 	url = https://github.com/AftGangAglay/python0.9.1
-[submodule "vendor/afeirsa"]
-	path = vendor/afeirsa
-	branch = trunk
-	url = https://github.com/AftGangAglay/Afeirsa

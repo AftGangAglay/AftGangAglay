@@ -28,7 +28,7 @@ int WinMain(
 }
 #endif
 
-enum af_err aga_af_pathwinerr(
+enum aga_result aga_aga_pathwinerr(
 		const char* loc, const char* proc, const char* path) {
 
 	DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
@@ -38,11 +38,11 @@ enum af_err aga_af_pathwinerr(
 	LPSTR buf;
 
 	if(loc) {
-		if(!(err = GetLastError())) return AF_ERR_NONE;
+		if(!(err = GetLastError())) return AGA_RESULT_OK;
 
 		if(!(written = FormatMessageA(flags, 0, err, 0, (LPSTR) &buf, 0, 0))) {
 			aga_log(__FILE__, "err: FormatMessageA failed");
-			return AF_ERR_UNKNOWN;
+			return AGA_RESULT_ERROR;
 		}
 
 		/* Remove tailing \r\n. */
@@ -54,15 +54,15 @@ enum af_err aga_af_pathwinerr(
 
 		if(LocalFree(buf)) {
 			aga_log(__FILE__, "err: LocalFree failed");
-			return AF_ERR_UNKNOWN;
+			return AGA_RESULT_ERROR;
 		}
 	}
 
-	return AF_ERR_UNKNOWN;
+	return AGA_RESULT_ERROR;
 }
 
-enum af_err aga_af_winerr(const char* loc, const char* proc) {
-	return aga_af_pathwinerr(loc, proc, 0);
+enum aga_result aga_aga_winerr(const char* loc, const char* proc) {
+	return aga_aga_pathwinerr(loc, proc, 0);
 }
 
 void aga_setw32log(void) {
@@ -76,19 +76,19 @@ void aga_setw32log(void) {
 	DWORD mode = 0;
 
 	if(con == INVALID_HANDLE_VALUE) {
-		(void) aga_af_winerr(__FILE__, "GetStdHandle");
+		(void) aga_aga_winerr(__FILE__, "GetStdHandle");
 		return;
 	}
 
 	if(!con) return;
 
 	if(!GetConsoleMode(con, &mode)) {
-		(void) aga_af_winerr(__FILE__, "GetConsoleMode");
+		(void) aga_aga_winerr(__FILE__, "GetConsoleMode");
 	}
 
 	if(!SetConsoleMode(con, mode | ENABLE_VIRTUAL_TERMINAL_INPUT)) {
 		aga_logctx.have_ansi = AF_FALSE;
-		(void) aga_af_winerr(__FILE__, "SetConsoleMode");
+		(void) aga_aga_winerr(__FILE__, "SetConsoleMode");
 		aga_log(__FILE__, "We don't seem to have ANSI terminal support");
 	}
 }

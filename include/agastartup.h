@@ -21,13 +21,13 @@ struct aga_opts {
 	const char* respack;
 
 	const char* audio_dev;
-	af_bool_t audio_enabled;
+	aga_bool_t audio_enabled;
 
 	const char* startup_script;
 	const char* python_path;
 
-	af_size_t width;
-	af_size_t height;
+	aga_size_t width;
+	aga_size_t height;
 
 	float fov;
 
@@ -35,9 +35,9 @@ struct aga_opts {
 };
 
 /* NOTE: We try to leave sensible defaults in `opts' during failure states. */
-enum af_err aga_setopts(struct aga_opts* opts, int argc, char** argv);
-enum af_err aga_setconf(struct aga_opts* opts, struct aga_respack* pack);
+enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv);
+enum aga_result aga_setconf(struct aga_opts* opts, struct aga_respack* pack);
 
-enum af_err aga_prerun_hook(struct aga_opts* opts);
+enum aga_result aga_prerun_hook(struct aga_opts* opts);
 
 #endif

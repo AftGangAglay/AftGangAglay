@@ -1,61 +1,17 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+# Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
-ifndef WINDOWS
-	GLXABI = 1
-endif
-
-ifdef APPLE
-	NOSND = 1
-endif
-
-ifdef WINDOWS
-	NOSND = 1
-endif
-
-ifndef RANLIB
-	RANLIB = ranlib
-endif
-
-ifndef WINDRES
-	WINDRES = windres
-endif
-
-ifdef WINDOWS_SHELL
-	RM = del
-	CAT = type
-define PATHREM
-	$(RM) $(subst /,\\,$(1))
-endef
-else
-	CAT = cat
-define PATHREM
-	$(RM) $(1)
-endef
-endif
-
-ifdef WINDOWS
-	EXE = .exe
-%.exe: %.o
-	$(CC) -o $@ $(LDFLAGS) $(filter %.o,$^) $(LOADLIBES) $(LDLIBS)
-%: %.o
-%: %.c
-endif
-
-ARFLAGS = -rc
-
-(%): %
-%.a:
-	$(AR) $(ARFLAGS) $@ $?
-	$(RANLIB) $@
+include VERSION
+include build/env.mk
+include build/winres.mk
+include build/glabi.mk
 
 include vendor/www.mk
 include vendor/python.mk
-include vendor/afeirsa.mk
 
 AGA_SOURCES = $(wildcard src/*.c)
 AGA_HEADERS = $(wildcard include/*.h)
-AGA_OBJECTS = $(AGA_SOURCES:.c=.o)
+AGA_OBJECTS = $(AGA_SOURCES:.c=.o) $(AGA_RESOBJECTS)
 
 AGA_OUT = src/main$(EXE)
 
@@ -69,18 +25,17 @@ endif
 DIAGNOSTICS = -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
 
 AGA_CFLAGS += -Iinclude $(DIAGNOSTICS) $(GLABI_CFLAGS)
-AGA_CFLAGS += -DAGA_VERSION=\"$(shell $(CAT) VERSION)\"
+AGA_CFLAGS += -DAGA_VERSION=\"$(VERSION)\"
 
-AGA_CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS) $(AFEIRSA_IFLAGS)
+AGA_CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS)
 
-AGA_LIBDEPS = $(LIBWWW) $(LIBPYTHON) $(LIBAFEIRSA)
-AGA_LDLIBS += $(AGA_LIBDEPS) $(GLABI_LDLIBS) -lm
+AGA_LIBDEPS = $(LIBWWW) $(LIBPYTHON)
+AGA_LDLIBS += $(AGA_LIBDEPS) $(GLABI_LDLIBS)
 
 ifdef WINDOWS
-	AGA_LDLIBS += -lgdi32 -lshell32
-ifndef DEBUG
-	AGA_LDFLAGS += -Wl,-subsystem,windows
-endif
+	ifndef DEBUG
+		AGA_LDFLAGS += -Wl,-subsystem,windows
+	endif
 else
 	# From `feature_test_macros(7)' on `_POSIX_C_SOURCE':
 	# """
@@ -88,40 +43,6 @@ else
 	# POSIX.1-1990 and ISO C (1990).
 	# """
 	AGA_CFLAGS += -D_POSIX_C_SOURCE=1
-endif
-
-ifdef GLXABI
-	AGA_LDLIBS += -lX11
-endif
-
-ifdef NOSND
-	AGA_CFLAGS += -DAGA_NOSND
-endif
-
-ifdef WINDOWS
-	AGA_RCFILES = $(wildcard res/*.rc)
-	AGA_RESFILES = $(AGA_RCFILES:.rc=.res)
-	AGA_RESOBJECTS = $(AGA_RCFILES:.rc=.o)
-
-	AGA_OBJECTS += $(AGA_RESOBJECTS)
-
-%.res: %.rc $(EMBED)
-ifdef EMBED
-	$(WINDRES) -DAGA_PACK_PATH=$(EMBED) -i $< -o $@
-else
-	$(WINDRES) -i $< -o $@
-endif
-
-%.o: %.rc
-	$(WINDRES) -i $< -o $@
-
-$(AGA_OUT):	$(AGA_RESFILES)
-
-clean: clean_res
-.PHONY: clean_res
-clean_res:
-	$(call PATHREM,$(AGA_RESFILES))
-	$(call PATHREM,$(AGA_RESOBJECTS))
 endif
 
 .DEFAULT_GOAL := all
@@ -135,12 +56,14 @@ $(AGA_OUT): $(AGA_OBJECTS) $(AGA_LIBDEPS)
 $(AGA_OBJECTS): CFLAGS += $(AGA_CFLAGS)
 $(AGA_OBJECTS): $(AGA_HEADERS)
 
-src/agascript.o: src/agascriptglue.h
+src/agascript.o: src/agascriptglue.c
 
-ifdef WINDOWS
+ifdef WGL
 src/agawin.o: src/agawwin.h
 else
+	ifdef GLX
 src/agawin.o: src/agaxwin.h
+	endif
 endif
 
 .PHONY: clean

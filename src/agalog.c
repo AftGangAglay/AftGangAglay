@@ -28,8 +28,8 @@ AGA_USED AGA_DESTRUCTOR void aga_ondestr(void) {
 	aga_killlog();
 }
 
-void aga_mklog(const char** targets, af_size_t len) {
-	af_size_t i;
+void aga_mklog(const char** targets, aga_size_t len) {
+	aga_size_t i;
 
 	aga_logctx.have_ansi = AF_TRUE;
 	aga_logctx.len = len;
@@ -60,7 +60,7 @@ void aga_mklog(const char** targets, af_size_t len) {
 }
 
 void aga_killlog(void) {
-	af_size_t i;
+	aga_size_t i;
 	for(i = 0; i < aga_logctx.len; ++i) {
 		FILE* s = aga_logctx.targets[i];
 		if(!s) continue;
@@ -101,7 +101,7 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 void aga_log(const char* loc, const char* fmt, ...) {
 	aga_fixed_buf_t buf = { 0 };
 
-	af_size_t i;
+	aga_size_t i;
 
 	va_list l;
 	enum aga_logsev sev = AGA_NORM;

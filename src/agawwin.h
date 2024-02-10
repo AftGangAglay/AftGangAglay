@@ -32,15 +32,15 @@ static const PIXELFORMATDESCRIPTOR pixel_format = {
 struct aga_winproc_pack {
 	struct aga_keymap* keymap;
 	struct aga_pointer* pointer;
-	af_bool_t* die;
-	af_uint_t magic;
+	aga_bool_t* die;
+	aga_uint_t magic;
 };
 
 static LRESULT aga_winproc(
 		HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param) {
 
     struct aga_winproc_pack* pack;
-	af_bool_t down = AF_TRUE;
+	aga_bool_t down = AF_TRUE;
 
 	if(msg == WM_NCCREATE) return TRUE;
 
@@ -59,7 +59,7 @@ static LRESULT aga_winproc(
 		}
 
 		case WM_KEYUP: down = AF_FALSE;
-			AF_FALLTHROUGH;
+			AGA_FALLTHROUGH;
 			/* FALLTHRU */
 		case WM_KEYDOWN: {
 			pack->keymap->keystates[w_param] = down;
@@ -81,19 +81,19 @@ static LRESULT aga_winproc(
 			result = GetRawInputData(
 				hnd, RID_INPUT, 0, &input_size, header_size);
 			if(result == err) {
-				(void) aga_af_winerr(__FILE__, "GetRawInputData");
+				(void) aga_aga_winerr(__FILE__, "GetRawInputData");
 				return 0;
 			}
 
 			if(!(data = malloc(input_size))) {
-				(void) aga_af_errno(__FILE__, "malloc");
+				(void) aga_errno(__FILE__, "malloc");
 				return 0;
 			}
 
 			result = GetRawInputData(
 				hnd, RID_INPUT, data, &input_size, header_size);
 			if(result == err) {
-				(void) aga_af_winerr(__FILE__, "GetRawInputData");
+				(void) aga_aga_winerr(__FILE__, "GetRawInputData");
 				free(data);
 				return 0;
 			}
@@ -115,10 +115,10 @@ static LRESULT aga_winproc(
 
 		case WM_CLOSE: {
 			if(!ReleaseDC(wnd, GetDC(wnd))) {
-				(void) aga_af_winerr(__FILE__, "ReleaseDC");
+				(void) aga_aga_winerr(__FILE__, "ReleaseDC");
 			}
             if(!DestroyWindow(wnd)) {
-				(void) aga_af_winerr(__FILE__, "DestroyWindow");
+				(void) aga_aga_winerr(__FILE__, "DestroyWindow");
 			}
 			*pack->die = AF_TRUE;
 			return 0;
@@ -131,11 +131,11 @@ static LRESULT aga_winproc(
  * (see libs/video/targets/).
  */
 
-enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display) {
+enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	WNDCLASSA class;
 	HICON icon;
 
-	AF_PARAM_CHK(env);
+	AGA_PARAM_CHK(env);
 
 	(void) display;
 
@@ -143,15 +143,15 @@ enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	env->visible = AF_TRUE;
 
 	if(!(env->module = GetModuleHandleA(0))) {
-		return aga_af_winerr(__FILE__, "GetModuleHandleA");
+		return aga_aga_winerr(__FILE__, "GetModuleHandleA");
 	}
 
 	if(!(icon = LoadIconA(env->module, MAKEINTRESOURCEA(AGA_ICON_RESOURCE)))) {
-		(void) aga_af_winerr(__FILE__, "LoadIconA");
+		(void) aga_aga_winerr(__FILE__, "LoadIconA");
 	}
 
 	if(!(env->cursor = LoadCursorA(0, IDC_ARROW))) {
-		(void) aga_af_winerr(__FILE__, "LoadIconA");
+		(void) aga_aga_winerr(__FILE__, "LoadIconA");
 	}
 
 	class.style = CS_GLOBALCLASS;
@@ -166,49 +166,49 @@ enum af_err aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	class.lpszClassName = AGA_CLASS_NAME;
 
 	if(!(env->class = RegisterClassA(&class))) {
-		return aga_af_winerr(__FILE__, "RegisterClassA");
+		return aga_aga_winerr(__FILE__, "RegisterClassA");
 	}
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_killwinenv(struct aga_winenv* env) {
-	AF_PARAM_CHK(env);
+enum aga_result aga_killwinenv(struct aga_winenv* env) {
+	AGA_PARAM_CHK(env);
 
 	if(env->wgl && !wglDeleteContext(env->wgl)) {
-		return aga_af_winerr(__FILE__, "wglDeleteContext");
+		return aga_aga_winerr(__FILE__, "wglDeleteContext");
 	}
 
 	if(!UnregisterClassA(AGA_CLASS_NAME, 0)) {
-		return aga_af_winerr(__FILE__, "UnregisterClassA");
+		return aga_aga_winerr(__FILE__, "UnregisterClassA");
 	}
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
-	AF_PARAM_CHK(keymap);
-	AF_PARAM_CHK(env);
+enum aga_result aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
+	AGA_PARAM_CHK(keymap);
+	AGA_PARAM_CHK(env);
 
 	keymap->keysyms_per_keycode = 1;
 	keymap->keycode_len = 0xFF;
 
-	keymap->keystates = calloc(0xFF, sizeof(af_bool_t)); /* VK_OEM_CLEAR + 1 */
-	AF_VERIFY(keymap->keystates, AF_ERR_MEM);
+	keymap->keystates = calloc(0xFF, sizeof(aga_bool_t)); /* VK_OEM_CLEAR + 1 */
+	AGA_VERIFY(keymap->keystates, AGA_RESULT_OOM);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_killkeymap(struct aga_keymap* keymap) {
-	AF_PARAM_CHK(keymap);
+enum aga_result aga_killkeymap(struct aga_keymap* keymap) {
+	AGA_PARAM_CHK(keymap);
 
 	free(keymap->keystates);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_mkwin(
-		af_size_t width, af_size_t height, struct aga_winenv* env,
+enum aga_result aga_mkwin(
+		aga_size_t width, aga_size_t height, struct aga_winenv* env,
 		struct aga_win* win, int argc, char** argv) {
 
 	int ind;
@@ -219,8 +219,8 @@ enum af_err aga_mkwin(
 	(void) argc;
 	(void) argv;
 
-	AF_PARAM_CHK(env);
-	AF_PARAM_CHK(win);
+	AGA_PARAM_CHK(env);
+	AGA_PARAM_CHK(win);
 
 	win->width = width;
 	win->height = height;
@@ -228,76 +228,76 @@ enum af_err aga_mkwin(
 	win->hwnd = CreateWindowA(
 		AGA_CLASS_NAME, "Aft Gang Aglay", mask, CW_USEDEFAULT, CW_USEDEFAULT,
 		width, height, 0, 0, env->module, 0);
-	if(!win->hwnd) return aga_af_winerr(__FILE__, "CreateWindowA");
+	if(!win->hwnd) return aga_aga_winerr(__FILE__, "CreateWindowA");
 	if(!ShowWindow((void*) win->hwnd, SW_SHOWNORMAL)) {
-		return aga_af_winerr(__FILE__, "ShowWindow");
+		return aga_aga_winerr(__FILE__, "ShowWindow");
 	}
 
 	if(!(win->dc = GetDC((void*) win->hwnd)))  {
-		return aga_af_winerr(__FILE__, "GetDC");
+		return aga_aga_winerr(__FILE__, "GetDC");
 	}
 
 	if(!(ind = ChoosePixelFormat(win->dc, &pixel_format))) {
-		return aga_af_winerr(__FILE__, "ChoosePixelFormat");
+		return aga_aga_winerr(__FILE__, "ChoosePixelFormat");
 	}
 	if(!SetPixelFormat(win->dc, ind, &pixel_format)) {
-		return aga_af_winerr(__FILE__, "SetPixelFormat");
+		return aga_aga_winerr(__FILE__, "SetPixelFormat");
 	}
 
 	mouse.hwndTarget = win->hwnd;
 	if(RegisterRawInputDevices(&mouse, 1, sizeof(mouse))) {
-		return aga_af_winerr(__FILE__, "RegisterRawInputDevices");
+		return aga_aga_winerr(__FILE__, "RegisterRawInputDevices");
 	}
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_killwin(struct aga_winenv* env, struct aga_win* win) {
-	AF_PARAM_CHK(env);
-	AF_PARAM_CHK(win);
+enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win) {
+	AGA_PARAM_CHK(env);
+	AGA_PARAM_CHK(win);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_glctx(struct aga_winenv* env, struct aga_win* win) {
+enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	HGDIOBJ font;
 
-	AF_PARAM_CHK(env);
-	AF_PARAM_CHK(win);
+	AGA_PARAM_CHK(env);
+	AGA_PARAM_CHK(win);
 
 	if(!(env->wgl = wglCreateContext(win->dc))) {
-		return aga_af_winerr(__FILE__, "wglCreateContext");
+		return aga_aga_winerr(__FILE__, "wglCreateContext");
 	}
 
 	if(!wglMakeCurrent(win->dc, env->wgl)) {
-		return aga_af_winerr(__FILE__, "wglMakeCurrent");
+		return aga_aga_winerr(__FILE__, "wglMakeCurrent");
 	}
 
 	if(!(font = GetStockObject(SYSTEM_FONT))) {
-		return aga_af_winerr(__FILE__, "GetStockObject");
+		return aga_aga_winerr(__FILE__, "GetStockObject");
 	}
 
 	if(!SelectObject(win->dc, font)) {
-		return aga_af_winerr(__FILE__, "SelectObject");
+		return aga_aga_winerr(__FILE__, "SelectObject");
 	}
 
 	if(!wglUseFontBitmaps(win->dc, 0, 256, AGA_FONT_LIST_BASE)) {
-		return aga_af_winerr(__FILE__, "wglUseFontBitmaps");
+		return aga_aga_winerr(__FILE__, "wglUseFontBitmaps");
 	}
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-static enum af_err aga_setclipcursor(struct aga_win* win, af_bool_t clip) {
+static enum aga_result aga_setclipcursor(struct aga_win* win, aga_bool_t clip) {
 	RECT rect;
 	POINT begin;
 	POINT end;
 
-	AF_PARAM_CHK(win);
+	AGA_PARAM_CHK(win);
 
 	if(clip) {
 		if(!GetClientRect(win->hwnd, &rect)) {
-			return aga_af_winerr(__FILE__, "GetClientRect");
+			return aga_aga_winerr(__FILE__, "GetClientRect");
 		}
 
 		begin.x = rect.left;
@@ -306,10 +306,10 @@ static enum af_err aga_setclipcursor(struct aga_win* win, af_bool_t clip) {
 		end.y = rect.bottom;
 
 		if(!ClientToScreen(win->hwnd, &begin)) {
-			return aga_af_winerr(__FILE__, "ClientToScreen");
+			return aga_aga_winerr(__FILE__, "ClientToScreen");
 		}
 		if(!ClientToScreen(win->hwnd, &end)) {
-			return aga_af_winerr(__FILE__, "ClientToScreen");
+			return aga_aga_winerr(__FILE__, "ClientToScreen");
 		}
 
 		/*
@@ -326,48 +326,48 @@ static enum af_err aga_setclipcursor(struct aga_win* win, af_bool_t clip) {
 
 	ClipCursor(clip ? &rect : 0);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_setcursor(
-		struct aga_winenv* env, struct aga_win* win, af_bool_t visible,
-		af_bool_t captured) {
+enum aga_result aga_setcursor(
+		struct aga_winenv* env, struct aga_win* win, aga_bool_t visible,
+		aga_bool_t captured) {
 
-	AF_PARAM_CHK(env);
-	AF_PARAM_CHK(win);
+	AGA_PARAM_CHK(env);
+	AGA_PARAM_CHK(win);
 
 	SetCursor(visible ? env->cursor : 0);
 	env->visible = visible;
 
-	AF_CHK(aga_setclipcursor(win, captured));
+	AGA_CHK(aga_setclipcursor(win, captured));
 	env->captured = captured;
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
-	AF_PARAM_CHK(env);
-	AF_PARAM_CHK(win);
+enum aga_result aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
+	AGA_PARAM_CHK(env);
+	AGA_PARAM_CHK(win);
 
 	if(!SwapBuffers(win->dc)) {
-		return aga_af_winerr(__FILE__, "SwapBuffers");
+		return aga_aga_winerr(__FILE__, "SwapBuffers");
 	}
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_poll(
+enum aga_result aga_poll(
 		struct aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
-		struct aga_pointer* pointer, af_bool_t* die) {
+		struct aga_pointer* pointer, aga_bool_t* die) {
 
 	MSG msg;
     struct aga_winproc_pack pack;
 
-	AF_PARAM_CHK(env);
-	AF_PARAM_CHK(keymap);
-	AF_PARAM_CHK(win);
-	AF_PARAM_CHK(pointer);
-	AF_PARAM_CHK(die);
+	AGA_PARAM_CHK(env);
+	AGA_PARAM_CHK(keymap);
+	AGA_PARAM_CHK(win);
+	AGA_PARAM_CHK(pointer);
+	AGA_PARAM_CHK(die);
 
     pack.die = die;
     pack.keymap = keymap;
@@ -375,7 +375,7 @@ enum af_err aga_poll(
 	pack.magic = AGA_WINPROC_PACK_MAGIC;
 
 	if(env->captured) {
-		AF_CHK(aga_setclipcursor(win, GetActiveWindow() == win->hwnd));
+		AGA_CHK(aga_setclipcursor(win, GetActiveWindow() == win->hwnd));
 	}
 
 	SetCursor(env->visible ? env->cursor : 0);
@@ -389,40 +389,40 @@ enum af_err aga_poll(
 		DispatchMessageA(&msg);
 	}
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_diag(
-		const char* message, const char* title, af_bool_t* response,
-		af_bool_t is_error) {
+enum aga_result aga_diag(
+		const char* message, const char* title, aga_bool_t* response,
+		aga_bool_t is_error) {
 
 	DWORD icon = is_error ? MB_ICONERROR : MB_ICONINFORMATION;
 	DWORD flags = MB_YESNO | MB_TASKMODAL | icon;
 	int res;
 
-	AF_PARAM_CHK(message);
-	AF_PARAM_CHK(title);
-	AF_PARAM_CHK(response);
+	AGA_PARAM_CHK(message);
+	AGA_PARAM_CHK(title);
+	AGA_PARAM_CHK(response);
 
 	if(!(res = MessageBoxA(0, message, title, flags))) {
-		return aga_af_winerr(__FILE__, "MessageBoxA");
+		return aga_aga_winerr(__FILE__, "MessageBoxA");
 	}
 
 	*response = (res == IDYES);
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_shellopen(const char* uri) {
+enum aga_result aga_shellopen(const char* uri) {
 	int flags = SW_SHOWNORMAL;
 
-	AF_PARAM_CHK(uri);
+	AGA_PARAM_CHK(uri);
 
 	if((INT_PTR) ShellExecuteA(0, 0, uri, 0, 0, flags) > 32) {
-		return AF_ERR_NONE;
+		return AGA_RESULT_OK;
 	}
 
-	return aga_af_pathwinerr(__FILE__, "ShellExecuteA", uri);
+	return aga_aga_pathwinerr(__FILE__, "ShellExecuteA", uri);
 }
 
 #endif

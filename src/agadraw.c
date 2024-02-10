@@ -8,54 +8,33 @@
 #include <agalog.h>
 #include <agastd.h>
 #include <agaerr.h>
+#include <agagl.h>
 
-#include <afeirsa/afgl.h>
-
-/*
- * NOTE: This isn't actually used anywhere nowadays, but it's still polite to
- * 		 Base our vertex definitions off of a struct.
- */
-struct aga_vertex {
-    float col[4];
-    float uv[2];
-    float norm[3];
-    float pos[3];
-};
-
-static const struct af_vert_element vert_elements[] = {
-    { AF_MEMBSIZE(struct aga_vertex, col ), AF_VERT_COL  },
-    { AF_MEMBSIZE(struct aga_vertex, uv  ), AF_VERT_UV   },
-    { AF_MEMBSIZE(struct aga_vertex, norm), AF_VERT_NORM },
-    { AF_MEMBSIZE(struct aga_vertex, pos ), AF_VERT_POS  }
-};
-
-enum af_err aga_setdrawparam(struct af_ctx* af, struct af_vert* vert) {
+enum aga_result aga_setdrawparam(void) {
 	glEnable(GL_CULL_FACE);
-	AF_GL_CHK;
+	AGA_GL_CHK;
 
 	glEnable(GL_BLEND);
-	AF_GL_CHK;
+	AGA_GL_CHK;
 
 	glEnable(GL_FOG);
-	AF_GL_CHK;
+	AGA_GL_CHK;
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	AF_GL_CHK;
+	AGA_GL_CHK;
 
-    AF_CHK(af_mkvert(af, vert, vert_elements, AF_ARRLEN(vert_elements)));
-
-    return AF_ERR_NONE;
+    return AGA_RESULT_OK;
 }
 
-enum af_err aga_pushrawdraw(void) {
+enum aga_result aga_pushrawdraw(void) {
 	glDisable(GL_TEXTURE_2D);
-	AF_GL_CHK;
+	AGA_GL_CHK;
 
 	glDisable(GL_LIGHTING);
-	AF_GL_CHK;
+	AGA_GL_CHK;
 
 	glDisable(GL_DEPTH_TEST);
-	AF_GL_CHK;
+	AGA_GL_CHK;
 
 	glMatrixMode(GL_MODELVIEW);
 		glPushMatrix();
@@ -66,10 +45,10 @@ enum af_err aga_pushrawdraw(void) {
 		glPushMatrix();
 		glLoadIdentity();
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_poprawdraw(void) {
+enum aga_result aga_poprawdraw(void) {
 	glMatrixMode(GL_MODELVIEW);
 		glPopMatrix();
 
@@ -77,44 +56,63 @@ enum af_err aga_poprawdraw(void) {
 		glPopMatrix();
 
 	glEnable(GL_TEXTURE_2D);
-	AF_GL_CHK;
+	AGA_GL_CHK;
 
 	glEnable(GL_LIGHTING);
-	AF_GL_CHK;
+	AGA_GL_CHK;
 
 	glEnable(GL_DEPTH_TEST);
-	AF_GL_CHK;
+	AGA_GL_CHK;
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_puttext(float x, float y, const char* text) {
-	AF_CHK(aga_pushrawdraw());
+enum aga_result aga_puttext(float x, float y, const char* text) {
+	AGA_CHK(aga_pushrawdraw());
 
 	glColor3f(1.0f, 1.0f, 1.0f);
-	AF_GL_CHK;
+	AGA_GL_CHK;
 
 	glRasterPos2f(x, y);
-	AF_GL_CHK;
+	AGA_GL_CHK;
 
 	glListBase(AGA_FONT_LIST_BASE);
-	AF_GL_CHK;
+	AGA_GL_CHK;
 
-	glCallLists((int) af_strlen(text), GL_UNSIGNED_BYTE, text);
-	AF_GL_CHK;
+	glCallLists((int) strlen(text), GL_UNSIGNED_BYTE, text);
+	AGA_GL_CHK;
 
-	AF_CHK(aga_poprawdraw());
+	AGA_CHK(aga_poprawdraw());
 
-	return AF_ERR_NONE;
+	return AGA_RESULT_OK;
 }
 
-enum af_err aga_puttextfmt(float x, float y, const char* fmt, ...) {
+enum aga_result aga_puttextfmt(float x, float y, const char* fmt, ...) {
 	aga_fixed_buf_t buf = { 0 };
 	va_list l;
 
 	va_start(l, fmt);
-    if(vsprintf(buf, fmt, l) < 0) return aga_af_errno(__FILE__, "vsprintf");
+    if(vsprintf(buf, fmt, l) < 0) return aga_errno(__FILE__, "vsprintf");
 	va_end(l);
 
 	return aga_puttext(x, y, buf);
+}
+
+enum aga_result aga_clear(const float* col) {
+    AGA_PARAM_CHK(col);
+
+    glClearColor(col[0], col[1], col[2], col[3]);
+    AGA_GL_CHK;
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    AGA_GL_CHK;
+
+    return AGA_RESULT_OK;
+}
+
+enum aga_result aga_flush(void) {
+    glFlush();
+    AGA_GL_CHK;
+
+    return AGA_RESULT_OK;
 }

@@ -30,7 +30,7 @@
 # define AGA_HAVE_SPAWN
 #endif
 
-enum af_err aga_fplen(void* fp, af_size_t* size);
+enum aga_result aga_fplen(void* fp, aga_size_t* size);
 
 #ifdef AGA_HAVE_MAP
 # ifdef AGA_NIXMAP
@@ -43,17 +43,17 @@ struct aga_mapfd {
 };
 # endif
 
-enum af_err aga_mkmapfd(void* fp, struct aga_mapfd* fd);
-enum af_err aga_killmapfd(struct aga_mapfd* fd);
+enum aga_result aga_mkmapfd(void* fp, struct aga_mapfd* fd);
+enum aga_result aga_killmapfd(struct aga_mapfd* fd);
 
 /* Make a read-only mapping of a region of a file. */
-enum af_err aga_mkfmap(
-		struct aga_mapfd* fd, af_size_t off, af_size_t size, void** ptr);
-enum af_err aga_killfmap(void* ptr, af_size_t size);
+enum aga_result aga_mkfmap(
+		struct aga_mapfd* fd, aga_size_t off, aga_size_t size, void** ptr);
+enum aga_result aga_killfmap(void* ptr, aga_size_t size);
 #endif
 
 #ifdef AGA_HAVE_SPAWN
-enum af_err aga_spawn_sync(const char* program, char** argv, const char* wd);
+enum aga_result aga_spawn_sync(const char* program, char** argv, const char* wd);
 #endif
 
 #endif

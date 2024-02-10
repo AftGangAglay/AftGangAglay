@@ -5,6 +5,7 @@
 
 #include <agawin.h>
 #include <agasnd.h>
+#include <agautil.h>
 #include <agalog.h>
 #include <agaerr.h>
 #include <agapack.h>
@@ -19,20 +20,17 @@
  * Highest density of `agaerr' calls so these have a dramatic impact on
  * Readability.
  */
-#define CHK(proc, param) aga_af_chk(__FILE__, #proc, proc param)
+#define CHK(proc, param) aga_chk(__FILE__, #proc, proc param)
 #define SOFT(proc, param) \
 	do { \
-        enum af_err soft_chk_result = proc param; \
-		if(soft_chk_result) aga_af_soft(__FILE__, #proc, soft_chk_result); \
+        enum aga_result soft_chk_result = proc param; \
+		if(soft_chk_result) aga_soft(__FILE__, #proc, soft_chk_result); \
 	} while(0)
 
 int main(int argc, char** argv) {
-	enum af_err result;
+	enum aga_result result;
 
 	struct aga_opts opts;
-
-    struct af_ctx af;
-    struct af_vert vert;
 
 	struct aga_respack pack;
 
@@ -47,10 +45,10 @@ int main(int argc, char** argv) {
 	struct aga_scriptclass class = { 0 };
 	struct aga_scriptinst inst;
 
-    af_bool_t die = AF_FALSE;
+    aga_bool_t die = AF_FALSE;
 
 	const char* logfiles[] = { 0 /* auto stdout */, "aga.log" };
-	aga_mklog(logfiles, AF_ARRLEN(logfiles));
+	aga_mklog(logfiles, AGA_LEN(logfiles));
 
 	aga_log(__FILE__, "Breathing in the chemicals...");
 
@@ -65,11 +63,10 @@ int main(int argc, char** argv) {
 	CHK(aga_mkwin, (opts.width, opts.height, &env, &win, argc, argv));
 
 	CHK(aga_glctx, (&env, &win));
-    CHK(af_mkctx, (&af, AF_FIDELITY_FAST));
 
     aga_log(__FILE__, "Acquired GL context");
 
-    CHK(aga_setdrawparam, (&af, &vert));
+    CHK(aga_setdrawparam, ());
 
 #ifdef _DEBUG
 # ifdef AGA_HAVE_SPAWN
@@ -80,12 +77,12 @@ int main(int argc, char** argv) {
     if(opts.audio_enabled) {
         result = aga_mksnddev(opts.audio_dev, &snd);
         if(result) {
-            aga_af_soft(__FILE__, "aga_mksnddev", result);
+            aga_soft(__FILE__, "aga_mksnddev", result);
             opts.audio_enabled = AF_FALSE;
         }
     }
 
-	if(!af_streql(opts.version, AGA_VERSION)) {
+	if(!aga_streql(opts.version, AGA_VERSION)) {
 		static const char err[] =
 			"err: Project version `%s' does not match engine version `"
 			AGA_VERSION "'";
@@ -94,13 +91,11 @@ int main(int argc, char** argv) {
 
 	result = aga_mkscripteng(
         &scripteng, opts.startup_script, argc, argv, &pack, opts.python_path);
-	if(result) aga_af_soft(__FILE__, "aga_mkscripteng", result);
+	if(result) aga_soft(__FILE__, "aga_mkscripteng", result);
 	else {
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_KEYMAP, &keymap));
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_POINTER, &pointer));
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_OPTS, &opts));
-		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_AFCTX, &af));
-		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_AFVERT, &vert));
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_SNDDEV, &snd));
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_DIE, &die));
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_WINENV, &env));
@@ -130,14 +125,14 @@ int main(int argc, char** argv) {
 			static const char str2[] = "Did you forget `-f' or `-C'?";
 			static const float col[] = { 0.6f, 0.3f, 0.8f, 1.0f };
 
-			CHK(af_clear, (&af, col));
+			CHK(aga_clear, (col));
 			CHK(aga_puttextfmt, (0.05f, 0.1f, str1));
 			CHK(aga_puttextfmt, (0.05f, 0.2f, str2));
 		}
 
 		SOFT(aga_sweeprespack, (&pack));
 
-		SOFT(af_flush, (&af));
+		SOFT(aga_flush, ());
 
 		/* Window is already dead/dying if `die' is set. */
 		if(!die) SOFT(aga_swapbuf, (&env, &win));
@@ -146,7 +141,7 @@ int main(int argc, char** argv) {
 	aga_log(__FILE__, "Tearing down...");
 
 	/* Need to flush before shutdown to avoid NSGL dying */
-	SOFT(af_flush, (&af));
+	SOFT(aga_flush, ());
 
 	if(class.class) {
 		SOFT(aga_instcall, (&inst, "close"));
@@ -154,8 +149,6 @@ int main(int argc, char** argv) {
 	}
 
 	SOFT(aga_killscripteng, (&scripteng));
-    SOFT(af_killvert, (&af, &vert));
-    SOFT(af_killctx, (&af));
 
     if(opts.audio_enabled) SOFT(aga_killsnddev, (&snd));
 	SOFT(aga_killconf, (&opts.config));

@@ -5,11 +5,6 @@ RANLIB = ranlib
 WINDRES = windres
 ARFLAGS = -rc
 
-(%): %
-%.a:
-	$(AR) $(ARFLAGS) $@ $?
-	$(RANLIB) $@
-
 ifdef WINDOWS_SHELL
 	RM = del
 	CAT = type
@@ -30,4 +25,9 @@ ifdef WINDOWS
 %: %.o
 %: %.c
 endif
+
+(%): %
+%.a:
+	$(AR) $(ARFLAGS) $@ $?
+	$(RANLIB) $@
 

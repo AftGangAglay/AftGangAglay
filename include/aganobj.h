@@ -3,8 +3,10 @@
  * Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#ifndef AGAN_OBJECT_H
-#define AGAN_OBJECT_H
+#ifndef AGAN_OBJ_H
+#define AGAN_OBJ_H
+
+#include <agapyinc.h>
 
 /*
  * Defines the world-object type used by script glue. Game objects typically
@@ -57,5 +59,12 @@ struct agan_object {
     float min_extent[3];
     float max_extent[3];
 };
+
+AGA_SCRIPTPROC(mkobj);
+AGA_SCRIPTPROC(inobj);
+AGA_SCRIPTPROC(putobj);
+AGA_SCRIPTPROC(killobj);
+AGA_SCRIPTPROC(objtrans);
+AGA_SCRIPTPROC(objconf);
 
 #endif

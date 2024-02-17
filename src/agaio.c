@@ -95,7 +95,7 @@ enum aga_result aga_mkmapfd(void* fp, struct aga_mapfd* fd) {
 	AGA_VERIFY(size != 0, AGA_RESULT_BAD_PARAM);
 
 	fd->mapping = CreateFileMappingA(hnd, &attrib, PAGE_READONLY, 0, 0, 0);
-	if(!fd->mapping) return aga_aga_winerr(__FILE__, "CreateFileMappingA");
+	if(!fd->mapping) return aga_winerr(__FILE__, "CreateFileMappingA");
 
 	return AGA_RESULT_OK;
 }
@@ -104,7 +104,7 @@ enum aga_result aga_killmapfd(struct aga_mapfd* fd) {
 	AGA_PARAM_CHK(fd);
 
 	if(!CloseHandle(fd->mapping)) {
-		return aga_aga_winerr(__FILE__, "CloseHandle");
+		return aga_winerr(__FILE__, "CloseHandle");
 	}
 
 	return AGA_RESULT_OK;
@@ -129,7 +129,7 @@ enum aga_result aga_mkfmap(
 	 * 		 Its own mapping.
 	 */
 	*ptr = MapViewOfFile(fd->mapping, FILE_MAP_READ, p[0], p[1], size);
-	if(!*ptr) return aga_aga_winerr(__FILE__, "MapViewOfFile");
+	if(!*ptr) return aga_winerr(__FILE__, "MapViewOfFile");
 
 	return AGA_RESULT_OK;
 }
@@ -222,20 +222,20 @@ enum aga_result aga_spawn_sync(const char* program, char** argv, const char* wd)
 
 	if(!CreateProcessA(0, cli, 0, 0, FALSE, 0, 0, wd, &startup, &info)) {
 		free(cli);
-		return aga_aga_winerr(__FILE__, "CreateProcessA");
+		return aga_winerr(__FILE__, "CreateProcessA");
 	}
 
 	free(cli);
 
 	if(WaitForSingleObject(info.hProcess, INFINITE) == WAIT_FAILED) {
-		return aga_aga_winerr(__FILE__, "WaitForSingleObject");
+		return aga_winerr(__FILE__, "WaitForSingleObject");
 	}
 
 	if(!CloseHandle(info.hProcess)) {
-		return aga_aga_winerr(__FILE__, "CloseHandle");
+		return aga_winerr(__FILE__, "CloseHandle");
 	}
 	if(!CloseHandle(info.hThread)) {
-		return aga_aga_winerr(__FILE__, "CloseHandle");
+		return aga_winerr(__FILE__, "CloseHandle");
 	}
 
 	return AGA_RESULT_OK;

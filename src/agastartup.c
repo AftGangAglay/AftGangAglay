@@ -28,7 +28,7 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	opts->audio_enabled = AF_TRUE;
 	opts->version = AGA_VERSION;
 
-	aga_memset(&opts->config, 0, sizeof(opts->config));
+	memset(&opts->config, 0, sizeof(opts->config));
 
 #ifdef AGA_HAVE_GETOPT
 	{

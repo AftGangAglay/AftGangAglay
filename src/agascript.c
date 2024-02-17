@@ -6,15 +6,7 @@
 #include <agascript.h>
 #include <agalog.h>
 #include <agaerr.h>
-#include <agaio.h>
-#include <agadraw.h>
-#include <agawin.h>
-#include <agastartup.h>
-#include <agasnd.h>
-#include <agastd.h>
 #include <agapack.h>
-#include <agascripthelp.h>
-#include <agagl.h>
 #include <agapyinc.h>
 
 void aga_script_trace(void) {
@@ -57,28 +49,6 @@ aga_bool_t aga_script_err(const char* proc, enum aga_result err) {
 	if(!err) return AF_FALSE;
 
 	if(sprintf(buf, "%s: %s", proc, aga_aga_errname(err)) < 0) {
-		aga_errno(__FILE__, "sprintf");
-		return AF_TRUE;
-	}
-	err_setstr(RuntimeError, buf);
-
-	return AF_TRUE;
-}
-
-aga_bool_t aga_script_glerr(const char* proc) {
-	aga_fixed_buf_t buf = { 0 };
-	aga_uint_t err;
-	aga_uint_t tmp = glGetError();
-	const char* s;
-	if(!tmp) return AF_FALSE;
-
-	do {
-		err = tmp;
-		s = (const char*) gluErrorString(err);
-		aga_log(__FILE__, "err: %s: %s", proc, s);
-	} while((tmp = glGetError()));
-
-	if(sprintf(buf, "%s: %s", proc, s) < 0) {
 		aga_errno(__FILE__, "sprintf");
 		return AF_TRUE;
 	}
@@ -153,7 +123,7 @@ enum aga_result aga_mkscripteng(
     AGA_PARAM_CHK(argv);
 
 	initall();
-	AGA_CHK(aga_mkmod((aga_pyobject_t*) &eng->agandict));
+	AGA_CHK(aga_mkmod((void**) &eng->agandict));
 
 	setpythonpath((char*) pypath);
 	setpythonargv(argc, argv);

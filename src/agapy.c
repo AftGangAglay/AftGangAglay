@@ -4,6 +4,7 @@
  */
 
 #include <agascript.h>
+#include <agastd.h>
 #include <agapyinc.h>
 
 /*
@@ -29,6 +30,8 @@ int debugging = 0;
  */
 aga_pyobject_t agan_dict = 0;
 
+static void aga_nativeptr_dealloc(aga_pyobject_t obj) { free(obj); }
+
 const typeobject aga_nativeptr_type = {
     OB_HEAD_INIT(&Typetype)
     0,
@@ -36,7 +39,9 @@ const typeobject aga_nativeptr_type = {
     aga_nativeptr_dealloc, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-static void aga_nativeptr_dealloc(aga_pyobject_t _) { (void) _; }
+const char* agan_trans_components[3] = { "pos", "rot", "scale" };
+const char* agan_conf_components[3] = { "Position", "Rotation", "Scale" };
+const char* agan_xyz[3] = { "X", "Y", "Z" };
 
 aga_pyobject_t newnativeptrobject(void) {
     return (aga_pyobject_t)

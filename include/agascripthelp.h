@@ -21,10 +21,6 @@
  * 		 By a `x = MACRO(foo, bar);' pattern rather than `MACRO(x, foo, bar)').
  */
 
-#define AGA_SCRIPTPROC(name) \
-	static aga_pyobject_t agan_##name(AGA_UNUSED aga_pyobject_t self, \
-			AGA_UNUSED aga_pyobject_t arg)
-
 #define AGA_NONERET \
 	do { \
 		INCREF(None); \

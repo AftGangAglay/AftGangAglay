@@ -6,6 +6,8 @@
 #ifndef AGA_UTIL_H
 #define AGA_UTIL_H
 
+#include <agaenv.h>
+
 aga_bool_t aga_streql(const char* a, const char* b);
 
 #endif

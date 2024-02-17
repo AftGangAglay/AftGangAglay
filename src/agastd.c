@@ -5,6 +5,7 @@
 
 #include <agastd.h>
 #include <agapack.h>
+#include <agautil.h>
 #include <agaerr.h>
 
 FILE* aga_open_r(const char* path) {

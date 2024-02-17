@@ -28,7 +28,7 @@ int WinMain(
 }
 #endif
 
-enum aga_result aga_aga_pathwinerr(
+enum aga_result aga_pathwinerr(
 		const char* loc, const char* proc, const char* path) {
 
 	DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
@@ -61,8 +61,8 @@ enum aga_result aga_aga_pathwinerr(
 	return AGA_RESULT_ERROR;
 }
 
-enum aga_result aga_aga_winerr(const char* loc, const char* proc) {
-	return aga_aga_pathwinerr(loc, proc, 0);
+enum aga_result aga_winerr(const char* loc, const char* proc) {
+	return aga_pathwinerr(loc, proc, 0);
 }
 
 void aga_setw32log(void) {
@@ -76,19 +76,19 @@ void aga_setw32log(void) {
 	DWORD mode = 0;
 
 	if(con == INVALID_HANDLE_VALUE) {
-		(void) aga_aga_winerr(__FILE__, "GetStdHandle");
+		(void) aga_winerr(__FILE__, "GetStdHandle");
 		return;
 	}
 
 	if(!con) return;
 
 	if(!GetConsoleMode(con, &mode)) {
-		(void) aga_aga_winerr(__FILE__, "GetConsoleMode");
+		(void) aga_winerr(__FILE__, "GetConsoleMode");
 	}
 
 	if(!SetConsoleMode(con, mode | ENABLE_VIRTUAL_TERMINAL_INPUT)) {
 		aga_logctx.have_ansi = AF_FALSE;
-		(void) aga_aga_winerr(__FILE__, "SetConsoleMode");
+		(void) aga_winerr(__FILE__, "SetConsoleMode");
 		aga_log(__FILE__, "We don't seem to have ANSI terminal support");
 	}
 }

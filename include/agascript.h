@@ -55,4 +55,6 @@ void aga_script_trace(void);
 aga_bool_t aga_script_err(const char* proc, enum aga_result err);
 aga_bool_t aga_script_glerr(const char* proc);
 
+enum aga_result aga_mkmod(void** dict);
+
 #endif

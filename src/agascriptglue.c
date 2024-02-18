@@ -22,6 +22,7 @@
 
 #include <aganobj.h>
 
+/* TODO: Tie into `GL_CHK' to get rid of this code dup. */
 aga_bool_t aga_script_glerr(const char* proc) {
     aga_fixed_buf_t buf = { 0 };
     aga_uint_t err;
@@ -445,7 +446,8 @@ enum aga_result aga_mkmod(void** dict) {
 		_(text),
 		_(fogparam),
 		_(fogcol),
-		_(clear),
+        _(clear),
+        _(mktrans),
 
 		/* Miscellaneous */
 		_(getconf),

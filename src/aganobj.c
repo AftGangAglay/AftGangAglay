@@ -15,20 +15,47 @@
 
 #include <aganobj.h>
 
+AGA_SCRIPTPROC(mktrans) {
+    aga_pyobject_t retval, list, f;
+    aga_size_t i, j;
+
+    AGA_NEWOBJ(retval, dict, ());
+
+    for(i = 0; i < 3; ++i) {
+        AGA_NEWOBJ(list, list, (3));
+
+        for(j = 0; j < 3; ++j) {
+            AGA_NEWOBJ(f, float, (i == 2 ? 0.0 : 1.0));
+            AGA_SETLISTITEM(list, j, f);
+        }
+
+        if(dictinsert(retval, (char*) agan_trans_components[i], list) == -1) {
+            return 0;
+        }
+    }
+
+    return retval;
+}
+
 /*
  * TODO: Failure states here are super leaky - we can probably compartmentalise
  * 		 This function a lot more to help remedy this.
  */
 AGA_SCRIPTPROC(mkobj) {
+        enum aga_result err;
+
         struct aga_nativeptr* nativeptr;
         struct agan_object* obj;
         aga_pyobject_t retval;
+        struct aga_conf_node root;
 
         struct aga_respack* pack;
 
         if(!(pack = aga_getscriptptr(AGA_SCRIPT_PACK))) return 0;
 
         if(!AGA_ARGLIST(string)) AGA_ARGERR("mkobj", "string");
+
+        AGA_SCRIPTVAL(path, arg, string);
 
         AGA_NEWOBJ(retval, nativeptr, ());
         nativeptr = (struct aga_nativeptr*) retval;
@@ -37,7 +64,16 @@ AGA_SCRIPTPROC(mkobj) {
             return err_nomem();
 
         obj = nativeptr->ptr;
-        if(!(obj->transform = newdictobject())) return 0;
+        if(!(obj->transform = agan_mktrans(0, 0))) return 0;
+
+        {
+            const char* path;
+            void* fp;
+            aga_size_t len;
+
+            err =
+            aga_mkconf(root);
+        }
 
         return (aga_pyobject_t) retval;
 }

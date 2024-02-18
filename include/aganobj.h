@@ -60,6 +60,8 @@ struct agan_object {
     float max_extent[3];
 };
 
+AGA_SCRIPTPROC(mktrans);
+
 AGA_SCRIPTPROC(mkobj);
 AGA_SCRIPTPROC(inobj);
 AGA_SCRIPTPROC(putobj);

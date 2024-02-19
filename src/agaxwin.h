@@ -91,10 +91,10 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 		env->dpy, "WM_DELETE_WINDOW", True));
 	AGA_VERIFY(env->wm_delete != None, AGA_RESULT_BAD_PARAM);
 
-	env->double_buffered = AF_TRUE;
+	env->double_buffered = AGA_TRUE;
 	fb = glXChooseFBConfig(env->dpy, env->screen, double_buffer_fb, &n_fb);
 	if(!fb) {
-		env->double_buffered = AF_FALSE;
+		env->double_buffered = AGA_FALSE;
 		fb = glXChooseFBConfig(
 			env->dpy, env->screen, single_buffer_fb, &n_fb);
 		AGA_VERIFY(fb, AGA_RESULT_ERROR);
@@ -274,7 +274,7 @@ enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 		env->dpy, win->xwin, win->xwin, env->glx);
 	AGA_VERIFY(res, AGA_RESULT_ERROR);
 
-	while(AF_TRUE) {
+	while(AGA_TRUE) {
 		char** fontname;
 		if(current >= AGA_LEN(names)) {
 			aga_log(__FILE__, "err: no fonts available");
@@ -361,14 +361,14 @@ enum aga_result aga_poll(
 
 	if(rdy && (pollfd.revents & POLLIN)) {
 		while(AGAX_CHK(XPending, (env->dpy)) > 0) {
-			aga_bool_t press = AF_FALSE;
+			aga_bool_t press = AGA_FALSE;
 
 			AGAX_CHK(XNextEvent, (env->dpy, &event));
 
 			switch(event.type) {
 				default: break;
 
-				case KeyPress: press = AF_TRUE;
+				case KeyPress: press = AGA_TRUE;
 					AGA_FALLTHROUGH;
 					/* FALLTHRU */
 				case KeyRelease: {
@@ -403,7 +403,7 @@ enum aga_result aga_poll(
 
 				case ClientMessage: {
 					if(event.xclient.window == win->xwin) {
-						*die = AF_TRUE;
+						*die = AGA_TRUE;
 					}
 					break;
 				}
@@ -434,7 +434,7 @@ enum aga_result aga_diag(
 		}
 		*response = (toupper(c) == 'Y');
 	}
-	else *response = AF_FALSE;
+	else *response = AGA_FALSE;
 
 	return AGA_RESULT_OK;
 }

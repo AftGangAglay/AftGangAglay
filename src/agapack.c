@@ -11,6 +11,8 @@
 #include <agautil.h>
 #include <agascript.h>
 
+/* TODO: Checksum? */
+
 #define AGA_PACK_MAGIC ((aga_uint32_t) 0xA6A)
 
 struct aga_pack_header {
@@ -64,9 +66,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 
 	AGA_CHK(aga_fplen(pack->fp, &pack->size));
 
-	if(fread(&hdr, 1, sizeof(hdr), pack->fp) != sizeof(hdr)) {
-		if(ferror(pack->fp)) return aga_patherrno(__FILE__, "fread", path);
-	}
+	AGA_CHK(aga_fread(&hdr, sizeof(hdr), pack->fp));
 
 	AGA_VERIFY(hdr.magic == AGA_PACK_MAGIC, AGA_RESULT_BAD_PARAM);
 	aga_conf_debug_file = path;
@@ -145,9 +145,7 @@ enum aga_result aga_mkres(
 		/* TODO: Use mapping for large reads. */
 		AGA_VERIFY((*res)->data = malloc((*res)->size), AGA_RESULT_OOM);
 
-		if(fread((*res)->data, 1, (*res)->size, pack->fp) != (*res)->size) {
-			return aga_errno(__FILE__, "fread");
-		}
+		AGA_CHK(aga_fread((*res)->data, (*res)->size, pack->fp));
 	}
 
 	++(*res)->refcount;

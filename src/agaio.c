@@ -43,6 +43,17 @@ enum aga_result aga_fplen(void* fp, aga_size_t* size) {
 	return AGA_RESULT_OK;
 }
 
+enum aga_result aga_fread(void* data, aga_size_t size, void* fp) {
+	AGA_PARAM_CHK(data);
+	AGA_PARAM_CHK(fp);
+
+	if(fread(data, 1, size, fp) != size) {
+		if(ferror(fp)) return aga_errno(__FILE__, "fread");
+	}
+
+	return AGA_RESULT_OK;
+}
+
 #ifdef AGA_HAVE_MAP
 # ifdef AGA_NIXMAP
 enum aga_result aga_mkmapfd(void* fp, struct aga_mapfd* fd) {

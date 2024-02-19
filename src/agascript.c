@@ -46,15 +46,15 @@ void aga_script_trace(void) {
 aga_bool_t aga_script_err(const char* proc, enum aga_result err) {
 	aga_fixed_buf_t buf = { 0 };
 
-	if(!err) return AF_FALSE;
+	if(!err) return AGA_FALSE;
 
 	if(sprintf(buf, "%s: %s", proc, aga_aga_errname(err)) < 0) {
 		aga_errno(__FILE__, "sprintf");
-		return AF_TRUE;
+		return AGA_TRUE;
 	}
 	err_setstr(RuntimeError, buf);
 
-	return AF_TRUE;
+	return AGA_TRUE;
 }
 
 void* aga_getscriptptr(const char* key) {

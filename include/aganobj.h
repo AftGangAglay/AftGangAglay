@@ -15,15 +15,15 @@
  * The user.
  */
 
+/*
+ * TODO: `agan_' vs. `aga_' prefixes are quite conflated in the "visible" API.
+ */
+
 struct aga_vertex {
     float col[4];
     float uv[2];
     float norm[3];
     float pos[3];
-};
-
-struct agan_normcolor {
-    float r, g, b, a;
 };
 
 enum agan_lighttype {
@@ -33,9 +33,9 @@ enum agan_lighttype {
 };
 
 struct agan_lightdata {
-    struct agan_normcolor ambient;
-    struct agan_normcolor diffuse;
-    struct agan_normcolor specular;
+    float ambient[4];
+    float diffuse[4];
+    float specular[4];
 
     float constant_attenuation;
     float linear_attenuation;

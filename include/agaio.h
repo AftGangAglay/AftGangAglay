@@ -11,12 +11,12 @@
 #include <agaresult.h>
 
 #if defined(AGA_HAVE_SYS_MMAN)
-/*
+/* TODO: *nix-y file mapping.
 # define AGA_NIXMAP
 # define AGA_HAVE_MAP
  */
 #elif defined(_WIN32)
-/*
+/* TODO: Windows file mapping.
 # define AGA_WINMAP
 # define AGA_HAVE_MAP
  */
@@ -31,6 +31,7 @@
 #endif
 
 enum aga_result aga_fplen(void* fp, aga_size_t* size);
+enum aga_result aga_fread(void* data, aga_size_t size, void* fp);
 
 #ifdef AGA_HAVE_MAP
 # ifdef AGA_NIXMAP

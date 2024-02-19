@@ -9,11 +9,16 @@
 #include <agaerr.h>
 #include <agascript.h>
 #include <agapack.h>
+#include <agaio.h>
 #include <agapyinc.h>
 #include <agautil.h>
 #include <agascripthelp.h>
 
 #include <aganobj.h>
+
+/* TODO: Some `aga_script_*err` disable with noverify. */
+
+/* TODO: Report object-related errors with path.  */
 
 AGA_SCRIPTPROC(mktrans) {
     aga_pyobject_t retval, list, f;
@@ -38,203 +43,355 @@ AGA_SCRIPTPROC(mktrans) {
 }
 
 /*
+ * TODO: Object init uses a lot of nonlinear conf lookup. If we just traversed
+ * 		 The tree "as-is" it'd require the conf to be well-ordered (which we
+ * 		 Don't want) - so we need a hybrid approach.
+ */
+
+static aga_bool_t agan_mkobj_trans(
+		struct agan_object* obj, struct aga_conf_node* conf) {
+
+	(void) obj;
+	(void) conf;
+
+	return AGA_FALSE;
+}
+
+static aga_bool_t agan_mkobj_model(
+		struct agan_object* obj, struct aga_conf_node* conf,
+		struct aga_respack* pack) {
+
+	static const char* model = "Model";
+	static const char* texture = "Texture";
+	static const char* unlit = "Unlit";
+
+	enum aga_result err;
+
+	struct aga_res* res;
+
+	const char* path;
+
+	obj->drawlist = glGenLists(1);
+	if(aga_script_glerr("glGenLists")) return 0;
+
+	glNewList(obj->drawlist, GL_COMPILE);
+	if(aga_script_glerr("glNewList")) return 0;
+
+	glMatrixMode(GL_MODELVIEW);
+	if(aga_script_glerr("glMatrixMode")) return 0;
+		glPushMatrix();
+		if(aga_script_glerr("glPushMatrix")) return 0;
+		if(agan_settransmat(obj->transform, AGA_FALSE)) return 0;
+
+	/* TODO: Handle unlit. */
+
+	{
+		int filter;
+
+		if(aga_conftree(conf, &unlit, 1, &filter, AGA_INTEGER)) filter = 1;
+		filter = filter ? GL_LINEAR : GL_NEAREST;
+
+		/* TODO: Specific error type for failure to find entry (?). */
+		if(aga_conftree(conf, &texture, 1, &path, AGA_STRING)) {
+			aga_log(__FILE__, "warn: Object `%s' is missing a texture entry");
+		}
+		else {
+			static const char* width = "Width";
+
+			int w, h;
+
+			/*
+			 * TODO: "Just trusting" that this make/release pattern is safe to
+			 * 		 Avoid leaks is unclear and unfriendly to non-maintainers.
+			 * 		 We probably need better lifetime/cleanup etiquette and
+			 * 		 Helper code.
+			 */
+			err = aga_mkres(pack, path, &res);
+			if(aga_script_err("aga_mkres", err)) return AGA_TRUE;
+
+			err = aga_releaseres(res);
+			if(aga_script_err("aga_releaseres", err)) return AGA_TRUE;
+
+			err = aga_conftree_nonroot(
+				res->conf, &width, 1, &w, AGA_INTEGER);
+			if(err) {
+				/* TODO: Defaultable conf values as part of the API. */
+				aga_log(__FILE__, "warn: Texture `%s' is missing dimensions");
+				w = 1;
+			}
+
+			h = (int) (res->size / (aga_size_t) (4 * w));
+
+			/* TODO: Mipmapping/detail levels. */
+			glTexImage2D(
+				GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+				res->data);
+			/*
+			 * TODO: Script land can probably handle lots of GL errors like
+			 * 		 This relatively gracefully (i.e. allow the user code to go
+			 * 		 Further without needing try-catch hell).
+			 * 		 Especially in functions like this which aren't supposed to
+			 * 		 Be run every frame.
+			 */
+			if(aga_script_glerr("glTexImage2D")) return AGA_TRUE;
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+			if(aga_script_glerr("glTexParameteri")) return AGA_TRUE;
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+			if(aga_script_glerr("glTexParameteri")) return AGA_TRUE;
+		}
+
+		if(aga_conftree(conf, &model, 1, &path, AGA_STRING)) {
+			aga_log(__FILE__, "warn: Object `%s' is missing a model entry");
+		}
+		else {
+			struct aga_vertex v;
+			void* fp;
+			aga_size_t i, len;
+
+			err = aga_resfptr(pack, path, &fp, &len);
+			if(aga_script_err("aga_resfptr", err)) return AGA_TRUE;
+
+			glBegin(GL_TRIANGLES);
+			if(aga_script_glerr("glBegin")) return 0;
+
+			for(i = 0; i < len; i += sizeof(v)) {
+				err = aga_fread(&v, sizeof(v), pack->fp);
+				if(aga_script_err("aga_fread", err)) return AGA_TRUE;
+
+				glColor4fv(v.col);
+				if(aga_script_glerr("glColor4fv")) return AGA_TRUE;
+				glTexCoord2fv(v.uv);
+				if(aga_script_glerr("glTexCoord2fv")) return AGA_TRUE;
+				glNormal3fv(v.norm);
+				if(aga_script_glerr("glNormal3fv")) return AGA_TRUE;
+				glVertex3fv(v.pos);
+				if(aga_script_glerr("glVertex3fv")) return AGA_TRUE;
+			}
+
+			glEnd();
+			if(aga_script_glerr("glEnd")) return 0;
+		}
+	}
+
+	glMatrixMode(GL_MODELVIEW);
+	if(aga_script_glerr("glMatrixMode")) return 0;
+		glPopMatrix();
+		if(aga_script_glerr("glPopMatrix")) return 0;
+
+	glEndList();
+	if(aga_script_glerr("glEndList")) return 0;
+
+	return AGA_FALSE;
+}
+
+/*
  * TODO: Failure states here are super leaky - we can probably compartmentalise
  * 		 This function a lot more to help remedy this.
  */
 AGA_SCRIPTPROC(mkobj) {
-        enum aga_result err;
+	enum aga_result err;
 
-        struct aga_nativeptr* nativeptr;
-        struct agan_object* obj;
-        aga_pyobject_t retval;
-        struct aga_conf_node root;
+	struct aga_nativeptr* nativeptr;
+	struct agan_object* obj;
+	aga_pyobject_t retval;
+	struct aga_conf_node conf;
 
-        struct aga_respack* pack;
+	struct aga_respack* pack;
 
-        if(!(pack = aga_getscriptptr(AGA_SCRIPT_PACK))) return 0;
+	if(!(pack = aga_getscriptptr(AGA_SCRIPT_PACK))) return 0;
 
-        if(!AGA_ARGLIST(string)) AGA_ARGERR("mkobj", "string");
+	if(!AGA_ARGLIST(string)) AGA_ARGERR("mkobj", "string");
 
-        AGA_SCRIPTVAL(path, arg, string);
+	AGA_NEWOBJ(retval, nativeptr, ());
+	nativeptr = (struct aga_nativeptr*) retval;
 
-        AGA_NEWOBJ(retval, nativeptr, ());
-        nativeptr = (struct aga_nativeptr*) retval;
+	if(!(nativeptr->ptr = calloc(1, sizeof(struct agan_object))))
+		return err_nomem();
 
-        if(!(nativeptr->ptr = calloc(1, sizeof(struct agan_object))))
-            return err_nomem();
+	obj = nativeptr->ptr;
+	if(!(obj->transform = agan_mktrans(0, 0))) return 0;
 
-        obj = nativeptr->ptr;
-        if(!(obj->transform = agan_mktrans(0, 0))) return 0;
+	{
+		const char* path;
+		void* fp;
 
-        {
-            const char* path;
-            void* fp;
-            aga_size_t len;
+		AGA_SCRIPTVAL(path, arg, string);
 
-            err =
-            aga_mkconf(root);
-        }
+		err = aga_searchres(pack, path, &obj->res);
+		if(aga_script_err("aga_searchres", err)) return 0;
 
-        return (aga_pyobject_t) retval;
+		err = aga_resseek(obj->res, &fp);
+		if(aga_script_err("aga_resseek", err)) return 0;
+
+		err = aga_mkconf(fp, obj->res->size, &conf);
+		if(aga_script_err("aga_resfptr", err)) return 0;
+	}
+
+	if(agan_mkobj_trans(obj, &conf)) return 0;
+	if(agan_mkobj_model(obj, &conf, pack)) return 0;
+
+	return (aga_pyobject_t) retval;
 }
 
 AGA_SCRIPTPROC(killobj) {
-        struct aga_nativeptr* nativeptr;
-        struct agan_object* obj;
+	struct aga_nativeptr* nativeptr;
+	struct agan_object* obj;
 
-        if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("killobj", "nativeptr");
+	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("killobj", "nativeptr");
 
-        nativeptr = (struct aga_nativeptr*) arg;
-        obj = nativeptr->ptr;
+	nativeptr = (struct aga_nativeptr*) arg;
+	obj = nativeptr->ptr;
 
-        glDeleteLists(obj->drawlist, 1);
-        if(aga_script_glerr("glDeleteLists")) return 0;
+	glDeleteLists(obj->drawlist, 1);
+	if(aga_script_glerr("glDeleteLists")) return 0;
 
-        DECREF(obj->transform);
+	DECREF(obj->transform);
 
-        AGA_NONERET;
+	AGA_NONERET;
 }
 
 AGA_SCRIPTPROC(inobj) {
-        aga_pyobject_t retval = False;
-        aga_pyobject_t o, j, dbg, point, flobj, scale, pos;
-        float pt[3];
-        float mins[3];
-        float maxs[3];
-        float f;
-        aga_bool_t p, d;
-        aga_size_t i;
-        struct agan_object* obj;
+	aga_pyobject_t retval = False;
+	aga_pyobject_t o, j, dbg, point, flobj, scale, pos;
+	float pt[3];
+	float mins[3];
+	float maxs[3];
+	float f;
+	aga_bool_t p, d;
+	aga_size_t i;
+	struct agan_object* obj;
 
-        if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
-            !AGA_ARG(point, 1, list) || !AGA_ARG(j, 2, int) ||
-            !AGA_ARG(dbg, 3, int)) {
+	if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
+		!AGA_ARG(point, 1, list) || !AGA_ARG(j, 2, int) ||
+		!AGA_ARG(dbg, 3, int)) {
 
-            AGA_ARGERR("inobj", "nativeptr, list, int and int");
-        }
+		AGA_ARGERR("inobj", "nativeptr, list, int and int");
+	}
 
-        AGA_SCRIPTBOOL(p, j);
-        AGA_SCRIPTBOOL(d, dbg);
+	AGA_SCRIPTBOOL(p, j);
+	AGA_SCRIPTBOOL(d, dbg);
 
-        obj = ((struct aga_nativeptr*) o)->ptr;
-        memcpy(mins, obj->min_extent, sizeof(mins));
-        memcpy(maxs, obj->max_extent, sizeof(maxs));
+	obj = ((struct aga_nativeptr*) o)->ptr;
+	memcpy(mins, obj->min_extent, sizeof(mins));
+	memcpy(maxs, obj->max_extent, sizeof(maxs));
 
-        if(!(scale = dictlookup(obj->transform, "scale"))) return 0;
-        if(!(pos = dictlookup(obj->transform, "pos"))) return 0;
+	if(!(scale = dictlookup(obj->transform, "scale"))) return 0;
+	if(!(pos = dictlookup(obj->transform, "pos"))) return 0;
 
-        for(i = 0; i < 3; ++i) {
-            AGA_GETLISTITEM(point, i, flobj);
-            AGA_SCRIPTVAL(pt[i], flobj, float);
+	for(i = 0; i < 3; ++i) {
+		AGA_GETLISTITEM(point, i, flobj);
+		AGA_SCRIPTVAL(pt[i], flobj, float);
 
-            AGA_GETLISTITEM(scale, i, flobj);
-            AGA_SCRIPTVAL(f, flobj, float);
+		AGA_GETLISTITEM(scale, i, flobj);
+		AGA_SCRIPTVAL(f, flobj, float);
 
-            mins[i] *= f;
-            maxs[i] *= f;
-        }
+		mins[i] *= f;
+		maxs[i] *= f;
+	}
 
-        for(i = 0; i < 3; ++i) {
-            AGA_GETLISTITEM(pos, i, flobj);
-            AGA_SCRIPTVAL(f, flobj, float);
+	for(i = 0; i < 3; ++i) {
+		AGA_GETLISTITEM(pos, i, flobj);
+		AGA_SCRIPTVAL(f, flobj, float);
 
-            mins[i] += f;
-            maxs[i] += f;
-        }
+		mins[i] += f;
+		maxs[i] += f;
+	}
 
-        /* TODO: Once cells are implemented check against current cell rad. */
+	/* TODO: Once cells are implemented check against current cell rad. */
 
-        if(pt[0] > mins[0] && (p || pt[1] > mins[1]) && pt[2] > mins[2]) {
-            if(pt[0] < maxs[0] && (p || pt[1] < maxs[1]) && pt[2] < maxs[2]) {
-                retval = True;
-            }
-        }
+	if(pt[0] > mins[0] && (p || pt[1] > mins[1]) && pt[2] > mins[2]) {
+		if(pt[0] < maxs[0] && (p || pt[1] < maxs[1]) && pt[2] < maxs[2]) {
+			retval = True;
+		}
+	}
 
-        if(d) {
-            glDisable(GL_TEXTURE_2D);
-            glDisable(GL_LIGHTING);
-            glDisable(GL_DEPTH_TEST);
-            glBegin(GL_LINE_STRIP);
-            glColor3f(0.0f, 1.0f, 0.0f);
-                glVertex3f(mins[0], maxs[1], maxs[2]);
-                glVertex3f(maxs[0], maxs[1], maxs[2]);
-                glVertex3f(mins[0], mins[1], maxs[2]);
-                glVertex3f(maxs[0], mins[1], maxs[2]);
-                glVertex3f(maxs[0], mins[1], mins[2]);
-                glVertex3f(maxs[0], maxs[1], maxs[2]);
-                glVertex3f(maxs[0], maxs[1], mins[2]);
-                glVertex3f(mins[0], maxs[1], maxs[2]);
-                glVertex3f(mins[0], maxs[1], mins[2]);
-                glVertex3f(mins[0], mins[1], maxs[2]);
-                glVertex3f(mins[0], mins[1], mins[2]);
-                glVertex3f(maxs[0], mins[1], mins[2]);
-                glVertex3f(mins[0], maxs[1], mins[2]);
-                glVertex3f(maxs[0], maxs[1], mins[2]);
-            glEnd();
-            glEnable(GL_TEXTURE_2D);
-            glEnable(GL_LIGHTING);
-            glEnable(GL_DEPTH_TEST);
-        }
+	if(d) {
+		glDisable(GL_TEXTURE_2D);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_DEPTH_TEST);
+		glBegin(GL_LINE_STRIP);
+		glColor3f(0.0f, 1.0f, 0.0f);
+			glVertex3f(mins[0], maxs[1], maxs[2]);
+			glVertex3f(maxs[0], maxs[1], maxs[2]);
+			glVertex3f(mins[0], mins[1], maxs[2]);
+			glVertex3f(maxs[0], mins[1], maxs[2]);
+			glVertex3f(maxs[0], mins[1], mins[2]);
+			glVertex3f(maxs[0], maxs[1], maxs[2]);
+			glVertex3f(maxs[0], maxs[1], mins[2]);
+			glVertex3f(mins[0], maxs[1], maxs[2]);
+			glVertex3f(mins[0], maxs[1], mins[2]);
+			glVertex3f(mins[0], mins[1], maxs[2]);
+			glVertex3f(mins[0], mins[1], mins[2]);
+			glVertex3f(maxs[0], mins[1], mins[2]);
+			glVertex3f(mins[0], maxs[1], mins[2]);
+			glVertex3f(maxs[0], maxs[1], mins[2]);
+		glEnd();
+		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_DEPTH_TEST);
+	}
 
-        INCREF(retval);
-        return retval;
+	INCREF(retval);
+	return retval;
 }
 
 /* TODO: Avoid reloading conf for every call. */
 AGA_SCRIPTPROC(objconf) {
-        enum aga_result result;
+	enum aga_result result;
 
-        void* fp;
+	void* fp;
 
-        aga_pyobject_t o, l, retval;
+	aga_pyobject_t o, l, retval;
 
-        struct aga_conf_node conf;
-        struct agan_object* obj;
+	struct aga_conf_node conf;
+	struct agan_object* obj;
 
-        if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
-            !AGA_ARG(l, 1, list)) {
+	if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
+		!AGA_ARG(l, 1, list)) {
 
-            AGA_ARGERR("objconf", "nativeptr and list");
-        }
+		AGA_ARGERR("objconf", "nativeptr and list");
+	}
 
-        obj = ((struct aga_nativeptr*) o)->ptr;
+	obj = ((struct aga_nativeptr*) o)->ptr;
 
-        result = aga_resseek(obj->res, &fp);
-        if(aga_script_err("aga_resseek", result)) return 0;
+	result = aga_resseek(obj->res, &fp);
+	if(aga_script_err("aga_resseek", result)) return 0;
 
-        result = aga_mkconf(fp, obj->res->size, &conf);
-        if(aga_script_err("aga_mkconf", result)) return 0;
+	result = aga_mkconf(fp, obj->res->size, &conf);
+	if(aga_script_err("aga_mkconf", result)) return 0;
 
-        retval = agan_scriptconf(&conf, AF_TRUE, l);
-        if(!retval) return 0;
+	retval = agan_scriptconf(&conf, AGA_TRUE, l);
+	if(!retval) return 0;
 
-        result = aga_killconf(&conf);
-        if(aga_script_err("aga_killconf", result)) return 0;
+	result = aga_killconf(&conf);
+	if(aga_script_err("aga_killconf", result)) return 0;
 
-        return retval;
+	return retval;
 }
 
 AGA_SCRIPTPROC(putobj) {
-        struct aga_nativeptr* nativeptr;
-        struct agan_object* obj;
+	struct aga_nativeptr* nativeptr;
+	struct agan_object* obj;
 
-        if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("putobj", "nativeptr");
+	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("putobj", "nativeptr");
 
-        nativeptr = (struct aga_nativeptr*) arg;
-        obj = nativeptr->ptr;
+	nativeptr = (struct aga_nativeptr*) arg;
+	obj = nativeptr->ptr;
 
-        glCallList(obj->drawlist);
-        if(aga_script_glerr("glCallList")) return 0;
+	glCallList(obj->drawlist);
+	if(aga_script_glerr("glCallList")) return 0;
 
-        AGA_NONERET;
+	AGA_NONERET;
 }
 
 AGA_SCRIPTPROC(objtrans) {
-        struct agan_object* obj;
+	struct agan_object* obj;
 
-        if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("objtrans", "nativeptr");
+	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("objtrans", "nativeptr");
 
-        obj = ((struct aga_nativeptr*) arg)->ptr;
+	obj = ((struct aga_nativeptr*) arg)->ptr;
 
-        return obj->transform;
+	return obj->transform;
 }

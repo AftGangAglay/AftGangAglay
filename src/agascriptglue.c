@@ -8,6 +8,8 @@
  * 		 Builds? Disable parameter type strictness for noverify+dist?
  */
 
+/* TODO: Report failing `agan_' proc in trace (artificial frame?). */
+
 #include <agagl.h>
 #include <agaresult.h>
 #include <agalog.h>
@@ -28,7 +30,7 @@ aga_bool_t aga_script_glerr(const char* proc) {
     aga_uint_t err;
     aga_uint_t tmp = glGetError();
     const char* s;
-    if(!tmp) return AF_FALSE;
+    if(!tmp) return AGA_FALSE;
 
     do {
         err = tmp;
@@ -38,11 +40,11 @@ aga_bool_t aga_script_glerr(const char* proc) {
 
     if(sprintf(buf, "%s: %s", proc, s) < 0) {
         aga_errno(__FILE__, "sprintf");
-        return AF_TRUE;
+        return AGA_TRUE;
     }
     err_setstr(RuntimeError, buf);
 
-    return AF_TRUE;
+    return AGA_TRUE;
 }
 
 aga_bool_t agan_settransmat(aga_pyobject_t trans, aga_bool_t inv) {
@@ -52,7 +54,7 @@ aga_bool_t agan_settransmat(aga_pyobject_t trans, aga_bool_t inv) {
 
 	for(i = inv ? 2 : 0; i < 3; inv ? --i : ++i) {
 		if(!(comp = dictlookup(trans, (char*) agan_trans_components[i]))) {
-			return 0;
+			return AGA_TRUE;
 		}
 
 		AGA_GETLISTITEM(comp, 0, xo);
@@ -82,7 +84,7 @@ aga_bool_t agan_settransmat(aga_pyobject_t trans, aga_bool_t inv) {
 		}
 	}
 
-	return AF_TRUE;
+	return AGA_FALSE;
 }
 
 aga_pyobject_t agan_scriptconf(
@@ -192,7 +194,7 @@ AGA_SCRIPTPROC(setcam) {
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	if(!agan_settransmat(t, AF_TRUE)) return 0;
+	if(agan_settransmat(t, AGA_TRUE)) return 0;
 
 	AGA_NONERET;
 }
@@ -203,7 +205,7 @@ AGA_SCRIPTPROC(getconf) {
 	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
 
 	if(!AGA_ARGLIST(list)) AGA_ARGERR("getconf", "list");
-	return agan_scriptconf(&opts->config, AF_TRUE, arg);
+	return agan_scriptconf(&opts->config, AGA_TRUE, arg);
 }
 
 AGA_SCRIPTPROC(log) {
@@ -369,7 +371,7 @@ AGA_SCRIPTPROC(randnorm) {
 AGA_SCRIPTPROC(die) {
 	aga_bool_t* die;
 	if(!(die = aga_getscriptptr(AGA_SCRIPT_DIE))) return 0;
-	*die = AF_TRUE;
+	*die = AGA_TRUE;
 
 	AGA_NONERET;
 }

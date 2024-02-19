@@ -116,8 +116,8 @@ typedef aga_ulong_t aga_size_t;
 
 typedef aga_uchar_t aga_bool_t;
 
-#define AF_TRUE (1)
-#define AF_FALSE (0)
+#define AGA_TRUE (1)
+#define AGA_FALSE (0)
 
 #pragma GCC diagnostic pop
 

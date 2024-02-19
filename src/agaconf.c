@@ -296,7 +296,7 @@ aga_bool_t aga_confvar(
 	if(aga_streql(node->name, name)) {
 		if(node->type != type) {
 			aga_log(__FILE__, "warn: wrong type for field `%s'", name);
-			return AF_TRUE;
+			return AGA_TRUE;
 		}
 		switch(type) {
 			default: {
@@ -317,10 +317,10 @@ aga_bool_t aga_confvar(
 				break;
 			}
 		}
-		return AF_TRUE;
+		return AGA_TRUE;
 	}
 
-	return AF_FALSE;
+	return AGA_FALSE;
 }
 
 enum aga_result aga_conftree_raw(

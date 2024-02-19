@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
 	struct aga_scriptclass class = { 0 };
 	struct aga_scriptinst inst;
 
-    aga_bool_t die = AF_FALSE;
+    aga_bool_t die = AGA_FALSE;
 
 	const char* logfiles[] = { 0 /* auto stdout */, "aga.log" };
 	aga_mklog(logfiles, AGA_LEN(logfiles));
@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
         result = aga_mksnddev(opts.audio_dev, &snd);
         if(result) {
             aga_soft(__FILE__, "aga_mksnddev", result);
-            opts.audio_enabled = AF_FALSE;
+            opts.audio_enabled = AGA_FALSE;
         }
     }
 

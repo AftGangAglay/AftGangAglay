@@ -25,7 +25,7 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	opts->width = 640;
 	opts->height = 480;
 	opts->fov = 90.0f;
-	opts->audio_enabled = AF_TRUE;
+	opts->audio_enabled = AGA_TRUE;
 	opts->version = AGA_VERSION;
 
 	memset(&opts->config, 0, sizeof(opts->config));

@@ -31,7 +31,7 @@ AGA_USED AGA_DESTRUCTOR void aga_ondestr(void) {
 void aga_mklog(const char** targets, aga_size_t len) {
 	aga_size_t i;
 
-	aga_logctx.have_ansi = AF_TRUE;
+	aga_logctx.have_ansi = AGA_TRUE;
 	aga_logctx.len = len;
 
 	if(setvbuf(AGA_LOG_DEFAULT_STREAM, 0, _IONBF, 0)) perror("setvbuf");

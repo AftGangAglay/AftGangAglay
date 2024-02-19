@@ -19,7 +19,7 @@
 # include <agaerr.h>
 
 enum aga_result aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
-	aga_bool_t busy_msg = AF_FALSE;
+	aga_bool_t busy_msg = AGA_FALSE;
 	unsigned value;
 
 	AGA_PARAM_CHK(snddev);
@@ -34,7 +34,7 @@ enum aga_result aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 			}
 			if(!busy_msg) {
 				aga_log(__FILE__, "Sound device `%s' busy. Waiting...", dev);
-				busy_msg = AF_TRUE;
+				busy_msg = AGA_TRUE;
 				errno = EBUSY;
 			}
 		}

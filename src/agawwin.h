@@ -41,7 +41,7 @@ static LRESULT aga_winproc(
 		HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param) {
 
     struct aga_winproc_pack* pack;
-	aga_bool_t down = AF_TRUE;
+	aga_bool_t down = AGA_TRUE;
 
 	if(msg == WM_NCCREATE) return TRUE;
 
@@ -59,7 +59,7 @@ static LRESULT aga_winproc(
 			return DefWindowProcA(wnd, msg, w_param, l_param);
 		}
 
-		case WM_KEYUP: down = AF_FALSE;
+		case WM_KEYUP: down = AGA_FALSE;
 			AGA_FALLTHROUGH;
 			/* FALLTHRU */
 		case WM_KEYDOWN: {
@@ -121,7 +121,7 @@ static LRESULT aga_winproc(
             if(!DestroyWindow(wnd)) {
 				(void) aga_winerr(__FILE__, "DestroyWindow");
 			}
-			*pack->die = AF_TRUE;
+			*pack->die = AGA_TRUE;
 			return 0;
 		}
 	}
@@ -140,8 +140,8 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 
 	(void) display;
 
-	env->captured = AF_FALSE;
-	env->visible = AF_TRUE;
+	env->captured = AGA_FALSE;
+	env->visible = AGA_TRUE;
 
 	if(!(env->module = GetModuleHandleA(0))) {
 		return aga_winerr(__FILE__, "GetModuleHandleA");

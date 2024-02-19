@@ -120,6 +120,12 @@ int main(int argc, char** argv) {
 
 		if(class.class) SOFT(aga_instcall, (&inst, "update"));
 		else {
+			/*
+			 * TODO: We can definitely work on making this more useful. Maybe
+			 * 		 An interactive way to load a project once we have some
+			 * 		 Semblance of UI?
+			 */
+
 			static const char str1[] =
 				"No project loaded or no script files provided";
 			static const char str2[] = "Did you forget `-f' or `-C'?";

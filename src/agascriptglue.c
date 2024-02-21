@@ -68,7 +68,7 @@ aga_bool_t agan_settransmat(aga_pyobject_t trans, aga_bool_t inv) {
 		switch(i) {
 			default: break;
             case 0: {
-                glTranslatef(x, y, z);
+				glTranslatef(x, y, z);
                 if(aga_script_glerr("glTranslatef")) return AGA_TRUE;
                 break;
             }
@@ -172,6 +172,7 @@ AGA_SCRIPTPROC(getmotion) {
 	return retval;
 }
 
+/* TODO: Inject true/false constants. */
 AGA_SCRIPTPROC(setcam) {
 	aga_pyobject_t t, mode;
 	aga_bool_t b;

@@ -13,6 +13,7 @@
 /* TODO: Do error checking on all matrix ops - we're missing a lot of it. */
 
 enum aga_result aga_setdrawparam(void) {
+/*
 	glEnable(GL_CULL_FACE);
 	AGA_GL_CHK("glEnable");
 
@@ -24,7 +25,7 @@ enum aga_result aga_setdrawparam(void) {
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     AGA_GL_CHK("glBlendFunc");
-
+*/
     return AGA_RESULT_OK;
 }
 

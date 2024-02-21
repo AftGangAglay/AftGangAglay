@@ -52,11 +52,13 @@ void aga_mklog(const char** targets, aga_size_t len) {
 		}
 	}
 
+    if(!!getenv("AGA_FORCEANSI")) aga_logctx.have_ansi = 1;
 #ifdef _WIN32
-	aga_setw32log();
+    else aga_setw32log();
 #endif
 
 	signal(SIGABRT, aga_onabrt);
+
 }
 
 void aga_killlog(void) {

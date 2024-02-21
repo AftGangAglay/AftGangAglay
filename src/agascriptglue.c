@@ -67,18 +67,23 @@ aga_bool_t agan_settransmat(aga_pyobject_t trans, aga_bool_t inv) {
 
 		switch(i) {
 			default: break;
+            case 0: {
+                glTranslatef(x, y, z);
+                if(aga_script_glerr("glTranslatef")) return AGA_TRUE;
+                break;
+            }
 			case 1: {
 				glRotatef(x, 1.0f, 0.0f, 0.0f);
+                if(aga_script_glerr("glRotatef")) return AGA_TRUE;
 				glRotatef(y, 0.0f, 1.0f, 0.0f);
+                if(aga_script_glerr("glRotatef")) return AGA_TRUE;
 				glRotatef(z, 0.0f, 0.0f, 1.0f);
-				break;
-			}
-			case 0: {
-				glTranslatef(x, y, z);
+                if(aga_script_glerr("glRotatef")) return AGA_TRUE;
 				break;
 			}
 			case 2: {
 				glScalef(x, y, z);
+                if(aga_script_glerr("glScalef")) return AGA_TRUE;
 				break;
 			}
 		}
@@ -187,14 +192,18 @@ AGA_SCRIPTPROC(setcam) {
 	ar = (double) opts->height / (double) opts->width;
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+    if(aga_script_glerr("glMatrixMode")) return 0;
+        glLoadIdentity();
+        if(aga_script_glerr("glLoadIdentity")) return 0;
 
 	if(b) gluPerspective(opts->fov, 1.0 / ar, 0.1, 10000.0);
 	else glOrtho(-1.0, 1.0, -ar, ar, 0.001, 1.0);
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	if(agan_settransmat(t, AGA_TRUE)) return 0;
+    if(aga_script_glerr("glMatrixMode")) return 0;
+        glLoadIdentity();
+        if(aga_script_glerr("glLoadIdentity")) return 0;
+        if(agan_settransmat(t, AGA_TRUE)) return 0;
 
 	AGA_NONERET;
 }

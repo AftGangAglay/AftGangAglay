@@ -10,6 +10,8 @@
 
 /* TODO: Report failing `agan_' proc in trace (artificial frame?). */
 
+/* TODO: Mode disable error-to-exception propagation - "continue". */
+
 #include <agagl.h>
 #include <agaresult.h>
 #include <agalog.h>

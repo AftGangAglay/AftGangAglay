@@ -31,6 +31,8 @@ struct aga_opts {
 
 	float fov;
 
+	aga_bool_t verbose;
+
 	struct aga_conf_node config;
 };
 

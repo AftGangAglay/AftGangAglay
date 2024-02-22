@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
+# TODO: Move to super old Make syntax for compat?
+
 include VERSION
 include build/env.mk
 include build/winres.mk

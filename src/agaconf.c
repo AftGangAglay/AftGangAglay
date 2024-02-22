@@ -230,12 +230,6 @@ enum aga_result aga_mkconf(void* fp, aga_size_t count, struct aga_conf_node* roo
 
 	structured.class = &class;
 
-	/*
-	 * NOTE: If your SGML is misbehaving - give this a try.
-	 * TODO: Should we have a way to set this at runtime?
-	WWW_TraceFlag = 1;
-	 */
-
 	tags[AGA_NODE_ROOT].name = "root";
 	tags[AGA_NODE_ROOT].contents = SGML_ELEMENT;
 

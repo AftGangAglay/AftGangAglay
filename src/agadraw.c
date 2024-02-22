@@ -39,6 +39,7 @@ enum aga_result aga_setdrawparam(void) {
     return AGA_RESULT_OK;
 }
 
+/* TODO: Make more distinct "pipeline modes" rather than random en/disable? */
 enum aga_result aga_pushrawdraw(void) {
 	glDisable(GL_TEXTURE_2D);
     AGA_GL_CHK("glDisable");

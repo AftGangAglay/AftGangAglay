@@ -27,15 +27,17 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	opts->fov = 90.0f;
 	opts->audio_enabled = AGA_TRUE;
 	opts->version = AGA_VERSION;
+	opts->verbose = AGA_FALSE;
 
 	memset(&opts->config, 0, sizeof(opts->config));
 
 #ifdef AGA_HAVE_GETOPT
 	{
 		const char* help =
-			"warn: usage: %s [-f respack] [-A dsp] [-D display] [-C dir]";
+			"warn: usage: %s [-f respack] [-A dsp] [-D display] [-C dir] "
+			"[-v]";
 		int o;
-		while((o = 	getopt(argc, argv, "f:s:A:D:C:")) != -1) {
+		while((o = 	getopt(argc, argv, "f:s:A:D:C:v")) != -1) {
 			switch(o) {
 				default: {
 					aga_log(__FILE__, help, argv[0]);
@@ -45,6 +47,14 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 				case 'A': opts->audio_dev = optarg; break;
 				case 'D': opts->display = optarg; break;
 				case 'C': opts->chdir = optarg; break;
+				case 'v': {
+					extern int WWW_TraceFlag; /* From libwww. */
+					extern int debugging; /* From python. */
+					WWW_TraceFlag = 1;
+					debugging = 1;
+
+					opts->verbose = AGA_TRUE;
+				}
 			}
 		}
 		break2:;

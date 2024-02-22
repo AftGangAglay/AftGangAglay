@@ -10,9 +10,7 @@
 *.ilk
 *.pdb
 
-src/*
-!src/*.c
-!src/*.h
+src/main
 
 res/*.res
 

@@ -3,18 +3,16 @@
  * Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
+#include <agan/aganobj.h>
+
 #include <agagl.h>
 #include <agaresult.h>
 #include <agalog.h>
-#include <agaerr.h>
 #include <agascript.h>
 #include <agapack.h>
 #include <agaio.h>
 #include <agapyinc.h>
-#include <agautil.h>
 #include <agascripthelp.h>
-
-#include <aganobj.h>
 
 /* TODO: Some `aga_script_*err` disable with noverify. */
 

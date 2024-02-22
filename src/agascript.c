@@ -9,6 +9,10 @@
 #include <agapack.h>
 #include <agapyinc.h>
 
+#include <graminit.h> /* For `file_input'. */
+
+#include <agan/agan.h>
+
 void aga_script_trace(void) {
 	aga_pyobject_t exc;
 	aga_pyobject_t val;

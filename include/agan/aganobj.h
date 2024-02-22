@@ -6,17 +6,13 @@
 #ifndef AGAN_OBJ_H
 #define AGAN_OBJ_H
 
-#include <agapyinc.h>
+#include <agan/agan.h>
 
 /*
  * Defines the world-object type used by script glue. Game objects typically
  * Consist of a world-object and behaviours ascribed in script land. We should
  * Not attach meaningful autonomous behaviour to these, they're controlled by
  * The user.
- */
-
-/*
- * TODO: `agan_' vs. `aga_' prefixes are quite conflated in the "visible" API.
  */
 
 struct aga_vertex {

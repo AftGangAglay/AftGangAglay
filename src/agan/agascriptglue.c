@@ -24,7 +24,7 @@
 #include <agapyinc.h>
 #include <agascripthelp.h>
 
-#include <aganobj.h>
+#include <agan/aganobj.h>
 
 /* TODO: Tie into `GL_CHK' to get rid of this code dup. */
 aga_bool_t aga_script_glerr(const char* proc) {

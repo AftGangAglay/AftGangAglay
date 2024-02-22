@@ -11,8 +11,8 @@ include build/glabi.mk
 include vendor/www.mk
 include vendor/python.mk
 
-AGA_SOURCES = $(wildcard src/*.c)
-AGA_HEADERS = $(wildcard include/*.h)
+AGA_SOURCES = $(wildcard src/*.c) $(wildcard src/agan/*.c)
+AGA_HEADERS = $(wildcard include/*.h) $(wildcard include/agan/*.h)
 AGA_OBJECTS = $(AGA_SOURCES:.c=.o) $(AGA_RESOBJECTS)
 
 AGA_OUT = src/main$(EXE)
@@ -58,7 +58,7 @@ $(AGA_OUT): $(AGA_OBJECTS) $(AGA_LIBDEPS)
 $(AGA_OBJECTS): CFLAGS += $(AGA_CFLAGS)
 $(AGA_OBJECTS): $(AGA_HEADERS)
 
-src/agascript.o: src/agascriptglue.c
+src/agascript.o: src/agan/agascriptglue.c
 
 ifdef WGL
 src/agawin.o: src/agawwin.h

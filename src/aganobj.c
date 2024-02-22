@@ -30,7 +30,7 @@ AGA_SCRIPTPROC(mktrans) {
         AGA_NEWOBJ(list, list, (3));
 
         for(j = 0; j < 3; ++j) {
-            AGA_NEWOBJ(f, float, (i == 2 ? 0.0 : 1.0));
+            AGA_NEWOBJ(f, float, (i == 2 ? 1.0 : 0.0));
             AGA_SETLISTITEM(list, j, f);
         }
 
@@ -86,6 +86,8 @@ static aga_bool_t agan_mkobj_model(
 	static const char* texture = "Texture";
     static const char* filter = "Filter";
     /* static const char* unlit = "Unlit"; */
+
+	/* TODO: Opt to disable textures? */
 
 	enum aga_result err;
 
@@ -192,11 +194,6 @@ static aga_bool_t agan_mkobj_model(
 				/* if(aga_script_glerr("glNormal3fv")) return AGA_TRUE; */
 				glVertex3fv(v.pos);
 				/* if(aga_script_glerr("glVertex3fv")) return AGA_TRUE; */
-
-				aga_log(__FILE__, "v.col %f %f %f %f", v.col[0], v.col[1], v.col[2], v.col[3]);
-				aga_log(__FILE__, "v.uv %f %f", v.uv[0], v.uv[1]);
-				aga_log(__FILE__, "v.norm %f %f %f", v.norm[0], v.norm[1], v.norm[2]);
-				aga_log(__FILE__, "v.pos %f %f %f", v.pos[0], v.pos[1], v.pos[2]);
 			}
 
 			glEnd();

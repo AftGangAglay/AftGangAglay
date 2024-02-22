@@ -26,27 +26,8 @@
 
 #include <agan/aganobj.h>
 
-/* TODO: Tie into `GL_CHK' to get rid of this code dup. */
 aga_bool_t aga_script_glerr(const char* proc) {
-    aga_fixed_buf_t buf = { 0 };
-    aga_uint_t err;
-    aga_uint_t tmp = glGetError();
-    const char* s;
-    if(!tmp) return AGA_FALSE;
-
-    do {
-        err = tmp;
-        s = (const char*) gluErrorString(err);
-        aga_log(__FILE__, "err: %s: %s", proc, s);
-    } while((tmp = glGetError()));
-
-    if(sprintf(buf, "%s: %s", proc, s) < 0) {
-        aga_errno(__FILE__, "sprintf");
-        return AGA_TRUE;
-    }
-    err_setstr(RuntimeError, buf);
-
-    return AGA_TRUE;
+	return aga_script_err(proc, aga_glerr(__FILE__, proc));
 }
 
 aga_bool_t agan_settransmat(aga_pyobject_t trans, aga_bool_t inv) {

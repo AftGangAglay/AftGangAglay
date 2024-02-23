@@ -129,7 +129,7 @@ static aga_bool_t agan_mkobj_model(
 
             /*
              * TODO: Handle missing textures etc. gracefully - default/
-             *       Proceedural resources?
+             *       Procedural resources?
              */
 			err = aga_mkres(pack, path, &res);
 			if(aga_script_err("aga_mkres", err)) return AGA_TRUE;

@@ -75,12 +75,12 @@ void* aga_getscriptptr(const char* key) {
 		return 0;
 	}
 
-	if(ptr->ob_type != &aga_nativeptr_type) {
+	if(ptr->ob_type != &agan_nativeptr_type) {
 		err_badarg();
 		return 0;
 	}
 
-	return ((struct aga_nativeptr*) ptr)->ptr;
+	return ((struct agan_nativeptr*) ptr)->ptr;
 }
 
 static enum aga_result aga_compilescript(
@@ -164,11 +164,11 @@ enum aga_result aga_setscriptptr(
 	AGA_PARAM_CHK(key);
 	AGA_PARAM_CHK(value);
 
-	if(!(nativeptr = newobject((typeobject*) &aga_nativeptr_type))) {
+	if(!(nativeptr = newobject((typeobject*) &agan_nativeptr_type))) {
         aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
-	((struct aga_nativeptr*) nativeptr)->ptr = value;
+	((struct agan_nativeptr*) nativeptr)->ptr = value;
 
 	if(dictinsert(eng->agandict, (char*) key, nativeptr) == -1) {
         aga_script_trace();

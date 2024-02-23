@@ -56,13 +56,13 @@ struct agan_object {
     float max_extent[3];
 };
 
-AGA_SCRIPTPROC(mktrans);
+AGAN_SCRIPTPROC(mktrans);
 
-AGA_SCRIPTPROC(mkobj);
-AGA_SCRIPTPROC(inobj);
-AGA_SCRIPTPROC(putobj);
-AGA_SCRIPTPROC(killobj);
-AGA_SCRIPTPROC(objtrans);
-AGA_SCRIPTPROC(objconf);
+AGAN_SCRIPTPROC(mkobj);
+AGAN_SCRIPTPROC(inobj);
+AGAN_SCRIPTPROC(putobj);
+AGAN_SCRIPTPROC(killobj);
+AGAN_SCRIPTPROC(objtrans);
+AGAN_SCRIPTPROC(objconf);
 
 #endif

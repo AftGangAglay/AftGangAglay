@@ -6,13 +6,24 @@
 #ifndef AGAN_H
 #define AGAN_H
 
-#include <agapyinc.h>
-
-#define AGA_SCRIPTPROC(name) \
-	aga_pyobject_t agan_##name(AGA_UNUSED aga_pyobject_t self, \
-           AGA_UNUSED aga_pyobject_t arg)
+#include <agascripthelp.h>
 
 struct aga_conf_node;
+
+struct agan_nativeptr {
+	OB_HEAD
+	void* ptr;
+};
+
+extern const typeobject agan_nativeptr_type;
+
+#define is_nativeptrobject(op) ((op)->ob_type == &agan_nativeptr_type)
+
+aga_pyobject_t agan_mknativeptr(void* ptr);
+
+#define AGAN_SCRIPTPROC(name) \
+	aga_pyobject_t agan_##name(AGA_UNUSED aga_pyobject_t self, \
+           AGA_UNUSED aga_pyobject_t arg)
 
 extern aga_pyobject_t agan_dict;
 extern const char* agan_trans_components[3];

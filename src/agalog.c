@@ -57,8 +57,9 @@ void aga_mklog(const char** targets, aga_size_t len) {
     else aga_setw32log();
 #endif
 
-	signal(SIGABRT, aga_onabrt);
+	/* TODO: Scripttrace on fatal signal? */
 
+	signal(SIGABRT, aga_onabrt);
 }
 
 void aga_killlog(void) {

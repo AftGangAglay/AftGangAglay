@@ -22,19 +22,6 @@
 #include <parsetok.h>
 #include <ceval.h>
 
-struct aga_nativeptr {
-    OB_HEAD
-    void* ptr;
-    aga_size_t len;
-};
-
-typedef object* aga_pyobject_t;
-
-extern const typeobject aga_nativeptr_type;
-
-#define is_nativeptrobject(o) ((o)->ob_type == &aga_nativeptr_type)
-aga_pyobject_t newnativeptrobject(void);
-
 int setpythonpath(char* path);
 int setpythonargv(int argc, char** argv);
 int flushline(void);
@@ -43,6 +30,6 @@ void donesys(void);
 void donedict(void);
 void doneerrors(void);
 void freeaccel(void);
-aga_pyobject_t call_function(aga_pyobject_t func, aga_pyobject_t arg);
+object* call_function(object* func, object* arg);
 
 #endif

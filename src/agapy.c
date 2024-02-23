@@ -5,7 +5,9 @@
 
 #include <agascript.h>
 #include <agastd.h>
-#include <agapyinc.h>
+#include <agascripthelp.h>
+
+#include <agan/agan.h>
 
 /*
  * Defines our nativeptr type and a few misc. functions Python wants.
@@ -23,18 +25,19 @@
 int debugging = 0;
 #endif
 
-static void aga_nativeptr_dealloc(aga_pyobject_t obj) { free(obj); }
+static void agan_killnativeptr(aga_pyobject_t obj) { free(obj); }
 
-const typeobject aga_nativeptr_type = {
+const typeobject agan_nativeptr_type = {
     OB_HEAD_INIT(&Typetype)
     0,
-    "nativeptr", sizeof(struct aga_nativeptr), 0,
-    aga_nativeptr_dealloc, 0, 0, 0, 0, 0, 0, 0, 0
+    "nativeptr", sizeof(struct agan_nativeptr), 0,
+    agan_killnativeptr, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-aga_pyobject_t newnativeptrobject(void) {
-    return (aga_pyobject_t)
-            NEWOBJ(struct aga_nativeptr, (typeobject*) &aga_nativeptr_type);
+aga_pyobject_t agan_mknativeptr(void* ptr) {
+    aga_pyobject_t o = newobject((void*) &agan_nativeptr_type);
+	((struct agan_nativeptr*) o)->ptr = ptr;
+	return o;
 }
 
 FILE* pyopen_r(const char* path) {
@@ -43,4 +46,32 @@ FILE* pyopen_r(const char* path) {
 
 void pyclose(FILE* fp) {
     aga_close(fp);
+}
+
+aga_bool_t aga_script_float(aga_pyobject_t o, float* f) {
+	*f = (float) getfloatvalue(o);
+	return err_occurred();
+}
+
+aga_bool_t aga_script_int(aga_pyobject_t o, int* i) {
+	*i = getintvalue(o);
+	return err_occurred();
+}
+
+aga_bool_t aga_script_string(aga_pyobject_t o, char** s) {
+	*s = getstringvalue(o);
+	return err_occurred();
+}
+
+aga_bool_t aga_script_bool(aga_pyobject_t o, aga_bool_t* b) {
+	*b = !!getintvalue(o);
+	return err_occurred();
+}
+
+aga_bool_t aga_list_set(aga_pyobject_t list, aga_size_t n, aga_pyobject_t v) {
+	return setlistitem(list, (int) n, v) == -1;
+}
+
+aga_bool_t aga_list_get(aga_pyobject_t list, aga_size_t n, aga_pyobject_t* v) {
+	return !(*v = getlistitem(list, (int) n));
 }

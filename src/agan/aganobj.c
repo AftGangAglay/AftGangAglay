@@ -18,18 +18,18 @@
 
 /* TODO: Report object-related errors with path.  */
 
-AGA_SCRIPTPROC(mktrans) {
+AGAN_SCRIPTPROC(mktrans) {
     aga_pyobject_t retval, list, f;
     aga_size_t i, j;
 
-    AGA_NEWOBJ(retval, dict, ());
+	if(!(retval = newdictobject())) return 0;
 
     for(i = 0; i < 3; ++i) {
-        AGA_NEWOBJ(list, list, (3));
+		if(!(list = newlistobject(3))) return 0;
 
         for(j = 0; j < 3; ++j) {
-            AGA_NEWOBJ(f, float, (i == 2 ? 1.0 : 0.0));
-            AGA_SETLISTITEM(list, j, f);
+			if(!(f = newfloatobject((i == 2 ? 1.0 : 0.0)))) return 0;
+			if(aga_list_set(list, j, f)) return 0;
         }
 
         if(dictinsert(retval, (char*) agan_trans_components[i], list) == -1) {
@@ -68,8 +68,8 @@ static aga_bool_t agan_mkobj_trans(
                 f = 0.0f;
             }
 
-            AGA_NEWOBJ(o, float, (f));
-            AGA_SETLISTITEM(l, j, o);
+			if(!(o = newfloatobject(f))) return 0;
+			if(aga_list_set(l, j, o)) return 0;
         }
     }
 
@@ -209,10 +209,10 @@ static aga_bool_t agan_mkobj_model(
  * TODO: Failure states here are super leaky - we can probably compartmentalise
  * 		 This function a lot more to help remedy this.
  */
-AGA_SCRIPTPROC(mkobj) {
+AGAN_SCRIPTPROC(mkobj) {
 	enum aga_result err;
 
-	struct aga_nativeptr* nativeptr;
+	struct agan_nativeptr* nativeptr;
 	struct agan_object* obj;
 	aga_pyobject_t retval;
 	struct aga_conf_node conf;
@@ -223,8 +223,8 @@ AGA_SCRIPTPROC(mkobj) {
 
 	if(!AGA_ARGLIST(string)) AGA_ARGERR("mkobj", "string");
 
-	AGA_NEWOBJ(retval, nativeptr, ());
-	nativeptr = (struct aga_nativeptr*) retval;
+	retval = agan_mknativeptr(0);
+	nativeptr = (struct agan_nativeptr*) retval;
 
 	if(!(nativeptr->ptr = calloc(1, sizeof(struct agan_object))))
 		return err_nomem();
@@ -233,10 +233,10 @@ AGA_SCRIPTPROC(mkobj) {
 	if(!(obj->transform = agan_mktrans(0, 0))) return 0;
 
 	{
-		const char* path;
+		char* path;
 		void* fp;
 
-		AGA_SCRIPTVAL(path, arg, string);
+		if(aga_script_string(arg, &path)) return 0;
 
 		err = aga_searchres(pack, path, &obj->res);
 		if(aga_script_err("aga_searchres", err)) return 0;
@@ -254,13 +254,13 @@ AGA_SCRIPTPROC(mkobj) {
 	return (aga_pyobject_t) retval;
 }
 
-AGA_SCRIPTPROC(killobj) {
-	struct aga_nativeptr* nativeptr;
+AGAN_SCRIPTPROC(killobj) {
+	struct agan_nativeptr* nativeptr;
 	struct agan_object* obj;
 
 	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("killobj", "nativeptr");
 
-	nativeptr = (struct aga_nativeptr*) arg;
+	nativeptr = (struct agan_nativeptr*) arg;
 	obj = nativeptr->ptr;
 
 	glDeleteLists(obj->drawlist, 1);
@@ -268,10 +268,10 @@ AGA_SCRIPTPROC(killobj) {
 
 	DECREF(obj->transform);
 
-	AGA_NONERET;
+	return AGA_INCREF(None);
 }
 
-AGA_SCRIPTPROC(inobj) {
+AGAN_SCRIPTPROC(inobj) {
 	aga_pyobject_t retval = False;
 	aga_pyobject_t o, j, dbg, point, flobj, scale, pos;
 	float pt[3];
@@ -289,10 +289,10 @@ AGA_SCRIPTPROC(inobj) {
 		AGA_ARGERR("inobj", "nativeptr, list, int and int");
 	}
 
-	AGA_SCRIPTBOOL(p, j);
-	AGA_SCRIPTBOOL(d, dbg);
+	if(aga_script_bool(j, &p)) return 0;
+	if(aga_script_bool(dbg, &d)) return 0;
 
-	obj = ((struct aga_nativeptr*) o)->ptr;
+	obj = ((struct agan_nativeptr*) o)->ptr;
 	memcpy(mins, obj->min_extent, sizeof(mins));
 	memcpy(maxs, obj->max_extent, sizeof(maxs));
 
@@ -300,19 +300,21 @@ AGA_SCRIPTPROC(inobj) {
 	if(!(pos = dictlookup(obj->transform, "pos"))) return 0;
 
 	for(i = 0; i < 3; ++i) {
-		AGA_GETLISTITEM(point, i, flobj);
-		AGA_SCRIPTVAL(pt[i], flobj, float);
+		/* TODO: Static "get N items into buffer" to make noverify easier. */
 
-		AGA_GETLISTITEM(scale, i, flobj);
-		AGA_SCRIPTVAL(f, flobj, float);
+		if(aga_list_get(point, i, &flobj)) return 0;
+		if(aga_script_float(flobj, &pt[i])) return 0;
+
+		if(aga_list_get(scale, i, &flobj)) return 0;
+		if(aga_script_float(flobj, &f)) return 0;
 
 		mins[i] *= f;
 		maxs[i] *= f;
 	}
 
 	for(i = 0; i < 3; ++i) {
-		AGA_GETLISTITEM(pos, i, flobj);
-		AGA_SCRIPTVAL(f, flobj, float);
+		if(aga_list_get(pos, i, &flobj)) return 0;
+		if(aga_script_float(flobj, &f)) return 0;
 
 		mins[i] += f;
 		maxs[i] += f;
@@ -355,12 +357,11 @@ AGA_SCRIPTPROC(inobj) {
 	}
 	 */
 
-	INCREF(retval);
-	return retval;
+	return AGA_INCREF(retval);
 }
 
 /* TODO: Avoid reloading conf for every call. */
-AGA_SCRIPTPROC(objconf) {
+AGAN_SCRIPTPROC(objconf) {
 	enum aga_result result;
 
 	void* fp;
@@ -376,7 +377,7 @@ AGA_SCRIPTPROC(objconf) {
 		AGA_ARGERR("objconf", "nativeptr and list");
 	}
 
-	obj = ((struct aga_nativeptr*) o)->ptr;
+	obj = ((struct agan_nativeptr*) o)->ptr;
 
 	result = aga_resseek(obj->res, &fp);
 	if(aga_script_err("aga_resseek", result)) return 0;
@@ -393,13 +394,13 @@ AGA_SCRIPTPROC(objconf) {
 	return retval;
 }
 
-AGA_SCRIPTPROC(putobj) {
-	struct aga_nativeptr* nativeptr;
+AGAN_SCRIPTPROC(putobj) {
+	struct agan_nativeptr* nativeptr;
 	struct agan_object* obj;
 
 	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("putobj", "nativeptr");
 
-	nativeptr = (struct aga_nativeptr*) arg;
+	nativeptr = (struct agan_nativeptr*) arg;
 	obj = nativeptr->ptr;
 
 	glMatrixMode(GL_MODELVIEW);
@@ -416,15 +417,15 @@ AGA_SCRIPTPROC(putobj) {
 		glPopMatrix();
 		if(aga_script_glerr("glPopMatrix")) return 0;
 
-	AGA_NONERET;
+	return AGA_INCREF(None);
 }
 
-AGA_SCRIPTPROC(objtrans) {
+AGAN_SCRIPTPROC(objtrans) {
 	struct agan_object* obj;
 
 	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("objtrans", "nativeptr");
 
-	obj = ((struct aga_nativeptr*) arg)->ptr;
+	obj = ((struct agan_nativeptr*) arg)->ptr;
 
 	return obj->transform;
 }

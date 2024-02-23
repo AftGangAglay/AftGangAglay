@@ -129,7 +129,7 @@ AGAN_SCRIPTPROC(getkey) {
 
 	if(keymap->keystates) {
 		if(value < keymap->keysyms_per_keycode * keymap->keycode_len) {
-			retval = keymap->keystates[value] ? True : False;
+			retval = keymap->keystates[value] ? PyTrue : PyFalse;
 		}
 	}
 

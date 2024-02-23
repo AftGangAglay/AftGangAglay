@@ -22,5 +22,6 @@ clean_res:
 	$(call PATHREM,$(AGA_RESOBJECTS))
 
 ifdef WINDOWS
+AGA_OBJECTS += $(AGA_RESOBJECTS)
 $(AGA_OUT):	$(AGA_RESFILES)
 endif

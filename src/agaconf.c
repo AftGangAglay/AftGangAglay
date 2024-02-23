@@ -10,6 +10,7 @@
 #include <agalog.h>
 #include <agaio.h>
 #include <agautil.h>
+#include <agastd.h>
 
 /* Very nasty dependency to leak - keep it contained! */
 #include <SGML.h>

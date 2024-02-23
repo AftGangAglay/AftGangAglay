@@ -13,7 +13,7 @@ include vendor/python.mk
 
 AGA_SOURCES = $(wildcard src/*.c) $(wildcard src/agan/*.c)
 AGA_HEADERS = $(wildcard include/*.h) $(wildcard include/agan/*.h)
-AGA_OBJECTS = $(AGA_SOURCES:.c=.o) $(AGA_RESOBJECTS)
+AGA_OBJECTS += $(AGA_SOURCES:.c=.o)
 
 AGA_OUT = src/main$(EXE)
 
@@ -32,7 +32,7 @@ AGA_CFLAGS += -DAGA_VERSION=\"$(VERSION)\"
 AGA_CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS)
 
 AGA_LIBDEPS = $(LIBWWW) $(LIBPYTHON)
-AGA_LDLIBS += $(AGA_LIBDEPS) $(GLABI_LDLIBS)
+AGA_LDLIBS += $(AGA_LIBDEPS) $(GLABI_LDLIBS) -lm
 
 ifdef WINDOWS
 	ifndef DEBUG
@@ -63,9 +63,9 @@ src/agascript.o: src/agan/agascriptglue.c
 ifdef WGL
 src/agawin.o: src/agawwin.h
 else
-	ifdef GLX
+ifdef GLX
 src/agawin.o: src/agaxwin.h
-	endif
+endif
 endif
 
 .PHONY: clean

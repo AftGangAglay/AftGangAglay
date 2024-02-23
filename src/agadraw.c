@@ -149,7 +149,11 @@ enum aga_result aga_glerr(const char* loc, const char* proc) {
 
     while((res = glGetError())) {
         err = AGA_RESULT_ERROR; /* TODO: Translate GL error. */
-        aga_log(loc, "err: %s: %s", proc, (const char*) gluErrorString(res));
+
+        if(loc) { /* Null `loc' acts to clear the GL error state. */
+			const char* str = (const char*) gluErrorString(res);
+			aga_log(loc, "err: %s: %s", proc, str);
+		}
     }
 
     return err;

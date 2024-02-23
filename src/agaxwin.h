@@ -6,6 +6,12 @@
 #ifndef AGA_X_WIN_H
 #define AGA_X_WIN_H
 
+#include <agagl.h>
+#include <agalog.h>
+#include <agaerr.h>
+#define AGA_WANT_UNIX
+#include <agastd.h>
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
@@ -17,7 +23,7 @@ static const char* agax_chk_last = "xlib";
 /* TODO: Check against return value for `0'. */
 # define AGAX_CHK(proc, param) ({ agax_chk_last = #proc; proc param; })
 #else
-# define AGAX_CHK(call) call
+# define AGAX_CHK(proc, param) proc param
 #endif
 
 static const int single_buffer_fb[] = {
@@ -133,7 +139,7 @@ enum aga_result aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) 
 	keymap->keycode_len = max - min;
 	keymap->keycode_min = min;
 
-	keymap->keymap = AGAX_CHK(XGetKeyboardMapping, (
+	keymap->keymap = (aga_ulong_t*) AGAX_CHK(XGetKeyboardMapping, (
 		env->dpy, min, keymap->keycode_len, &keymap->keysyms_per_keycode));
 	AGA_VERIFY(keymap->keymap, AGA_RESULT_ERROR);
 
@@ -212,7 +218,7 @@ enum aga_result aga_mkwin(
 			return AGA_RESULT_OOM;
 		}
 
-		aga_memcpy(new_prots, prots, count * sizeof(Atom));
+		memcpy(new_prots, prots, count * sizeof(Atom));
 		new_prots[count] = env->wm_delete;
 		if(prots) XFree(prots);
 
@@ -300,7 +306,12 @@ enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	AGA_VERIFY(info, AGA_RESULT_ERROR);
 	font = info->fid;
 
+	/*
+	 * NOTE: Technically this function shouldn't produce GL errors, but we can
+	 * 		 Leave behind an error state sometimes in practice.
+	 */
 	glXUseXFont(font, 0, 256, AGA_FONT_LIST_BASE);
+	(void) aga_glerr(0, "glXUseXFont");
 
 	AGAX_CHK(XUnloadFont, (env->dpy, font));
 
@@ -355,7 +366,7 @@ enum aga_result aga_poll(
 	 * 		 Which feels like we're doing something deeply importable here.
 	 * 		 Let's try to figure this out!
 	 */
-	if((rdy = poll(&pollfd, 1, 0)) == -1) {
+	if((rdy = poll(&pollfd, 1, 1)) == -1) {
 		return aga_errno(__FILE__, "poll");
 	}
 

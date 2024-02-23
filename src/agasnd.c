@@ -25,7 +25,7 @@ enum aga_result aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 	AGA_PARAM_CHK(snddev);
 	AGA_PARAM_CHK(dev);
 
-	aga_memset(snddev->buf, 0, sizeof(snddev->buf));
+	memset(snddev->buf, 0, sizeof(snddev->buf));
 
 	do {
 		if((snddev->fd = open(dev, O_WRONLY | O_NONBLOCK)) == -1) {
@@ -116,7 +116,7 @@ enum aga_result aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip) {
 		aga_size_t sz = sizeof(snddev->buf);
 		aga_size_t rem = clip->len - clip->pos;
 		aga_size_t cpy = sz < rem ? sz : rem;
-		aga_memcpy(snddev->buf, &clip->pcm[clip->pos], cpy);
+		memcpy(snddev->buf, &clip->pcm[clip->pos], cpy);
 	}
 
 	return AGA_RESULT_OK;

@@ -272,7 +272,7 @@ AGAN_SCRIPTPROC(killobj) {
 }
 
 AGAN_SCRIPTPROC(inobj) {
-	aga_pyobject_t retval = False;
+	aga_pyobject_t retval = PyFalse;
 	aga_pyobject_t o, j, dbg, point, flobj, scale, pos;
 	float pt[3];
 	float mins[3];
@@ -324,7 +324,7 @@ AGAN_SCRIPTPROC(inobj) {
 
 	if(pt[0] > mins[0] && (p || pt[1] > mins[1]) && pt[2] > mins[2]) {
 		if(pt[0] < maxs[0] && (p || pt[1] < maxs[1]) && pt[2] < maxs[2]) {
-			retval = True;
+			retval = PyTrue;
 		}
 	}
 

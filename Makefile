@@ -1,85 +1,46 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+# Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
-# TODO: Move to super old Make syntax for compat?
+!include VERSION
 
-include VERSION
-include build/env.mk
-include build/winres.mk
-include build/glabi.mk
+default: all
 
-include vendor/www.mk
-include vendor/python.mk
+RM = del
+SEP = \\
 
-AGA_SOURCES = $(wildcard src/*.c) $(wildcard src/agan/*.c)
-AGA_HEADERS = $(wildcard include/*.h) $(wildcard include/agan/*.h)
-AGA_OBJECTS += $(AGA_SOURCES:.c=.o)
+LIB =
+OBJ = .obj
+EXE = .exe
+A = .lib
 
-AGA_OUT = src/main$(EXE)
+AR = lib /out:
+O = /Fe: $@
+ALL = $**
+WL = /link
+NICEOUT = /nologo
 
-CFLAGS = -std=c89
-ifdef DEBUG
-	CFLAGS += -g -D_DEBUG
-else
-	CFLAGS += -DNDEBUG -O
-endif
+!ifdef DEBUG
+CFLAGS = /Od /Zi /D_DEBUG /MTd
+!else
+CFLAGS = /O2 /DNDEBUG /MT
+!endif
 
-DIAGNOSTICS = -Wall -Wextra -Werror -ansi -pedantic -pedantic-errors
+GL_LDLIBS = opengl32.lib glu32.lib gdi32.lib shell32.lib
 
-AGA_CFLAGS += -Iinclude $(DIAGNOSTICS) $(GLABI_CFLAGS)
-AGA_CFLAGS += -DAGA_VERSION=\"$(VERSION)\"
+CC = $(CC) /nologo /showIncludes
 
-AGA_CFLAGS += $(WWW_IFLAGS) $(PYTHON_IFLAGS)
+!include vendor/python.mk
+!include vendor/www.mk
+!include src/aga.mk
 
-AGA_LIBDEPS = $(LIBWWW) $(LIBPYTHON)
-AGA_LDLIBS += $(AGA_LIBDEPS) $(GLABI_LDLIBS) -lm
+SET_CFLAGS = /I include /I $(PYTHON) /I $(WWW) /DAGA_VERSION="$(VERSION)"
 
-ifdef WINDOWS
-	ifndef DEBUG
-		AGA_LDFLAGS += -Wl,-subsystem,windows
-	endif
-else
-	# From `feature_test_macros(7)' on `_POSIX_C_SOURCE':
-	# """
-	# The value 1 exposes definitions conforming to
-	# POSIX.1-1990 and ISO C (1990).
-	# """
-	AGA_CFLAGS += -D_POSIX_C_SOURCE=1
-endif
+.res$(OBJ):
+	$(RC) /fo $@.res $<
 
-.DEFAULT_GOAL := all
-.PHONY: all
+.c$(OBJ):
+	$(CC) /c $(SET_CFLAGS) $(GLABI_CFLAGS) /Fo: $@ $<
+
 all: $(AGA_OUT)
 
-$(AGA_OUT): LDFLAGS += $(AGA_LDFLAGS)
-$(AGA_OUT): LDLIBS += $(AGA_LDLIBS)
-$(AGA_OUT): $(AGA_OBJECTS) $(AGA_LIBDEPS)
-
-$(AGA_OBJECTS): CFLAGS += $(AGA_CFLAGS)
-$(AGA_OBJECTS): $(AGA_HEADERS)
-
-src/agascript.o: src/agan/agascriptglue.c
-
-ifdef WGL
-src/agawin.o: src/agawwin.h
-else
-ifdef GLX
-src/agawin.o: src/agaxwin.h
-endif
-endif
-
-.PHONY: clean
-clean:
-	$(call PATHREM,$(AGA_OBJECTS))
-	$(call PATHREM,$(AGA_OUT))
-
-PREFIX = /usr/local
-
-.PHONY: install
-install: $(INSTALLFILES)
-	install -d $(PREFIX)/bin
-	install $(OUT) $(PREFIX)/bin/aftgangaglay
-	install script/vertgen.py $(PREFIX)/bin/aga-vertgen
-	install script/sndgen.py $(PREFIX)/bin/aga-sndgen
-	install script/imggen.py $(PREFIX)/bin/aga-imggen
-	install script/packgen.py $(PREFIX)/bin/aga-packgen
+clean: clean_python clean_www clean_aga

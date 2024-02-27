@@ -8,11 +8,12 @@
 
 #include <agaresult.h>
 
-#ifdef AGA_WGL
+#ifdef _WIN32
 /*
  * This is super annoying as it leaks a load of garbage into scope.
  * `windows.h' is needed for declaration attributes.
  * `stddef.h' is needed for `wchar_t'.
+ * TODO: `stddef.h' isn't needed under MSVC if the appropriate opt is set.
  */
 # ifndef AGA_WGL_SUPPRESS_AUX
 #  include <windows.h>
@@ -20,9 +21,7 @@
 # endif
 # include <GL/gl.h>
 # include <GL/glu.h>
-#endif
-
-#ifdef AGA_GLX
+#else
 # define GL_GLEXT_PROTOTYPES
 # include <GL/gl.h>
 # include <GL/glext.h>

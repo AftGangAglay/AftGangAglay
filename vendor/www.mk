@@ -1,38 +1,30 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+# Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
-WWW_ROOT = vendor/www
+WWW = vendor$(SEP)www$(SEP)Library$(SEP)Implementation$(SEP)
 
-LIBWWW = vendor/libwww.a
-WWW_IFLAGS = -isystem $(WWW_ROOT)/Library/Implementation
+WWW_SOURCES1 = $(WWW)HTAccess.c $(WWW)HTAlert.c $(WWW)HTAnchor.c
+WWW_SOURCES2 = $(WWW)HTAtom.c $(WWW)HTBTree.c $(WWW)HTChunk.c $(WWW)HTFile.c
+WWW_SOURCES3 = $(WWW)HTFormat.c $(WWW)HTFTP.c $(WWW)HTFWriter.c
+WWW_SOURCES4 = $(WWW)HTGopher.c $(WWW)HTHistory.c $(WWW)HTInit.c
+WWW_SOURCES5 = $(WWW)HTList.c $(WWW)HTMIME.c $(WWW)HTML.c $(WWW)HTMLDTD.c
+WWW_SOURCES6 = $(WWW)HTMLGen.c $(WWW)HTNews.c $(WWW)HTParse.c $(WWW)HTPlain.c
+WWW_SOURCES7 = $(WWW)HTRules.c $(WWW)HTString.c $(WWW)HTStyle.c $(WWW)HTTCP.c
+WWW_SOURCES8 = $(WWW)HTTelnet.c $(WWW)HTTP.c $(WWW)HTWriter.c $(WWW)HTWSRC.c
+WWW_SOURCES9 = $(WWW)SGML.c
 
-WWW_SOURCEROOT = $(WWW_ROOT)/Library/Implementation
-WWW_SOURCES = $(wildcard $(WWW_SOURCEROOT)/*.c)
-WWW_DISABLED = $(WWW_SOURCEROOT)/HTWAIS.c
-WWW_SOURCES := $(filter-out $(WWW_DISABLED),$(WWW_SOURCES))
-WWW_OBJECTS = $(WWW_SOURCES:.c=.o)
+WWW_OBJECTS1 = $(subst .c,$(OBJ),$(WWW_SOURCES1)) $(subst .c,$(OBJ),$(WWW_SOURCES2))
+WWW_OBJECTS2 = $(subst .c,$(OBJ),$(WWW_SOURCES3)) $(subst .c,$(OBJ),$(WWW_SOURCES4))
+WWW_OBJECTS3 = $(subst .c,$(OBJ),$(WWW_SOURCES5)) $(subst .c,$(OBJ),$(WWW_SOURCES6))
+WWW_OBJECTS4 = $(subst .c,$(OBJ),$(WWW_SOURCES7)) $(subst .c,$(OBJ),$(WWW_SOURCES8))
+WWW_OBJECTS5 = $(subst .c,$(OBJ),$(WWW_SOURCES9))
 
-WWW_CFLAGS = -D_SVID_SOURCE -w
-ifdef WINDOWS
-	WWW_CFLAGS += -DNO_GROUPS
-endif
+WWW_OUT = vendor$(SEP)$(LIB)www$(A)
 
-ifdef APPLE
-	WWW_CFLAGS += -DNeXT
-endif
+$(WWW_OUT): $(WWW_OBJECTS1) $(WWW_OBJECTS2) $(WWW_OBJECTS3) $(WWW_OBJECTS4)
+$(WWW_OUT): $(WWW_OBJECTS5)
+	$(AR) $@ $(ALL)
 
-ifdef DEBUG
-	WWW_CFLAGS += -g -D_DEBUG -DDEBUG
-else
-	WWW_CFLAGS += -DNDEBUG -O
-endif
-
-$(LIBWWW): $(WWW_OBJECTS)
-
-$(WWW_OBJECTS): CFLAGS += $(WWW_CFLAGS)
-
-clean: clean_www
-.PHONY: clean_www
 clean_www:
-	$(call PATHREM,$(WWW_OBJECTS))
-	$(call PATHREM,$(LIBWWW))
+	$(RM) $(WWW_OBJECTS1) $(WWW_OBJECTS2) $(WWW_OBJECTS3) $(WWW_OBJECTS4)
+	$(RM) $(WWW_OBJECTS5) $(WWW_OUT)

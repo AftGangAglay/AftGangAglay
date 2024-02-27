@@ -10,28 +10,7 @@
 
 #include <agaresult.h>
 
-#ifdef AGA_GLX
-struct aga_win {
-	aga_size_t width, height;
-	aga_ulong_t xwin;
-	aga_ulong_t blank_cursor, arrow_cursor;
-};
-
-struct aga_keymap {
-	aga_ulong_t* keymap;
-	aga_bool_t* keystates;
-	int keysyms_per_keycode, keycode_len, keycode_min;
-};
-
-struct aga_winenv {
-	void* dpy;
-	void* glx;
-	aga_ulong_t wm_delete;
-	int dpy_fd;
-	int screen;
-	aga_bool_t double_buffered;
-};
-#elif defined(AGA_WGL)
+#ifdef _WIN32
 struct aga_win {
 	void* hwnd;
 	void* dc;
@@ -54,6 +33,27 @@ struct aga_winenv {
 	void* cursor;
 	int class;
 	aga_bool_t visible, captured;
+};
+#else
+struct aga_win {
+	aga_size_t width, height;
+	aga_ulong_t xwin;
+	aga_ulong_t blank_cursor, arrow_cursor;
+};
+
+struct aga_keymap {
+	aga_ulong_t* keymap;
+	aga_bool_t* keystates;
+	int keysyms_per_keycode, keycode_len, keycode_min;
+};
+
+struct aga_winenv {
+	void* dpy;
+	void* glx;
+	aga_ulong_t wm_delete;
+	int dpy_fd;
+	int screen;
+	aga_bool_t double_buffered;
 };
 #endif
 

@@ -6,8 +6,8 @@
 #include <agawin.h>
 #include <agagl.h>
 
-#ifdef AGA_GLX
-# include "agaxwin.h"
-#elif defined(AGA_WGL)
+#ifdef _WIN32
 # include "agawwin.h"
+#else
+# include "agaxwin.h"
 #endif

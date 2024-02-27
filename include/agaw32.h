@@ -9,7 +9,6 @@
 #include <agaresult.h>
 
 #define AGA_ICON_RESOURCE (10)
-#define AGA_EMBED_RESOURCE (11)
 
 #define AGA_AF_WINCHK(proc) \
 	aga_chk(__FILE__, proc, aga_winerr(__FILE__, proc))

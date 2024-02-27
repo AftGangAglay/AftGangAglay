@@ -22,14 +22,17 @@
 #include <parsetok.h>
 #include <ceval.h>
 
+/* TODO: Minify and reference Python licence in sources? */
+
+/*
 int setpythonpath(char* path);
 int setpythonargv(int argc, char** argv);
-int flushline(void);
 void donebuiltin(void);
 void donesys(void);
 void donedict(void);
 void doneerrors(void);
 void freeaccel(void);
 object* call_function(object* func, object* arg);
+ */
 
 #endif

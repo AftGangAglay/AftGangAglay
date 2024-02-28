@@ -45,7 +45,9 @@ enum aga_result aga_searchres(
 		struct aga_respack* pack, const char* path, struct aga_res** out);
 
 enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack);
+
 enum aga_result aga_killrespack(struct aga_respack* pack);
+
 enum aga_result aga_sweeprespack(struct aga_respack* pack);
 
 /* Also counts as an acquire - i.e. initial refcount is 1. */
@@ -55,6 +57,7 @@ enum aga_result aga_mkres(
 enum aga_result aga_resfptr(
 		struct aga_respack* pack, const char* path, void** fp,
 		aga_size_t* size);
+
 enum aga_result aga_resseek(struct aga_res* res, void** fp);
 
 /*
@@ -64,6 +67,7 @@ enum aga_result aga_resseek(struct aga_res* res, void** fp);
  * 		 For invalid objects.
  */
 enum aga_result aga_acquireres(struct aga_res* res);
+
 enum aga_result aga_releaseres(struct aga_res* res);
 
 #endif

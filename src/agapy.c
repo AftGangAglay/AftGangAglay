@@ -16,8 +16,11 @@
 
 /* NOTE: This is cursed beyond cursed but old C code do be like that. */
 #define main fake_main
+
 #include <pythonmain.c>
+
 #undef main
+
 #include <config.c>
 
 #ifdef _DEBUG
@@ -28,24 +31,21 @@ int debugging = 0;
 static void agan_killnativeptr(aga_pyobject_t obj) { free(obj); }
 
 const typeobject agan_nativeptr_type = {
-    OB_HEAD_INIT(&Typetype)
-    0,
-    "nativeptr", sizeof(struct agan_nativeptr), 0,
-    agan_killnativeptr, 0, 0, 0, 0, 0, 0, 0, 0
-};
+		OB_HEAD_INIT(&Typetype)
+		0, "nativeptr", sizeof(struct agan_nativeptr), 0, agan_killnativeptr, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 aga_pyobject_t agan_mknativeptr(void* ptr) {
-    aga_pyobject_t o = newobject((void*) &agan_nativeptr_type);
+	aga_pyobject_t o = newobject((void*) &agan_nativeptr_type);
 	((struct agan_nativeptr*) o)->ptr = ptr;
 	return o;
 }
 
 FILE* pyopen_r(const char* path) {
-    return aga_open_r(path);
+	return aga_open_r(path);
 }
 
 void pyclose(FILE* fp) {
-    aga_close(fp);
+	aga_close(fp);
 }
 
 aga_bool_t aga_script_float(aga_pyobject_t o, float* f) {

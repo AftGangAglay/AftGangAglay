@@ -49,7 +49,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 	AGA_PARAM_CHK(path);
 	AGA_PARAM_CHK(pack);
 
-    aga_global_pack = pack;
+	aga_global_pack = pack;
 
 	pack->db = 0;
 	pack->len = 0;
@@ -89,7 +89,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 		res->pack = pack;
 
 		result = aga_conftree_nonroot(
-			node, &off, 1, &res->offset, AGA_INTEGER);
+				node, &off, 1, &res->offset, AGA_INTEGER);
 		AGA_CHK(result);
 		AGA_VERIFY(res->offset < pack->size, AGA_RESULT_BAD_PARAM);
 

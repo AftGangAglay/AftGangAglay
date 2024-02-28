@@ -19,25 +19,25 @@
 /* TODO: Report object-related errors with path.  */
 
 AGAN_SCRIPTPROC(mktrans) {
-    aga_pyobject_t retval, list, f;
-    aga_size_t i, j;
+	aga_pyobject_t retval, list, f;
+	aga_size_t i, j;
 
 	if(!(retval = newdictobject())) return 0;
 
-    for(i = 0; i < 3; ++i) {
+	for(i = 0; i < 3; ++i) {
 		if(!(list = newlistobject(3))) return 0;
 
-        for(j = 0; j < 3; ++j) {
+		for(j = 0; j < 3; ++j) {
 			if(!(f = newfloatobject((i == 2 ? 1.0 : 0.0)))) return 0;
 			if(aga_list_set(list, j, f)) return 0;
-        }
+		}
 
-        if(dictinsert(retval, (char*) agan_trans_components[i], list) == -1) {
-            return 0;
-        }
-    }
+		if(dictinsert(retval, (char*) agan_trans_components[i], list) == -1) {
+			return 0;
+		}
+	}
 
-    return retval;
+	return retval;
 }
 
 /*
@@ -49,29 +49,29 @@ AGAN_SCRIPTPROC(mktrans) {
 static aga_bool_t agan_mkobj_trans(
 		struct agan_object* obj, struct aga_conf_node* conf) {
 
-    const char* path[2];
+	const char* path[2];
 
-    aga_pyobject_t l, o;
-    aga_size_t i, j;
-    float f;
+	aga_pyobject_t l, o;
+	aga_size_t i, j;
+	float f;
 
-    for(i = 0; i < 3; ++i) {
-        path[0] = agan_conf_components[i];
+	for(i = 0; i < 3; ++i) {
+		path[0] = agan_conf_components[i];
 
-        l = dictlookup(obj->transform, (char*) agan_trans_components[i]);
-        if(!l) return AGA_TRUE;
+		l = dictlookup(obj->transform, (char*) agan_trans_components[i]);
+		if(!l) return AGA_TRUE;
 
-        for(j = 0; j < 3; ++j) {
-            path[1] = agan_xyz[j];
+		for(j = 0; j < 3; ++j) {
+			path[1] = agan_xyz[j];
 
-            if(aga_conftree(conf, path, AGA_LEN(path), &f, AGA_FLOAT)) {
-                f = 0.0f;
-            }
+			if(aga_conftree(conf, path, AGA_LEN(path), &f, AGA_FLOAT)) {
+				f = 0.0f;
+			}
 
 			if(!(o = newfloatobject(f))) return 0;
 			if(aga_list_set(l, j, o)) return 0;
-        }
-    }
+		}
+	}
 
 	return AGA_FALSE;
 }
@@ -82,8 +82,8 @@ static aga_bool_t agan_mkobj_model(
 
 	static const char* model = "Model";
 	static const char* texture = "Texture";
-    static const char* filter = "Filter";
-    /* static const char* unlit = "Unlit"; */
+	static const char* filter = "Filter";
+	/* static const char* unlit = "Unlit"; */
 
 	/* TODO: Opt to disable textures? */
 
@@ -97,7 +97,7 @@ static aga_bool_t agan_mkobj_model(
 	if(aga_script_glerr("glGenLists")) return 0;
 
 #ifdef _DEBUG
-    mode = GL_COMPILE_AND_EXECUTE;
+	mode = GL_COMPILE_AND_EXECUTE;
 #endif
 
 	glNewList(obj->drawlist, mode);
@@ -127,10 +127,10 @@ static aga_bool_t agan_mkobj_model(
 			 * 		 Helper code.
 			 */
 
-            /*
-             * TODO: Handle missing textures etc. gracefully - default/
-             *       Procedural resources?
-             */
+			/*
+			 * TODO: Handle missing textures etc. gracefully - default/
+			 *       Procedural resources?
+			 */
 			err = aga_mkres(pack, path, &res);
 			if(aga_script_err("aga_mkres", err)) return AGA_TRUE;
 
@@ -148,8 +148,8 @@ static aga_bool_t agan_mkobj_model(
 
 			/* TODO: Mipmapping/detail levels. */
 			glTexImage2D(
-				GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-				res->data);
+					GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA,
+					GL_UNSIGNED_BYTE, res->data);
 			/*
 			 * TODO: Script land can probably handle lots of GL errors like
 			 * 		 This relatively gracefully (i.e. allow the user code to go
@@ -226,8 +226,9 @@ AGAN_SCRIPTPROC(mkobj) {
 	retval = agan_mknativeptr(0);
 	nativeptr = (struct agan_nativeptr*) retval;
 
-	if(!(nativeptr->ptr = calloc(1, sizeof(struct agan_object))))
+	if(!(nativeptr->ptr = calloc(1, sizeof(struct agan_object)))) {
 		return err_nomem();
+	}
 
 	obj = nativeptr->ptr;
 	if(!(obj->transform = agan_mktrans(0, 0))) return 0;
@@ -283,8 +284,8 @@ AGAN_SCRIPTPROC(inobj) {
 	struct agan_object* obj;
 
 	if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
-		!AGA_ARG(point, 1, list) || !AGA_ARG(j, 2, int) ||
-		!AGA_ARG(dbg, 3, int)) {
+	   !AGA_ARG(point, 1, list) || !AGA_ARG(j, 2, int) ||
+	   !AGA_ARG(dbg, 3, int)) {
 
 		AGA_ARGERR("inobj", "nativeptr, list, int and int");
 	}
@@ -372,7 +373,7 @@ AGAN_SCRIPTPROC(objconf) {
 	struct agan_object* obj;
 
 	if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
-		!AGA_ARG(l, 1, list)) {
+	   !AGA_ARG(l, 1, list)) {
 
 		AGA_ARGERR("objconf", "nativeptr and list");
 	}
@@ -405,17 +406,17 @@ AGAN_SCRIPTPROC(putobj) {
 
 	glMatrixMode(GL_MODELVIEW);
 	if(aga_script_glerr("glMatrixMode")) return 0;
-		glPushMatrix();
-		if(aga_script_glerr("glPushMatrix")) return 0;
-		if(agan_settransmat(obj->transform, AGA_FALSE)) return 0;
+	glPushMatrix();
+	if(aga_script_glerr("glPushMatrix")) return 0;
+	if(agan_settransmat(obj->transform, AGA_FALSE)) return 0;
 
 	glCallList(obj->drawlist);
 	if(aga_script_glerr("glCallList")) return 0;
 
 	glMatrixMode(GL_MODELVIEW);
 	if(aga_script_glerr("glMatrixMode")) return 0;
-		glPopMatrix();
-		if(aga_script_glerr("glPopMatrix")) return 0;
+	glPopMatrix();
+	if(aga_script_glerr("glPopMatrix")) return 0;
 
 	return AGA_INCREF(None);
 }

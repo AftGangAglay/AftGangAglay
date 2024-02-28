@@ -9,7 +9,9 @@
 #include <agagl.h>
 #include <agalog.h>
 #include <agaerr.h>
+
 #define AGA_WANT_UNIX
+
 #include <agastd.h>
 
 #include <X11/Xlib.h>
@@ -27,35 +29,27 @@ static const char* agax_chk_last = "xlib";
 #endif
 
 static const int single_buffer_fb[] = {
-	GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-	GLX_RENDER_TYPE, GLX_RGBA_BIT,
+		GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT, GLX_RENDER_TYPE, GLX_RGBA_BIT,
 
-	GLX_RED_SIZE, GLX_DONT_CARE,
-	GLX_GREEN_SIZE, GLX_DONT_CARE,
-	GLX_BLUE_SIZE, GLX_DONT_CARE,
-	GLX_DEPTH_SIZE, 1,
+		GLX_RED_SIZE, GLX_DONT_CARE, GLX_GREEN_SIZE, GLX_DONT_CARE,
+		GLX_BLUE_SIZE, GLX_DONT_CARE, GLX_DEPTH_SIZE, 1,
 
-	None
-};
+		None };
 
 static const int double_buffer_fb[] = {
-	GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-	GLX_RENDER_TYPE, GLX_RGBA_BIT,
-	GLX_DOUBLEBUFFER, True,
+		GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT, GLX_RENDER_TYPE, GLX_RGBA_BIT,
+		GLX_DOUBLEBUFFER, True,
 
-	GLX_RED_SIZE, GLX_DONT_CARE,
-	GLX_GREEN_SIZE, GLX_DONT_CARE,
-	GLX_BLUE_SIZE, GLX_DONT_CARE,
-	GLX_DEPTH_SIZE, 1,
+		GLX_RED_SIZE, GLX_DONT_CARE, GLX_GREEN_SIZE, GLX_DONT_CARE,
+		GLX_BLUE_SIZE, GLX_DONT_CARE, GLX_DEPTH_SIZE, 1,
 
-	None
-};
+		None };
 
 static void aga_centreptr(struct aga_winenv* env, struct aga_win* win) {
 	int mid_x = (int) win->width / 2;
 	int mid_y = (int) win->height / 2;
-	AGAX_CHK(XWarpPointer, (
-		env->dpy, win->xwin, win->xwin, 0, 0, 0, 0, mid_x, mid_y));
+	AGAX_CHK(XWarpPointer,
+			 (env->dpy, win->xwin, win->xwin, 0, 0, 0, 0, mid_x, mid_y));
 }
 
 static int aga_xerr_handler(Display* dpy, XErrorEvent* err) {
@@ -93,8 +87,8 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	}
 
 	env->screen = DefaultScreen(env->dpy);
-	env->wm_delete = AGAX_CHK(XInternAtom, (
-		env->dpy, "WM_DELETE_WINDOW", True));
+	env->wm_delete = AGAX_CHK(XInternAtom,
+							  (env->dpy, "WM_DELETE_WINDOW", True));
 	AGA_VERIFY(env->wm_delete != None, AGA_RESULT_BAD_PARAM);
 
 	env->double_buffered = AGA_TRUE;
@@ -102,7 +96,7 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	if(!fb) {
 		env->double_buffered = AGA_FALSE;
 		fb = glXChooseFBConfig(
-			env->dpy, env->screen, single_buffer_fb, &n_fb);
+				env->dpy, env->screen, single_buffer_fb, &n_fb);
 		AGA_VERIFY(fb, AGA_RESULT_ERROR);
 	}
 
@@ -128,7 +122,8 @@ enum aga_result aga_killwinenv(struct aga_winenv* env) {
 	return AGA_RESULT_OK;
 }
 
-enum aga_result aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
+enum aga_result
+aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
 	int min, max;
 
 	AGA_PARAM_CHK(keymap);
@@ -139,12 +134,15 @@ enum aga_result aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) 
 	keymap->keycode_len = max - min;
 	keymap->keycode_min = min;
 
-	keymap->keymap = (aga_ulong_t*) AGAX_CHK(XGetKeyboardMapping, (
-		env->dpy, min, keymap->keycode_len, &keymap->keysyms_per_keycode));
+	keymap->keymap = (aga_ulong_t * )AGAX_CHK(XGetKeyboardMapping,
+											  (env->dpy, min, keymap
+													  ->keycode_len, &keymap
+													  ->keysyms_per_keycode));
 	AGA_VERIFY(keymap->keymap, AGA_RESULT_ERROR);
 
 	keymap->keystates = calloc(
-		keymap->keysyms_per_keycode * keymap->keycode_len, sizeof(aga_bool_t));
+			keymap->keysyms_per_keycode * keymap->keycode_len,
+			sizeof(aga_bool_t));
 	AGA_VERIFY(keymap->keystates, AGA_RESULT_OOM);
 
 	return AGA_RESULT_OK;
@@ -190,13 +188,12 @@ enum aga_result aga_mkwin(
 	win->width = width;
 	win->height = height;
 
-	win->xwin = AGAX_CHK(XCreateSimpleWindow, (
-		env->dpy, RootWindow(env->dpy, env->screen), 0, 0, width, height,
-		8, white, black));
+	win->xwin = AGAX_CHK(XCreateSimpleWindow, (env->dpy, RootWindow(
+			env->dpy, env->screen), 0, 0, width, height, 8, white, black));
 	AGA_VERIFY(win->xwin != None, AGA_RESULT_ERROR);
 
-	AGAX_CHK(XSetStandardProperties, (
-		env->dpy, win->xwin, "Aft Gang Aglay", "", None, argv, argc, 0));
+	AGAX_CHK(XSetStandardProperties,
+			 (env->dpy, win->xwin, "Aft Gang Aglay", "", None, argv, argc, 0));
 
 	AGAX_CHK(XSelectInput, (env->dpy, win->xwin, mask));
 	{
@@ -205,8 +202,7 @@ enum aga_result aga_mkwin(
 		int count;
 		int res;
 
-		res = AGAX_CHK(XGetWMProtocols, (
-			env->dpy, win->xwin, &prots, &count));
+		res = AGAX_CHK(XGetWMProtocols, (env->dpy, win->xwin, &prots, &count));
 		if(!res) {
 			prots = 0;
 			count = 0;
@@ -222,8 +218,8 @@ enum aga_result aga_mkwin(
 		new_prots[count] = env->wm_delete;
 		if(prots) XFree(prots);
 
-		res = AGAX_CHK(XSetWMProtocols, (
-			env->dpy, win->xwin, new_prots, count + 1));
+		res = AGAX_CHK(XSetWMProtocols,
+					   (env->dpy, win->xwin, new_prots, count + 1));
 		if(!res) {
 			free(new_prots);
 			return AGA_RESULT_ERROR;
@@ -231,17 +227,13 @@ enum aga_result aga_mkwin(
 
 		free(new_prots);
 	}
-	AGAX_CHK(XSetInputFocus, (
-		env->dpy, win->xwin, RevertToNone, CurrentTime));
+	AGAX_CHK(XSetInputFocus, (env->dpy, win->xwin, RevertToNone, CurrentTime));
 
-	AGAX_CHK(XMapRaised, (
-		env->dpy, win->xwin));
+	AGAX_CHK(XMapRaised, (env->dpy, win->xwin));
 
-	win->blank_cursor = AGAX_CHK(XCreateFontCursor, (
-		env->dpy, XC_tcross));
+	win->blank_cursor = AGAX_CHK(XCreateFontCursor, (env->dpy, XC_tcross));
 	AGA_VERIFY(win->blank_cursor != None, AGA_RESULT_ERROR);
-	win->arrow_cursor = AGAX_CHK(XCreateFontCursor, (
-		env->dpy, XC_arrow));
+	win->arrow_cursor = AGAX_CHK(XCreateFontCursor, (env->dpy, XC_arrow));
 	AGA_VERIFY(win->arrow_cursor != None, AGA_RESULT_ERROR);
 
 	return AGA_RESULT_OK;
@@ -260,11 +252,7 @@ enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win) {
 
 enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	static const char* const names[] = {
-		"*bold*iso8859*",
-		"*iso8859*",
-		"*bold*",
-		"*"
-	};
+			"*bold*iso8859*", "*iso8859*", "*bold*", "*" };
 
 	Font font;
 	int nfonts = 0;
@@ -277,7 +265,7 @@ enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	AGA_PARAM_CHK(win);
 
 	res = glXMakeContextCurrent(
-		env->dpy, win->xwin, win->xwin, env->glx);
+			env->dpy, win->xwin, win->xwin, env->glx);
 	AGA_VERIFY(res, AGA_RESULT_ERROR);
 
 	while(AGA_TRUE) {
@@ -288,8 +276,7 @@ enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 		}
 
 		aga_log(__FILE__, "Trying font pattern `%s'", names[current]);
-		fontname = AGAX_CHK(XListFonts, (
-			env->dpy, names[current], 1, &nfonts));
+		fontname = AGAX_CHK(XListFonts, (env->dpy, names[current], 1, &nfonts));
 
 		if(nfonts) {
 			AGA_VERIFY(fontname, AGA_RESULT_ERROR);
@@ -384,12 +371,11 @@ enum aga_result aga_poll(
 					/* FALLTHRU */
 				case KeyRelease: {
 					unsigned keycode = event.xkey.keycode;
-					aga_size_t keysym_idx =
-						(keycode - keymap->keycode_min) *
-						keymap->keysyms_per_keycode;
+					aga_size_t keysym_idx = (keycode - keymap->keycode_min) *
+											keymap->keysyms_per_keycode;
 					aga_ulong_t keysym = keymap->keymap[keysym_idx];
-					aga_size_t bound = keymap->keysyms_per_keycode *
-						keymap->keycode_len;
+					aga_size_t bound =
+							keymap->keysyms_per_keycode * keymap->keycode_len;
 
 					if(keysym < bound) keymap->keystates[keysym] = press;
 
@@ -445,7 +431,7 @@ enum aga_result aga_diag(
 		}
 		*response = (toupper(c) == 'Y');
 	}
-	else *response = AGA_FALSE;
+	else { *response = AGA_FALSE; }
 
 	return AGA_RESULT_OK;
 }

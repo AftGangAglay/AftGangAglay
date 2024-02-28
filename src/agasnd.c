@@ -7,8 +7,8 @@
 #include <agaenv.h>
 
 #if defined(AGA_HAVE_POLL) && defined(AGA_HAVE_SYS_IOCTL) && \
-	defined(AGA_HAVE_SYS_SOUNDCARD) && defined(AGA_HAVE_SYS_TYPES) && \
-	defined(AGA_HAVE_FCNTL)
+    defined(AGA_HAVE_SYS_SOUNDCARD) && defined(AGA_HAVE_SYS_TYPES) && \
+    defined(AGA_HAVE_FCNTL)
 # define AGA_HAVE_SOUND
 #endif
 
@@ -123,6 +123,7 @@ enum aga_result aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip) {
 }
 
 #else
+
 enum aga_result aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 	(void) snddev;
 	(void) dev;

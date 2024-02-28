@@ -107,7 +107,7 @@ static enum aga_result aga_compilescript(
 
 	result = eval_code(code, *dict, *dict, 0);
 	if(err_occurred()) {
-        aga_script_trace();
+		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
 	if(result) { DECREF(result); }
@@ -119,12 +119,12 @@ static enum aga_result aga_compilescript(
 }
 
 enum aga_result aga_mkscripteng(
-		struct aga_scripteng* eng, const char* script, int argc,
-		char** argv, struct aga_respack* pack, const char* pypath) {
+		struct aga_scripteng* eng, const char* script, int argc, char** argv,
+		struct aga_respack* pack, const char* pypath) {
 
-    AGA_PARAM_CHK(eng);
-    AGA_PARAM_CHK(script);
-    AGA_PARAM_CHK(argv);
+	AGA_PARAM_CHK(eng);
+	AGA_PARAM_CHK(script);
+	AGA_PARAM_CHK(argv);
 
 	initall();
 	AGA_CHK(aga_mkmod((void**) &eng->agandict));
@@ -164,14 +164,14 @@ enum aga_result aga_setscriptptr(
 	AGA_PARAM_CHK(key);
 	AGA_PARAM_CHK(value);
 
-	if(!(nativeptr = newobject((typeobject*) &agan_nativeptr_type))) {
-        aga_script_trace();
+	if(!(nativeptr = newobject((typeobject * ) & agan_nativeptr_type))) {
+		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
 	((struct agan_nativeptr*) nativeptr)->ptr = value;
 
 	if(dictinsert(eng->agandict, (char*) key, nativeptr) == -1) {
-        aga_script_trace();
+		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
 
@@ -187,7 +187,7 @@ enum aga_result aga_findclass(
 	AGA_PARAM_CHK(name);
 
 	if(!(class->class = dictlookup(eng->global, (char*) name))) {
-        aga_script_trace();
+		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
 
@@ -205,7 +205,7 @@ enum aga_result aga_mkscriptinst(
 	inst->class = class;
 	inst->object = newclassmemberobject(class->class);
 	if(err_occurred()) {
-        aga_script_trace();
+		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
 
@@ -229,19 +229,19 @@ enum aga_result aga_instcall(struct aga_scriptinst* inst, const char* name) {
 
 	proc = getattr(inst->class->class, (char*) name);
 	if(err_occurred()) {
-        aga_script_trace();
+		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
 
 	methodcall = newclassmethodobject(proc, inst->object);
 	if(err_occurred()) {
-        aga_script_trace();
+		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
 
 	call_function(methodcall, 0);
 	if(err_occurred()) {
-        aga_script_trace();
+		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
 

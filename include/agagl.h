@@ -16,11 +16,15 @@
  * TODO: `stddef.h' isn't needed under MSVC if the appropriate opt is set.
  */
 # ifndef AGA_WGL_SUPPRESS_AUX
+
 #  include <windows.h>
 #  include <stddef.h>
+
 # endif
+
 # include <GL/gl.h>
 # include <GL/glu.h>
+
 #else
 # define GL_GLEXT_PROTOTYPES
 # include <GL/gl.h>
@@ -34,10 +38,10 @@
 # define AGA_GL_CHK(proc) (void) proc
 #else
 # define AGA_GL_CHK(proc) \
-	do { \
-		enum aga_result err = aga_glerr(__FILE__, proc); \
-		if(err) return err; \
-	} while(0)
+    do { \
+        enum aga_result err = aga_glerr(__FILE__, proc); \
+        if(err) return err; \
+    } while(0)
 #endif
 
 enum aga_result aga_glerr(const char* loc, const char* proc);

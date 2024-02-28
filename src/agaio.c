@@ -6,7 +6,9 @@
 #include <agaio.h>
 #include <agaerr.h>
 #include <agalog.h>
+
 #define AGA_WANT_UNIX
+
 #include <agastd.h>
 
 enum aga_result aga_fplen(void* fp, aga_size_t* size) {
@@ -202,11 +204,13 @@ enum aga_result aga_spawn_sync(const char* program, char** argv, const char* wd)
 	return AGA_RESULT_OK;
 }
 # elif defined(AGA_WINSPAWN)
+
 # include <agaw32.h>
 
 # include <windows.h>
 
-enum aga_result aga_spawn_sync(const char* program, char** argv, const char* wd) {
+enum aga_result
+aga_spawn_sync(const char* program, char** argv, const char* wd) {
 	aga_size_t len = 0;
 	char* cli = 0;
 
@@ -251,5 +255,6 @@ enum aga_result aga_spawn_sync(const char* program, char** argv, const char* wd)
 
 	return AGA_RESULT_OK;
 }
+
 # endif
 #endif

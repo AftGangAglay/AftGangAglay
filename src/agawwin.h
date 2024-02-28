@@ -22,11 +22,10 @@
 #define AGA_CLASS_NAME ("Aft Gang Aglay")
 
 static const PIXELFORMATDESCRIPTOR pixel_format = {
-	sizeof(PIXELFORMATDESCRIPTOR), 1,
-	PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-	PFD_TYPE_RGBA, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	32, 0, 0, PFD_MAIN_PLANE, 0, 0, 0, 0
-};
+		sizeof(PIXELFORMATDESCRIPTOR), 1,
+		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+		PFD_TYPE_RGBA, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 0, 0,
+		PFD_MAIN_PLANE, 0, 0, 0, 0 };
 
 #define AGA_WINPROC_PACK_MAGIC (0x547123AA)
 
@@ -40,7 +39,7 @@ struct aga_winproc_pack {
 static LRESULT aga_winproc(
 		HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param) {
 
-    struct aga_winproc_pack* pack;
+	struct aga_winproc_pack* pack;
 	aga_bool_t down = AGA_TRUE;
 
 	if(msg == WM_NCCREATE) return TRUE;
@@ -80,7 +79,7 @@ static LRESULT aga_winproc(
 			if(GET_RAWINPUT_CODE_WPARAM(w_param) == RIM_INPUTSINK) return 1;
 
 			result = GetRawInputData(
-				hnd, RID_INPUT, 0, &input_size, header_size);
+					hnd, RID_INPUT, 0, &input_size, header_size);
 			if(result == err) {
 				(void) aga_winerr(__FILE__, "GetRawInputData");
 				return 0;
@@ -92,7 +91,7 @@ static LRESULT aga_winproc(
 			}
 
 			result = GetRawInputData(
-				hnd, RID_INPUT, data, &input_size, header_size);
+					hnd, RID_INPUT, data, &input_size, header_size);
 			if(result == err) {
 				(void) aga_winerr(__FILE__, "GetRawInputData");
 				free(data);
@@ -109,8 +108,8 @@ static LRESULT aga_winproc(
 		}
 
 		case WM_MOUSEMOVE: {
-            pack->pointer->x = GET_X_LPARAM(l_param);
-            pack->pointer->y = GET_Y_LPARAM(l_param);
+			pack->pointer->x = GET_X_LPARAM(l_param);
+			pack->pointer->y = GET_Y_LPARAM(l_param);
 			return 0;
 		}
 
@@ -118,7 +117,7 @@ static LRESULT aga_winproc(
 			if(!ReleaseDC(wnd, GetDC(wnd))) {
 				(void) aga_winerr(__FILE__, "ReleaseDC");
 			}
-            if(!DestroyWindow(wnd)) {
+			if(!DestroyWindow(wnd)) {
 				(void) aga_winerr(__FILE__, "DestroyWindow");
 			}
 			*pack->die = AGA_TRUE;
@@ -187,7 +186,8 @@ enum aga_result aga_killwinenv(struct aga_winenv* env) {
 	return AGA_RESULT_OK;
 }
 
-enum aga_result aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
+enum aga_result
+aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
 	AGA_PARAM_CHK(keymap);
 	AGA_PARAM_CHK(env);
 
@@ -215,7 +215,7 @@ enum aga_result aga_mkwin(
 	int ind;
 	long mask = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
 	RAWINPUTDEVICE mouse = {
-		HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0, 0 };
+			HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0, 0 };
 
 	(void) argc;
 	(void) argv;
@@ -226,15 +226,15 @@ enum aga_result aga_mkwin(
 	win->width = width;
 	win->height = height;
 
-	win->hwnd = CreateWindowA(
-		AGA_CLASS_NAME, "Aft Gang Aglay", mask, CW_USEDEFAULT, CW_USEDEFAULT,
-		width, height, 0, 0, env->module, 0);
+	win->hwnd = CreateWindowA(AGA_CLASS_NAME, "Aft Gang Aglay", mask,
+							  CW_USEDEFAULT, CW_USEDEFAULT, width, height, 0, 0,
+							  env->module, 0);
 	if(!win->hwnd) return aga_winerr(__FILE__, "CreateWindowA");
 	if(!ShowWindow((void*) win->hwnd, SW_SHOWNORMAL)) {
 		return aga_winerr(__FILE__, "ShowWindow");
 	}
 
-	if(!(win->dc = GetDC((void*) win->hwnd)))  {
+	if(!(win->dc = GetDC((void*) win->hwnd))) {
 		return aga_winerr(__FILE__, "GetDC");
 	}
 
@@ -362,7 +362,7 @@ enum aga_result aga_poll(
 		struct aga_pointer* pointer, aga_bool_t* die) {
 
 	MSG msg;
-    struct aga_winproc_pack pack;
+	struct aga_winproc_pack pack;
 
 	AGA_PARAM_CHK(env);
 	AGA_PARAM_CHK(keymap);
@@ -370,9 +370,9 @@ enum aga_result aga_poll(
 	AGA_PARAM_CHK(pointer);
 	AGA_PARAM_CHK(die);
 
-    pack.die = die;
-    pack.keymap = keymap;
-    pack.pointer = pointer;
+	pack.die = die;
+	pack.keymap = keymap;
+	pack.pointer = pointer;
 	pack.magic = AGA_WINPROC_PACK_MAGIC;
 
 	if(env->captured) {
@@ -381,9 +381,9 @@ enum aga_result aga_poll(
 
 	SetCursor(env->visible ? env->cursor : 0);
 
-    SetLastError(0);
-    SetWindowLongPtrA(win->hwnd, GWLP_USERDATA, (LONG_PTR) &pack);
-    if(GetLastError()) AGA_AF_WINCHK("SetWindowLongPtrA");
+	SetLastError(0);
+	SetWindowLongPtrA(win->hwnd, GWLP_USERDATA, (LONG_PTR) &pack);
+	if(GetLastError()) AGA_AF_WINCHK("SetWindowLongPtrA");
 
 	while(PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
 		TranslateMessage(&msg);

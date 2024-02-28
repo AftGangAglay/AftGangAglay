@@ -28,9 +28,11 @@ struct aga_clip {
 };
 
 enum aga_result aga_mksnddev(const char* dev, struct aga_snddev* snddev);
+
 enum aga_result aga_killsnddev(struct aga_snddev* snddev);
 
 enum aga_result aga_flushsnd(struct aga_snddev* snddev, aga_size_t* written);
+
 enum aga_result aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip);
 
 #endif

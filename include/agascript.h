@@ -35,24 +35,31 @@ struct aga_scripteng {
 };
 
 enum aga_result aga_mkscripteng(
-		struct aga_scripteng* eng, const char* script, int argc,
-		char** argv, struct aga_respack* pack, const char* pypath);
+		struct aga_scripteng* eng, const char* script, int argc, char** argv,
+		struct aga_respack* pack, const char* pypath);
+
 enum aga_result aga_killscripteng(struct aga_scripteng* eng);
 
 enum aga_result aga_setscriptptr(
 		struct aga_scripteng* eng, const char* key, void* value);
+
 void* aga_getscriptptr(const char* key);
 
 enum aga_result aga_findclass(
 		struct aga_scripteng* eng, struct aga_scriptclass* class,
 		const char* name);
+
 enum aga_result aga_mkscriptinst(
 		struct aga_scriptclass* class, struct aga_scriptinst* inst);
+
 enum aga_result aga_killscriptinst(struct aga_scriptinst* inst);
+
 enum aga_result aga_instcall(struct aga_scriptinst* inst, const char* name);
 
 void aga_script_trace(void);
+
 aga_bool_t aga_script_err(const char* proc, enum aga_result err);
+
 aga_bool_t aga_script_glerr(const char* proc);
 
 enum aga_result aga_mkmod(void** dict);

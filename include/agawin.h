@@ -59,7 +59,7 @@ struct aga_winenv {
 
 struct aga_pointer {
 	int dx, dy;
-    int x, y;
+	int x, y;
 };
 
 /*
@@ -67,14 +67,17 @@ struct aga_pointer {
  * 		 Of each printable character (i.e. `glCallList('a')')
  */
 enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display);
+
 enum aga_result aga_killwinenv(struct aga_winenv* env);
 
 enum aga_result aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env);
+
 enum aga_result aga_killkeymap(struct aga_keymap* keymap);
 
 enum aga_result aga_mkwin(
 		aga_size_t width, aga_size_t height, struct aga_winenv* env,
 		struct aga_win* win, int argc, char** argv);
+
 enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win);
 
 /*
@@ -90,6 +93,7 @@ enum aga_result aga_setcursor(
 		aga_bool_t captured);
 
 enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win);
+
 enum aga_result aga_swapbuf(struct aga_winenv* env, struct aga_win* win);
 
 enum aga_result aga_poll(

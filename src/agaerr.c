@@ -13,7 +13,7 @@ const char* aga_aga_errname(enum aga_result e) {
 		default: {
 			AGA_FALLTHROUGH;
 			/* FALLTHRU */
-        }
+		}
 		case AGA_RESULT_OK: return "none";
 
 		case AGA_RESULT_ERROR: return "unknown";
@@ -70,8 +70,11 @@ enum aga_result aga_patherrno(
 		const char* loc, const char* proc, const char* path) {
 
 	if(loc) {
-		if(path) aga_log(loc, "err: %s: %s `%s'", proc, strerror(errno), path);
-		else aga_log(loc, "err: %s: %s", proc, strerror(errno));
+		if(path) {
+			aga_log(
+					loc, "err: %s: %s `%s'", proc, strerror(errno), path);
+		}
+		else { aga_log(loc, "err: %s: %s", proc, strerror(errno)); }
 	}
 	switch(errno) {
 		default: return AGA_RESULT_ERROR;

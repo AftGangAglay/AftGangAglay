@@ -7,5 +7,5 @@
 #include <agastd.h>
 
 aga_bool_t aga_streql(const char* a, const char* b) {
-    return !strcmp(a, b);
+	return !strcmp(a, b);
 }

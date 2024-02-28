@@ -32,7 +32,7 @@ enum aga_result aga_pathwinerr(
 		const char* loc, const char* proc, const char* path) {
 
 	DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-		FORMAT_MESSAGE_IGNORE_INSERTS;
+				  FORMAT_MESSAGE_IGNORE_INSERTS;
 	DWORD err;
 	DWORD written;
 	LPSTR buf;
@@ -49,8 +49,8 @@ enum aga_result aga_pathwinerr(
 		buf[written - 1] = 0;
 		buf[written - 2] = 0;
 
-		if(path) aga_log(loc, "err: %s: %s `%s'", proc, buf, path);
-		else aga_log(loc, "err: %s: %s", proc, buf);
+		if(path) { aga_log(loc, "err: %s: %s `%s'", proc, buf, path); }
+		else { aga_log(loc, "err: %s: %s", proc, buf); }
 
 		if(LocalFree(buf)) {
 			aga_log(__FILE__, "err: LocalFree failed");

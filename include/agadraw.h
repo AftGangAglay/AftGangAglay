@@ -11,12 +11,15 @@
 enum aga_result aga_setdrawparam(void);
 
 enum aga_result aga_pushrawdraw(void);
+
 enum aga_result aga_poprawdraw(void);
 
 enum aga_result aga_puttext(float x, float y, const char* text);
+
 enum aga_result aga_puttextfmt(float x, float y, const char* fmt, ...);
 
 enum aga_result aga_clear(const float* col);
+
 enum aga_result aga_flush(void);
 
 #endif

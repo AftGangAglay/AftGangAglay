@@ -15,10 +15,7 @@
  */
 
 enum aga_conf_type {
-	AGA_NONE,
-	AGA_STRING,
-	AGA_INTEGER,
-	AGA_FLOAT
+	AGA_NONE, AGA_STRING, AGA_INTEGER, AGA_FLOAT
 };
 
 struct aga_conf_node;
@@ -41,7 +38,9 @@ struct aga_conf_node {
 /* Specify the filename of the config file being parsed for debug purposes. */
 extern const char* aga_conf_debug_file;
 
-enum aga_result aga_mkconf(void* fp, aga_size_t count, struct aga_conf_node* root);
+enum aga_result
+aga_mkconf(void* fp, aga_size_t count, struct aga_conf_node* root);
+
 enum aga_result aga_killconf(struct aga_conf_node* root);
 
 aga_bool_t aga_confvar(
@@ -55,6 +54,7 @@ enum aga_result aga_conftree_raw(
 enum aga_result aga_conftree_nonroot(
 		struct aga_conf_node* root, const char** names, aga_size_t count,
 		void* value, enum aga_conf_type type);
+
 enum aga_result aga_conftree(
 		struct aga_conf_node* root, const char** names, aga_size_t count,
 		void* value, enum aga_conf_type type);

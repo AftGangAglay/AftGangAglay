@@ -45,16 +45,16 @@ void aga_mklog(const char** targets, aga_size_t len) {
 	}
 	else {
 		for(i = 0; i < len; ++i) {
-			if(!targets[i]) aga_logctx.targets[i] = AGA_LOG_DEFAULT_STREAM;
+			if(!targets[i]) { aga_logctx.targets[i] = AGA_LOG_DEFAULT_STREAM; }
 			else if(!(aga_logctx.targets[i] = fopen(targets[i], "w+"))) {
 				perror("fopen");
 			}
 		}
 	}
 
-    if(!!getenv("AGA_FORCEANSI")) aga_logctx.have_ansi = 1;
+	if(!!getenv("AGA_FORCEANSI")) { aga_logctx.have_ansi = 1; }
 #ifdef _WIN32
-    else aga_setw32log();
+	else { aga_setw32log(); }
 #endif
 
 	/* TODO: Scripttrace on fatal signal? */
@@ -86,9 +86,12 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 	if(aga_logctx.have_ansi && AGA_ISTTY(s)) {
 		switch(sev) {
 			default: break;
-			case AGA_NORM: f = CYN "[%s]" END " "; break;
-			case AGA_WARN: f = YLW "[%s]" END " "; break;
-			case AGA_ERR: f = RED "[%s]" END " "; break;
+			case AGA_NORM: f = CYN "[%s]" END " ";
+				break;
+			case AGA_WARN: f = YLW "[%s]" END " ";
+				break;
+			case AGA_ERR: f = RED "[%s]" END " ";
+				break;
 		}
 	}
 
@@ -122,7 +125,7 @@ void aga_log(const char* loc, const char* fmt, ...) {
 		aga_loghdr(s, loc, sev);
 		if(fputs(buf, s) == EOF) perror("fputs");
 		if(putc('\n', s) == EOF) perror("putc");
- 	}
+	}
 
 	va_end(l);
 }

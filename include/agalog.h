@@ -23,9 +23,7 @@ struct aga_logctx {
 };
 
 enum aga_logsev {
-	AGA_NORM,
-	AGA_WARN,
-	AGA_ERR
+	AGA_NORM, AGA_WARN, AGA_ERR
 };
 
 /*
@@ -35,6 +33,7 @@ enum aga_logsev {
 extern struct aga_logctx aga_logctx;
 
 void aga_mklog(const char** targets, aga_size_t len);
+
 /*
  * NOTE: Called during fatal signals and `_fini' - you probably don't need to
  * 		 Call this yourself.

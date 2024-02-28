@@ -19,15 +19,13 @@
  * NOTE: These need to be in `strcmp' order (effectively alphabetical for us)
  */
 enum aga_sgml_node {
-	AGA_NODE_ITEM,
-	AGA_NODE_ROOT,
+	AGA_NODE_ITEM, AGA_NODE_ROOT,
 
 	AGA_ELEMENT_COUNT
 };
 
 enum aga_sgml_item_attribs {
-	AGA_ITEM_NAME,
-	AGA_ITEM_TYPE,
+	AGA_ITEM_NAME, AGA_ITEM_TYPE,
 
 	AGA_ITEM_ATTRIB_COUNT
 };
@@ -44,6 +42,7 @@ struct aga_sgml_structured {
 const char* aga_conf_debug_file = "<none>";
 
 void SGML_character(HTStream* context, char c);
+
 void SGML_free(HTStream* context);
 
 aga_bool_t aga_isblank(char c) {
@@ -63,7 +62,8 @@ enum aga_result aga_sgml_push(
 	return AGA_RESULT_OK;
 }
 
-void aga_sgml_nil(void) {}
+void aga_sgml_nil(void) { }
+
 void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
 	struct aga_conf_node* node = me->stack[me->depth - 1];
 	void* newptr;
@@ -115,16 +115,16 @@ void aga_sgml_start_element(
 	switch(element_number) {
 		default: {
 			aga_log(
-				__FILE__,
-				"warn: SGML_new: unknown element %i", element_number);
+					__FILE__, "warn: SGML_new: unknown element %i",
+					element_number);
 			return;
 		}
 		case AGA_NODE_ITEM: {
 			if(!attribute_present[AGA_ITEM_NAME]) {
 				aga_log(
-					__FILE__,
-					"warn: <item> element without name attrib `%s'",
-					aga_conf_debug_file);
+						__FILE__,
+						"warn: <item> element without name attrib `%s'",
+						aga_conf_debug_file);
 			}
 			else {
 				const char* value = attribute_value[AGA_ITEM_NAME];
@@ -136,15 +136,17 @@ void aga_sgml_start_element(
 				memcpy(node->name, value, len + 1);
 			}
 
-			if(!attribute_present[AGA_ITEM_TYPE]) node->type = AGA_NONE;
+			if(!attribute_present[AGA_ITEM_TYPE]) { node->type = AGA_NONE; }
 			else {
 				const char* typename = attribute_value[AGA_ITEM_TYPE];
-				if(aga_streql(typename, "Integer")) node->type = AGA_INTEGER;
-				else if(aga_streql(typename, "String")) node->type = AGA_STRING;
-				else if(aga_streql(typename, "Float")) node->type = AGA_FLOAT;
+				if(aga_streql(
+						typename, "Integer")) { node->type = AGA_INTEGER; }
+				else if(aga_streql(
+						typename, "String")) { node->type = AGA_STRING; }
+				else if(aga_streql(
+						typename, "Float")) { node->type = AGA_FLOAT; }
 				else {
-					static const char fmt[] =
-						"warn: <item> element has unknown type `%s' in `%s'";
+					static const char fmt[] = "warn: <item> element has unknown type `%s' in `%s'";
 					aga_log(__FILE__, fmt, typename, aga_conf_debug_file);
 					node->type = AGA_NONE;
 				}
@@ -166,7 +168,7 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 		aga_size_t n = node->scratch - i;
 		char* c = &string[n];
 
-		if(aga_isblank(*c)) *c = 0;
+		if(aga_isblank(*c)) { *c = 0; }
 		else if(*c) break;
 	}
 
@@ -199,25 +201,26 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 	me->depth--;
 }
 
-enum aga_result aga_mkconf(void* fp, aga_size_t count, struct aga_conf_node* root) {
+enum aga_result
+aga_mkconf(void* fp, aga_size_t count, struct aga_conf_node* root) {
 	static HTStructuredClass class = {
-		"",
+			"",
 
-		(void(*)(HTStructured*)) aga_sgml_nil,
-		(void(*)(HTStructured*, HTError)) aga_sgml_nil,
+			(void (*)(HTStructured*)) aga_sgml_nil,
+			(void (*)(HTStructured*, HTError)) aga_sgml_nil,
 
-		(void(*)(HTStructured*, char)) aga_sgml_putc,
+			(void (*)(HTStructured*, char)) aga_sgml_putc,
 
-		(void(*)(HTStructured*, const char*)) aga_sgml_nil,
-		(void(*)(HTStructured*, const char*, int)) aga_sgml_nil,
+			(void (*)(HTStructured*, const char*)) aga_sgml_nil,
+			(void (*)(HTStructured*, const char*, int)) aga_sgml_nil,
 
-		(void(*)(HTStructured*, int, const BOOLEAN*, const char**))
-			aga_sgml_start_element,
+			(void (*)(
+					HTStructured*, int, const BOOLEAN*,
+					const char**)) aga_sgml_start_element,
 
-		(void(*)(HTStructured*, int)) aga_sgml_end_element,
+			(void (*)(HTStructured*, int)) aga_sgml_end_element,
 
-		(void(*)(HTStructured*, int)) aga_sgml_nil
-	};
+			(void (*)(HTStructured*, int)) aga_sgml_nil };
 
 	HTStream* s;
 	SGML_dtd dtd;
@@ -295,9 +298,9 @@ aga_bool_t aga_confvar(
 		}
 		switch(type) {
 			default: {
-                AGA_FALLTHROUGH;
+				AGA_FALLTHROUGH;
 				/* FALLTHRU */
-            }
+			}
 			case AGA_NONE: break;
 			case AGA_STRING: {
 				*(char**) value = node->data.string;
@@ -337,7 +340,7 @@ enum aga_result aga_conftree_raw(
 		struct aga_conf_node* node = &root->children[i];
 		if(aga_streql(*names, node->name)) {
 			enum aga_result result = aga_conftree_raw(
-				node, names + 1, count - 1, out);
+					node, names + 1, count - 1, out);
 			if(!result) return result;
 		}
 	}
@@ -357,8 +360,8 @@ enum aga_result aga_conftree_nonroot(
 
 	AGA_CHK(aga_conftree_raw(root, names, count, &node));
 
-	if(aga_confvar(node->name, node, type, value)) return AGA_RESULT_OK;
-	else return AGA_RESULT_ERROR;
+	if(aga_confvar(node->name, node, type, value)) { return AGA_RESULT_OK; }
+	else { return AGA_RESULT_ERROR; }
 }
 
 /* TODO: This should be removed and we should review our invocations. */

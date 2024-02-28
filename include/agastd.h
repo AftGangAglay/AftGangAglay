@@ -56,6 +56,7 @@
 #endif
 
 FILE* aga_open_r(const char* path);
+
 void aga_close(FILE* fp);
 
 #endif

@@ -10,13 +10,17 @@
 #include <agaresult.h>
 
 AGA_NORETURN void aga_abort(void);
+
 void aga_chk(const char* loc, const char* proc, enum aga_result e);
 
 const char* aga_aga_errname(enum aga_result e);
+
 /* NOTE: Pass null to `loc' to suppress error message printout. */
 enum aga_result aga_errno(const char* loc, const char* proc);
+
 enum aga_result aga_patherrno(
 		const char* loc, const char* proc, const char* path);
+
 void aga_soft(const char* loc, const char* proc, enum aga_result e);
 
 #endif

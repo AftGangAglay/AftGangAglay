@@ -17,10 +17,10 @@ enum aga_result {
 };
 
 #define AGA_CHK(c) \
-	do { \
-		enum aga_result err = c; \
-		if(err) return err; \
-	} while(0)
+    do { \
+        enum aga_result err = c; \
+        if(err) return err; \
+    } while(0)
 
 #ifdef AGA_NO_VERIFY
 # define AGA_PARAM_CHK(p)

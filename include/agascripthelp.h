@@ -19,19 +19,23 @@ typedef object* aga_pyobject_t;
 
 #define AGA_ARGLIST(type) (arg && is_##type##object(arg))
 #define AGA_ARG(var, n, type) \
-	(((var) = gettupleitem(arg, (n))) && is_##type##object((var)))
+    (((var) = gettupleitem(arg, (n))) && is_##type##object((var)))
 #define AGA_ARGERR(func, types) \
-	do { \
-		err_setstr(TypeError, func "() arguments must be " types); \
-		return 0; \
-	} while(0)
+    do { \
+        err_setstr(TypeError, func "() arguments must be " types); \
+        return 0; \
+    } while(0)
 
 aga_bool_t aga_script_float(aga_pyobject_t o, float* f);
+
 aga_bool_t aga_script_int(aga_pyobject_t o, int* i);
+
 aga_bool_t aga_script_string(aga_pyobject_t o, char** s);
+
 aga_bool_t aga_script_bool(aga_pyobject_t o, aga_bool_t* b);
 
 aga_bool_t aga_list_set(aga_pyobject_t list, aga_size_t n, aga_pyobject_t v);
+
 aga_bool_t aga_list_get(aga_pyobject_t list, aga_size_t n, aga_pyobject_t* v);
 
 #endif

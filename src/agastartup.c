@@ -8,7 +8,9 @@
 #include <agapack.h>
 #include <agaerr.h>
 #include <agaio.h>
+
 #define AGA_WANT_UNIX
+
 #include <agastd.h>
 
 enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
@@ -33,20 +35,23 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 
 #ifdef AGA_HAVE_GETOPT
 	{
-		const char* help =
-			"warn: usage: %s [-f respack] [-A dsp] [-D display] [-C dir] "
-			"[-v]";
+		const char* help = "warn: usage: %s [-f respack] [-A dsp] [-D display] [-C dir] "
+						   "[-v]";
 		int o;
-		while((o = 	getopt(argc, argv, "f:s:A:D:C:v")) != -1) {
+		while((o = getopt(argc, argv, "f:s:A:D:C:v")) != -1) {
 			switch(o) {
 				default: {
 					aga_log(__FILE__, help, argv[0]);
 					goto break2;
 				}
-				case 'f': opts->respack = optarg; break;
-				case 'A': opts->audio_dev = optarg; break;
-				case 'D': opts->display = optarg; break;
-				case 'C': opts->chdir = optarg; break;
+				case 'f': opts->respack = optarg;
+					break;
+				case 'A': opts->audio_dev = optarg;
+					break;
+				case 'D': opts->display = optarg;
+					break;
+				case 'C': opts->chdir = optarg;
+					break;
 				case 'v': {
 					extern int WWW_TraceFlag; /* From libwww. */
 					WWW_TraceFlag = 1;
@@ -94,46 +99,47 @@ enum aga_result aga_setconf(struct aga_opts* opts, struct aga_respack* pack) {
 	AGA_CHK(aga_mkconf(fp, size, &opts->config));
 
 	result = aga_conftree(
-		&opts->config, enabled, AGA_LEN(enabled), &v, AGA_INTEGER);
+			&opts->config, enabled, AGA_LEN(enabled), &v, AGA_INTEGER);
 	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-		&opts->config, version, AGA_LEN(version), &opts->version,
-		AGA_STRING);
+			&opts->config, version, AGA_LEN(version), &opts->version,
+			AGA_STRING);
 	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
 	if(!opts->audio_dev) {
 		result = aga_conftree(
-			&opts->config, device, AGA_LEN(device), &opts->audio_dev,
-			AGA_STRING);
+				&opts->config, device, AGA_LEN(device), &opts->audio_dev,
+				AGA_STRING);
 		if(result) aga_soft(__FILE__, "aga_conftree", result);
 	}
 
 	result = aga_conftree(
-		&opts->config, startup, AGA_LEN(startup), &opts->startup_script,
-		AGA_STRING);
+			&opts->config, startup, AGA_LEN(startup), &opts->startup_script,
+			AGA_STRING);
 	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-		&opts->config, path, AGA_LEN(path), &opts->python_path, AGA_STRING);
+			&opts->config, path, AGA_LEN(path), &opts->python_path, AGA_STRING);
 	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-		&opts->config, width, AGA_LEN(width), &opts->width, AGA_INTEGER);
+			&opts->config, width, AGA_LEN(width), &opts->width, AGA_INTEGER);
 	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-		&opts->config, height, AGA_LEN(height), &opts->height, AGA_INTEGER);
+			&opts->config, height, AGA_LEN(height), &opts->height, AGA_INTEGER);
 	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-		&opts->config, fov, AGA_LEN(fov), &opts->fov, AGA_FLOAT);
+			&opts->config, fov, AGA_LEN(fov), &opts->fov, AGA_FLOAT);
 	if(result) aga_soft(__FILE__, "aga_conftree", result);
 
 	return AGA_RESULT_OK;
 }
 
 #ifdef AGA_HAVE_SPAWN
+
 enum aga_result aga_prerun_hook(struct aga_opts* opts) {
 	enum aga_result result;
 
@@ -161,13 +167,14 @@ enum aga_result aga_prerun_hook(struct aga_opts* opts) {
 	args[0] = program;
 
 	AGA_CHK(aga_conftree(
-		&opts->config, hook, AGA_LEN(hook), &args[2], AGA_STRING));
+			&opts->config, hook, AGA_LEN(hook), &args[2], AGA_STRING));
 
 	aga_log(__FILE__, "Executing project pre-run hook `%s'", args[2]);
 
 	if(project_path) {
 		aga_size_t len = (aga_size_t) (project_path - opts->config_file) + 1;
-		AGA_VERIFY(project_path = calloc(len + 1, sizeof(char)), AGA_RESULT_OOM);
+		AGA_VERIFY(project_path = calloc(len + 1, sizeof(char)),
+				   AGA_RESULT_OOM);
 		strncpy(project_path, opts->config_file, len);
 	}
 
@@ -178,4 +185,5 @@ enum aga_result aga_prerun_hook(struct aga_opts* opts) {
 
 	return AGA_RESULT_OK;
 }
+
 #endif

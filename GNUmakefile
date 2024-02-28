@@ -46,6 +46,10 @@ else
 	CFLAGS = -O -DNDEBUG
 endif
 
+ifdef MAINTAINER
+	CFLAGS += -ansi -pedantic -pedantic-errors -Wall -Wextra -Werror
+endif
+
 LDLIBS = -lm
 
 XQUARTZ_ROOT = /opt/X11

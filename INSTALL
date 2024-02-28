@@ -2,41 +2,26 @@
 
 		Build
 
-To perform a basic, release build of AftGangAglay - run `make' within the
-project root directory.
+To perform a basic, release build of AftGangAglay - run `make' or `nmake'
+within the project root directory. `nmake' must be run under a developer
+command prompt.
 
-If building for macOS - `APPLE=1' must be appended to the invocation.
-If building for Windows - `WINDOWS=1' must be appended to the invocation.
 If a debug build is desired - `DEBUG=1' must be appended to the invocation.
 
 If cross-compiling, the variable `CROSS_TOOL' should be specified as a runner
 for targeted system commands (e.g. `CROSS_TOOL=wine' for Windows-targeting
-cross-compilation). Builds make use of GNU/Make implicit rules, and should
-respect all toolchain variables therein - with the addition of `RANLIB'.
-
-Tested/supported compilers are `gcc' and `clang' - of unknown minimum version.
+cross-compilation). If cross-compiling for macOS - `APPLE=1' must be appended
+to the invocation. If cross-compiling for Windows - `WINDOWS=1' must be
+appended to the invocation.
 
 The `stdout' output of the build is a full reproduction of the build command
 list. i.e. `make > test.sh' will produce a script equivalent to running `make'
 without timestamping.
 
-        Visual C Support
+        Prerequisites
 
-The `vcbuild.bat' script is provided to facilitate builds using only Microsoft
-Visual C tooling. These builds are not configurable and do not perform
-timestamping - as such using the Makefile system is recommended for active
-development.
-
-		Install
-
-Once you have a working build, you can install with `make install'.
-The install prefix can be configured with the `PREFIX' variable (Default is
-`/usr/local'). Root privileges may be required depending on the install
-location. This installs the binary executable `aftgangaglay' for running
-game projects, and `aga-vertgen' and `aga-sndgen' for generating model and
-sound assets respectively.
-
-        Other Prerequisites
+A functioning C compiler and archiver is all the project requires at a top
+level. GNU/Make and Microsoft NMake are the only tested Make implementations.
 
 Your system will need the `GL/' headers available on a system-level if
 such is not already the case. On X based systems you will also need the

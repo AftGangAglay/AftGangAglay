@@ -64,7 +64,7 @@ include vendor/python.mk
 include vendor/www.mk
 include src/aga.mk
 
-SET_CFLAGS = -Iinclude -I$(PYTHON) -I$(WWW) -DAGA_VERSION=\"$(VERSION)\"
+SET_CFLAGS = -Iinclude -I$(PY) -I$(WWW) -DAGA_VERSION=\"$(VERSION)\"
 
 ifdef WINDOWS
 .SUFFIXES: .obj

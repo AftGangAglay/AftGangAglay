@@ -53,10 +53,12 @@ PGEN_OUT = $(PY)pgenmain$(EXE)
 $(PGEN_OUT): $(PGEN_OBJECTS1) $(PGEN_OBJECTS2) $(PGEN_OBJECTS3)
 	$(CC) $(O) $(ALL)
 
-PYGRAM = $(PY)$(SEP)graminit.c $(PY)$(SEP)graminit.h
+PYGRAM = $(PY)graminit.c $(PY)graminit.h
 
-$(PYGRAM): $(PY)/gr/Grammar $(PGEN_OUT)
-	$(CROSS_TOOL) $(PGEN_OUT) $(PY)/gr/Grammar $(PYGRAM)
+PYGRAM_SOURCE = $(PY)gr$(SEP)Grammar
+
+$(PYGRAM): $(PYGRAM_SOURCE) $(PGEN_OUT)
+	$(CROSS_TOOL) $(PGEN_OUT) $(PYGRAM_SOURCE) $(PYGRAM)
 
 $(PY)bltinmodule.c: $(PYGRAM)
 

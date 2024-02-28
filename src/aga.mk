@@ -29,5 +29,8 @@ $(AGA_OUT): $(AGA_OBJECTS1) $(AGA_OBJECTS2) $(AGAN_OBJECTS1) $(AGARC_OBJECTS1)
 
 $(AGA)agapy.c: $(PYGRAM)
 
+$(AGA)agawin$(OBJ): $(AGA)agaxwin.h
+$(AGA)agawin$(OBJ): $(AGA)agawwin.h
+
 clean_aga:
 	$(RM) $(AGA_OBJECTS1) $(AGA_OBJECTS2) $(AGAN_OBJECTS1) $(AGA_OUT)

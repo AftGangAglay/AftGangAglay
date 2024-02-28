@@ -15,8 +15,10 @@ typedef object* aga_pyobject_t;
  * 		 Overall verbosity of the Python glue code.
  */
 
+/* TODO: This can just be a function. */
 #define AGA_INCREF(v) (INCREF(v), v)
 
+/* TODO: These can just be functions. */
 #define AGA_ARGLIST(type) (arg && is_##type##object(arg))
 #define AGA_ARG(var, n, type) \
     (((var) = gettupleitem(arg, (n))) && is_##type##object((var)))

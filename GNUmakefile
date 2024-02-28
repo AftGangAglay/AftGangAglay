@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
+# TODO: Whitespace/Tabulation fixing.
+
 include VERSION
 
 ifdef OS

@@ -43,7 +43,7 @@ void aga_script_trace(void) {
 			}
 		}
 
-		DECREF(v);
+		PY_DECREF(v);
 	}
 }
 
@@ -110,9 +110,9 @@ static enum aga_result aga_compilescript(
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
-	if(result) { DECREF(result); }
+	if(result) { PY_DECREF(result); }
 
-	DECREF(code);
+	PY_DECREF(code);
 	flushline();
 
 	return AGA_RESULT_OK;
@@ -215,7 +215,7 @@ enum aga_result aga_mkscriptinst(
 enum aga_result aga_killscriptinst(struct aga_scriptinst* inst) {
 	AGA_PARAM_CHK(inst);
 
-	DECREF((aga_pyobject_t) inst->object);
+	PY_DECREF((aga_pyobject_t) inst->object);
 
 	return AGA_RESULT_OK;
 }
@@ -245,7 +245,7 @@ enum aga_result aga_instcall(struct aga_scriptinst* inst, const char* name) {
 		return AGA_RESULT_ERROR;
 	}
 
-	DECREF(methodcall);
+	PY_DECREF(methodcall);
 
 	return AGA_RESULT_OK;
 }

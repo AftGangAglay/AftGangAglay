@@ -19,20 +19,12 @@
 #include <grammar.h>
 #include <pgen.h>
 #include <errcode.h>
+#include <sysmodule.h>
+#include <bltinmodule.h>
 #include <parsetok.h>
 #include <ceval.h>
+#include <parser.h>
 
 /* TODO: Minify and reference Python licence in sources? */
-
-/*
-int setpythonpath(char* path);
-int setpythonargv(int argc, char** argv);
-void donebuiltin(void);
-void donesys(void);
-void donedict(void);
-void doneerrors(void);
-void freeaccel(void);
-object* call_function(object* func, object* arg);
- */
 
 #endif

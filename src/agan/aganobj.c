@@ -267,7 +267,7 @@ AGAN_SCRIPTPROC(killobj) {
 	glDeleteLists(obj->drawlist, 1);
 	if(aga_script_glerr("glDeleteLists")) return 0;
 
-	DECREF(obj->transform);
+	PY_DECREF(obj->transform);
 
 	return AGA_INCREF(None);
 }

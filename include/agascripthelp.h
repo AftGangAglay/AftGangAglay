@@ -16,7 +16,7 @@ typedef object* aga_pyobject_t;
  */
 
 /* TODO: This can just be a function. */
-#define AGA_INCREF(v) (INCREF(v), v)
+#define AGA_INCREF(v) (PY_INCREF(v), v)
 
 /* TODO: These can just be functions. */
 #define AGA_ARGLIST(type) (arg && is_##type##object(arg))

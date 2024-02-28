@@ -5,6 +5,8 @@
 
 /* TODO: Rename to `aftgangaglay.c' */
 
+/* TODO: Fuzz headless. */
+
 #include <agawin.h>
 #include <agasnd.h>
 #include <agautil.h>

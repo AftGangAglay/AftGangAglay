@@ -9,7 +9,7 @@
 #include <agapack.h>
 #include <agapyinc.h>
 
-#include <graminit.h> /* For `file_input'. */
+#include <python/graminit.h> /* For `file_input'. */
 
 #include <agan/agan.h>
 

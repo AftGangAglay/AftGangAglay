@@ -14,14 +14,7 @@
  * Also contains a few scriptglue helpers declared in `agapyinc'.
  */
 
-/* NOTE: This is cursed beyond cursed but old C code do be like that. */
-#define main fake_main
-
-#include <pythonmain.c>
-
-#undef main
-
-#include <config.c>
+#include <python/config.h>
 
 #ifdef _DEBUG
 /* The extra debug info this enables is a bit too verbose. */

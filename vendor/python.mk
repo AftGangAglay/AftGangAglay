@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
+PYINC = vendor$(SEP)python$(SEP)include$(SEP)
 PY = vendor$(SEP)python$(SEP)src$(SEP)
 
 # TODO: Reformat this list.
@@ -17,8 +18,8 @@ PYTHON_SOURCES10 = $(PY)moduleobject.c $(PY)node.c $(PY)object.c
 PYTHON_SOURCES11 = $(PY)parser.c $(PY)parsetok.c $(PY)posixmodule.c
 PYTHON_SOURCES12 = $(PY)regexp.c $(PY)regexpmodule.c
 PYTHON_SOURCES13 = $(PY)stringobject.c $(PY)structmember.c
-PYTHON_SOURCES14 = $(PY)sysmodule.c $(PY)timemodule.c
-PYTHON_SOURCES15 = $(PY)tokenizer.c $(PY)traceback.c
+PYTHON_SOURCES14 = $(PY)sysmodule.c $(PY)timemodule.c $(PY)config.c
+PYTHON_SOURCES15 = $(PY)tokenizer.c $(PY)traceback.c $(PY)pythonmain.c
 PYTHON_SOURCES16 = $(PY)tupleobject.c $(PY)typeobject.c
 
 PYTHON_OBJECTS1 = $(subst .c,$(OBJ),$(PYTHON_SOURCES1)) $(subst .c,$(OBJ),$(PYTHON_SOURCES2))
@@ -53,7 +54,7 @@ PGEN_OUT = $(PY)pgenmain$(EXE)
 $(PGEN_OUT): $(PGEN_OBJECTS1) $(PGEN_OBJECTS2) $(PGEN_OBJECTS3)
 	$(CC) $(O) $(ALL)
 
-PYGRAM = $(PY)graminit.c $(PY)graminit.h
+PYGRAM = $(PY)graminit.c $(PYINC)python$(SEP)graminit.h
 
 PYGRAM_SOURCE = $(PY)gr$(SEP)Grammar
 

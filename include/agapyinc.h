@@ -8,22 +8,22 @@
 
 #include <agaenv.h>
 
-#include <allobjects.h>
-#include <traceback.h>
-#include <modsupport.h>
-#include <node.h>
-#include <compile.h>
-#include <frameobject.h>
-#include <pythonrun.h>
-#include <import.h>
-#include <grammar.h>
-#include <pgen.h>
-#include <errcode.h>
-#include <sysmodule.h>
-#include <bltinmodule.h>
-#include <parsetok.h>
-#include <ceval.h>
-#include <parser.h>
+#include <python/allobjects.h>
+#include <python/traceback.h>
+#include <python/modsupport.h>
+#include <python/node.h>
+#include <python/compile.h>
+#include <python/frameobject.h>
+#include <python/pythonrun.h>
+#include <python/import.h>
+#include <python/grammar.h>
+#include <python/pgen.h>
+#include <python/errcode.h>
+#include <python/sysmodule.h>
+#include <python/bltinmodule.h>
+#include <python/parsetok.h>
+#include <python/ceval.h>
+#include <python/parser.h>
 
 /* TODO: Minify and reference Python licence in sources? */
 

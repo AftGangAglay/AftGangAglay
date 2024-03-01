@@ -28,6 +28,7 @@ $(AGA_OUT): $(AGA_OBJECTS1) $(AGA_OBJECTS2) $(AGAN_OBJECTS1) $(AGARC_OBJECTS1)
 	$(CC) $(O) $(ALL) $(WL) $(GL_LDFLAGS) $(GL_LDLIBS)
 
 $(AGA)agapy.c: $(PYGRAM)
+$(AGA)agascript.c: $(PYGRAM)
 
 $(AGA)agawin$(OBJ): $(AGA)agaxwin.h
 $(AGA)agawin$(OBJ): $(AGA)agawwin.h

@@ -61,6 +61,7 @@ $(PYGRAM): $(PYGRAM_SOURCE) $(PGEN_OUT)
 	$(CROSS_TOOL) $(PGEN_OUT) $(PYGRAM_SOURCE) $(PYGRAM)
 
 $(PY)bltinmodule.c: $(PYGRAM)
+$(PY)compile.c: $(PYGRAM)
 
 clean_python:
 	$(RM) $(PYTHON_OBJECTS1) $(PYTHON_OBJECTS2) $(PYTHON_OBJECTS3)

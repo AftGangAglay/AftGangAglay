@@ -69,7 +69,6 @@ include vendor/www.mk
 include src/aga.mk
 
 SET_CFLAGS = -Iinclude -I$(PYINC) -I$(WWW) -DAGA_VERSION=\"$(VERSION)\"
-SET_CFLAGS += -DPY_NO_MAIN
 
 ifdef WINDOWS
 .SUFFIXES: .obj

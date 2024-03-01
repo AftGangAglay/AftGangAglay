@@ -34,7 +34,6 @@ CC = $(CC) /nologo /showIncludes
 !include src/aga.mk
 
 SET_CFLAGS = /I include /I $(PYINC) /I $(WWW) /DAGA_VERSION="$(VERSION)"
-SET_CFLAGS = $(SET_CFLAGS) /DPY_NO_MAIN
 
 .res$(OBJ):
 	$(RC) /fo $@.res $<

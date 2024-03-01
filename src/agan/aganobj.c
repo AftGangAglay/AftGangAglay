@@ -16,23 +16,25 @@
 
 /* TODO: Some `aga_script_*err` disable with noverify. */
 
-/* TODO: Report object-related errors with path.  */
+/* TODO: Report object-related errors with path. */
 
 AGAN_SCRIPTPROC(mktrans) {
-	aga_pyobject_t retval, list, f;
+	struct py_object* retval;
+	struct py_object* list;
+	struct py_object* f;
 	aga_size_t i, j;
 
-	if(!(retval = newdictobject())) return 0;
+	if(!(retval = py_dict_new())) return 0;
 
 	for(i = 0; i < 3; ++i) {
-		if(!(list = newlistobject(3))) return 0;
+		if(!(list = py_list_new(3))) return 0;
 
 		for(j = 0; j < 3; ++j) {
-			if(!(f = newfloatobject((i == 2 ? 1.0 : 0.0)))) return 0;
+			if(!(f = py_float_new((i == 2 ? 1.0 : 0.0)))) return 0;
 			if(aga_list_set(list, j, f)) return 0;
 		}
 
-		if(dictinsert(retval, (char*) agan_trans_components[i], list) == -1) {
+		if(py_dict_insert(retval, (char*) agan_trans_components[i], list) == -1) {
 			return 0;
 		}
 	}
@@ -51,14 +53,15 @@ static aga_bool_t agan_mkobj_trans(
 
 	const char* path[2];
 
-	aga_pyobject_t l, o;
+	struct py_object* l;
+	struct py_object* o;
 	aga_size_t i, j;
 	float f;
 
 	for(i = 0; i < 3; ++i) {
 		path[0] = agan_conf_components[i];
 
-		l = dictlookup(obj->transform, (char*) agan_trans_components[i]);
+		l = py_dict_lookup(obj->transform, (char*) agan_trans_components[i]);
 		if(!l) return AGA_TRUE;
 
 		for(j = 0; j < 3; ++j) {
@@ -68,7 +71,7 @@ static aga_bool_t agan_mkobj_trans(
 				f = 0.0f;
 			}
 
-			if(!(o = newfloatobject(f))) return 0;
+			if(!(o = py_float_new(f))) return 0;
 			if(aga_list_set(l, j, o)) return 0;
 		}
 	}
@@ -214,7 +217,7 @@ AGAN_SCRIPTPROC(mkobj) {
 
 	struct agan_nativeptr* nativeptr;
 	struct agan_object* obj;
-	aga_pyobject_t retval;
+	struct py_object* retval;
 	struct aga_conf_node conf;
 
 	struct aga_respack* pack;
@@ -227,7 +230,7 @@ AGAN_SCRIPTPROC(mkobj) {
 	nativeptr = (struct agan_nativeptr*) retval;
 
 	if(!(nativeptr->ptr = calloc(1, sizeof(struct agan_object)))) {
-		return err_nomem();
+		return py_error_set_nomem();
 	}
 
 	obj = nativeptr->ptr;
@@ -252,7 +255,7 @@ AGAN_SCRIPTPROC(mkobj) {
 	if(agan_mkobj_trans(obj, &conf)) return 0;
 	if(agan_mkobj_model(obj, &conf, pack)) return 0;
 
-	return (aga_pyobject_t) retval;
+	return (struct py_object*) retval;
 }
 
 AGAN_SCRIPTPROC(killobj) {
@@ -269,12 +272,19 @@ AGAN_SCRIPTPROC(killobj) {
 
 	PY_DECREF(obj->transform);
 
-	return AGA_INCREF(None);
+	return AGA_INCREF(PY_NONE);
 }
 
 AGAN_SCRIPTPROC(inobj) {
-	aga_pyobject_t retval = PyFalse;
-	aga_pyobject_t o, j, dbg, point, flobj, scale, pos;
+	struct py_object* retval = PY_FALSE;
+	struct py_object* o;
+	struct py_object* j;
+	struct py_object* dbg;
+	struct py_object* point;
+	struct py_object* flobj;
+	struct py_object* scale;
+	struct py_object* pos;
+
 	float pt[3];
 	float mins[3];
 	float maxs[3];
@@ -297,8 +307,8 @@ AGAN_SCRIPTPROC(inobj) {
 	memcpy(mins, obj->min_extent, sizeof(mins));
 	memcpy(maxs, obj->max_extent, sizeof(maxs));
 
-	if(!(scale = dictlookup(obj->transform, "scale"))) return 0;
-	if(!(pos = dictlookup(obj->transform, "pos"))) return 0;
+	if(!(scale = py_dict_lookup(obj->transform, "scale"))) return 0;
+	if(!(pos = py_dict_lookup(obj->transform, "pos"))) return 0;
 
 	for(i = 0; i < 3; ++i) {
 		/* TODO: Static "get N items into buffer" to make noverify easier. */
@@ -325,7 +335,7 @@ AGAN_SCRIPTPROC(inobj) {
 
 	if(pt[0] > mins[0] && (p || pt[1] > mins[1]) && pt[2] > mins[2]) {
 		if(pt[0] < maxs[0] && (p || pt[1] < maxs[1]) && pt[2] < maxs[2]) {
-			retval = PyTrue;
+			retval = PY_TRUE;
 		}
 	}
 
@@ -367,7 +377,9 @@ AGAN_SCRIPTPROC(objconf) {
 
 	void* fp;
 
-	aga_pyobject_t o, l, retval;
+	struct py_object* o;
+	struct py_object* l;
+	struct py_object* retval;
 
 	struct aga_conf_node conf;
 	struct agan_object* obj;
@@ -418,7 +430,7 @@ AGAN_SCRIPTPROC(putobj) {
 	glPopMatrix();
 	if(aga_script_glerr("glPopMatrix")) return 0;
 
-	return AGA_INCREF(None);
+	return AGA_INCREF(PY_NONE);
 }
 
 AGAN_SCRIPTPROC(objtrans) {

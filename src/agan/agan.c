@@ -10,7 +10,7 @@
  * 		 Into script land because this version of Python's state is spread
  * 		 Across every continent.
  */
-aga_pyobject_t agan_dict = 0;
+struct py_object* agan_dict = 0;
 
 const char* agan_trans_components[3] = { "pos", "rot", "scale" };
 const char* agan_conf_components[3] = { "Position", "Rotation", "Scale" };

@@ -21,14 +21,14 @@
 int debugging = 0;
 #endif
 
-static void agan_killnativeptr(aga_pyobject_t obj) { free(obj); }
+static void agan_killnativeptr(struct py_object* obj) { free(obj); }
 
-const typeobject agan_nativeptr_type = {
-		OB_HEAD_INIT(&Typetype)
+const struct py_type agan_nativeptr_type = {
+		PY_OB_SEQ_INIT(&py_type_type)
 		0, "nativeptr", sizeof(struct agan_nativeptr), 0, agan_killnativeptr, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-aga_pyobject_t agan_mknativeptr(void* ptr) {
-	aga_pyobject_t o = newobject((void*) &agan_nativeptr_type);
+struct py_object* agan_mknativeptr(void* ptr) {
+	struct py_object* o = py_object_new((void*) &agan_nativeptr_type);
 	((struct agan_nativeptr*) o)->ptr = ptr;
 	return o;
 }
@@ -41,30 +41,30 @@ void pyclose(FILE* fp) {
 	aga_close(fp);
 }
 
-aga_bool_t aga_script_float(aga_pyobject_t o, float* f) {
-	*f = (float) getfloatvalue(o);
-	return err_occurred();
+aga_bool_t aga_script_float(struct py_object* o, float* f) {
+	*f = (float) py_float_get(o);
+	return py_error_occurred();
 }
 
-aga_bool_t aga_script_int(aga_pyobject_t o, int* i) {
-	*i = getintvalue(o);
-	return err_occurred();
+aga_bool_t aga_script_int(struct py_object* o, int* i) {
+	*i = py_int_get(o);
+	return py_error_occurred();
 }
 
-aga_bool_t aga_script_string(aga_pyobject_t o, char** s) {
-	*s = getstringvalue(o);
-	return err_occurred();
+aga_bool_t aga_script_string(struct py_object* o, char** s) {
+	*s = py_string_get_value(o);
+	return py_error_occurred();
 }
 
-aga_bool_t aga_script_bool(aga_pyobject_t o, aga_bool_t* b) {
-	*b = !!getintvalue(o);
-	return err_occurred();
+aga_bool_t aga_script_bool(struct py_object* o, aga_bool_t* b) {
+	*b = !!py_int_get(o);
+	return py_error_occurred();
 }
 
-aga_bool_t aga_list_set(aga_pyobject_t list, aga_size_t n, aga_pyobject_t v) {
-	return setlistitem(list, (int) n, v) == -1;
+aga_bool_t aga_list_set(struct py_object* list, aga_size_t n, struct py_object* v) {
+	return py_list_set(list, (int) n, v) == -1;
 }
 
-aga_bool_t aga_list_get(aga_pyobject_t list, aga_size_t n, aga_pyobject_t* v) {
-	return !(*v = getlistitem(list, (int) n));
+aga_bool_t aga_list_get(struct py_object* list, aga_size_t n, struct py_object** v) {
+	return !(*v = py_list_get(list, (int) n));
 }

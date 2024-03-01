@@ -6,6 +6,7 @@
 /*
  * TODO: Switch to unchecked List/Tuple/String accesses for release/noverify
  * 		 Builds? Disable parameter type strictness for noverify+dist?
+ * 		 Enforce in main Python as global switch?
  */
 
 /* TODO: Report failing `agan_' proc in trace (artificial frame?). */
@@ -30,13 +31,16 @@ aga_bool_t aga_script_glerr(const char* proc) {
 	return aga_script_err(proc, aga_glerr(__FILE__, proc));
 }
 
-aga_bool_t agan_settransmat(aga_pyobject_t trans, aga_bool_t inv) {
-	aga_pyobject_t comp, xo, yo, zo;
+aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv) {
+	struct py_object* comp;
+	struct py_object* xo;
+	struct py_object* yo;
+	struct py_object* zo;
 	float x, y, z;
 	aga_size_t i;
 
 	for(i = inv ? 2 : 0; i < 3; inv ? --i : ++i) {
-		if(!(comp = dictlookup(trans, (char*) agan_trans_components[i]))) {
+		if(!(comp = py_dict_lookup(trans, (char*) agan_trans_components[i]))) {
 			return AGA_TRUE;
 		}
 
@@ -75,22 +79,22 @@ aga_bool_t agan_settransmat(aga_pyobject_t trans, aga_bool_t inv) {
 	return AGA_FALSE;
 }
 
-aga_pyobject_t agan_scriptconf(
-		struct aga_conf_node* node, aga_bool_t root, aga_pyobject_t list) {
+struct py_object* agan_scriptconf(
+		struct aga_conf_node* node, aga_bool_t root, struct py_object* list) {
 
 	const char* str;
 	struct aga_conf_node* out;
 	const char** names;
-	aga_size_t i, len = getlistsize(list);
-	aga_pyobject_t v;
+	aga_size_t i, len = py_list_size(list);
+	struct py_object* v;
 
 	if(!(names = malloc(sizeof(char*) * len))) {
-		return err_nomem();
+		return py_error_set_nomem();
 	}
 
 	for(i = 0; i < len; ++i) {
 		if(aga_list_get(list, i, &v)) return 0;
-		if(!(names[i] = getstringvalue(v))) {
+		if(!(names[i] = py_string_get_value(v))) {
 			free(names);
 			return 0;
 		}
@@ -111,16 +115,16 @@ aga_pyobject_t agan_scriptconf(
 			AGA_FALLTHROUGH;
 			/* FALLTHRU */
 		}
-		case AGA_NONE: return AGA_INCREF(None);
-		case AGA_STRING: return newstringobject((char*) str);
-		case AGA_INTEGER: return newintobject(out->data.integer);
-		case AGA_FLOAT: return newfloatobject(out->data.flt);
+		case AGA_NONE: return AGA_INCREF(PY_NONE);
+		case AGA_STRING: return py_string_new((char*) str);
+		case AGA_INTEGER: return py_int_new(out->data.integer);
+		case AGA_FLOAT: return py_float_new(out->data.flt);
 	}
 }
 
 AGAN_SCRIPTPROC(getkey) {
 	int value;
-	aga_pyobject_t retval = None;
+	struct py_object* retval = PY_NONE;
 	struct aga_keymap* keymap;
 
 	if(!(keymap = aga_getscriptptr(AGA_SCRIPT_KEYMAP))) return 0;
@@ -131,7 +135,7 @@ AGAN_SCRIPTPROC(getkey) {
 
 	if(keymap->keystates) {
 		if(value < keymap->keysyms_per_keycode * keymap->keycode_len) {
-			retval = keymap->keystates[value] ? PyTrue : PyFalse;
+			retval = keymap->keystates[value] ? PY_TRUE : PY_FALSE;
 		}
 	}
 
@@ -139,17 +143,18 @@ AGAN_SCRIPTPROC(getkey) {
 }
 
 AGAN_SCRIPTPROC(getmotion) {
-	aga_pyobject_t retval, o;
+	struct py_object* retval;
+	struct py_object* o;
 	struct aga_pointer* pointer;
 
 	if(!(pointer = aga_getscriptptr(AGA_SCRIPT_POINTER))) return 0;
 
-	if(!(retval = newlistobject(2))) return 0;
+	if(!(retval = py_list_new(2))) return 0;
 
-	if(!(o = newfloatobject(pointer->dx))) return 0;
+	if(!(o = py_float_new(pointer->dx))) return 0;
 	if(aga_list_set(retval, 0, o)) return 0;
 
-	if(!(o = newfloatobject(pointer->dy))) return 0;
+	if(!(o = py_float_new(pointer->dy))) return 0;
 	if(aga_list_set(retval, 1, o)) return 0;
 
 	return retval;
@@ -157,7 +162,8 @@ AGAN_SCRIPTPROC(getmotion) {
 
 /* TODO: Inject true/false constants. */
 AGAN_SCRIPTPROC(setcam) {
-	aga_pyobject_t t, mode;
+	struct py_object* t;
+	struct py_object* mode;
 	aga_bool_t b;
 	double ar;
 
@@ -194,7 +200,7 @@ AGAN_SCRIPTPROC(setcam) {
 	if(aga_script_glerr("glLoadIdentity")) return 0;
 	if(agan_settransmat(t, AGA_TRUE)) return 0;
 
-	return AGA_INCREF(None);
+	return AGA_INCREF(PY_NONE);
 }
 
 AGAN_SCRIPTPROC(getconf) {
@@ -211,29 +217,29 @@ AGAN_SCRIPTPROC(log) {
 	char* loc;
 
 	if(!arg) {
-		err_setstr(RuntimeError, "log() takes one argument");
+		py_error_set_string(py_runtime_error, "log() takes one argument");
 		return 0;
 	}
 
-	if(aga_script_string(current_frame->f_code->co_filename, &loc)) return 0;
+	if(aga_script_string(py_frame_current->code->filename, &loc)) return 0;
 
-	if(!is_stringobject(arg)) {
+	if(!py_is_string(arg)) {
 		aga_size_t i;
 		for(i = 0; i < aga_logctx.len; ++i) {
 			FILE* s = aga_logctx.targets[i];
 			aga_loghdr(s, loc, AGA_NORM);
-			printobject(arg, s, 0);
+			py_object_print(arg, s, PY_PRINT_NORMAL);
 			if(putc('\n', s) == EOF) perror("putc");
 		}
 
-		return AGA_INCREF(None);
+		return AGA_INCREF(PY_NONE);
 	}
 
 	if(aga_script_string(arg, &str)) return 0;
 
 	aga_log(loc, str);
 
-	return AGA_INCREF(None);
+	return AGA_INCREF(PY_NONE);
 }
 
 /*
@@ -241,7 +247,7 @@ AGAN_SCRIPTPROC(log) {
  * 		 [ density(norm), start, end ]
  */
 AGAN_SCRIPTPROC(fogparam) {
-	aga_pyobject_t v;
+	struct py_object* v;
 	float f;
 
 	if(!AGA_ARGLIST(list)) AGA_ARGERR("fogparam", "list");
@@ -267,11 +273,11 @@ AGAN_SCRIPTPROC(fogparam) {
 	glFogf(GL_FOG_END, f);
 	if(aga_script_glerr("glFogf")) return 0;
 
-	return AGA_INCREF(None);
+	return AGA_INCREF(PY_NONE);
 }
 
 AGAN_SCRIPTPROC(fogcol) {
-	aga_pyobject_t v;
+	struct py_object* v;
 	aga_size_t i;
 	float col[3];
 
@@ -285,12 +291,14 @@ AGAN_SCRIPTPROC(fogcol) {
 	glFogfv(GL_FOG_COLOR, col);
 	if(aga_script_glerr("glFogfv")) return 0;
 
-	return AGA_INCREF(None);
+	return AGA_INCREF(PY_NONE);
 }
 
 AGAN_SCRIPTPROC(text) {
 	char* text;
-	aga_pyobject_t str, t, f;
+	struct py_object* str;
+	struct py_object* t;
+	struct py_object* f;
 	float x, y;
 
 	if(!AGA_ARGLIST(tuple) || !AGA_ARG(str, 0, string) ||
@@ -312,13 +320,13 @@ AGAN_SCRIPTPROC(text) {
 		return 0;
 	}
 
-	return AGA_INCREF(None);
+	return AGA_INCREF(PY_NONE);
 }
 
 AGAN_SCRIPTPROC(clear) {
 	enum aga_result result;
 
-	aga_pyobject_t v;
+	struct py_object* v;
 	float col[4];
 	aga_size_t i;
 
@@ -332,12 +340,13 @@ AGAN_SCRIPTPROC(clear) {
 	result = aga_clear(col);
 	if(aga_script_err("aga_clear", result)) return 0;
 
-	return AGA_INCREF(None);
+	return AGA_INCREF(PY_NONE);
 }
 
 /* Python lacks native bitwise ops @-@ */
 AGAN_SCRIPTPROC(bitand) {
-	aga_pyobject_t a, b;
+	struct py_object* a;
+	struct py_object* b;
 	int av, bv;
 
 	if(!AGA_ARGLIST(tuple) || !AGA_ARG(a, 0, int) || !AGA_ARG(b, 1, int)) {
@@ -347,11 +356,12 @@ AGAN_SCRIPTPROC(bitand) {
 	if(aga_script_int(a, &av)) return 0;
 	if(aga_script_int(b, &bv)) return 0;
 
-	return newintobject(av & bv);
+	return py_int_new(av & bv);
 }
 
 AGAN_SCRIPTPROC(bitshl) {
-	aga_pyobject_t a, b;
+	struct py_object* a;
+	struct py_object* b;
 	int av, bv;
 
 	if(!AGA_ARGLIST(tuple) || !AGA_ARG(a, 0, int) || !AGA_ARG(b, 1, int)) {
@@ -361,11 +371,11 @@ AGAN_SCRIPTPROC(bitshl) {
 	if(aga_script_int(a, &av)) return 0;
 	if(aga_script_int(b, &bv)) return 0;
 
-	return newintobject(av << bv);
+	return py_int_new(av << bv);
 }
 
 AGAN_SCRIPTPROC(randnorm) {
-	return newfloatobject((double) rand() / (double) RAND_MAX);
+	return py_float_new((double) rand() / (double) RAND_MAX);
 }
 
 AGAN_SCRIPTPROC(die) {
@@ -373,13 +383,14 @@ AGAN_SCRIPTPROC(die) {
 	if(!(die = aga_getscriptptr(AGA_SCRIPT_DIE))) return 0;
 	*die = AGA_TRUE;
 
-	return AGA_INCREF(None);
+	return AGA_INCREF(PY_NONE);
 }
 
 AGAN_SCRIPTPROC(setcursor) {
 	enum aga_result result;
 
-	aga_pyobject_t o, v;
+	struct py_object* o;
+	struct py_object* v;
 	aga_bool_t visible, captured;
 
 	struct aga_winenv* env;
@@ -398,18 +409,18 @@ AGAN_SCRIPTPROC(setcursor) {
 	result = aga_setcursor(env, win, visible, captured);
 	if(aga_script_err("aga_setcursor", result)) return 0;
 
-	return AGA_INCREF(None);
+	return AGA_INCREF(PY_NONE);
 }
 
 static enum aga_result aga_insertfloat(const char* key, double value) {
-	aga_pyobject_t o;
+	struct py_object* o;
 
-	if(!(o = newfloatobject(value))) {
+	if(!(o = py_float_new(value))) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
 
-	if(dictinsert(agan_dict, (char*) key, o) == -1) {
+	if(py_dict_insert(agan_dict, (char*) key, o) == -1) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
@@ -418,14 +429,14 @@ static enum aga_result aga_insertfloat(const char* key, double value) {
 }
 
 static enum aga_result aga_insertint(const char* key, long value) {
-	aga_pyobject_t o;
+	struct py_object* o;
 
-	if(!(o = newintobject(value))) {
+	if(!(o = py_int_new(value))) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
 
-	if(dictinsert(agan_dict, (char*) key, o) == -1) {
+	if(py_dict_insert(agan_dict, (char*) key, o) == -1) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
@@ -442,7 +453,7 @@ enum aga_result aga_mkmod(void** dict) {
 	enum aga_result result;
 
 #define _(name) { #name, agan_##name }
-	struct methodlist methods[] = {
+	struct py_methodlist methods[] = {
 			/* Input */
 			_(getkey), _(getmotion), _(setcursor),
 
@@ -461,10 +472,10 @@ enum aga_result aga_mkmod(void** dict) {
 			{ 0, 0 } };
 #undef _
 
-	aga_pyobject_t module = initmodule("agan", methods);
+	struct py_object* module = py_module_init("agan", methods);
 	AGA_VERIFY(module, AGA_RESULT_ERROR);
 
-	if(!(agan_dict = getmoduledict(module))) {
+	if(!(agan_dict = py_module_get_dict(module))) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}

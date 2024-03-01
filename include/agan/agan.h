@@ -11,27 +11,28 @@
 struct aga_conf_node;
 
 struct agan_nativeptr {
-	OB_HEAD void* ptr;
+	PY_OB_SEQ
+	void* ptr;
 };
 
-extern const typeobject agan_nativeptr_type;
+extern const struct py_type agan_nativeptr_type;
 
-#define is_nativeptrobject(op) ((op)->ob_type == &agan_nativeptr_type)
+#define py_is_nativeptr(op) ((op)->type == &agan_nativeptr_type)
 
-aga_pyobject_t agan_mknativeptr(void* ptr);
+struct py_object* agan_mknativeptr(void* ptr);
 
 #define AGAN_SCRIPTPROC(name) \
-    aga_pyobject_t agan_##name(AGA_UNUSED aga_pyobject_t self, \
-           AGA_UNUSED aga_pyobject_t arg)
+    struct py_object* agan_##name(AGA_UNUSED struct py_object* self, \
+           AGA_UNUSED struct py_object* arg)
 
-extern aga_pyobject_t agan_dict;
+extern struct py_object* agan_dict;
 extern const char* agan_trans_components[3];
 extern const char* agan_conf_components[3];
 extern const char* agan_xyz[3];
 
-aga_bool_t agan_settransmat(aga_pyobject_t trans, aga_bool_t inv);
+aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv);
 
-aga_pyobject_t agan_scriptconf(
-		struct aga_conf_node* node, aga_bool_t root, aga_pyobject_t list);
+struct py_object* agan_scriptconf(
+		struct aga_conf_node* node, aga_bool_t root, struct py_object* list);
 
 #endif

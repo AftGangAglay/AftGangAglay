@@ -45,7 +45,7 @@ struct agan_lightdata {
 
 /* TODO: Central object/light registry and distribute handles. */
 struct agan_object {
-	aga_pyobject_t transform;
+	struct py_object* transform;
 	struct aga_res* res;
 	struct agan_lightdata* light_data;
 

@@ -8,8 +8,6 @@
 
 #include <agapyinc.h>
 
-typedef object* aga_pyobject_t;
-
 /*
  * NOTE: I'm okay with allowing a bit more macro magic in here to reduce the
  * 		 Overall verbosity of the Python glue code.
@@ -18,26 +16,27 @@ typedef object* aga_pyobject_t;
 /* TODO: This can just be a function. */
 #define AGA_INCREF(v) (PY_INCREF(v), v)
 
+/* TODO: `py_is_*' should be functions. */
 /* TODO: These can just be functions. */
-#define AGA_ARGLIST(type) (arg && is_##type##object(arg))
+#define AGA_ARGLIST(type) (arg && py_is_##type(arg))
 #define AGA_ARG(var, n, type) \
-    (((var) = gettupleitem(arg, (n))) && is_##type##object((var)))
+    (((var) = py_tuple_get(arg, (n))) && py_is_##type((var)))
 #define AGA_ARGERR(func, types) \
     do { \
-        err_setstr(TypeError, func "() arguments must be " types); \
+        py_error_set_string(py_type_error, func "() arguments must be " types); \
         return 0; \
     } while(0)
 
-aga_bool_t aga_script_float(aga_pyobject_t o, float* f);
+aga_bool_t aga_script_float(struct py_object* o, float* f);
 
-aga_bool_t aga_script_int(aga_pyobject_t o, int* i);
+aga_bool_t aga_script_int(struct py_object* o, int* i);
 
-aga_bool_t aga_script_string(aga_pyobject_t o, char** s);
+aga_bool_t aga_script_string(struct py_object* o, char** s);
 
-aga_bool_t aga_script_bool(aga_pyobject_t o, aga_bool_t* b);
+aga_bool_t aga_script_bool(struct py_object* o, aga_bool_t* b);
 
-aga_bool_t aga_list_set(aga_pyobject_t list, aga_size_t n, aga_pyobject_t v);
+aga_bool_t aga_list_set(struct py_object* list, aga_size_t n, struct py_object* v);
 
-aga_bool_t aga_list_get(aga_pyobject_t list, aga_size_t n, aga_pyobject_t* v);
+aga_bool_t aga_list_get(struct py_object* list, aga_size_t n, struct py_object** v);
 
 #endif

@@ -17,7 +17,7 @@ int WinMain(
 		HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
 		int nShowCmd) {
 
-	extern int main(int, char**);
+	int main(int, char**);
 
 	(void) hInstance;
 	(void) hPrevInstance;

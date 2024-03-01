@@ -85,7 +85,7 @@ void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
 
 void aga_sgml_start_element(
 		struct aga_sgml_structured* me, int element_number,
-		const BOOL* attribute_present, char** attribute_value) {
+		const HTBool* attribute_present, char** attribute_value) {
 
 	struct aga_conf_node* parent = me->stack[me->depth - 1];
 	struct aga_conf_node* node;
@@ -215,7 +215,7 @@ aga_mkconf(void* fp, aga_size_t count, struct aga_conf_node* root) {
 			(void (*)(HTStructured*, const char*, int)) aga_sgml_nil,
 
 			(void (*)(
-					HTStructured*, int, const BOOLEAN*,
+					HTStructured*, int, const HTBool*,
 					const char**)) aga_sgml_start_element,
 
 			(void (*)(HTStructured*, int)) aga_sgml_end_element,

@@ -24,8 +24,9 @@ int debugging = 0;
 static void agan_killnativeptr(struct py_object* obj) { free(obj); }
 
 const struct py_type agan_nativeptr_type = {
-		PY_OB_SEQ_INIT(&py_type_type)
-		0, "nativeptr", sizeof(struct agan_nativeptr), 0, agan_killnativeptr, 0, 0, 0, 0, 0, 0, 0, 0 };
+		PY_OB_SEQ_INIT(&py_type_type) 0, "nativeptr",
+		sizeof(struct agan_nativeptr), 0, agan_killnativeptr, 0, 0, 0, 0, 0, 0,
+		0, 0 };
 
 struct py_object* agan_mknativeptr(void* ptr) {
 	struct py_object* o = py_object_new((void*) &agan_nativeptr_type);
@@ -61,10 +62,12 @@ aga_bool_t aga_script_bool(struct py_object* o, aga_bool_t* b) {
 	return py_error_occurred();
 }
 
-aga_bool_t aga_list_set(struct py_object* list, aga_size_t n, struct py_object* v) {
+aga_bool_t
+aga_list_set(struct py_object* list, aga_size_t n, struct py_object* v) {
 	return py_list_set(list, (int) n, v) == -1;
 }
 
-aga_bool_t aga_list_get(struct py_object* list, aga_size_t n, struct py_object** v) {
+aga_bool_t
+aga_list_get(struct py_object* list, aga_size_t n, struct py_object** v) {
 	return !(*v = py_list_get(list, (int) n));
 }

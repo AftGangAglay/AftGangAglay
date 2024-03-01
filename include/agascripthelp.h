@@ -35,8 +35,10 @@ aga_bool_t aga_script_string(struct py_object* o, char** s);
 
 aga_bool_t aga_script_bool(struct py_object* o, aga_bool_t* b);
 
-aga_bool_t aga_list_set(struct py_object* list, aga_size_t n, struct py_object* v);
+aga_bool_t
+aga_list_set(struct py_object* list, aga_size_t n, struct py_object* v);
 
-aga_bool_t aga_list_get(struct py_object* list, aga_size_t n, struct py_object** v);
+aga_bool_t
+aga_list_get(struct py_object* list, aga_size_t n, struct py_object** v);
 
 #endif

@@ -34,7 +34,8 @@ AGAN_SCRIPTPROC(mktrans) {
 			if(aga_list_set(list, j, f)) return 0;
 		}
 
-		if(py_dict_insert(retval, (char*) agan_trans_components[i], list) == -1) {
+		if(py_dict_insert(retval, (char*) agan_trans_components[i], list) ==
+		   -1) {
 			return 0;
 		}
 	}

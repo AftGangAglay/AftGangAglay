@@ -72,7 +72,8 @@ void* aga_getscriptptr(const char* key) {
 
 	ptr = py_dict_lookup(agan_dict, (char*) key);
 	if(!ptr) {
-		py_error_set_string(py_runtime_error, "failed to resolve script nativeptr");
+		py_error_set_string(
+				py_runtime_error, "failed to resolve script nativeptr");
 		return 0;
 	}
 
@@ -99,7 +100,8 @@ static enum aga_result aga_compilescript(
 
 	AGA_VERIFY((module = py_add_module("__main__")), AGA_RESULT_ERROR);
 
-	res = py_parse_file(fp, (char*) script, &py_grammar, file_input, 0, 0, &node);
+	res = py_parse_file(
+			fp, (char*) script, &py_grammar, file_input, 0, 0, &node);
 	AGA_VERIFY(res == PY_RESULT_DONE, AGA_RESULT_ERROR);
 
 	AGA_VERIFY(*dict = py_module_get_dict(module), AGA_RESULT_ERROR);

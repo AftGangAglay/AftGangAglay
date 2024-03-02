@@ -3,8 +3,9 @@
  * Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#include <agascript.h>
 #include <agastd.h>
+#include <agascript.h>
+#include <agalog.h>
 #include <agascripthelp.h>
 
 #include <agan/agan.h>
@@ -30,6 +31,11 @@ struct py_object* agan_mknativeptr(void* ptr) {
 	struct py_object* o = py_object_new((void*) &agan_nativeptr_type);
 	((struct agan_nativeptr*) o)->ptr = ptr;
 	return o;
+}
+
+void py_fatal(const char* msg) {
+	aga_log(__FILE__, "Python Fatal Error: %s", msg);
+	abort();
 }
 
 FILE* pyopen_r(const char* path) {

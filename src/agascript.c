@@ -44,7 +44,7 @@ void aga_script_trace(void) {
 			}
 		}
 
-		PY_DECREF(v);
+		py_object_decref(v);
 	}
 }
 
@@ -70,7 +70,7 @@ void* aga_getscriptptr(const char* key) {
 		return 0;
 	}
 
-	ptr = py_dict_lookup(agan_dict, (char*) key);
+	ptr = py_dict_lookup(agan_dict, key);
 	if(!ptr) {
 		py_error_set_string(
 				py_runtime_error, "failed to resolve script nativeptr");
@@ -101,11 +101,11 @@ static enum aga_result aga_compilescript(
 	AGA_VERIFY((module = py_add_module("__main__")), AGA_RESULT_ERROR);
 
 	res = py_parse_file(
-			fp, (char*) script, &py_grammar, file_input, 0, 0, &node);
+			fp, script, &py_grammar, file_input, 0, 0, &node);
 	AGA_VERIFY(res == PY_RESULT_DONE, AGA_RESULT_ERROR);
 
 	AGA_VERIFY(*dict = py_module_get_dict(module), AGA_RESULT_ERROR);
-	AGA_VERIFY(code = py_compile(node, (char*) script), AGA_RESULT_ERROR);
+	AGA_VERIFY(code = py_compile(node, script), AGA_RESULT_ERROR);
 
 	py_tree_delete(node);
 
@@ -114,8 +114,8 @@ static enum aga_result aga_compilescript(
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
-	if(result) PY_DECREF(result);
-	PY_DECREF(code);
+	if(result) py_object_decref(result);
+	py_object_decref(code);
 
 	return AGA_RESULT_OK;
 }
@@ -175,7 +175,7 @@ enum aga_result aga_setscriptptr(
 	}
 	((struct agan_nativeptr*) nativeptr)->ptr = value;
 
-	if(py_dict_insert(eng->agandict, (char*) key, nativeptr) == -1) {
+	if(py_dict_insert(eng->agandict, key, nativeptr) == -1) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
@@ -191,7 +191,7 @@ enum aga_result aga_findclass(
 	AGA_PARAM_CHK(class);
 	AGA_PARAM_CHK(name);
 
-	if(!(class->class = py_dict_lookup(eng->global, (char*) name))) {
+	if(!(class->class = py_dict_lookup(eng->global, name))) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
@@ -220,7 +220,7 @@ enum aga_result aga_mkscriptinst(
 enum aga_result aga_killscriptinst(struct aga_scriptinst* inst) {
 	AGA_PARAM_CHK(inst);
 
-	PY_DECREF((struct py_object*) inst->object);
+	py_object_decref((struct py_object*) inst->object);
 
 	return AGA_RESULT_OK;
 }
@@ -232,7 +232,7 @@ enum aga_result aga_instcall(struct aga_scriptinst* inst, const char* name) {
 	AGA_PARAM_CHK(inst);
 	AGA_PARAM_CHK(name);
 
-	proc = py_object_get_attr(inst->class->class, (char*) name);
+	proc = py_object_get_attr(inst->class->class, name);
 	if(py_error_occurred()) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
@@ -250,7 +250,7 @@ enum aga_result aga_instcall(struct aga_scriptinst* inst, const char* name) {
 		return AGA_RESULT_ERROR;
 	}
 
-	PY_DECREF(methodcall);
+	py_object_decref(methodcall);
 
 	return AGA_RESULT_OK;
 }

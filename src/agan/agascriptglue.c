@@ -40,7 +40,7 @@ aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv) {
 	aga_size_t i;
 
 	for(i = inv ? 2 : 0; i < 3; inv ? --i : ++i) {
-		if(!(comp = py_dict_lookup(trans, (char*) agan_trans_components[i]))) {
+		if(!(comp = py_dict_lookup(trans, agan_trans_components[i]))) {
 			return AGA_TRUE;
 		}
 
@@ -88,9 +88,7 @@ struct py_object* agan_scriptconf(
 	aga_size_t i, len = py_varobject_size(list);
 	struct py_object* v;
 
-	if(!(names = malloc(sizeof(char*) * len))) {
-		return py_error_set_nomem();
-	}
+	if(!(names = malloc(sizeof(char*) * len))) return py_error_set_nomem();
 
 	for(i = 0; i < len; ++i) {
 		if(aga_list_get(list, i, &v)) return 0;
@@ -116,7 +114,7 @@ struct py_object* agan_scriptconf(
 			/* FALLTHRU */
 		}
 		case AGA_NONE: return AGA_INCREF(PY_NONE);
-		case AGA_STRING: return py_string_new((char*) str);
+		case AGA_STRING: return py_string_new(str);
 		case AGA_INTEGER: return py_int_new(out->data.integer);
 		case AGA_FLOAT: return py_float_new(out->data.flt);
 	}
@@ -420,7 +418,7 @@ static enum aga_result aga_insertfloat(const char* key, double value) {
 		return AGA_RESULT_ERROR;
 	}
 
-	if(py_dict_insert(agan_dict, (char*) key, o) == -1) {
+	if(py_dict_insert(agan_dict, key, o) == -1) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
@@ -436,7 +434,7 @@ static enum aga_result aga_insertint(const char* key, long value) {
 		return AGA_RESULT_ERROR;
 	}
 
-	if(py_dict_insert(agan_dict, (char*) key, o) == -1) {
+	if(py_dict_insert(agan_dict, key, o) == -1) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}

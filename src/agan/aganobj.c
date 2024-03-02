@@ -34,7 +34,7 @@ AGAN_SCRIPTPROC(mktrans) {
 			if(aga_list_set(list, j, f)) return 0;
 		}
 
-		if(py_dict_insert(retval, (char*) agan_trans_components[i], list) ==
+		if(py_dict_insert(retval, agan_trans_components[i], list) ==
 		   -1) {
 			return 0;
 		}
@@ -62,7 +62,7 @@ static aga_bool_t agan_mkobj_trans(
 	for(i = 0; i < 3; ++i) {
 		path[0] = agan_conf_components[i];
 
-		l = py_dict_lookup(obj->transform, (char*) agan_trans_components[i]);
+		l = py_dict_lookup(obj->transform, agan_trans_components[i]);
 		if(!l) return AGA_TRUE;
 
 		for(j = 0; j < 3; ++j) {
@@ -271,7 +271,7 @@ AGAN_SCRIPTPROC(killobj) {
 	glDeleteLists(obj->drawlist, 1);
 	if(aga_script_glerr("glDeleteLists")) return 0;
 
-	PY_DECREF(obj->transform);
+	py_object_decref(obj->transform);
 
 	return AGA_INCREF(PY_NONE);
 }

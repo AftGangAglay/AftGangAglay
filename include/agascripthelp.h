@@ -14,7 +14,7 @@
  */
 
 /* TODO: This can just be a function. */
-#define AGA_INCREF(v) (PY_INCREF(v), v)
+#define AGA_INCREF(v) (py_object_incref(v), v)
 
 /* TODO: `py_is_*' should be functions. */
 /* TODO: These can just be functions. */

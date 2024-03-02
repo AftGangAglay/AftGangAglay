@@ -92,7 +92,7 @@ struct py_object* agan_scriptconf(
 
 	for(i = 0; i < len; ++i) {
 		if(aga_list_get(list, i, &v)) return 0;
-		if(!(names[i] = py_string_get_value(v))) {
+		if(!(names[i] = py_string_get(v))) {
 			free(names);
 			return 0;
 		}
@@ -220,18 +220,6 @@ AGAN_SCRIPTPROC(log) {
 	}
 
 	if(aga_script_string(py_frame_current->code->filename, &loc)) return 0;
-
-	if(!py_is_string(arg)) {
-		aga_size_t i;
-		for(i = 0; i < aga_logctx.len; ++i) {
-			FILE* s = aga_logctx.targets[i];
-			aga_loghdr(s, loc, AGA_NORM);
-			py_object_print(arg, s, PY_PRINT_NORMAL);
-			if(putc('\n', s) == EOF) perror("putc");
-		}
-
-		return AGA_INCREF(PY_NONE);
-	}
 
 	if(aga_script_string(arg, &str)) return 0;
 

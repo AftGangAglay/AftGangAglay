@@ -27,9 +27,13 @@ void aga_script_trace(void) {
 			FILE* s = aga_logctx.targets[i];
 
 			aga_loghdr(s, __FILE__, AGA_ERR);
-			py_object_print(exc, s, PY_PRINT_RAW);
-			fputs(": ", s);
-			py_object_print(val, s, PY_PRINT_RAW);
+			if(fputs(py_string_get(exc), s) == EOF) {
+				aga_errno(__FILE__, "fputs");
+			}
+			if(fputs(": ", s) == EOF) aga_errno(__FILE__, "fputs");
+			if(fputs(py_string_get(val), s) == EOF) {
+				aga_errno(__FILE__, "fputs");
+			}
 			if(putc('\n', s) == EOF) aga_errno(__FILE__, "putc");
 
 			if(fprintf(s, "Stack backtrace (innermost last):\n") < 0) {

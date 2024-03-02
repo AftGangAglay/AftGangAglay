@@ -24,8 +24,7 @@ static void agan_killnativeptr(struct py_object* obj) { free(obj); }
 
 const struct py_type agan_nativeptr_type = {
 		{ 1, &py_type_type, 0 }, "nativeptr",
-		sizeof(struct agan_nativeptr), 0, agan_killnativeptr, 0, 0, 0, 0, 0, 0,
-		0, 0 };
+		sizeof(struct agan_nativeptr), agan_killnativeptr, 0, 0, 0, 0, 0, 0 };
 
 struct py_object* agan_mknativeptr(void* ptr) {
 	struct py_object* o = py_object_new((void*) &agan_nativeptr_type);
@@ -57,7 +56,7 @@ aga_bool_t aga_script_int(struct py_object* o, int* i) {
 }
 
 aga_bool_t aga_script_string(struct py_object* o, char** s) {
-	*s = py_string_get_value(o);
+	*s = py_string_get(o);
 	return py_error_occurred();
 }
 

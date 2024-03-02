@@ -85,7 +85,7 @@ struct py_object* agan_scriptconf(
 	const char* str;
 	struct aga_conf_node* out;
 	const char** names;
-	aga_size_t i, len = py_list_size(list);
+	aga_size_t i, len = py_varobject_size(list);
 	struct py_object* v;
 
 	if(!(names = malloc(sizeof(char*) * len))) {

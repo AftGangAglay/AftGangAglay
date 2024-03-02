@@ -131,7 +131,6 @@ enum aga_result aga_mkscripteng(
 	py_import_init();
 	py_builtin_init();
 	py_math_init();
-	py_initintr();
 
 	AGA_CHK(aga_mkmod((void**) &eng->agandict));
 

@@ -11,7 +11,8 @@
 struct aga_conf_node;
 
 struct agan_nativeptr {
-	PY_OB_SEQ
+	struct py_object ob;
+
 	void* ptr;
 };
 

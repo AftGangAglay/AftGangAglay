@@ -114,31 +114,31 @@ static enum aga_result aga_compilescript(
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
-	if(result) { PY_DECREF(result); }
-
+	if(result) PY_DECREF(result);
 	PY_DECREF(code);
 
 	return AGA_RESULT_OK;
 }
 
 enum aga_result aga_mkscripteng(
-		struct aga_scripteng* eng, const char* script, int argc, char** argv,
+		struct aga_scripteng* eng, const char* script,
 		struct aga_respack* pack, const char* pypath) {
 
 	AGA_PARAM_CHK(eng);
 	AGA_PARAM_CHK(script);
-	AGA_PARAM_CHK(argv);
 
 	/* TODO: EH */
 	py_import_init();
 	py_builtin_init();
-	py_system_init();
+	py_math_init();
 	py_initintr();
 
 	AGA_CHK(aga_mkmod((void**) &eng->agandict));
 
-	py_system_set_path((char*) pypath);
-	py_system_set_argv(argc, argv);
+	if(!(py_path = py_path_new(pypath))) {
+		aga_script_trace();
+		return AGA_RESULT_ERROR;
+	}
 
 	AGA_CHK(aga_setscriptptr(eng, AGA_SCRIPT_PACK, pack));
 	AGA_CHK(aga_compilescript(script, pack, (struct py_object**) &eng->global));
@@ -151,7 +151,6 @@ enum aga_result aga_killscripteng(struct aga_scripteng* eng) {
 
 	py_import_done();
 	py_builtin_done();
-	py_system_done();
 	py_done_dict();
 
 	py_error_clear();

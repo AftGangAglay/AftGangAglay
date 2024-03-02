@@ -20,7 +20,7 @@
 #include <python/modsupport.h>
 
 #include <python/bltinmodule.h>
-#include <python/sysmodule.h>
+#include <python/mathmodule.h>
 
 /* TODO: `object' include subdir. */
 #include <python/object.h>

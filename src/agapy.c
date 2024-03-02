@@ -14,8 +14,6 @@
  * Also contains a few scriptglue helpers declared in `agapyinc'.
  */
 
-#include <python/config.h>
-
 #ifdef _DEBUG
 /* The extra debug info this enables is a bit too verbose. */
 int debugging = 0;

@@ -15,10 +15,10 @@ PYTHON_SOURCES7 = $(PY)intobject.c $(PY)intrcheck.c $(PY)listnode.c
 PYTHON_SOURCES8 = $(PY)listobject.c $(PY)mathmodule.c
 PYTHON_SOURCES9 = $(PY)methodobject.c $(PY)modsupport.c
 PYTHON_SOURCES10 = $(PY)moduleobject.c $(PY)node.c $(PY)object.c
-PYTHON_SOURCES11 = $(PY)parser.c $(PY)parsetok.c $(PY)posixmodule.c
+PYTHON_SOURCES11 = $(PY)parser.c $(PY)parsetok.c
 PYTHON_SOURCES12 =
 PYTHON_SOURCES13 = $(PY)stringobject.c $(PY)structmember.c
-PYTHON_SOURCES14 = $(PY)sysmodule.c $(PY)timemodule.c $(PY)config.c
+PYTHON_SOURCES14 =
 PYTHON_SOURCES15 = $(PY)tokenizer.c $(PY)traceback.c $(PY)pythonmain.c
 PYTHON_SOURCES16 = $(PY)tupleobject.c $(PY)typeobject.c
 

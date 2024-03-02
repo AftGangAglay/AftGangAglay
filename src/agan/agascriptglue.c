@@ -448,12 +448,13 @@ static enum aga_result aga_setkeys(void);
 
 enum aga_result aga_mkmod(void** dict) {
 	static const double pi = 3.14159265358979323846;
+	static const double e = 2.71828182845904523536;
 	static const double rads = pi / 180.0;
 
 	enum aga_result result;
 
 #define _(name) { #name, agan_##name }
-	struct py_methodlist methods[] = {
+	static const struct py_methodlist methods[] = {
 			/* Input */
 			_(getkey), _(getmotion), _(setcursor),
 
@@ -482,6 +483,7 @@ enum aga_result aga_mkmod(void** dict) {
 
 	AGA_CHK(aga_insertfloat("PI", pi));
 	AGA_CHK(aga_insertfloat("RADS", rads));
+	AGA_CHK(aga_insertfloat("E", e));
 
 	if((result = aga_setkeys())) {
 		aga_script_trace();

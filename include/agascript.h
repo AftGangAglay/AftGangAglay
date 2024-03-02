@@ -35,7 +35,7 @@ struct aga_scripteng {
 };
 
 enum aga_result aga_mkscripteng(
-		struct aga_scripteng* eng, const char* script, int argc, char** argv,
+		struct aga_scripteng* eng, const char* script,
 		struct aga_respack* pack, const char* pypath);
 
 enum aga_result aga_killscripteng(struct aga_scripteng* eng);

@@ -93,8 +93,7 @@ int main(int argc, char** argv) {
 	}
 
 	result = aga_mkscripteng(
-			&scripteng, opts.startup_script, argc, argv, &pack,
-			opts.python_path);
+			&scripteng, opts.startup_script, &pack, opts.python_path);
 	if(result) { aga_soft(__FILE__, "aga_mkscripteng", result); }
 	else {
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_KEYMAP, &keymap));

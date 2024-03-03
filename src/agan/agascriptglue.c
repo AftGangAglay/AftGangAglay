@@ -82,6 +82,8 @@ aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv) {
 struct py_object* agan_scriptconf(
 		struct aga_conf_node* node, aga_bool_t root, struct py_object* list) {
 
+	enum aga_result err;
+
 	const char* str;
 	struct aga_conf_node* out;
 	const char** names;
@@ -98,10 +100,8 @@ struct py_object* agan_scriptconf(
 		}
 	}
 
-	if(aga_script_err(
-			"aga_conftree_raw", aga_conftree_raw(
-					root ? node->children : node, names, len, &out))) {
-
+	err = aga_conftree_raw(root ? node->children : node, names, len, &out);
+	if(aga_script_err("aga_conftree_raw", err)) {
 		free(names);
 		return 0;
 	}

@@ -371,3 +371,8 @@ enum aga_result aga_conftree(
 
 	return aga_conftree_nonroot(root->children, names, count, value, type);
 }
+
+void outofmem(const char* file, const char* func) {
+	fprintf(stderr, "%s %s: out of memory.\nProgram aborted.\n", file, func);
+	exit(1);
+}

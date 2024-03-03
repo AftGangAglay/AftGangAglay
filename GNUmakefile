@@ -50,7 +50,7 @@ ifdef WINDOWS
 	EXE = .exe
 	A = .lib
 
-	GL_LDLIBS = -lopengl32 -lglu32 -lgdi32 -lshell32
+	GL_LDLIBS = -lopengl32 -lglu32 -lgdi32 -lshell32 -luser32
 else
 	LIB = lib
 	OBJ = .o

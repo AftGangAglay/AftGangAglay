@@ -9,7 +9,7 @@
 #include <agapack.h>
 #include <agapyinc.h>
 
-#include <python/graminit.h> /* For `file_input'. */
+#include <python/graminit.h> /* For `PY_GRAMMAR_FILE_INPUT'. */
 
 #include <agan/agan.h>
 
@@ -27,11 +27,11 @@ void aga_script_trace(void) {
 			FILE* s = aga_logctx.targets[i];
 
 			aga_loghdr(s, __FILE__, AGA_ERR);
-			if(fputs(py_string_get(exc), s) == EOF) {
+			if(exc && fputs(py_string_get(exc), s) == EOF) {
 				aga_errno(__FILE__, "fputs");
 			}
 			if(fputs(": ", s) == EOF) aga_errno(__FILE__, "fputs");
-			if(fputs(py_string_get(val), s) == EOF) {
+			if(val && fputs(py_string_get(val), s) == EOF) {
 				aga_errno(__FILE__, "fputs");
 			}
 			if(putc('\n', s) == EOF) aga_errno(__FILE__, "putc");
@@ -105,7 +105,7 @@ static enum aga_result aga_compilescript(
 	AGA_VERIFY((module = py_add_module("__main__")), AGA_RESULT_ERROR);
 
 	res = py_parse_file(
-			fp, script, &py_grammar, file_input, 0, 0, &node);
+			fp, script, &py_grammar, PY_GRAMMAR_FILE_INPUT, 0, 0, &node);
 	AGA_VERIFY(res == PY_RESULT_DONE, AGA_RESULT_ERROR);
 
 	AGA_VERIFY(*dict = py_module_get_dict(module), AGA_RESULT_ERROR);

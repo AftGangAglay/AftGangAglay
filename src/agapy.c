@@ -55,7 +55,7 @@ aga_bool_t aga_script_int(struct py_object* o, int* i) {
 	return py_error_occurred();
 }
 
-aga_bool_t aga_script_string(struct py_object* o, char** s) {
+aga_bool_t aga_script_string(struct py_object* o, const char** s) {
 	*s = py_string_get(o);
 	return py_error_occurred();
 }

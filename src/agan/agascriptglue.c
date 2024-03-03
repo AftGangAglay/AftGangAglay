@@ -211,8 +211,8 @@ AGAN_SCRIPTPROC(getconf) {
 }
 
 AGAN_SCRIPTPROC(log) {
-	char* str;
-	char* loc;
+	const char* str;
+	const char* loc;
 
 	if(!arg) {
 		py_error_set_string(py_runtime_error, "log() takes one argument");
@@ -281,7 +281,7 @@ AGAN_SCRIPTPROC(fogcol) {
 }
 
 AGAN_SCRIPTPROC(text) {
-	char* text;
+	const char* text;
 	struct py_object* str;
 	struct py_object* t;
 	struct py_object* f;

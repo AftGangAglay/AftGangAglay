@@ -238,7 +238,7 @@ AGAN_SCRIPTPROC(mkobj) {
 	if(!(obj->transform = agan_mktrans(0, 0))) return 0;
 
 	{
-		char* path;
+		const char* path;
 		void* fp;
 
 		if(aga_script_string(arg, &path)) return 0;

@@ -31,7 +31,7 @@ aga_bool_t aga_script_float(struct py_object* o, float* f);
 
 aga_bool_t aga_script_int(struct py_object* o, int* i);
 
-aga_bool_t aga_script_string(struct py_object* o, char** s);
+aga_bool_t aga_script_string(struct py_object* o, const char** s);
 
 aga_bool_t aga_script_bool(struct py_object* o, aga_bool_t* b);
 

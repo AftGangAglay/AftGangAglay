@@ -12,11 +12,6 @@ ifdef OS
 
 	RM = del
 	SEP = \\
-
-	LIB =
-	OBJ = .obj
-	EXE = .exe
-	A = .lib
 else
 	ifndef CROSS
 		ifeq ($(shell uname -s),Darwin)
@@ -26,11 +21,6 @@ else
 
 	RM = rm
 	SEP = /
-
-	LIB = lib
-	OBJ = .o
-	EXE =
-	A = .a
 endif
 
 WINDRES = windres
@@ -55,8 +45,18 @@ LDLIBS = -lm
 XQUARTZ_ROOT = /opt/X11
 
 ifdef WINDOWS
+	LIB =
+	OBJ = .obj
+	EXE = .exe
+	A = .lib
+
 	GL_LDLIBS = -lopengl32 -lglu32 -lgdi32 -lshell32
 else
+	LIB = lib
+	OBJ = .o
+	EXE =
+	A = .a
+
 	GL_LDLIBS = -lGL -lGLU -lX11
 	ifdef APPLE
 		GL_CFLAGS = -I$(XQUARTZ_ROOT)/include

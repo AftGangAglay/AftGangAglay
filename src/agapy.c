@@ -23,8 +23,8 @@ int debugging = 0;
 static void agan_killnativeptr(struct py_object* obj) { free(obj); }
 
 const struct py_type agan_nativeptr_type = {
-		{ 1, &py_type_type, 0 }, "nativeptr",
-		sizeof(struct agan_nativeptr), agan_killnativeptr, 0, 0, 0, 0, 0 };
+		{ 1, 0, &py_type_type }, "nativeptr",
+		sizeof(struct agan_nativeptr), agan_killnativeptr, 0, 0, 0, 0 };
 
 struct py_object* agan_mknativeptr(void* ptr) {
 	struct py_object* o = py_object_new((void*) &agan_nativeptr_type);

@@ -58,7 +58,11 @@
 # ifdef AGA_HAVE_SYS_SOUNDCARD
 #  include <sys/soundcard.h>
 # endif
+# ifdef AGA_HAVE_SYS_TIME
+#  include <sys/time.h>
+# endif
 # ifdef _WIN32
+#  include <io.h>
 #  include <direct.h>
 # endif
 #endif

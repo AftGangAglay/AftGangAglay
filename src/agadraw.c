@@ -44,8 +44,10 @@ enum aga_result aga_pushrawdraw(void) {
 	glDisable(GL_TEXTURE_2D);
 	AGA_GL_CHK("glDisable");
 
+	/*
 	glDisable(GL_LIGHTING);
 	AGA_GL_CHK("glDisable");
+	 */
 
 	glDisable(GL_DEPTH_TEST);
 	AGA_GL_CHK("glDisable");
@@ -83,8 +85,10 @@ enum aga_result aga_poprawdraw(void) {
 	glEnable(GL_TEXTURE_2D);
 	AGA_GL_CHK("glEnable");
 
+	/*
 	glEnable(GL_LIGHTING);
 	AGA_GL_CHK("glEnable");
+	 */
 
 	glEnable(GL_DEPTH_TEST);
 	AGA_GL_CHK("glEnable");

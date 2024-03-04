@@ -8,6 +8,7 @@
 #include <agaerr.h>
 #include <agapack.h>
 #include <agapyinc.h>
+#include <agaprof.h>
 
 #include <agan/agan.h>
 
@@ -234,6 +235,8 @@ enum aga_result aga_instcall(struct aga_scriptinst* inst, const char* name) {
 	AGA_PARAM_CHK(inst);
 	AGA_PARAM_CHK(name);
 
+	aga_prof_stamp_start(AGA_PROF_SCRIPT_INSTCALL_RISING);
+
 	proc = py_class_get_attr(inst->class->class, name);
 	if(py_error_occurred()) {
 		aga_script_trace();
@@ -246,11 +249,17 @@ enum aga_result aga_instcall(struct aga_scriptinst* inst, const char* name) {
 		return AGA_RESULT_ERROR;
 	}
 
+	aga_prof_stamp_end(AGA_PROF_SCRIPT_INSTCALL_RISING);
+
+	aga_prof_stamp_start(AGA_PROF_SCRIPT_INSTCALL_EXEC);
+
 	py_call_function(methodcall, 0);
 	if(py_error_occurred()) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
+
+	aga_prof_stamp_end(AGA_PROF_SCRIPT_INSTCALL_EXEC);
 
 	py_object_decref(methodcall);
 

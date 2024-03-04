@@ -13,6 +13,7 @@
 #include <agalog.h>
 #include <agaerr.h>
 #include <agapack.h>
+#include <agaprof.h>
 #include <agaio.h>
 #include <agadraw.h>
 #include <agastartup.h>
@@ -30,6 +31,24 @@
         enum aga_result soft_chk_result = proc param; \
         if(soft_chk_result) aga_soft(__FILE__, #proc, soft_chk_result); \
     } while(0)
+
+static enum aga_result aga_putnil(void) {
+	/*
+	 * TODO: We can definitely work on making this more useful. Maybe
+	 * 		 An interactive way to load a project once we have some
+	 * 		 Semblance of UI?
+	 */
+
+	static const char str1[] = "No project loaded or no script files provided";
+	static const char str2[] = "Did you forget `-f' or `-C'?";
+	static const float col[] = { 0.6f, 0.3f, 0.8f, 1.0f };
+
+	AGA_CHK(aga_clear(col));
+	AGA_CHK(aga_puttextfmt(0.05f, 0.1f, str1));
+	AGA_CHK(aga_puttextfmt(0.05f, 0.2f, str2));
+
+	return AGA_RESULT_OK;
+}
 
 int main(int argc, char** argv) {
 	enum aga_result result;
@@ -116,31 +135,38 @@ int main(int argc, char** argv) {
 	aga_log(__FILE__, "Done!");
 
 	while(!die) {
+		aga_prof_stamp_start(AGA_PROF_PRESWAP);
+
+		aga_prof_stamp_start(AGA_PROF_POLL);
 		pointer.dx = 0;
 		pointer.dy = 0;
-
 		SOFT(aga_poll, (&env, &keymap, &win, &pointer, &die));
+		aga_prof_stamp_end(AGA_PROF_POLL);
 
+		aga_prof_stamp_start(AGA_PROF_SCRIPT_UPDATE);
 		if(class.class) SOFT(aga_instcall, (&inst, "update"));
-		else {
-			/*
-			 * TODO: We can definitely work on making this more useful. Maybe
-			 * 		 An interactive way to load a project once we have some
-			 * 		 Semblance of UI?
-			 */
+		else SOFT(aga_putnil, ());
+		aga_prof_stamp_end(AGA_PROF_SCRIPT_UPDATE);
 
-			static const char str1[] = "No project loaded or no script files provided";
-			static const char str2[] = "Did you forget `-f' or `-C'?";
-			static const float col[] = { 0.6f, 0.3f, 0.8f, 1.0f };
-
-			CHK(aga_clear, (col));
-			CHK(aga_puttextfmt, (0.05f, 0.1f, str1));
-			CHK(aga_puttextfmt, (0.05f, 0.2f, str2));
-		}
-
+		aga_prof_stamp_start(AGA_PROF_RES_SWEEP);
 		SOFT(aga_sweeprespack, (&pack));
+		aga_prof_stamp_end(AGA_PROF_RES_SWEEP);
 
-		SOFT(aga_flush, ());
+		aga_prof_stamp_end(AGA_PROF_PRESWAP);
+
+#define PROF(i, j, sec) \
+		SOFT(aga_puttextfmt, ( \
+				0.05f + 0.05f * (j), 0.1f + 0.05f * (i), #sec ": %lluus", \
+				aga_prof_stamp_us(AGA_PROF_##sec)))
+
+		PROF(0, 0, PRESWAP);
+			PROF(1, 1, POLL);
+			PROF(2, 1, SCRIPT_UPDATE);
+				PROF(3, 2, SCRIPT_INSTCALL_RISING);
+				PROF(4, 2, SCRIPT_INSTCALL_EXEC);
+			PROF(5, 1, RES_SWEEP);
+#undef PROF
+		aga_prof_clear();
 
 		/* Window is already dead/dying if `die' is set. */
 		if(!die) SOFT(aga_swapbuf, (&env, &win));

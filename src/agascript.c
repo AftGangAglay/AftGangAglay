@@ -9,8 +9,6 @@
 #include <agapack.h>
 #include <agapyinc.h>
 
-#include <python/graminit.h> /* For `PY_GRAMMAR_FILE_INPUT'. */
-
 #include <agan/agan.h>
 
 void aga_script_trace(void) {

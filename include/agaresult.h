@@ -24,10 +24,10 @@ enum aga_result {
 
 #ifdef AGA_NO_VERIFY
 # define AGA_PARAM_CHK(p)
-# define AGA_VERIFY(expr, err)
+# define AGA_VERIFY(PY_GRAMMAR_EXPRESSION, err)
 #else
 # define AGA_PARAM_CHK(p) if(!(p)) return AGA_RESULT_BAD_PARAM
-# define AGA_VERIFY(expr, err) if(!(expr)) return (err)
+# define AGA_VERIFY(PY_GRAMMAR_EXPRESSION, err) if(!(PY_GRAMMAR_EXPRESSION)) return (err)
 #endif
 
 #endif

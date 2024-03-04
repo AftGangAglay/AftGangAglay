@@ -234,7 +234,7 @@ enum aga_result aga_instcall(struct aga_scriptinst* inst, const char* name) {
 	AGA_PARAM_CHK(inst);
 	AGA_PARAM_CHK(name);
 
-	proc = py_object_get_attr(inst->class->class, name);
+	proc = py_class_get_attr(inst->class->class, name);
 	if(py_error_occurred()) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;

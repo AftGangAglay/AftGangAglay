@@ -433,9 +433,9 @@ static enum aga_result aga_insertint(const char* key, long value) {
 static enum aga_result aga_setkeys(void);
 
 enum aga_result aga_mkmod(void** dict) {
-	static const double pi = 3.14159265358979323846;
-	static const double e = 2.71828182845904523536;
-	static const double rads = pi / 180.0;
+	const double pi = 3.14159265358979323846;
+	const double e = 2.71828182845904523536;
+	const double rads = pi / 180.0;
 
 	enum aga_result result;
 

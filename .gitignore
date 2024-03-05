@@ -9,6 +9,7 @@
 
 *.ilk
 *.pdb
+Tools.ini
 
 src/main
 

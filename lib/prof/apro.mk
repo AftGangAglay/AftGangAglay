@@ -12,7 +12,7 @@ APRO_OUT = lib$(SEP)$(LIB)apro$(A)
 $(APRO_OBJ): $(APRO_HDR)
 
 $(APRO_OUT): $(APRO_OBJ)
-	$(AR) $@ $(ALL)
+	$(AR) $(ALL)
 
 clean_apro:
 	$(RM) $(APRO_OBJ) $(APRO_OUT)

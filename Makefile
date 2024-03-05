@@ -13,8 +13,8 @@ OBJ = .obj
 EXE = .exe
 A = .lib
 
-AR = lib /out:
-O = /Fe: $@
+AR = lib /nologo /out:$@
+O = /Fe:$@
 ALL = $**
 WL = /link
 
@@ -24,19 +24,19 @@ CFLAGS = /Od /Zi /D_DEBUG /MTd
 CFLAGS = /O2 /DNDEBUG /MT
 !endif
 
-GL_LDLIBS = opengl32.lib glu32.lib gdi32.lib shell32.lib
+GL_LDLIBS = opengl32.lib glu32.lib gdi32.lib shell32.lib user32.lib
 
-CC = $(CC) /nologo /showIncludes
+CC = $(CC) /nologo
 
 !include lib/prof/apro.mk
 !include vendor/python.mk
 !include vendor/www.mk
 !include src/aga.mk
 
-SET_CFLAGS = /I$(APRO) /I$(PYI) /I$(WWW) /Iinclude /DAGA_VERSION="$(VERSION)"
+SET_CFLAGS = /I$(APRO) /I$(PYI) /I$(WWW) /Iinclude /DAGA_VERSION=\"$(VERSION)\"
 
 .c$(OBJ):
-	$(CC) /c $(SET_CFLAGS) $(GLABI_CFLAGS) /Fo: $@ $<
+	$(CC) /c $(CFLAGS) $(SET_CFLAGS) $(GLABI_CFLAGS) /Fo:$@ $<
 
 all: $(AGA_OUT)
 

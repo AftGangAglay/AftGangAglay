@@ -20,6 +20,7 @@
 
 static const char* agax_chk_last = "xlib";
 
+/* TODO: Find a more standard way to do this nicely. */
 #ifdef __GNUC__
 # pragma GCC diagnostic ignored "-Wpedantic"
 /* TODO: Check against return value for `0'. */

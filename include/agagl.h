@@ -9,6 +9,10 @@
 #include <agaresult.h>
 
 #ifdef _WIN32
+# ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable: 4255)
+# endif
 /*
  * This is super annoying as it leaks a load of garbage into scope.
  * `windows.h' is needed for declaration attributes.
@@ -16,15 +20,14 @@
  * TODO: `stddef.h' isn't needed under MSVC if the appropriate opt is set.
  */
 # ifndef AGA_WGL_SUPPRESS_AUX
-
 #  include <windows.h>
 #  include <stddef.h>
-
 # endif
-
 # include <GL/gl.h>
 # include <GL/glu.h>
-
+# ifdef _MSC_VER
+#  pragma warning(pop)
+# endif
 #else
 # define GL_GLEXT_PROTOTYPES
 # include <GL/gl.h>

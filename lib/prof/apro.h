@@ -29,10 +29,14 @@ enum apro_section {
 	APRO_MAX
 };
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wlong-long"
+#ifdef __GNUC__
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wlong-long"
+#endif
 typedef unsigned long long apro_unit_t;
-#pragma GCC diagnostic pop
+#ifdef __GNUC__
+# pragma GCC diagnostic pop
+#endif
 
 struct apro_timestamp {
 	apro_unit_t seconds;

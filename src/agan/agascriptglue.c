@@ -90,7 +90,7 @@ struct py_object* agan_scriptconf(
 	aga_size_t i, len = py_varobject_size(list);
 	struct py_object* v;
 
-	if(!(names = malloc(sizeof(char*) * len))) return py_error_set_nomem();
+	if(!(names = malloc(len * sizeof(char*)))) return py_error_set_nomem();
 
 	for(i = 0; i < len; ++i) {
 		if(aga_list_get(list, i, &v)) return 0;

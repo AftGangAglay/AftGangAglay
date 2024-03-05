@@ -89,8 +89,10 @@
 
 #define AGA_LEN(arr) (sizeof((arr)) / sizeof(*(arr)))
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wlong-long"
+#ifdef __GNUC__
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wlong-long"
+#endif
 
 typedef unsigned char aga_uchar_t;
 typedef unsigned short aga_ushort_t;
@@ -119,6 +121,8 @@ typedef aga_uchar_t aga_bool_t;
 #define AGA_TRUE (1)
 #define AGA_FALSE (0)
 
-#pragma GCC diagnostic pop
+#ifdef __GNUC__
+# pragma GCC diagnostic pop
+#endif
 
 #endif

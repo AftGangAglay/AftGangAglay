@@ -8,12 +8,21 @@
 
 #include <agaenv.h>
 
-#ifndef _CRT_SECURE_NO_WARNINGS
-# define _CRT_SECURE_NO_WARNINGS
+#ifdef _WIN32
+# ifndef _CRT_SECURE_NO_WARNINGS
+#  define _CRT_SECURE_NO_WARNINGS
+# endif
 #endif
 
-#ifndef _POSIX_C_SOURCE
-# define _POSIX_C_SOURCE 2
+#ifndef _MSC_VER
+# ifndef _POSIX_C_SOURCE
+#  define _POSIX_C_SOURCE 2
+# endif
+#endif
+
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable: 4710)
 #endif
 
 #include <stdio.h>
@@ -64,8 +73,20 @@
 # endif
 #endif
 
-FILE* aga_open_r(const char* path);
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
+/* TODO: These probably shouldn't be here. */
+FILE* aga_open_r(const char* path);
 void aga_close(FILE* fp);
+
+#ifdef _WIN32
+# undef _CRT_SECURE_NO_WARNINGS
+#endif
+
+#ifndef _MSC_VER
+# undef _POSIX_C_SOURCE
+#endif
 
 #endif

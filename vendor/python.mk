@@ -1,61 +1,62 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
-PYINC = vendor$(SEP)python$(SEP)include$(SEP)
 PY = vendor$(SEP)python$(SEP)src$(SEP)
+PYI = vendor$(SEP)python$(SEP)include$(SEP)
+PYH = vendor$(SEP)python$(SEP)include$(SEP)python$(SEP)
 
-# TODO: Reformat this list.
-PYTHON_SOURCES1 = $(PY)acceler.c $(PY)bltinmodule.c $(PY)ceval.c
-PYTHON_SOURCES2 = $(PY)classobject.c $(PY)compile.c
-PYTHON_SOURCES3 = $(PY)dictobject.c $(PY)errors.c
-PYTHON_SOURCES4 = $(PY)floatobject.c
-PYTHON_SOURCES5 = $(PY)frameobject.c $(PY)funcobject.c
-PYTHON_SOURCES6 = $(PY)graminit.c $(PY)grammar1.c $(PY)import.c
-PYTHON_SOURCES7 = $(PY)intobject.c $(PY)listnode.c
-PYTHON_SOURCES8 = $(PY)listobject.c $(PY)mathmodule.c
-PYTHON_SOURCES9 = $(PY)methodobject.c $(PY)modsupport.c
-PYTHON_SOURCES10 = $(PY)moduleobject.c $(PY)node.c $(PY)object.c
-PYTHON_SOURCES11 = $(PY)parser.c $(PY)parsetok.c
-PYTHON_SOURCES12 =
-PYTHON_SOURCES13 = $(PY)stringobject.c
-PYTHON_SOURCES14 =
-PYTHON_SOURCES15 = $(PY)tokenizer.c $(PY)traceback.c $(PY)pythonmain.c
-PYTHON_SOURCES16 = $(PY)tupleobject.c $(PY)typeobject.c
+PY_SRC1 = $(PY)acceler.c $(PY)bltinmodule.c $(PY)ceval.c $(PY)classobject.c
+PY_SRC2 = $(PY)compile.c $(PY)dictobject.c $(PY)errors.c $(PY)floatobject.c
+PY_SRC3 = $(PY)frameobject.c $(PY)funcobject.c $(PY)graminit.c $(PY)grammar1.c
+PY_SRC4 = $(PY)import.c $(PY)intobject.c $(PY)listnode.c $(PY)listobject.c
+PY_SRC5 = $(PY)mathmodule.c $(PY)methodobject.c $(PY)modsupport.c
+PY_SRC6 = $(PY)moduleobject.c $(PY)node.c $(PY)object.c $(PY)parser.c
+PY_SRC7 = $(PY)parsetok.c $(PY)stringobject.c $(PY)tokenizer.c $(PY)traceback.c
+PY_SRC8 = $(PY)pythonmain.c $(PY)tupleobject.c $(PY)typeobject.c
+PY_SRC9 = $(PY_SRC1) $(PY_SRC2) $(PY_SRC3) $(PY_SRC4) $(PY_SRC5) $(PY_SRC6)
+PY_SRC10 = $(PY_SRC7) $(PY_SRC8)
 
-PYTHON_OBJECTS1 = $(subst .c,$(OBJ),$(PYTHON_SOURCES1)) $(subst .c,$(OBJ),$(PYTHON_SOURCES2))
-PYTHON_OBJECTS2 = $(subst .c,$(OBJ),$(PYTHON_SOURCES3)) $(subst .c,$(OBJ),$(PYTHON_SOURCES4))
-PYTHON_OBJECTS3 = $(subst .c,$(OBJ),$(PYTHON_SOURCES5)) $(subst .c,$(OBJ),$(PYTHON_SOURCES6))
-PYTHON_OBJECTS4 = $(subst .c,$(OBJ),$(PYTHON_SOURCES7)) $(subst .c,$(OBJ),$(PYTHON_SOURCES8))
-PYTHON_OBJECTS5 = $(subst .c,$(OBJ),$(PYTHON_SOURCES9)) $(subst .c,$(OBJ),$(PYTHON_SOURCES10))
-PYTHON_OBJECTS6 = $(subst .c,$(OBJ),$(PYTHON_SOURCES11)) $(subst .c,$(OBJ),$(PYTHON_SOURCES12))
-PYTHON_OBJECTS7 = $(subst .c,$(OBJ),$(PYTHON_SOURCES13)) $(subst .c,$(OBJ),$(PYTHON_SOURCES14))
-PYTHON_OBJECTS8 = $(subst .c,$(OBJ),$(PYTHON_SOURCES15)) $(subst .c,$(OBJ),$(PYTHON_SOURCES16))
+PY_HDR1 = $(PYH)bitset.h $(PYH)bltinmodule.h $(PYH)ceval.h $(PYH)classobject.h
+PY_HDR2 = $(PYH)compile.h $(PYH)dictobject.h $(PYH)env.h $(PYH)errors.h
+PY_HDR3 = $(PYH)floatobject.h $(PYH)frameobject.h $(PYH)funcobject.h
+PY_HDR4 = $(PYH)grammar.h $(PYH)import.h $(PYH)intobject.h
+PY_HDR5 = $(PYH)listobject.h $(PYH)mathmodule.h $(PYH)metagrammar.h
+PY_HDR6 = $(PYH)methodobject.h $(PYH)modsupport.h $(PYH)moduleobject.h
+PY_HDR7 = $(PYH)node.h $(PYH)object.h $(PYH)opcode.h $(PYH)parser.h
+PY_HDR8 = $(PYH)parsetok.h $(PYH)pgen.h $(PYH)result.h $(PYH)std.h
+PY_HDR9 = $(PYH)stringobject.h $(PYH)token.h $(PYH)tokenizer.h
+PY_HDR10 = $(PYH)traceback.h $(PYH)tupleobject.h
+PY_HDR11 = $(PY_HDR1) $(PY_HDR2) $(PY_HDR3) $(PY_HDR4) $(PY_HDR5) $(PY_HDR6)
+PY_HDR12 = $(PY_HDR7) $(PY_HDR8) $(PY_HDR9) $(PY_HDR10)
 
-PYTHON_OUT = vendor$(SEP)$(LIB)python$(A)
+PY_SRC = $(PY_SRC9) $(PY_SRC10)
+PY_HDR = $(PY_HDR11) $(PY_HDR12)
+PY_OBJ = $(subst .c,$(OBJ),$(PY_SRC))
 
-$(PYTHON_OUT): $(APRO_OUT)
-$(PYTHON_OUT): $(PYTHON_OBJECTS1) $(PYTHON_OBJECTS2) $(PYTHON_OBJECTS3)
-$(PYTHON_OUT): $(PYTHON_OBJECTS4) $(PYTHON_OBJECTS5) $(PYTHON_OBJECTS6)
-$(PYTHON_OUT): $(PYTHON_OBJECTS7) $(PYTHON_OBJECTS8)
+PY_OUT = vendor$(SEP)$(LIB)python$(A)
+
+$(PY_OBJ): $(PY_HDR)
+
+$(PY_OUT): $(APRO_OUT)
+$(PY_OUT): $(PY_OBJ)
 	$(AR) $@ $(ALL)
 
-PGEN_SOURCES1 = $(PY)pgenmain.c $(PY)acceler.c
-PGEN_SOURCES2 = $(PY)grammar1.c $(PY)listnode.c
-PGEN_SOURCES3 = $(PY)node.c $(PY)parser.c $(PY)parsetok.c
-PGEN_SOURCES4 = $(PY)tokenizer.c $(PY)bitset.c
-PGEN_SOURCES5 = $(PY)firstsets.c $(PY)grammar.c $(PY)metagrammar.c
-PGEN_SOURCES6 = $(PY)pgen.c $(PY)printgrammar.c
+PGEN_SRC1 = $(PY)pgenmain.c $(PY)acceler.c $(PY)grammar1.c $(PY)listnode.c
+PGEN_SRC2 = $(PY)node.c $(PY)parser.c $(PY)parsetok.c $(PY)tokenizer.c
+PGEN_SRC3 = $(PY)bitset.c $(PY)firstsets.c $(PY)grammar.c $(PY)metagrammar.c
+PGEN_SRC4 = $(PY)pgen.c $(PY)printgrammar.c
 
-PGEN_OBJECTS1 = $(subst .c,$(OBJ),$(PGEN_SOURCES1)) $(subst .c,$(OBJ),$(PGEN_SOURCES2))
-PGEN_OBJECTS2 = $(subst .c,$(OBJ),$(PGEN_SOURCES3)) $(subst .c,$(OBJ),$(PGEN_SOURCES4))
-PGEN_OBJECTS3 = $(subst .c,$(OBJ),$(PGEN_SOURCES5)) $(subst .c,$(OBJ),$(PGEN_SOURCES6))
+PGEN_SRC = $(PGEN_SRC1) $(PGEN_SRC2) $(PGEN_SRC3) $(PGEN_SRC4)
+PGEN_OBJ = $(subst .c,$(OBJ),$(PGEN_SRC))
 
 PGEN_OUT = $(PY)pgenmain$(EXE)
 
-$(PGEN_OUT): $(PGEN_OBJECTS1) $(PGEN_OBJECTS2) $(PGEN_OBJECTS3)
+$(PGEN_SRC): $(PY_HDR)
+
+$(PGEN_OUT): $(PGEN_OBJ)
 	$(CC) $(O) $(ALL) $(WL) $(LDFLAGS) $(LDLIBS)
 
-PYGRAM = $(PY)graminit.c $(PYINC)python$(SEP)graminit.h
+PYGRAM = $(PY)graminit.c $(PYI)python$(SEP)graminit.h
 
 PYGRAM_SOURCE = $(PY)gr$(SEP)Grammar
 
@@ -67,7 +68,4 @@ $(PY)compile.c: $(PYGRAM)
 $(PY)import.c: $(PYGRAM)
 
 clean_python:
-	$(RM) $(PYTHON_OBJECTS1) $(PYTHON_OBJECTS2) $(PYTHON_OBJECTS3)
-	$(RM) $(PYTHON_OBJECTS4) $(PYTHON_OBJECTS5) $(PYTHON_OBJECTS6)
-	$(RM) $(PYTHON_OBJECTS7) $(PYTHON_OBJECTS8) $(PGEN_OUT)
-	$(RM) $(PGEN_OBJECTS1) $(PGEN_OBJECTS2) $(PGEN_OBJECTS3) $(PYGRAM)
+	$(RM) $(PY_OBJ) $(PGEN_OBJ) $(PYGRAM) $(PGEN_OUT)

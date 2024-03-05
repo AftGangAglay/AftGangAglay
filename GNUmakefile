@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
-# TODO: Whitespace/Tabulation fixing.
-
 include VERSION
 
 ifdef OS
@@ -23,12 +21,10 @@ else
 	SEP = /
 endif
 
-WINDRES = windres
 AR = ar -rc
 O = -o $@
 ALL = $^
 WL =
-NICEOUT =
 
 ifdef DEBUG
 	CFLAGS = -g -D_DEBUG
@@ -69,20 +65,9 @@ include vendor/python.mk
 include vendor/www.mk
 include src/aga.mk
 
-SET_CFLAGS = -Iinclude -I$(PYINC) -I$(WWW) -DAGA_VERSION=\"$(VERSION)\"
-SET_CFLAGS += -I$(APRO)
+SET_CFLAGS = -I$(APRO) -I$(PYI) -I$(WWW) -Iinclude -DAGA_VERSION=\"$(VERSION)\"
 
-ifdef WINDOWS
-.SUFFIXES: .obj
-.rc$(OBJ):
-	$(WINDRES) -i $< -o $@.res
-	$(WINDRES) -i $@.res $-o $@
-	$(RM) $@.res
-else
-.rc$(OBJ):
-	$(CC) -c -o $@ res$(SEP)none.c
-endif
-
+.SUFFIXES: $(OBJ)
 .c$(OBJ):
 	$(CC) -c $(CFLAGS) $(SET_CFLAGS) $(GLABI_CFLAGS) $(O) $<
 

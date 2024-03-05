@@ -17,7 +17,6 @@ AR = lib /out:
 O = /Fe: $@
 ALL = $**
 WL = /link
-NICEOUT = /nologo
 
 !ifdef DEBUG
 CFLAGS = /Od /Zi /D_DEBUG /MTd
@@ -34,11 +33,7 @@ CC = $(CC) /nologo /showIncludes
 !include vendor/www.mk
 !include src/aga.mk
 
-SET_CFLAGS = /I include /I $(PYINC) /I $(WWW) /DAGA_VERSION="$(VERSION)"
-SET_CFLAGS = $(SET_CFLAGS) /I $(APRO)
-
-.res$(OBJ):
-	$(RC) /fo $@.res $<
+SET_CFLAGS = /I$(APRO) /I$(PYI) /I$(WWW) /Iinclude /DAGA_VERSION="$(VERSION)"
 
 .c$(OBJ):
 	$(CC) /c $(SET_CFLAGS) $(GLABI_CFLAGS) /Fo: $@ $<

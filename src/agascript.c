@@ -11,6 +11,8 @@
 
 #include <agan/agan.h>
 
+#include <python/graminit.h>
+
 #include <apro.h>
 
 void aga_script_trace(void) {

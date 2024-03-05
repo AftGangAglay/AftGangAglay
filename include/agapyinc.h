@@ -8,7 +8,6 @@
 
 #include <agaenv.h>
 
-#include <python/graminit.h>
 #include <python/errors.h>
 #include <python/result.h>
 #include <python/ceval.h>

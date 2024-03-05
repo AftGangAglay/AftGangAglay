@@ -3,14 +3,16 @@
 
 APRO = lib$(SEP)prof$(SEP)
 
-APRO_SOURCES1 = $(APRO)apro.c
-
-APRO_OBJECTS1 = $(subst .c,$(OBJ),$(APRO_SOURCES1))
+APRO_SRC = $(APRO)apro.c
+APRO_HDR = $(APRO)apro.h
+APRO_OBJ = $(subst .c,$(OBJ),$(APRO_SRC))
 
 APRO_OUT = lib$(SEP)$(LIB)apro$(A)
 
-$(APRO_OUT): $(APRO_OBJECTS1)
+$(APRO_OBJ): $(APRO_HDR)
+
+$(APRO_OUT): $(APRO_OBJ)
 	$(AR) $@ $(ALL)
 
 clean_apro:
-	$(RM) $(APRO_OBJECTS1) $(APRO_OUT)
+	$(RM) $(APRO_OBJ) $(APRO_OUT)

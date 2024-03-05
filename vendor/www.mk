@@ -34,7 +34,7 @@ WWW_OUT = vendor$(SEP)$(LIB)www$(A)
 $(WWW_OBJ): $(WWW_HDR)
 
 $(WWW_OUT): $(WWW_OBJ)
-	$(AR) $(ALL)
+	$(AR)
 
 clean_www:
 	$(RM) $(WWW_OBJ) $(WWW_OUT)

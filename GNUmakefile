@@ -21,22 +21,22 @@ else
 	SEP = /
 endif
 
-AR = ar -rc
-O = -o $@
-ALL = $^
+AR = ar -rc $@ $^
+CCLD = $(CC) -o $@ $^
 WL =
 
 ifdef DEBUG
-	CFLAGS = -g -D_DEBUG
+	SET_CFLAGS = -g -D_DEBUG
 else
-	CFLAGS = -O -DNDEBUG
+	SET_CFLAGS = -O -DNDEBUG
 endif
 
 ifdef MAINTAINER
-	CFLAGS += -ansi -pedantic -pedantic-errors -Wall -Wextra -Werror
+	SET_CFLAGS += -ansi -pedantic -pedantic-errors -Wall -Wextra -Werror
 endif
 
-LDLIBS = -lm
+SET_LDFLAGS =
+SET_LDLIBS = -lm
 
 XQUARTZ_ROOT = /opt/X11
 
@@ -65,11 +65,13 @@ include vendor/python.mk
 include vendor/www.mk
 include src/aga.mk
 
-SET_CFLAGS = -I$(APRO) -I$(PYI) -I$(WWW) -Iinclude -DAGA_VERSION=\"$(VERSION)\"
+SET_CFLAGS += $(GL_CFLAGS)
+SET_CFLAGS += -I$(APRO) -I$(PYI) -I$(WWW) -Iinclude
+SET_CFLAGS += -DAGA_VERSION=\"$(VERSION)\"
 
 .SUFFIXES: $(OBJ)
 .c$(OBJ):
-	$(CC) -c $(CFLAGS) $(SET_CFLAGS) $(GLABI_CFLAGS) $(O) $<
+	$(CC) -c $(CFLAGS) $(SET_CFLAGS) -o $@ $<
 
 .DEFAULT_GOAL := all
 .PHONY: all

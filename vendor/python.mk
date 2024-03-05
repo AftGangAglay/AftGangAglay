@@ -39,7 +39,7 @@ $(PY_OBJ): $(PY_HDR)
 
 $(PY_OUT): $(APRO_OUT)
 $(PY_OUT): $(PY_OBJ)
-	$(AR) $(ALL)
+	$(AR)
 
 PGEN_SRC1 = $(PY)pgenmain.c $(PY)acceler.c $(PY)grammar1.c $(PY)listnode.c
 PGEN_SRC2 = $(PY)node.c $(PY)parser.c $(PY)parsetok.c $(PY)tokenizer.c
@@ -54,7 +54,7 @@ PGEN_OUT = $(PY)pgenmain$(EXE)
 $(PGEN_SRC): $(PY_HDR)
 
 $(PGEN_OUT): $(PGEN_OBJ)
-	$(CC) $(O) $(ALL) $(WL) $(LDFLAGS) $(LDLIBS)
+	$(CCLD) $(WL) $(LDFLAGS) $(LDLIBS) $(SET_LDFLAGS) $(SET_LDLIBS)
 
 PYGRAM = $(PY)graminit.c $(PYI)python$(SEP)graminit.h
 

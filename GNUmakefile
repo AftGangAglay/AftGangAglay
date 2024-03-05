@@ -64,11 +64,13 @@ else
 	endif
 endif
 
+include lib/prof/apro.mk
 include vendor/python.mk
 include vendor/www.mk
 include src/aga.mk
 
 SET_CFLAGS = -Iinclude -I$(PYINC) -I$(WWW) -DAGA_VERSION=\"$(VERSION)\"
+SET_CFLAGS += -I$(APRO)
 
 ifdef WINDOWS
 .SUFFIXES: .obj
@@ -88,5 +90,6 @@ endif
 .PHONY: all
 all: $(AGA_OUT)
 
-.PHONY: clean clean_python clean_www clean_aga
-clean: clean_python clean_www clean_aga
+.PHONY: clean
+.PHONY: clean_apro clean_python clean_www clean_aga
+clean: clean_apro clean_python clean_www clean_aga

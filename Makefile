@@ -29,11 +29,13 @@ GL_LDLIBS = opengl32.lib glu32.lib gdi32.lib shell32.lib
 
 CC = $(CC) /nologo /showIncludes
 
+!include lib/prof/apro.mk
 !include vendor/python.mk
 !include vendor/www.mk
 !include src/aga.mk
 
 SET_CFLAGS = /I include /I $(PYINC) /I $(WWW) /DAGA_VERSION="$(VERSION)"
+SET_CFLAGS = $(SET_CFLAGS) /I $(APRO)
 
 .res$(OBJ):
 	$(RC) /fo $@.res $<
@@ -43,4 +45,4 @@ SET_CFLAGS = /I include /I $(PYINC) /I $(WWW) /DAGA_VERSION="$(VERSION)"
 
 all: $(AGA_OUT)
 
-clean: clean_python clean_www clean_aga
+clean: clean_apro clean_python clean_www clean_aga

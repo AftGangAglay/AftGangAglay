@@ -13,11 +13,12 @@
 #include <agalog.h>
 #include <agaerr.h>
 #include <agapack.h>
-#include <agaprof.h>
 #include <agaio.h>
 #include <agadraw.h>
 #include <agastartup.h>
 #include <agascript.h>
+
+#include <apro.h>
 
 /*
  * Quick and dirty convenience macros to keep main clean. Ideally in the future
@@ -135,38 +136,45 @@ int main(int argc, char** argv) {
 	aga_log(__FILE__, "Done!");
 
 	while(!die) {
-		aga_prof_stamp_start(AGA_PROF_PRESWAP);
+		apro_stamp_start(APRO_PRESWAP);
 
-		aga_prof_stamp_start(AGA_PROF_POLL);
+		apro_stamp_start(APRO_POLL);
 		pointer.dx = 0;
 		pointer.dy = 0;
 		SOFT(aga_poll, (&env, &keymap, &win, &pointer, &die));
-		aga_prof_stamp_end(AGA_PROF_POLL);
+		apro_stamp_end(APRO_POLL);
 
-		aga_prof_stamp_start(AGA_PROF_SCRIPT_UPDATE);
+		apro_stamp_start(APRO_SCRIPT_UPDATE);
 		if(class.class) SOFT(aga_instcall, (&inst, "update"));
 		else SOFT(aga_putnil, ());
-		aga_prof_stamp_end(AGA_PROF_SCRIPT_UPDATE);
+		apro_stamp_end(APRO_SCRIPT_UPDATE);
 
-		aga_prof_stamp_start(AGA_PROF_RES_SWEEP);
+		apro_stamp_start(APRO_RES_SWEEP);
 		SOFT(aga_sweeprespack, (&pack));
-		aga_prof_stamp_end(AGA_PROF_RES_SWEEP);
+		apro_stamp_end(APRO_RES_SWEEP);
 
-		aga_prof_stamp_end(AGA_PROF_PRESWAP);
+		apro_stamp_end(APRO_PRESWAP);
 
-#define PROF(i, j, sec) \
+#ifndef NDEBUG
+# define PROF(i, j, sec) \
 		SOFT(aga_puttextfmt, ( \
 				0.05f + 0.05f * (j), 0.1f + 0.05f * (i), #sec ": %lluus", \
-				aga_prof_stamp_us(AGA_PROF_##sec)))
+				apro_stamp_us(APRO_##sec)))
 
-		PROF(0, 0, PRESWAP);
-			PROF(1, 1, POLL);
-			PROF(2, 1, SCRIPT_UPDATE);
-				PROF(3, 2, SCRIPT_INSTCALL_RISING);
-				PROF(4, 2, SCRIPT_INSTCALL_EXEC);
-			PROF(5, 1, RES_SWEEP);
-#undef PROF
-		aga_prof_clear();
+		{
+			unsigned d = 0;
+			PROF(d++, 0, PRESWAP);
+				PROF(d++, 1, POLL);
+				PROF(d++, 1, SCRIPT_UPDATE);
+					PROF(d++, 2, SCRIPT_INSTCALL_RISING);
+					PROF(d++, 2, SCRIPT_INSTCALL_EXEC);
+						PROF(d++, 3, CEVAL_CALL_RISING);
+						PROF(d++, 3, CEVAL_CALL_EVAL);
+				PROF(d++, 1, RES_SWEEP);
+		}
+# undef PROF
+#endif
+		apro_clear();
 
 		/* Window is already dead/dying if `die' is set. */
 		if(!die) SOFT(aga_swapbuf, (&env, &win));

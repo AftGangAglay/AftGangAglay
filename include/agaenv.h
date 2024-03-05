@@ -85,9 +85,6 @@
 # if __has_include(<sys/soundcard.h>)
 #  define AGA_HAVE_SYS_SOUNDCARD
 # endif
-# if __has_include(<sys/time.h>)
-#  define AGA_HAVE_SYS_TIME
-# endif
 #endif
 
 #define AGA_LEN(arr) (sizeof((arr)) / sizeof(*(arr)))

@@ -11,8 +11,6 @@
 #include <agautil.h>
 #include <agascript.h>
 
-/* TODO: Checksum? */
-
 #define AGA_PACK_MAGIC ((aga_uint32_t) 0xA6A)
 
 struct aga_pack_header {
@@ -45,46 +43,51 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 	enum aga_result result;
 	aga_size_t i;
 	struct aga_pack_header hdr;
+	aga_bool_t c = AGA_FALSE;
 
 	if(!path) return AGA_RESULT_BAD_PARAM;
 	if(!pack) return AGA_RESULT_BAD_PARAM;
 
 	aga_global_pack = pack;
 
+	pack->fp = 0;
 	pack->db = 0;
 	pack->len = 0;
 
 	aga_log(__FILE__, "Loading resource pack `%s'...", path);
-
-	/* TODO: Fix leaky error conditions. */
-
-	/* TODO: Extract embedded resource file on Windows. */
 
 	if(!(pack->fp = fopen(path, "rb"))) {
 		return aga_errno_path(__FILE__, "fopen", path);
 	}
 
 	result = aga_fplen(pack->fp, &pack->size);
-	if(result) return result;
+	if(result) goto cleanup;
 
 	result = aga_fread(&hdr, sizeof(hdr), pack->fp);
-	if(result) return result;
+	if(result) goto cleanup;
 
-	if(hdr.magic != AGA_PACK_MAGIC) return AGA_RESULT_BAD_PARAM;
+	if(hdr.magic != AGA_PACK_MAGIC) {
+		result = AGA_RESULT_BAD_PARAM;
+		goto cleanup;
+	}
 
 	aga_conf_debug_file = path;
 
 	result = aga_mkconf(pack->fp, hdr.size, &pack->root);
-	if(result) return result;
+	if(result) goto cleanup;
+
+	c = AGA_TRUE;
 
 	pack->len = pack->root.children->len;
 	pack->data_offset = hdr.size + sizeof(hdr);
 
 	pack->db = calloc(pack->len, sizeof(struct aga_res));
-	if(!pack->db) return AGA_RESULT_OOM;
+	if(!pack->db) {
+		result = AGA_RESULT_OOM;
+		goto cleanup;
+	}
 
 	for(i = 0; i < pack->len; ++i) {
-		/* TODO: Non-fatally skip bad entries. */
 		static const char* off = "Offset";
 		static const char* size = "Size";
 
@@ -96,19 +99,59 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 
 		result = aga_conftree_nonroot(
 				node, &off, 1, &res->offset, AGA_INTEGER);
-		if(result) return result;
+		if(result) {
+			aga_soft(__FILE__, "aga_conftree_nonroot", result);
+			aga_log(
+					__FILE__, "Resource #%zu appears to be missing an offset "
+					"entry", i);
+			continue;
+		}
 
-		if(res->offset >= pack->size) return AGA_RESULT_BAD_PARAM;
+		if(res->offset >= pack->size) {
+			aga_log(
+					__FILE__, "Resource #%zu appears to be beyond resource "
+					"pack bounds (`%zu >= %zu')", i, res->offset, pack->size);
+			result = AGA_RESULT_BAD_PARAM;
+			goto cleanup;
+		}
 
 		result = aga_conftree_nonroot(node, &size, 1, &res->size, AGA_INTEGER);
-		if(result) return result;
+		if(result) {
+			aga_soft(__FILE__, "aga_conftree_nonroot", result);
+			aga_log(
+					__FILE__, "Resource #%zu appears to be missing a size "
+					"entry", i);
+			continue;
+		}
 
-		if(res->offset + res->size >= pack->size) return AGA_RESULT_BAD_PARAM;
+		if(res->offset + res->size >= pack->size) {
+			aga_log(
+					__FILE__, "Resource #%zu appears to be beyond resource "
+					"pack bounds (`%zu + %zu >= %zu')", i, res->offset,
+					res->size, pack->size);
+			result = AGA_RESULT_BAD_PARAM;
+			goto cleanup;
+		}
 	}
 
 	aga_log(__FILE__, "Loaded `%zu' resource entries", pack->len);
 
 	return AGA_RESULT_OK;
+
+	cleanup: {
+		free(pack->db);
+
+		if(pack->fp && fclose(pack->fp) == EOF) {
+			return aga_errno(__FILE__, "fclose");
+		}
+
+		if(c) {
+			enum aga_result res2 = aga_killconf(&pack->root);
+			if(res2) return res2;
+		}
+
+		return result;
+	}
 }
 
 enum aga_result aga_killrespack(struct aga_respack* pack) {

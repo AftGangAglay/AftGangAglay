@@ -58,14 +58,15 @@ for file in argv[2:]:
     elif magic == IMAGE_MAGIC:
         sz -= 8
         f.seek(-8, 2)
-        ent.append(unpack('I', f.read(4))[0]) # Read width
+        ent.append(unpack('I', f.read(4))[0])  # Read width
         ent[TYPE] = IMAGE
     elif magic == MODEL_MAGIC:
         sz -= 28
         f.seek(-28, 2)
-        ent.extend(unpack('ffffff', f.read(24))) # Read extents
+        ent.extend(unpack('ffffff', f.read(24)))  # Read extents
         ent[TYPE] = MODEL
-    else: ent[TYPE] = UNKNOWN
+    else:
+        ent[TYPE] = UNKNOWN
     f.seek(0)
 
     ent[FILENAME] = file
@@ -126,6 +127,6 @@ with open(argv[1], 'wb+') as f:
         f.write(data[:sz])
 
         if i[TYPE] == PYTHON:
-            f.write(b'\n\xFF') # Writing the `\n' fixes a strange EOF bug.
+            f.write(b'\n\xFF')  # Writing the `\n' fixes a strange EOF bug.
 
         i[FD].close()

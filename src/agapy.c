@@ -7,6 +7,9 @@
 #include <agascript.h>
 #include <agalog.h>
 #include <agascripthelp.h>
+#include <agapack.h>
+#include <agautil.h>
+#include <agaerr.h>
 
 #include <agan/agan.h>
 
@@ -38,11 +41,33 @@ void py_fatal(const char* msg) {
 }
 
 FILE* pyopen_r(const char* path) {
-	return aga_open_r(path);
+	void* fp;
+	aga_size_t i;
+
+	for(i = 0; i < aga_global_pack->len; ++i) {
+		struct aga_res* res = &aga_global_pack->db[i];
+		if(aga_streql(path, res->conf->name)) {
+			enum aga_result result;
+
+			result = aga_resseek(res, &fp);
+			if(result) {
+				aga_soft(__FILE__, "aga_resseek", result);
+				return 0;
+			}
+
+			return fp;
+		}
+	}
+
+	if(!(fp = fopen(path, "rb"))) aga_errno_path(__FILE__, "fopen", path);
+	return fp;
 }
 
 void pyclose(FILE* fp) {
-	aga_close(fp);
+	if(!fp) return;
+	if(fp == aga_global_pack->fp) return;
+
+	if(fclose(fp) == EOF) aga_errno(__FILE__, "fclose");
 }
 
 aga_bool_t aga_script_float(struct py_object* o, float* f) {

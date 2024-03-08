@@ -81,10 +81,6 @@
 # pragma warning(pop)
 #endif
 
-/* TODO: These probably shouldn't be here. */
-FILE* aga_open_r(const char*);
-void aga_close(FILE*);
-
 #ifdef _WIN32
 # undef _CRT_SECURE_NO_WARNINGS
 # undef _CRT_NONSTDC_NO_WARNINGS

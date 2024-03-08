@@ -37,7 +37,7 @@ SET_LDLIBS =
 
 !ifdef MAINTAINER
 SET_CFLAGS = $(SET_CFLAGS) /Wall /WX
-SET_CFLAGS = $(SET_CFLAGS) /wd4820 /wd5045
+SET_CFLAGS = $(SET_CFLAGS) /wd4820 /wd5045 /wd4706 /wd4061
 # TODO: We can't "maybe unused" with MSVC so maybe we give in to the `(void)'.
 SET_CFLAGS = $(SET_CFLAGS) /wd4100
 !endif

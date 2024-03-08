@@ -104,7 +104,7 @@ static enum aga_result aga_compilescript(
 
 	AGA_CHK(aga_resfptr(pack, script, &fp, &size));
 
-	AGA_VERIFY((module = py_add_module("__main__")), AGA_RESULT_ERROR);
+	AGA_VERIFY((module = py_module_add("__main__")), AGA_RESULT_ERROR);
 
 	res = py_parse_file(
 			fp, script, &py_grammar, PY_GRAMMAR_FILE_INPUT, 0, 0, &node);

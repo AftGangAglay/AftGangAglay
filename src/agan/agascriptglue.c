@@ -459,7 +459,7 @@ enum aga_result aga_mkmod(void** dict) {
 			{ 0, 0 } };
 #undef _
 
-	struct py_object* module = py_module_init("agan", methods);
+	struct py_object* module = py_module_new_methods("agan", methods);
 	AGA_VERIFY(module, AGA_RESULT_ERROR);
 
 	if(!(agan_dict = py_module_get_dict(module))) {

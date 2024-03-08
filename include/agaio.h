@@ -30,9 +30,8 @@
 # define AGA_HAVE_SPAWN
 #endif
 
-enum aga_result aga_fplen(void* fp, aga_size_t* size);
-
-enum aga_result aga_fread(void* data, aga_size_t size, void* fp);
+enum aga_result aga_fplen(void*, aga_size_t*);
+enum aga_result aga_fread(void*, aga_size_t, void*);
 
 #ifdef AGA_HAVE_MAP
 # ifdef AGA_NIXMAP
@@ -56,8 +55,7 @@ enum aga_result aga_killfmap(void* ptr, aga_size_t size);
 
 #ifdef AGA_HAVE_SPAWN
 
-enum aga_result
-aga_spawn_sync(const char* program, char** argv, const char* wd);
+enum aga_result aga_spawn_sync(const char*, char**, const char*);
 
 #endif
 

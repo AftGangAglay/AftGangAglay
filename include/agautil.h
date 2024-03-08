@@ -9,6 +9,6 @@
 #include <agaenv.h>
 #include <agaresult.h>
 
-aga_bool_t aga_streql(const char* a, const char* b);
+aga_bool_t aga_streql(const char*, const char*);
 
 #endif

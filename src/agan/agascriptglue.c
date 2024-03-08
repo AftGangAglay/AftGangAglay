@@ -27,7 +27,7 @@
 
 #include <agan/aganobj.h>
 
-aga_bool_t aga_script_glerr(const char* proc) {
+aga_bool_t aga_script_gl_err(const char* proc) {
 	return aga_script_err(proc, aga_glerr(__FILE__, proc));
 }
 
@@ -56,21 +56,21 @@ aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv) {
 			default: break;
 			case 0: {
 				glTranslatef(x, y, z);
-				if(aga_script_glerr("glTranslatef")) return AGA_TRUE;
+				if(aga_script_gl_err("glTranslatef")) return AGA_TRUE;
 				break;
 			}
 			case 1: {
 				glRotatef(x, 1.0f, 0.0f, 0.0f);
-				if(aga_script_glerr("glRotatef")) return AGA_TRUE;
+				if(aga_script_gl_err("glRotatef")) return AGA_TRUE;
 				glRotatef(y, 0.0f, 1.0f, 0.0f);
-				if(aga_script_glerr("glRotatef")) return AGA_TRUE;
+				if(aga_script_gl_err("glRotatef")) return AGA_TRUE;
 				glRotatef(z, 0.0f, 0.0f, 1.0f);
-				if(aga_script_glerr("glRotatef")) return AGA_TRUE;
+				if(aga_script_gl_err("glRotatef")) return AGA_TRUE;
 				break;
 			}
 			case 2: {
 				glScalef(x, y, z);
-				if(aga_script_glerr("glScalef")) return AGA_TRUE;
+				if(aga_script_gl_err("glScalef")) return AGA_TRUE;
 				break;
 			}
 		}
@@ -179,23 +179,23 @@ AGAN_SCRIPTPROC(setcam) {
 	ar = (double) opts->height / (double) opts->width;
 
 	glMatrixMode(GL_PROJECTION);
-	if(aga_script_glerr("glMatrixMode")) return 0;
+	if(aga_script_gl_err("glMatrixMode")) return 0;
 	glLoadIdentity();
-	if(aga_script_glerr("glLoadIdentity")) return 0;
+	if(aga_script_gl_err("glLoadIdentity")) return 0;
 
 	if(b) {
 		gluPerspective(opts->fov, 1.0 / ar, 0.1, 10000.0);
-		if(aga_script_glerr("gluPerspective")) return 0;
+		if(aga_script_gl_err("gluPerspective")) return 0;
 	}
 	else {
 		glOrtho(-1.0, 1.0, -ar, ar, 0.001, 1.0);
-		if(aga_script_glerr("glOrtho")) return 0;
+		if(aga_script_gl_err("glOrtho")) return 0;
 	}
 
 	glMatrixMode(GL_MODELVIEW);
-	if(aga_script_glerr("glMatrixMode")) return 0;
+	if(aga_script_gl_err("glMatrixMode")) return 0;
 	glLoadIdentity();
-	if(aga_script_glerr("glLoadIdentity")) return 0;
+	if(aga_script_gl_err("glLoadIdentity")) return 0;
 	if(agan_settransmat(t, AGA_TRUE)) return 0;
 
 	return AGA_INCREF(PY_NONE);
@@ -239,25 +239,25 @@ AGAN_SCRIPTPROC(fogparam) {
 	if(!AGA_ARGLIST(list)) AGA_ARGERR("fogparam", "list");
 
 	glFogi(GL_FOG_MODE, GL_EXP);
-	if(aga_script_glerr("glFogi")) return 0;
+	if(aga_script_gl_err("glFogi")) return 0;
 
 	if(aga_list_get(arg, 0, &v)) return 0;
 	if(aga_script_float(v, &f)) return 0;
 
 	glFogf(GL_FOG_DENSITY, f);
-	if(aga_script_glerr("glFogf")) return 0;
+	if(aga_script_gl_err("glFogf")) return 0;
 
 	if(aga_list_get(arg, 1, &v)) return 0;
 	if(aga_script_float(v, &f)) return 0;
 
 	glFogf(GL_FOG_START, f);
-	if(aga_script_glerr("glFogf")) return 0;
+	if(aga_script_gl_err("glFogf")) return 0;
 
 	if(aga_list_get(arg, 2, &v)) return 0;
 	if(aga_script_float(v, &f)) return 0;
 
 	glFogf(GL_FOG_END, f);
-	if(aga_script_glerr("glFogf")) return 0;
+	if(aga_script_gl_err("glFogf")) return 0;
 
 	return AGA_INCREF(PY_NONE);
 }
@@ -275,7 +275,7 @@ AGAN_SCRIPTPROC(fogcol) {
 	}
 
 	glFogfv(GL_FOG_COLOR, col);
-	if(aga_script_glerr("glFogfv")) return 0;
+	if(aga_script_gl_err("glFogfv")) return 0;
 
 	return AGA_INCREF(PY_NONE);
 }

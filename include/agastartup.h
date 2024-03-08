@@ -37,10 +37,10 @@ struct aga_opts {
 };
 
 /* NOTE: We try to leave sensible defaults in `opts' during failure states. */
-enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv);
+enum aga_result aga_setopts(struct aga_opts*, int, char**);
 
-enum aga_result aga_setconf(struct aga_opts* opts, struct aga_respack* pack);
+enum aga_result aga_setconf(struct aga_opts*, struct aga_respack*);
 
-enum aga_result aga_prerun_hook(struct aga_opts* opts);
+enum aga_result aga_prerun_hook(struct aga_opts*);
 
 #endif

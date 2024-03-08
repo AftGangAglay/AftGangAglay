@@ -27,18 +27,16 @@
         return 0; \
     } while(0)
 
-aga_bool_t aga_script_float(struct py_object* o, float* f);
+aga_bool_t aga_script_float(struct py_object*, float*);
 
-aga_bool_t aga_script_int(struct py_object* o, int* i);
+aga_bool_t aga_script_int(struct py_object*, int*);
 
-aga_bool_t aga_script_string(struct py_object* o, const char** s);
+aga_bool_t aga_script_string(struct py_object*, const char**);
 
-aga_bool_t aga_script_bool(struct py_object* o, aga_bool_t* b);
+aga_bool_t aga_script_bool(struct py_object*, aga_bool_t*);
 
-aga_bool_t
-aga_list_set(struct py_object* list, aga_size_t n, struct py_object* v);
+aga_bool_t aga_list_set(struct py_object*, aga_size_t, struct py_object*);
 
-aga_bool_t
-aga_list_get(struct py_object* list, aga_size_t n, struct py_object** v);
+aga_bool_t aga_list_get(struct py_object*, aga_size_t, struct py_object**);
 
 #endif

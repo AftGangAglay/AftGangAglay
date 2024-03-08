@@ -11,16 +11,13 @@
 
 AGA_NORETURN void aga_abort(void);
 
-void aga_chk(const char* loc, const char* proc, enum aga_result e);
+const char* aga_result_name(enum aga_result);
 
-const char* aga_aga_errname(enum aga_result e);
+void aga_check(const char*, const char*, enum aga_result);
+void aga_soft(const char*, const char*, enum aga_result);
 
 /* NOTE: Pass null to `loc' to suppress error message printout. */
-enum aga_result aga_errno(const char* loc, const char* proc);
-
-enum aga_result aga_patherrno(
-		const char* loc, const char* proc, const char* path);
-
-void aga_soft(const char* loc, const char* proc, enum aga_result e);
+enum aga_result aga_errno(const char*, const char*);
+enum aga_result aga_errno_path(const char*, const char*, const char*);
 
 #endif

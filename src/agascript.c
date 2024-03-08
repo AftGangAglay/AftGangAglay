@@ -59,7 +59,7 @@ aga_bool_t aga_script_err(const char* proc, enum aga_result err) {
 
 	if(!err) return AGA_FALSE;
 
-	if(sprintf(buf, "%s: %s", proc, aga_aga_errname(err)) < 0) {
+	if(sprintf(buf, "%s: %s", proc, aga_result_name(err)) < 0) {
 		aga_errno(__FILE__, "sprintf");
 		return AGA_TRUE;
 	}

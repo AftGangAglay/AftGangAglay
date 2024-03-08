@@ -23,15 +23,11 @@
 # endif
 #endif
 
-#define AGA_ICON_RESOURCE (10)
+/* TODO: Re-enable icon. */
+/* #define AGA_ICON_RESOURCE (10) */
 
-#define AGA_AF_WINCHK(proc) \
-    aga_chk(__FILE__, proc, aga_winerr(__FILE__, proc))
-
-enum aga_result aga_pathwinerr(
-		const char* loc, const char* proc, const char* path);
-
-enum aga_result aga_winerr(const char* loc, const char* proc);
+enum aga_result aga_win32_error(const char*, const char*);
+enum aga_result aga_win32_error_path(const char*, const char*, const char*);
 
 void aga_setw32log(void);
 

@@ -89,20 +89,17 @@ enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win);
  * 		 (-1, 0) and would not hover any other Windows to the left of `win'.
  */
 enum aga_result aga_setcursor(
-		struct aga_winenv* env, struct aga_win* win, aga_bool_t visible,
-		aga_bool_t captured);
+		struct aga_winenv*, struct aga_win*, aga_bool_t, aga_bool_t);
 
-enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win);
+enum aga_result aga_glctx(struct aga_winenv*, struct aga_win*);
 
-enum aga_result aga_swapbuf(struct aga_winenv* env, struct aga_win* win);
+enum aga_result aga_swapbuf(struct aga_winenv*, struct aga_win*);
 
 enum aga_result aga_poll(
-		struct aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
-		struct aga_pointer* pointer, aga_bool_t* die);
+		struct aga_winenv*, struct aga_keymap*, struct aga_win*,
+		struct aga_pointer*, aga_bool_t*);
 
-enum aga_result aga_diag(
-		const char* message, const char* title, aga_bool_t* response,
-		aga_bool_t is_error);
+enum aga_result aga_diag(const char*, const char*, aga_bool_t*, aga_bool_t);
 
 enum aga_result aga_shellopen(const char* uri);
 

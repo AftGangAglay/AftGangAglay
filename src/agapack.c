@@ -61,7 +61,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 	/* TODO: Extract embedded resource file on Windows. */
 
 	if(!(pack->fp = fopen(path, "rb"))) {
-		return aga_patherrno(__FILE__, "fopen", path);
+		return aga_errno_path(__FILE__, "fopen", path);
 	}
 
 	AGA_CHK(aga_fplen(pack->fp, &pack->size));

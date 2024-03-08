@@ -82,8 +82,8 @@
 #endif
 
 /* TODO: These probably shouldn't be here. */
-FILE* aga_open_r(const char* path);
-void aga_close(FILE* fp);
+FILE* aga_open_r(const char*);
+void aga_close(FILE*);
 
 #ifdef _WIN32
 # undef _CRT_SECURE_NO_WARNINGS

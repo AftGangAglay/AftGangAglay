@@ -27,7 +27,7 @@ FILE* aga_open_r(const char* path) {
 		}
 	}
 
-	if(!(fp = fopen(path, "rb"))) aga_patherrno(__FILE__, "fopen", path);
+	if(!(fp = fopen(path, "rb"))) aga_errno_path(__FILE__, "fopen", path);
 	return fp;
 }
 

@@ -49,6 +49,6 @@
     } while(0)
 #endif
 
-enum aga_result aga_glerr(const char* loc, const char* proc);
+enum aga_result aga_glerr(const char*, const char*);
 
 #endif

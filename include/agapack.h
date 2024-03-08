@@ -42,23 +42,21 @@ struct aga_respack {
 extern struct aga_respack* aga_global_pack;
 
 enum aga_result aga_searchres(
-		struct aga_respack* pack, const char* path, struct aga_res** out);
+		struct aga_respack*, const char*, struct aga_res**);
 
-enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack);
+enum aga_result aga_mkrespack(const char*, struct aga_respack*);
 
-enum aga_result aga_killrespack(struct aga_respack* pack);
+enum aga_result aga_killrespack(struct aga_respack*);
 
-enum aga_result aga_sweeprespack(struct aga_respack* pack);
+enum aga_result aga_sweeprespack(struct aga_respack*);
 
 /* Also counts as an acquire - i.e. initial refcount is 1. */
-enum aga_result aga_mkres(
-		struct aga_respack* pack, const char* path, struct aga_res** res);
+enum aga_result aga_mkres(struct aga_respack*, const char*, struct aga_res**);
 
 enum aga_result aga_resfptr(
-		struct aga_respack* pack, const char* path, void** fp,
-		aga_size_t* size);
+		struct aga_respack*, const char*, void**, aga_size_t*);
 
-enum aga_result aga_resseek(struct aga_res* res, void** fp);
+enum aga_result aga_resseek(struct aga_res*, void**);
 
 /*
  * NOTE: You should ensure that you acquire after any potential error
@@ -66,8 +64,7 @@ enum aga_result aga_resseek(struct aga_res* res, void** fp);
  * 		 Conditions during object destroy in order to avoid holding onto refs
  * 		 For invalid objects.
  */
-enum aga_result aga_acquireres(struct aga_res* res);
-
-enum aga_result aga_releaseres(struct aga_res* res);
+enum aga_result aga_acquireres(struct aga_res*);
+enum aga_result aga_releaseres(struct aga_res*);
 
 #endif

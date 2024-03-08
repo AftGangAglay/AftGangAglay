@@ -8,7 +8,7 @@
 #include <agalog.h>
 #include <agawin.h>
 
-const char* aga_aga_errname(enum aga_result e) {
+const char* aga_result_name(enum aga_result e) {
 	switch(e) {
 		default: {
 			AGA_FALLTHROUGH;
@@ -50,21 +50,21 @@ AGA_NORETURN void aga_abort(void) {
 #endif
 }
 
-void aga_chk(const char* loc, const char* proc, enum aga_result e) {
+void aga_check(const char* loc, const char* proc, enum aga_result e) {
 	if(!e) return;
 	aga_soft(loc, proc, e);
 	aga_abort();
 }
 
 void aga_soft(const char* loc, const char* proc, enum aga_result e) {
-	aga_log(loc, "err: %s: %s", proc, aga_aga_errname(e));
+	aga_log(loc, "err: %s: %s", proc, aga_result_name(e));
 }
 
 enum aga_result aga_errno(const char* loc, const char* proc) {
-	return aga_patherrno(loc, proc, 0);
+	return aga_errno_path(loc, proc, 0);
 }
 
-enum aga_result aga_patherrno(
+enum aga_result aga_errno_path(
 		const char* loc, const char* proc, const char* path) {
 
 	if(loc) {

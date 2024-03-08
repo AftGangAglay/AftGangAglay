@@ -38,25 +38,22 @@ struct aga_conf_node {
 /* Specify the filename of the config file being parsed for debug purposes. */
 extern const char* aga_conf_debug_file;
 
-enum aga_result aga_mkconf(
-		void* fp, aga_size_t count, struct aga_conf_node* root);
-
-enum aga_result aga_killconf(struct aga_conf_node* root);
+enum aga_result aga_mkconf(void*, aga_size_t, struct aga_conf_node*);
+enum aga_result aga_killconf(struct aga_conf_node*);
 
 aga_bool_t aga_confvar(
-		const char* name, struct aga_conf_node* node, enum aga_conf_type type,
-		void* value);
+		const char*, struct aga_conf_node*, enum aga_conf_type, void*);
 
 enum aga_result aga_conftree_raw(
-		struct aga_conf_node* root, const char** names, aga_size_t count,
-		struct aga_conf_node** out);
+		struct aga_conf_node*, const char**, aga_size_t,
+		struct aga_conf_node**);
 
 enum aga_result aga_conftree_nonroot(
-		struct aga_conf_node* root, const char** names, aga_size_t count,
-		void* value, enum aga_conf_type type);
+		struct aga_conf_node*, const char**, aga_size_t, void*,
+		enum aga_conf_type);
 
 enum aga_result aga_conftree(
-		struct aga_conf_node* root, const char** names, aga_size_t count,
-		void* value, enum aga_conf_type type);
+		struct aga_conf_node*, const char**, aga_size_t, void*,
+		enum aga_conf_type);
 
 #endif

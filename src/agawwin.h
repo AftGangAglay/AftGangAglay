@@ -43,7 +43,12 @@ static LRESULT CALLBACK aga_winproc(
 
 	SetLastError(0);
 	if(!(pack = (void*) GetWindowLongPtrA(wnd, GWLP_USERDATA))) {
-		if(GetLastError()) AGA_AF_WINCHK("GetWindowLongPtrA");
+		/* TODO: We might be able to get out of this. */
+		if(GetLastError()) {
+			aga_win32_error(__FILE__, "GetWindowLongPtrA");
+			aga_abort();
+		}
+
 		goto default_msg;
 	}
 
@@ -78,7 +83,7 @@ static LRESULT CALLBACK aga_winproc(
 			result = GetRawInputData(
 					hnd, RID_INPUT, 0, &input_size, header_size);
 			if(result == err) {
-				(void) aga_winerr(__FILE__, "GetRawInputData");
+				(void) aga_win32_error(__FILE__, "GetRawInputData");
 				return 0;
 			}
 
@@ -90,7 +95,7 @@ static LRESULT CALLBACK aga_winproc(
 			result = GetRawInputData(
 					hnd, RID_INPUT, data, &input_size, header_size);
 			if(result == err) {
-				(void) aga_winerr(__FILE__, "GetRawInputData");
+				(void) aga_win32_error(__FILE__, "GetRawInputData");
 				free(data);
 				return 0;
 			}
@@ -112,10 +117,10 @@ static LRESULT CALLBACK aga_winproc(
 
 		case WM_CLOSE: {
 			if(!ReleaseDC(wnd, GetDC(wnd))) {
-				(void) aga_winerr(__FILE__, "ReleaseDC");
+				(void) aga_win32_error(__FILE__, "ReleaseDC");
 			}
 			if(!DestroyWindow(wnd)) {
-				(void) aga_winerr(__FILE__, "DestroyWindow");
+				(void) aga_win32_error(__FILE__, "DestroyWindow");
 			}
 			*pack->die = AGA_TRUE;
 			return 0;
@@ -140,15 +145,18 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	env->visible = AGA_TRUE;
 
 	if(!(env->module = GetModuleHandleA(0))) {
-		return aga_winerr(__FILE__, "GetModuleHandleA");
+		return aga_win32_error(__FILE__, "GetModuleHandleA");
 	}
 
+	/* TODO: Re-enable icon. */
+	/*
 	if(!(icon = LoadIconA(env->module, MAKEINTRESOURCEA(AGA_ICON_RESOURCE)))) {
-		(void) aga_winerr(__FILE__, "LoadIconA");
+		(void) aga_win32_error(__FILE__, "LoadIconA");
 	}
+	 */
 
 	if(!(env->cursor = LoadCursorA(0, IDC_ARROW))) {
-		(void) aga_winerr(__FILE__, "LoadIconA");
+		(void) aga_win32_error(__FILE__, "LoadIconA");
 	}
 
 	class.style = CS_GLOBALCLASS;
@@ -163,7 +171,7 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	class.lpszClassName = AGA_CLASS_NAME;
 
 	if(!(env->class = RegisterClassA(&class))) {
-		return aga_winerr(__FILE__, "RegisterClassA");
+		return aga_win32_error(__FILE__, "RegisterClassA");
 	}
 
 	return AGA_RESULT_OK;
@@ -173,11 +181,11 @@ enum aga_result aga_killwinenv(struct aga_winenv* env) {
 	AGA_PARAM_CHK(env);
 
 	if(env->wgl && !wglDeleteContext(env->wgl)) {
-		return aga_winerr(__FILE__, "wglDeleteContext");
+		return aga_win32_error(__FILE__, "wglDeleteContext");
 	}
 
 	if(!UnregisterClassA(AGA_CLASS_NAME, 0)) {
-		return aga_winerr(__FILE__, "UnregisterClassA");
+		return aga_win32_error(__FILE__, "UnregisterClassA");
 	}
 
 	return AGA_RESULT_OK;
@@ -227,25 +235,25 @@ enum aga_result aga_mkwin(
 							  CW_USEDEFAULT, CW_USEDEFAULT,
 							  (int) width, (int) height, 0, 0,
 							  env->module, 0);
-	if(!win->hwnd) return aga_winerr(__FILE__, "CreateWindowA");
+	if(!win->hwnd) return aga_win32_error(__FILE__, "CreateWindowA");
 	if(!ShowWindow((void*) win->hwnd, SW_SHOWNORMAL)) {
-		return aga_winerr(__FILE__, "ShowWindow");
+		return aga_win32_error(__FILE__, "ShowWindow");
 	}
 
 	if(!(win->dc = GetDC((void*) win->hwnd))) {
-		return aga_winerr(__FILE__, "GetDC");
+		return aga_win32_error(__FILE__, "GetDC");
 	}
 
 	if(!(ind = ChoosePixelFormat(win->dc, &pixel_format))) {
-		return aga_winerr(__FILE__, "ChoosePixelFormat");
+		return aga_win32_error(__FILE__, "ChoosePixelFormat");
 	}
 	if(!SetPixelFormat(win->dc, ind, &pixel_format)) {
-		return aga_winerr(__FILE__, "SetPixelFormat");
+		return aga_win32_error(__FILE__, "SetPixelFormat");
 	}
 
 	mouse.hwndTarget = win->hwnd;
 	if(RegisterRawInputDevices(&mouse, 1, sizeof(mouse))) {
-		return aga_winerr(__FILE__, "RegisterRawInputDevices");
+		return aga_win32_error(__FILE__, "RegisterRawInputDevices");
 	}
 
 	return AGA_RESULT_OK;
@@ -265,23 +273,23 @@ enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	AGA_PARAM_CHK(win);
 
 	if(!(env->wgl = wglCreateContext(win->dc))) {
-		return aga_winerr(__FILE__, "wglCreateContext");
+		return aga_win32_error(__FILE__, "wglCreateContext");
 	}
 
 	if(!wglMakeCurrent(win->dc, env->wgl)) {
-		return aga_winerr(__FILE__, "wglMakeCurrent");
+		return aga_win32_error(__FILE__, "wglMakeCurrent");
 	}
 
 	if(!(font = GetStockObject(SYSTEM_FONT))) {
-		return aga_winerr(__FILE__, "GetStockObject");
+		return aga_win32_error(__FILE__, "GetStockObject");
 	}
 
 	if(!SelectObject(win->dc, font)) {
-		return aga_winerr(__FILE__, "SelectObject");
+		return aga_win32_error(__FILE__, "SelectObject");
 	}
 
 	if(!wglUseFontBitmaps(win->dc, 0, 256, AGA_FONT_LIST_BASE)) {
-		return aga_winerr(__FILE__, "wglUseFontBitmaps");
+		return aga_win32_error(__FILE__, "wglUseFontBitmaps");
 	}
 
 	return AGA_RESULT_OK;
@@ -296,7 +304,7 @@ static enum aga_result aga_setclipcursor(struct aga_win* win, aga_bool_t clip) {
 
 	if(clip) {
 		if(!GetClientRect(win->hwnd, &rect)) {
-			return aga_winerr(__FILE__, "GetClientRect");
+			return aga_win32_error(__FILE__, "GetClientRect");
 		}
 
 		begin.x = rect.left;
@@ -305,10 +313,10 @@ static enum aga_result aga_setclipcursor(struct aga_win* win, aga_bool_t clip) {
 		end.y = rect.bottom;
 
 		if(!ClientToScreen(win->hwnd, &begin)) {
-			return aga_winerr(__FILE__, "ClientToScreen");
+			return aga_win32_error(__FILE__, "ClientToScreen");
 		}
 		if(!ClientToScreen(win->hwnd, &end)) {
-			return aga_winerr(__FILE__, "ClientToScreen");
+			return aga_win32_error(__FILE__, "ClientToScreen");
 		}
 
 		/*
@@ -349,7 +357,7 @@ enum aga_result aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
 	AGA_PARAM_CHK(win);
 
 	if(!SwapBuffers(win->dc)) {
-		return aga_winerr(__FILE__, "SwapBuffers");
+		return aga_win32_error(__FILE__, "SwapBuffers");
 	}
 
 	return AGA_RESULT_OK;
@@ -381,7 +389,7 @@ enum aga_result aga_poll(
 
 	SetLastError(0);
 	SetWindowLongPtrA(win->hwnd, GWLP_USERDATA, (LONG_PTR) &pack);
-	if(GetLastError()) AGA_AF_WINCHK("SetWindowLongPtrA");
+	if(GetLastError()) return aga_win32_error("SetWindowLongPtrA");
 
 	while(PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
 		TranslateMessage(&msg);
@@ -404,7 +412,7 @@ enum aga_result aga_diag(
 	AGA_PARAM_CHK(response);
 
 	if(!(res = MessageBoxA(0, message, title, flags))) {
-		return aga_winerr(__FILE__, "MessageBoxA");
+		return aga_win32_error(__FILE__, "MessageBoxA");
 	}
 
 	*response = (res == IDYES);
@@ -421,7 +429,7 @@ enum aga_result aga_shellopen(const char* uri) {
 		return AGA_RESULT_OK;
 	}
 
-	return aga_pathwinerr(__FILE__, "ShellExecuteA", uri);
+	return aga_win32_error_path(__FILE__, "ShellExecuteA", uri);
 }
 
 #endif

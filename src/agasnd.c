@@ -30,7 +30,7 @@ enum aga_result aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 	do {
 		if((snddev->fd = open(dev, O_WRONLY | O_NONBLOCK)) == -1) {
 			if(errno != EBUSY) {
-				return aga_patherrno(__FILE__, "open", dev);
+				return aga_errno_path(__FILE__, "open", dev);
 			}
 			if(!busy_msg) {
 				aga_log(__FILE__, "Sound device `%s' busy. Waiting...", dev);

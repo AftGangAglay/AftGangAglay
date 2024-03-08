@@ -280,7 +280,7 @@ enum aga_result aga_mkconf(
 		int c = fgetc(fp);
 
 		if(c == EOF) {
-			return aga_patherrno(__FILE__, "fgetc", aga_conf_debug_file);
+			return aga_errno_path(__FILE__, "fgetc", aga_conf_debug_file);
 		}
 
 		SGML_character(s, (char) c);

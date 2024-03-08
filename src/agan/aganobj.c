@@ -98,14 +98,14 @@ static aga_bool_t agan_mkobj_model(
 	const char* path;
 
 	obj->drawlist = glGenLists(1);
-	if(aga_script_glerr("glGenLists")) return 0;
+	if(aga_script_gl_err("glGenLists")) return 0;
 
 #ifdef _DEBUG
 	mode = GL_COMPILE_AND_EXECUTE;
 #endif
 
 	glNewList(obj->drawlist, mode);
-	if(aga_script_glerr("glNewList")) return 0;
+	if(aga_script_gl_err("glNewList")) return 0;
 
 	/* TODO: Handle unlit. */
 
@@ -161,13 +161,13 @@ static aga_bool_t agan_mkobj_model(
 			 * 		 Especially in functions like this which aren't supposed to
 			 * 		 Be run every frame.
 			 */
-			if(aga_script_glerr("glTexImage2D")) return AGA_TRUE;
+			if(aga_script_gl_err("glTexImage2D")) return AGA_TRUE;
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, f);
-			if(aga_script_glerr("glTexParameteri")) return AGA_TRUE;
+			if(aga_script_gl_err("glTexParameteri")) return AGA_TRUE;
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, f);
-			if(aga_script_glerr("glTexParameteri")) return AGA_TRUE;
+			if(aga_script_gl_err("glTexParameteri")) return AGA_TRUE;
 		}
 
 		if(aga_conftree(conf, &model, 1, &path, AGA_STRING)) {
@@ -182,29 +182,29 @@ static aga_bool_t agan_mkobj_model(
 			if(aga_script_err("aga_resfptr", err)) return AGA_TRUE;
 
 			glBegin(GL_TRIANGLES);
-			/* if(aga_script_glerr("glBegin")) return 0; */
+			/* if(aga_script_gl_err("glBegin")) return 0; */
 
 			for(i = 0; i < len; i += sizeof(v)) {
 				err = aga_fread(&v, sizeof(v), pack->fp);
 				if(aga_script_err("aga_fread", err)) return AGA_TRUE;
 
 				glColor4fv(v.col);
-				/* if(aga_script_glerr("glColor4fv")) return AGA_TRUE; */
+				/* if(aga_script_gl_err("glColor4fv")) return AGA_TRUE; */
 				glTexCoord2fv(v.uv);
-				/* if(aga_script_glerr("glTexCoord2fv")) return AGA_TRUE; */
+				/* if(aga_script_gl_err("glTexCoord2fv")) return AGA_TRUE; */
 				glNormal3fv(v.norm);
-				/* if(aga_script_glerr("glNormal3fv")) return AGA_TRUE; */
+				/* if(aga_script_gl_err("glNormal3fv")) return AGA_TRUE; */
 				glVertex3fv(v.pos);
-				/* if(aga_script_glerr("glVertex3fv")) return AGA_TRUE; */
+				/* if(aga_script_gl_err("glVertex3fv")) return AGA_TRUE; */
 			}
 
 			glEnd();
-			if(aga_script_glerr("glEnd")) return 0;
+			if(aga_script_gl_err("glEnd")) return 0;
 		}
 	}
 
 	glEndList();
-	if(aga_script_glerr("glEndList")) return 0;
+	if(aga_script_gl_err("glEndList")) return 0;
 
 	return AGA_FALSE;
 }
@@ -269,7 +269,7 @@ AGAN_SCRIPTPROC(killobj) {
 	obj = nativeptr->ptr;
 
 	glDeleteLists(obj->drawlist, 1);
-	if(aga_script_glerr("glDeleteLists")) return 0;
+	if(aga_script_gl_err("glDeleteLists")) return 0;
 
 	py_object_decref(obj->transform);
 
@@ -418,18 +418,18 @@ AGAN_SCRIPTPROC(putobj) {
 	obj = nativeptr->ptr;
 
 	glMatrixMode(GL_MODELVIEW);
-	if(aga_script_glerr("glMatrixMode")) return 0;
+	if(aga_script_gl_err("glMatrixMode")) return 0;
 	glPushMatrix();
-	if(aga_script_glerr("glPushMatrix")) return 0;
+	if(aga_script_gl_err("glPushMatrix")) return 0;
 	if(agan_settransmat(obj->transform, AGA_FALSE)) return 0;
 
 	glCallList(obj->drawlist);
-	if(aga_script_glerr("glCallList")) return 0;
+	if(aga_script_gl_err("glCallList")) return 0;
 
 	glMatrixMode(GL_MODELVIEW);
-	if(aga_script_glerr("glMatrixMode")) return 0;
+	if(aga_script_gl_err("glMatrixMode")) return 0;
 	glPopMatrix();
-	if(aga_script_glerr("glPopMatrix")) return 0;
+	if(aga_script_gl_err("glPopMatrix")) return 0;
 
 	return AGA_INCREF(PY_NONE);
 }

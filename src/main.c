@@ -26,7 +26,7 @@
  * Highest density of `agaerr' calls so these have a dramatic impact on
  * Readability.
  */
-#define CHK(proc, param) aga_chk(__FILE__, #proc, proc param)
+#define CHK(proc, param) aga_check(__FILE__, #proc, proc param)
 #define SOFT(proc, param) \
     do { \
         enum aga_result soft_chk_result = proc param; \

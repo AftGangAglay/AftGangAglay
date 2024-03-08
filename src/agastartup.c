@@ -71,7 +71,7 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 
 # ifdef AGA_HAVE_UNISTD
 	if(chdir(opts->chdir) == -1) {
-		(void) aga_patherrno(__FILE__, "chdir", opts->chdir);
+		(void) aga_errno_path(__FILE__, "chdir", opts->chdir);
 	}
 # endif
 #endif

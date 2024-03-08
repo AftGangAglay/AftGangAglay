@@ -12,8 +12,8 @@
 #include <agastd.h>
 
 enum aga_result aga_fplen(void* fp, aga_size_t* size) {
-	AGA_PARAM_CHK(fp);
-	AGA_PARAM_CHK(size);
+	if(!fp) return AGA_RESULT_BAD_PARAM;
+	if(!size) return AGA_RESULT_BAD_PARAM;
 
 #if defined(AGA_HAVE_SYS_STAT) && defined(AGA_HAVE_SYS_TYPES)
 	{
@@ -46,8 +46,8 @@ enum aga_result aga_fplen(void* fp, aga_size_t* size) {
 }
 
 enum aga_result aga_fread(void* data, aga_size_t size, void* fp) {
-	AGA_PARAM_CHK(data);
-	AGA_PARAM_CHK(fp);
+	if(!data) return AGA_RESULT_BAD_PARAM;
+	if(!fp) return AGA_RESULT_BAD_PARAM;
 
 	if(fread(data, 1, size, fp) != size) {
 		if(ferror(fp)) return aga_errno(__FILE__, "fread");
@@ -59,14 +59,14 @@ enum aga_result aga_fread(void* data, aga_size_t size, void* fp) {
 #ifdef AGA_HAVE_MAP
 # ifdef AGA_NIXMAP
 enum aga_result aga_mkmapfd(void* fp, struct aga_mapfd* fd) {
-	AGA_PARAM_CHK(fd);
-	AGA_PARAM_CHK(fp);
+	if(!fd) return AGA_RESULT_BAD_PARAM;
+	if(!fp) return AGA_RESULT_BAD_PARAM;
 
 	return AGA_RESULT_OK;
 }
 
 enum aga_result aga_killmapfd(struct aga_mapfd* fd) {
-	AGA_PARAM_CHK(fd);
+	if(!fd) return AGA_RESULT_BAD_PARAM;
 
 	return AGA_RESULT_OK;
 }
@@ -74,14 +74,14 @@ enum aga_result aga_killmapfd(struct aga_mapfd* fd) {
 enum aga_result aga_mkfmap(
 		struct aga_mapfd* fd, aga_size_t off, aga_size_t size, void** ptr) {
 
-	AGA_PARAM_CHK(fd);
-	AGA_PARAM_CHK(ptr);
+	if(!fd) return AGA_RESULT_BAD_PARAM;
+	if(!ptr) return AGA_RESULT_BAD_PARAM;
 
 	return AGA_RESULT_OK;
 }
 
 enum aga_result aga_killfmap(void* ptr, aga_size_t size) {
-	AGA_PARAM_CHK(ptr);
+	if(!ptr) return AGA_RESULT_BAD_PARAM;
 
 	return AGA_RESULT_OK;
 }
@@ -95,8 +95,8 @@ enum aga_result aga_mkmapfd(void* fp, struct aga_mapfd* fd) {
 	aga_size_t size;
 	SECURITY_ATTRIBUTES attrib = { sizeof(attrib), 0, FALSE };
 
-	AGA_PARAM_CHK(fd);
-	AGA_PARAM_CHK(fp);
+	if(!fd) return AGA_RESULT_BAD_PARAM;
+	if(!fp) return AGA_RESULT_BAD_PARAM;
 
 	if((fn = fileno(fp)) == -1) return aga_errno(__FILE__, "fileno");
 	if((hnd = (void*) _get_osfhandle(fn)) == INVALID_HANDLE_VALUE) {
@@ -113,7 +113,7 @@ enum aga_result aga_mkmapfd(void* fp, struct aga_mapfd* fd) {
 }
 
 enum aga_result aga_killmapfd(struct aga_mapfd* fd) {
-	AGA_PARAM_CHK(fd);
+	if(!fd) return AGA_RESULT_BAD_PARAM;
 
 	if(!CloseHandle(fd->mapping)) {
 		return aga_win32_error(__FILE__, "CloseHandle");
@@ -127,8 +127,8 @@ enum aga_result aga_mkfmap(
 
 	DWORD* p = (DWORD*) &off;
 
-	AGA_PARAM_CHK(fd);
-	AGA_PARAM_CHK(ptr);
+	if(!fd) return AGA_RESULT_BAD_PARAM;
+	if(!ptr) return AGA_RESULT_BAD_PARAM;
 
 	/*
 	 * TODO: File offset needs to be a multiple of allocation granularity.
@@ -147,7 +147,7 @@ enum aga_result aga_mkfmap(
 }
 
 enum aga_result aga_killfmap(void* ptr, aga_size_t size) {
-	AGA_PARAM_CHK(ptr);
+	if(!ptr) return AGA_RESULT_BAD_PARAM;
 
 	return AGA_RESULT_OK;
 }
@@ -165,8 +165,8 @@ enum aga_result aga_killfmap(void* ptr, aga_size_t size) {
 enum aga_result aga_spawn_sync(const char* program, char** argv, const char* wd) {
 	pid_t p;
 
-	AGA_PARAM_CHK(program);
-	AGA_PARAM_CHK(argv);
+	if(!program) return AGA_RESULT_BAD_PARAM;
+	if(!argv) return AGA_RESULT_BAD_PARAM;
 
 	if((p = fork()) == -1) return aga_errno(__FILE__, "fork");
 
@@ -217,8 +217,8 @@ enum aga_result aga_spawn_sync(
 	PROCESS_INFORMATION info = { 0 };
 	startup.cb = sizeof(startup);
 
-	AGA_PARAM_CHK(program);
-	AGA_PARAM_CHK(argv);
+	if(!program) return AGA_RESULT_BAD_PARAM;
+	if(!argv) return AGA_RESULT_BAD_PARAM;
 
 	for(; *argv; ++argv) {
 		aga_size_t l = strlen(*argv);

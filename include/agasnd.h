@@ -6,6 +6,7 @@
 #ifndef AGA_SND_H
 #define AGA_SND_H
 
+#include <agaenv.h>
 #include <agaresult.h>
 
 enum aga_snd_conf {

@@ -8,6 +8,7 @@
 
 #define AGA_FONT_LIST_BASE (1000)
 
+#include <agaenv.h>
 #include <agaresult.h>
 
 #ifdef _WIN32

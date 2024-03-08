@@ -6,6 +6,7 @@
 #ifndef AGA_SCRIPT_H
 #define AGA_SCRIPT_H
 
+#include <agaenv.h>
 #include <agaresult.h>
 
 #define AGA_SCRIPT_KEYMAP ("keymap")

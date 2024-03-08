@@ -6,6 +6,7 @@
 #ifndef AGA_CONF_H
 #define AGA_CONF_H
 
+#include <agaenv.h>
 #include <agaresult.h>
 
 /*

@@ -52,10 +52,10 @@ static aga_bool_t aga_isblank(char c) {
 static enum aga_result aga_sgml_push(
 		struct aga_sgml_structured* s, struct aga_conf_node* node) {
 
-	AGA_PARAM_CHK(s);
-	AGA_PARAM_CHK(node);
+	if(!s) return AGA_RESULT_BAD_PARAM;
+	if(!node) return AGA_RESULT_BAD_PARAM;
 
-	AGA_VERIFY(s->depth <= AGA_CONF_MAX_DEPTH, AGA_RESULT_OOM);
+	if(s->depth > AGA_CONF_MAX_DEPTH) return AGA_RESULT_OOM;
 
 	s->stack[s->depth++] = node;
 
@@ -228,6 +228,8 @@ static void aga_sgml_put_entity(HTStructured* me, int n) {
 enum aga_result aga_mkconf(
 		void* fp, aga_size_t count, struct aga_conf_node* root) {
 
+	enum aga_result result;
+
 	static HTStructuredClass class = {
 			"",
 
@@ -255,7 +257,9 @@ enum aga_result aga_mkconf(
 	aga_size_t i;
 
 	memset(root, 0, sizeof(struct aga_conf_node));
-	AGA_CHK(aga_sgml_push(&structured, root));
+
+	result = aga_sgml_push(&structured, root);
+	if(result) return result;
 
 	structured.class = &class;
 
@@ -305,7 +309,7 @@ void aga_free_node(struct aga_conf_node* node) {
 }
 
 enum aga_result aga_killconf(struct aga_conf_node* root) {
-	AGA_PARAM_CHK(root);
+	if(!root) return AGA_RESULT_BAD_PARAM;
 
 	aga_free_node(root);
 
@@ -352,9 +356,9 @@ enum aga_result aga_conftree_raw(
 
 	aga_size_t i;
 
-	AGA_PARAM_CHK(root);
-	AGA_PARAM_CHK(names);
-	AGA_PARAM_CHK(out);
+	if(!root) return AGA_RESULT_BAD_PARAM;
+	if(!names) return AGA_RESULT_BAD_PARAM;
+	if(!out) return AGA_RESULT_BAD_PARAM;
 
 	if(count == 0) {
 		*out = root;
@@ -377,13 +381,15 @@ enum aga_result aga_conftree_nonroot(
 		struct aga_conf_node* root, const char** names, aga_size_t count,
 		void* value, enum aga_conf_type type) {
 
+	enum aga_result result;
 	struct aga_conf_node* node;
 
-	AGA_PARAM_CHK(root);
-	AGA_PARAM_CHK(names);
-	AGA_PARAM_CHK(value);
+	if(!root) return AGA_RESULT_BAD_PARAM;
+	if(!names) return AGA_RESULT_BAD_PARAM;
+	if(!value) return AGA_RESULT_BAD_PARAM;
 
-	AGA_CHK(aga_conftree_raw(root, names, count, &node));
+	result = aga_conftree_raw(root, names, count, &node);
+	if(result) return result;
 
 	if(aga_confvar(node->name, node, type, value)) { return AGA_RESULT_OK; }
 	else { return AGA_RESULT_ERROR; }

@@ -57,6 +57,7 @@ void aga_check(const char* loc, const char* proc, enum aga_result e) {
 }
 
 void aga_soft(const char* loc, const char* proc, enum aga_result e) {
+	if(!e) return;
 	aga_log(loc, "err: %s: %s", proc, aga_result_name(e));
 }
 

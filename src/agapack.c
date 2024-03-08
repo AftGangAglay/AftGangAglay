@@ -27,9 +27,9 @@ enum aga_result aga_searchres(
 
 	aga_size_t i;
 
-	AGA_PARAM_CHK(pack);
-	AGA_PARAM_CHK(path);
-	AGA_PARAM_CHK(out);
+	if(!pack) return AGA_RESULT_BAD_PARAM;
+	if(!path) return AGA_RESULT_BAD_PARAM;
+	if(!out) return AGA_RESULT_BAD_PARAM;
 
 	for(i = 0; i < pack->len; ++i) {
 		if(aga_streql(pack->db[i].conf->name, path)) {
@@ -46,8 +46,8 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 	aga_size_t i;
 	struct aga_pack_header hdr;
 
-	AGA_PARAM_CHK(path);
-	AGA_PARAM_CHK(pack);
+	if(!path) return AGA_RESULT_BAD_PARAM;
+	if(!pack) return AGA_RESULT_BAD_PARAM;
 
 	aga_global_pack = pack;
 
@@ -64,18 +64,24 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 		return aga_errno_path(__FILE__, "fopen", path);
 	}
 
-	AGA_CHK(aga_fplen(pack->fp, &pack->size));
+	result = aga_fplen(pack->fp, &pack->size);
+	if(result) return result;
 
-	AGA_CHK(aga_fread(&hdr, sizeof(hdr), pack->fp));
+	result = aga_fread(&hdr, sizeof(hdr), pack->fp);
+	if(result) return result;
 
-	AGA_VERIFY(hdr.magic == AGA_PACK_MAGIC, AGA_RESULT_BAD_PARAM);
+	if(hdr.magic != AGA_PACK_MAGIC) return AGA_RESULT_BAD_PARAM;
+
 	aga_conf_debug_file = path;
-	AGA_CHK(aga_mkconf(pack->fp, hdr.size, &pack->root));
+
+	result = aga_mkconf(pack->fp, hdr.size, &pack->root);
+	if(result) return result;
 
 	pack->len = pack->root.children->len;
 	pack->data_offset = hdr.size + sizeof(hdr);
+
 	pack->db = calloc(pack->len, sizeof(struct aga_res));
-	AGA_VERIFY(pack->db, AGA_RESULT_OOM);
+	if(!pack->db) return AGA_RESULT_OOM;
 
 	for(i = 0; i < pack->len; ++i) {
 		/* TODO: Non-fatally skip bad entries. */
@@ -90,12 +96,14 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 
 		result = aga_conftree_nonroot(
 				node, &off, 1, &res->offset, AGA_INTEGER);
-		AGA_CHK(result);
-		AGA_VERIFY(res->offset < pack->size, AGA_RESULT_BAD_PARAM);
+		if(result) return result;
+
+		if(res->offset >= pack->size) return AGA_RESULT_BAD_PARAM;
 
 		result = aga_conftree_nonroot(node, &size, 1, &res->size, AGA_INTEGER);
-		AGA_CHK(result);
-		AGA_VERIFY(res->offset + res->size < pack->size, AGA_RESULT_BAD_PARAM);
+		if(result) return result;
+
+		if(res->offset + res->size >= pack->size) return AGA_RESULT_BAD_PARAM;
 	}
 
 	aga_log(__FILE__, "Loaded `%zu' resource entries", pack->len);
@@ -104,19 +112,18 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 }
 
 enum aga_result aga_killrespack(struct aga_respack* pack) {
-	AGA_PARAM_CHK(pack);
+	if(!pack) return AGA_RESULT_BAD_PARAM;
 
 	free(pack->db);
 	if(fclose(pack->fp) == EOF) return aga_errno(__FILE__, "fclose");
-	AGA_CHK(aga_killconf(&pack->root));
 
-	return AGA_RESULT_OK;
+	return aga_killconf(&pack->root);
 }
 
 enum aga_result aga_sweeprespack(struct aga_respack* pack) {
 	aga_size_t i;
 
-	AGA_PARAM_CHK(pack);
+	if(!pack) return AGA_RESULT_BAD_PARAM;
 
 	for(i = 0; i < pack->len; ++i) {
 		struct aga_res* res = &pack->db[i];
@@ -133,19 +140,24 @@ enum aga_result aga_sweeprespack(struct aga_respack* pack) {
 enum aga_result aga_mkres(
 		struct aga_respack* pack, const char* path, struct aga_res** res) {
 
-	AGA_PARAM_CHK(path);
-	AGA_PARAM_CHK(pack);
-	AGA_PARAM_CHK(res);
+	enum aga_result result;
 
-	AGA_CHK(aga_searchres(pack, path, res));
+	if(!path) return AGA_RESULT_BAD_PARAM;
+	if(!pack) return AGA_RESULT_BAD_PARAM;
+	if(!res) return AGA_RESULT_BAD_PARAM;
+
+	result = aga_searchres(pack, path, res);
+	if(result) return result;
 
 	if(!(*res)->data) {
-		AGA_CHK(aga_resseek(*res, 0));
+		result = aga_resseek(*res, 0);
+		if(result) return result;
 
 		/* TODO: Use mapping for large reads. */
-		AGA_VERIFY((*res)->data = malloc((*res)->size), AGA_RESULT_OOM);
+		if(!((*res)->data = malloc((*res)->size))) return AGA_RESULT_OOM;
 
-		AGA_CHK(aga_fread((*res)->data, (*res)->size, pack->fp));
+		result = aga_fread((*res)->data, (*res)->size, pack->fp);
+		if(result) return result;
 	}
 
 	++(*res)->refcount;
@@ -157,14 +169,17 @@ enum aga_result aga_resfptr(
 		struct aga_respack* pack, const char* path, void** fp,
 		aga_size_t* size) {
 
+	enum aga_result result;
 	struct aga_res* res;
 
-	AGA_PARAM_CHK(pack);
-	AGA_PARAM_CHK(path);
+	if(!pack) return AGA_RESULT_BAD_PARAM;
+	if(!path) return AGA_RESULT_BAD_PARAM;
 
-	AGA_CHK(aga_searchres(pack, path, &res));
+	result = aga_searchres(pack, path, &res);
+	if(result) return result;
 
-	AGA_CHK(aga_resseek(res, 0));
+	result = aga_resseek(res, 0);
+	if(result) return result;
 
 	*fp = pack->fp;
 	*size = res->size;
@@ -176,9 +191,10 @@ enum aga_result aga_resseek(struct aga_res* res, void** fp) {
 	int result;
 	aga_size_t offset;
 
-	AGA_PARAM_CHK(res);
+	if(!res) return AGA_RESULT_BAD_PARAM;
 
 	offset = res->pack->data_offset + res->offset;
+
 	result = fseek(res->pack->fp, (long) offset, SEEK_SET);
 	if(result == -1) return aga_errno(__FILE__, "fseek");
 
@@ -188,7 +204,7 @@ enum aga_result aga_resseek(struct aga_res* res, void** fp) {
 }
 
 enum aga_result aga_acquireres(struct aga_res* res) {
-	AGA_PARAM_CHK(res);
+	if(!res) return AGA_RESULT_BAD_PARAM;
 
 	++res->refcount;
 
@@ -196,7 +212,7 @@ enum aga_result aga_acquireres(struct aga_res* res) {
 }
 
 enum aga_result aga_releaseres(struct aga_res* res) {
-	AGA_PARAM_CHK(res);
+	if(!res) return AGA_RESULT_BAD_PARAM;
 
 	if(res->refcount) --res->refcount;
 

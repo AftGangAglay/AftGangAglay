@@ -22,8 +22,8 @@ enum aga_result aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 	aga_bool_t busy_msg = AGA_FALSE;
 	unsigned value;
 
-	AGA_PARAM_CHK(snddev);
-	AGA_PARAM_CHK(dev);
+	if(!snddev) return AGA_RESULT_BAD_PARAM;
+	if(!dev) return AGA_RESULT_BAD_PARAM;
 
 	memset(snddev->buf, 0, sizeof(snddev->buf));
 
@@ -64,7 +64,7 @@ enum aga_result aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 }
 
 enum aga_result aga_killsnddev(struct aga_snddev* snddev) {
-	AGA_PARAM_CHK(snddev);
+	if(!snddev) return AGA_RESULT_BAD_PARAM;
 
 	if(ioctl(snddev->fd, SOUND_PCM_RESET) == -1) {
 		return aga_errno(__FILE__, "ioctl");
@@ -79,7 +79,7 @@ enum aga_result aga_flushsnd(struct aga_snddev* snddev, aga_size_t* written) {
 	struct pollfd pollfd;
 	int rdy;
 
-	AGA_PARAM_CHK(snddev);
+	if(!snddev) return AGA_RESULT_BAD_PARAM;
 
 	pollfd.fd = snddev->fd;
 	pollfd.events = POLLOUT;
@@ -106,8 +106,8 @@ enum aga_result aga_flushsnd(struct aga_snddev* snddev, aga_size_t* written) {
 enum aga_result aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip) {
 	aga_size_t written;
 
-	AGA_PARAM_CHK(snddev);
-	AGA_PARAM_CHK(clip);
+	if(!snddev) return AGA_RESULT_BAD_PARAM;
+	if(!clip) return AGA_RESULT_BAD_PARAM;
 
 	AGA_CHK(aga_flushsnd(snddev, &written));
 

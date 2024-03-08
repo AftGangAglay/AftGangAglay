@@ -39,16 +39,6 @@
 # undef GL_GLEXT_PROTOTYPES
 #endif
 
-#ifdef AGA_NO_VERIFY
-# define AGA_GL_CHK(proc) (void) proc
-#else
-# define AGA_GL_CHK(proc) \
-    do { \
-        enum aga_result err = aga_glerr(__FILE__, proc); \
-        if(err) return err; \
-    } while(0)
-#endif
-
-enum aga_result aga_glerr(const char*, const char*);
+enum aga_result aga_gl_error(const char*, const char*);
 
 #endif

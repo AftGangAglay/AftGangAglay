@@ -67,7 +67,7 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	int n_fb;
 	XVisualInfo* vi;
 
-	AGA_PARAM_CHK(env);
+	if(!env) return AGA_RESULT_BAD_PARAM;
 
 	AGAX_CHK(XSetErrorHandler, (aga_xerr_handler));
 
@@ -114,7 +114,7 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 }
 
 enum aga_result aga_killwinenv(struct aga_winenv* env) {
-	AGA_PARAM_CHK(env);
+	if(!env) return AGA_RESULT_BAD_PARAM;
 
 	glXDestroyContext(env->dpy, env->glx);
 
@@ -127,8 +127,8 @@ enum aga_result
 aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
 	int min, max;
 
-	AGA_PARAM_CHK(keymap);
-	AGA_PARAM_CHK(env);
+	if(!keymap) return AGA_RESULT_BAD_PARAM;
+	if(!env) return AGA_RESULT_BAD_PARAM;
 
 	AGAX_CHK(XDisplayKeycodes, (env->dpy, &min, &max));
 
@@ -150,7 +150,7 @@ aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
 }
 
 enum aga_result aga_killkeymap(struct aga_keymap* keymap) {
-	AGA_PARAM_CHK(keymap);
+	if(!keymap) return AGA_RESULT_BAD_PARAM;
 
 	XFree(keymap->keymap);
 	free(keymap->keystates);
@@ -180,8 +180,8 @@ enum aga_result aga_mkwin(
 	aga_ulong_t black, white;
 	long mask = KeyPressMask | KeyReleaseMask | PointerMotionMask;
 
-	AGA_PARAM_CHK(env);
-	AGA_PARAM_CHK(win);
+	if(!env) return AGA_RESULT_BAD_PARAM;
+	if(!win) return AGA_RESULT_BAD_PARAM;
 
 	black = BlackPixel(env->dpy, env->screen);
 	white = WhitePixel(env->dpy, env->screen);
@@ -241,8 +241,8 @@ enum aga_result aga_mkwin(
 }
 
 enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win) {
-	AGA_PARAM_CHK(env);
-	AGA_PARAM_CHK(win);
+	if(!env) return AGA_RESULT_BAD_PARAM;
+	if(!win) return AGA_RESULT_BAD_PARAM;
 
 	AGAX_CHK(XFreeCursor, (env->dpy, win->blank_cursor));
 	AGAX_CHK(XFreeCursor, (env->dpy, win->arrow_cursor));
@@ -262,8 +262,8 @@ enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 
 	int res;
 
-	AGA_PARAM_CHK(env);
-	AGA_PARAM_CHK(win);
+	if(!env) return AGA_RESULT_BAD_PARAM;
+	if(!win) return AGA_RESULT_BAD_PARAM;
 
 	res = glXMakeContextCurrent(
 			env->dpy, win->xwin, win->xwin, env->glx);
@@ -299,7 +299,7 @@ enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	 * 		 Leave behind an error state sometimes in practice.
 	 */
 	glXUseXFont(font, 0, 256, AGA_FONT_LIST_BASE);
-	(void) aga_glerr(0, "glXUseXFont");
+	(void) aga_gl_error(0, "glXUseXFont");
 
 	AGAX_CHK(XUnloadFont, (env->dpy, font));
 
@@ -312,8 +312,8 @@ enum aga_result aga_setcursor(
 
 	aga_ulong_t cur;
 
-	AGA_PARAM_CHK(env);
-	AGA_PARAM_CHK(win);
+	if(!env) return AGA_RESULT_BAD_PARAM;
+	if(!win) return AGA_RESULT_BAD_PARAM;
 
 	cur = visible ? win->arrow_cursor : win->blank_cursor;
 	AGAX_CHK(XDefineCursor, (env->dpy, win->xwin, cur));
@@ -326,8 +326,8 @@ enum aga_result aga_setcursor(
 }
 
 enum aga_result aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
-	AGA_PARAM_CHK(env);
-	AGA_PARAM_CHK(win);
+	if(!env) return AGA_RESULT_BAD_PARAM;
+	if(!win) return AGA_RESULT_BAD_PARAM;
 
 	if(env->double_buffered) glXSwapBuffers(env->dpy, win->xwin);
 
@@ -342,9 +342,9 @@ enum aga_result aga_poll(
 	struct pollfd pollfd;
 	int rdy;
 
-	AGA_PARAM_CHK(env);
-	AGA_PARAM_CHK(keymap);
-	AGA_PARAM_CHK(pointer);
+	if(!env) return AGA_RESULT_BAD_PARAM;
+	if(!keymap) return AGA_RESULT_BAD_PARAM;
+	if(!pointer) return AGA_RESULT_BAD_PARAM;
 
 	pollfd.fd = env->dpy_fd;
 	pollfd.events = POLLIN;
@@ -418,9 +418,9 @@ enum aga_result aga_diag(
 		const char* message, const char* title, aga_bool_t* response,
 		aga_bool_t is_error) {
 
-	AGA_PARAM_CHK(message);
-	AGA_PARAM_CHK(title);
-	AGA_PARAM_CHK(response);
+	if(!message) return AGA_RESULT_BAD_PARAM;
+	if(!title) return AGA_RESULT_BAD_PARAM;
+	if(!response) return AGA_RESULT_BAD_PARAM;
 
 	if(isatty(STDIN_FILENO)) {
 		int c = 'N';
@@ -438,7 +438,7 @@ enum aga_result aga_diag(
 }
 
 enum aga_result aga_shellopen(const char* uri) {
-	AGA_PARAM_CHK(uri);
+	if(!uri) return AGA_RESULT_BAD_PARAM;
 
 	aga_log(__FILE__, "%s", uri);
 

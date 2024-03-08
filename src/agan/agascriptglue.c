@@ -28,7 +28,7 @@
 #include <agan/aganobj.h>
 
 aga_bool_t aga_script_gl_err(const char* proc) {
-	return aga_script_err(proc, aga_glerr(__FILE__, proc));
+	return aga_script_err(proc, aga_gl_error(__FILE__, proc));
 }
 
 aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv) {
@@ -82,7 +82,7 @@ aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv) {
 struct py_object* agan_scriptconf(
 		struct aga_conf_node* node, aga_bool_t root, struct py_object* list) {
 
-	enum aga_result err;
+	enum aga_result result;
 
 	const char* str;
 	struct aga_conf_node* out;
@@ -100,12 +100,9 @@ struct py_object* agan_scriptconf(
 		}
 	}
 
-	err = aga_conftree_raw(root ? node->children : node, names, len, &out);
-	if(aga_script_err("aga_conftree_raw", err)) {
-		free(names);
-		return 0;
-	}
+	result = aga_conftree_raw(root ? node->children : node, names, len, &out);
 	free(names);
+	if(aga_script_err("aga_conftree_raw", result)) return 0;
 
 	str = out->data.string ? out->data.string : "";
 	switch(out->type) {
@@ -460,16 +457,21 @@ enum aga_result aga_mkmod(void** dict) {
 #undef _
 
 	struct py_object* module = py_module_new_methods("agan", methods);
-	AGA_VERIFY(module, AGA_RESULT_ERROR);
+	if(!module) return AGA_RESULT_ERROR;
 
 	if(!(agan_dict = py_module_get_dict(module))) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
 
-	AGA_CHK(aga_insertfloat("PI", pi));
-	AGA_CHK(aga_insertfloat("RADS", rads));
-	AGA_CHK(aga_insertfloat("E", e));
+	result = aga_insertfloat("PI", pi);
+	if(result) return result;
+
+	result = aga_insertfloat("RADS", rads);
+	if(result) return result;
+
+	result = aga_insertfloat("E", e);
+	if(result) return result;
 
 	if((result = aga_setkeys())) {
 		aga_script_trace();
@@ -482,7 +484,12 @@ enum aga_result aga_mkmod(void** dict) {
 }
 
 static enum aga_result aga_setkeys(void) {
-#define _(name, value) AGA_CHK(aga_insertint(name, value))
+	enum aga_result result;
+#define _(name, value) \
+    do { \
+        result = aga_insertint(name, value); \
+        if(result) return result; \
+	} while(0)
 #ifdef _WIN32
 /*
  * Values taken from:

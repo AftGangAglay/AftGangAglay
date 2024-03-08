@@ -135,9 +135,8 @@ static LRESULT CALLBACK aga_winproc(
 
 enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	WNDCLASSA class;
-	HICON icon;
 
-	AGA_PARAM_CHK(env);
+	if(!env) return AGA_RESULT_BAD_PARAM;
 
 	(void) display;
 
@@ -164,7 +163,7 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	class.cbClsExtra = 0;
 	class.cbWndExtra = 0;
 	class.hInstance = env->module;
-	class.hIcon = icon;
+	class.hIcon = 0;
 	class.hCursor = 0;
 	class.hbrBackground = 0;
 	class.lpszMenuName = 0;
@@ -178,7 +177,7 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 }
 
 enum aga_result aga_killwinenv(struct aga_winenv* env) {
-	AGA_PARAM_CHK(env);
+	if(!env) return AGA_RESULT_BAD_PARAM;
 
 	if(env->wgl && !wglDeleteContext(env->wgl)) {
 		return aga_win32_error(__FILE__, "wglDeleteContext");
@@ -193,20 +192,21 @@ enum aga_result aga_killwinenv(struct aga_winenv* env) {
 
 enum aga_result
 aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
-	AGA_PARAM_CHK(keymap);
-	AGA_PARAM_CHK(env);
+	if(!keymap) return AGA_RESULT_BAD_PARAM;
+	if(!env) return AGA_RESULT_BAD_PARAM;
 
 	keymap->keysyms_per_keycode = 1;
 	keymap->keycode_len = 0xFF;
 
-	keymap->keystates = calloc(0xFF, sizeof(aga_bool_t)); /* VK_OEM_CLEAR + 1 */
-	AGA_VERIFY(keymap->keystates, AGA_RESULT_OOM);
+	/* VK_OEM_CLEAR + 1 */
+	keymap->keystates = calloc(0xFF, sizeof(aga_bool_t));
+	if(!keymap->keystates) return AGA_RESULT_OOM;
 
 	return AGA_RESULT_OK;
 }
 
 enum aga_result aga_killkeymap(struct aga_keymap* keymap) {
-	AGA_PARAM_CHK(keymap);
+	if(!keymap) return AGA_RESULT_BAD_PARAM;
 
 	free(keymap->keystates);
 
@@ -225,8 +225,8 @@ enum aga_result aga_mkwin(
 	(void) argc;
 	(void) argv;
 
-	AGA_PARAM_CHK(env);
-	AGA_PARAM_CHK(win);
+	if(!env) return AGA_RESULT_BAD_PARAM;
+	if(!win) return AGA_RESULT_BAD_PARAM;
 
 	win->width = width;
 	win->height = height;
@@ -260,8 +260,8 @@ enum aga_result aga_mkwin(
 }
 
 enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win) {
-	AGA_PARAM_CHK(env);
-	AGA_PARAM_CHK(win);
+	if(!env) return AGA_RESULT_BAD_PARAM;
+	if(!win) return AGA_RESULT_BAD_PARAM;
 
 	return AGA_RESULT_OK;
 }
@@ -269,8 +269,8 @@ enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win) {
 enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	HGDIOBJ font;
 
-	AGA_PARAM_CHK(env);
-	AGA_PARAM_CHK(win);
+	if(!env) return AGA_RESULT_BAD_PARAM;
+	if(!win) return AGA_RESULT_BAD_PARAM;
 
 	if(!(env->wgl = wglCreateContext(win->dc))) {
 		return aga_win32_error(__FILE__, "wglCreateContext");
@@ -300,7 +300,7 @@ static enum aga_result aga_setclipcursor(struct aga_win* win, aga_bool_t clip) {
 	POINT begin;
 	POINT end;
 
-	AGA_PARAM_CHK(win);
+	if(!win) return AGA_RESULT_BAD_PARAM;
 
 	if(clip) {
 		if(!GetClientRect(win->hwnd, &rect)) {
@@ -340,21 +340,20 @@ enum aga_result aga_setcursor(
 		struct aga_winenv* env, struct aga_win* win, aga_bool_t visible,
 		aga_bool_t captured) {
 
-	AGA_PARAM_CHK(env);
-	AGA_PARAM_CHK(win);
+	if(!env) return AGA_RESULT_BAD_PARAM;
+	if(!win) return AGA_RESULT_BAD_PARAM;
 
 	SetCursor(visible ? env->cursor : 0);
 	env->visible = visible;
 
-	AGA_CHK(aga_setclipcursor(win, captured));
 	env->captured = captured;
 
-	return AGA_RESULT_OK;
+	return aga_setclipcursor(win, captured);
 }
 
 enum aga_result aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
-	AGA_PARAM_CHK(env);
-	AGA_PARAM_CHK(win);
+	if(!env) return AGA_RESULT_BAD_PARAM;
+	if(!win) return AGA_RESULT_BAD_PARAM;
 
 	if(!SwapBuffers(win->dc)) {
 		return aga_win32_error(__FILE__, "SwapBuffers");
@@ -367,14 +366,15 @@ enum aga_result aga_poll(
 		struct aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
 		struct aga_pointer* pointer, aga_bool_t* die) {
 
+	enum aga_result result;
 	MSG msg;
 	struct aga_winproc_pack pack;
 
-	AGA_PARAM_CHK(env);
-	AGA_PARAM_CHK(keymap);
-	AGA_PARAM_CHK(win);
-	AGA_PARAM_CHK(pointer);
-	AGA_PARAM_CHK(die);
+	if(!env) return AGA_RESULT_BAD_PARAM;
+	if(!keymap) return AGA_RESULT_BAD_PARAM;
+	if(!win) return AGA_RESULT_BAD_PARAM;
+	if(!pointer) return AGA_RESULT_BAD_PARAM;
+	if(!die) return AGA_RESULT_BAD_PARAM;
 
 	pack.die = die;
 	pack.keymap = keymap;
@@ -382,14 +382,15 @@ enum aga_result aga_poll(
 	pack.magic = AGA_WINPROC_PACK_MAGIC;
 
 	if(env->captured) {
-		AGA_CHK(aga_setclipcursor(win, GetActiveWindow() == win->hwnd));
+		result = aga_setclipcursor(win, GetActiveWindow() == win->hwnd);
+		if(result) return result;
 	}
 
 	SetCursor(env->visible ? env->cursor : 0);
 
 	SetLastError(0);
 	SetWindowLongPtrA(win->hwnd, GWLP_USERDATA, (LONG_PTR) &pack);
-	if(GetLastError()) return aga_win32_error("SetWindowLongPtrA");
+	if(GetLastError()) return aga_win32_error(__FILE__, "SetWindowLongPtrA");
 
 	while(PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
 		TranslateMessage(&msg);
@@ -407,9 +408,9 @@ enum aga_result aga_diag(
 	DWORD flags = MB_YESNO | MB_TASKMODAL | icon;
 	int res;
 
-	AGA_PARAM_CHK(message);
-	AGA_PARAM_CHK(title);
-	AGA_PARAM_CHK(response);
+	if(!message) return AGA_RESULT_BAD_PARAM;
+	if(!title) return AGA_RESULT_BAD_PARAM;
+	if(!response) return AGA_RESULT_BAD_PARAM;
 
 	if(!(res = MessageBoxA(0, message, title, flags))) {
 		return aga_win32_error(__FILE__, "MessageBoxA");
@@ -423,7 +424,7 @@ enum aga_result aga_diag(
 enum aga_result aga_shellopen(const char* uri) {
 	int flags = SW_SHOWNORMAL;
 
-	AGA_PARAM_CHK(uri);
+	if(!uri) return AGA_RESULT_BAD_PARAM;
 
 	if((INT_PTR) ShellExecuteA(0, 0, uri, 0, 0, flags) > 32) {
 		return AGA_RESULT_OK;

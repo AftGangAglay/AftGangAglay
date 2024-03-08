@@ -14,8 +14,8 @@
 #include <agastd.h>
 
 enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
-	AGA_PARAM_CHK(opts);
-	AGA_PARAM_CHK(argv);
+	if(!opts) return AGA_RESULT_BAD_PARAM;
+	if(!argv) return AGA_RESULT_BAD_PARAM;
 
 	opts->config_file = "aga.sgml";
 	opts->display = getenv("DISPLAY");
@@ -85,58 +85,62 @@ enum aga_result aga_setconf(struct aga_opts* opts, struct aga_respack* pack) {
 	aga_size_t size;
 	int v;
 
-	const char* enabled[] = { "Audio", "Enabled" };
-	const char* device[] = { "Audio", "Device" };
-	const char* startup[] = { "Script", "Startup" };
-	const char* path[] = { "Script", "Path" };
-	const char* version[] = { "General", "Version" };
-	const char* width[] = { "Display", "Width" };
-	const char* height[] = { "Display", "Height" };
-	const char* fov[] = { "Display", "FOV" };
+	static const char* enabled[] = { "Audio", "Enabled" };
+	static const char* device[] = { "Audio", "Device" };
+	static const char* startup[] = { "Script", "Startup" };
+	static const char* path[] = { "Script", "Path" };
+	static const char* version[] = { "General", "Version" };
+	static const char* width[] = { "Display", "Width" };
+	static const char* height[] = { "Display", "Height" };
+	static const char* fov[] = { "Display", "FOV" };
 
-	AGA_PARAM_CHK(opts);
-	AGA_PARAM_CHK(pack);
+	if(!opts) return AGA_RESULT_BAD_PARAM;
+	if(!pack) return AGA_RESULT_BAD_PARAM;
 
-	AGA_CHK(aga_resfptr(pack, opts->config_file, &fp, &size));
+	result = aga_resfptr(pack, opts->config_file, &fp, &size);
+	if(result) return result;
+
 	aga_conf_debug_file = opts->config_file;
-	AGA_CHK(aga_mkconf(fp, size, &opts->config));
+
+	result = aga_mkconf(fp, size, &opts->config);
+	if(result) return result;
 
 	result = aga_conftree(
 			&opts->config, enabled, AGA_LEN(enabled), &v, AGA_INTEGER);
-	if(result) aga_soft(__FILE__, "aga_conftree", result);
+	aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
 			&opts->config, version, AGA_LEN(version), &opts->version,
 			AGA_STRING);
-	if(result) aga_soft(__FILE__, "aga_conftree", result);
+	aga_soft(__FILE__, "aga_conftree", result);
 
 	if(!opts->audio_dev) {
 		result = aga_conftree(
 				&opts->config, device, AGA_LEN(device), &opts->audio_dev,
 				AGA_STRING);
-		if(result) aga_soft(__FILE__, "aga_conftree", result);
+		aga_soft(__FILE__, "aga_conftree", result);
 	}
 
 	result = aga_conftree(
 			&opts->config, startup, AGA_LEN(startup), &opts->startup_script,
 			AGA_STRING);
-	if(result) aga_soft(__FILE__, "aga_conftree", result);
+	aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
 			&opts->config, path, AGA_LEN(path), &opts->python_path, AGA_STRING);
-	if(result) aga_soft(__FILE__, "aga_conftree", result);
+	aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
 			&opts->config, width, AGA_LEN(width), &opts->width, AGA_INTEGER);
-	if(result) aga_soft(__FILE__, "aga_conftree", result);
+	aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
 			&opts->config, height, AGA_LEN(height), &opts->height, AGA_INTEGER);
-	if(result) aga_soft(__FILE__, "aga_conftree", result);
+	aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
 			&opts->config, fov, AGA_LEN(fov), &opts->fov, AGA_FLOAT);
-	if(result) aga_soft(__FILE__, "aga_conftree", result);
+	aga_soft(__FILE__, "aga_conftree", result);
 
 	return AGA_RESULT_OK;
 }
@@ -155,7 +159,7 @@ enum aga_result aga_prerun_hook(struct aga_opts* opts) {
 	aga_log(__FILE__, "warn: Executing pre-run hook in non-debug build");
 # endif
 
-	AGA_PARAM_CHK(opts);
+	if(!opts) return AGA_RESULT_BAD_PARAM;
 
 	project_path = strrchr(opts->config_file, '/');
 
@@ -169,20 +173,23 @@ enum aga_result aga_prerun_hook(struct aga_opts* opts) {
 
 	args[0] = program;
 
-	AGA_CHK(aga_conftree(
-			&opts->config, hook, AGA_LEN(hook), &args[2], AGA_STRING));
+	result = aga_conftree(
+			&opts->config, hook, AGA_LEN(hook), &args[2], AGA_STRING);
+	if(result) return result;
 
 	aga_log(__FILE__, "Executing project pre-run hook `%s'", args[2]);
 
 	if(project_path) {
 		aga_size_t len = (aga_size_t) (project_path - opts->config_file) + 1;
-		AGA_VERIFY(project_path = calloc(len + 1, sizeof(char)),
-				   AGA_RESULT_OOM);
+
+		project_path = calloc(len + 1, sizeof(char));
+		if(!project_path) return AGA_RESULT_OOM;
+
 		strncpy(project_path, opts->config_file, len);
 	}
 
 	result = aga_spawn_sync(program, args, project_path);
-	if(result) aga_soft(__FILE__, "aga_spawn_sync", result);
+	aga_soft(__FILE__, "aga_spawn_sync", result);
 
 	free(project_path);
 

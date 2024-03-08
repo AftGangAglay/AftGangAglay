@@ -6,8 +6,6 @@
 #ifndef AGA_RESULT_H
 #define AGA_RESULT_H
 
-#include <agaenv.h>
-
 enum aga_result {
 	AGA_RESULT_OK,
 	AGA_RESULT_ERROR,
@@ -15,19 +13,5 @@ enum aga_result {
 	AGA_RESULT_BAD_OP,
 	AGA_RESULT_OOM
 };
-
-#define AGA_CHK(c) \
-    do { \
-        enum aga_result err = c; \
-        if(err) return err; \
-    } while(0)
-
-#ifdef AGA_NO_VERIFY
-# define AGA_PARAM_CHK(p)
-# define AGA_VERIFY(PY_GRAMMAR_EXPRESSION, err)
-#else
-# define AGA_PARAM_CHK(p) if(!(p)) return AGA_RESULT_BAD_PARAM
-# define AGA_VERIFY(PY_GRAMMAR_EXPRESSION, err) if(!(PY_GRAMMAR_EXPRESSION)) return (err)
-#endif
 
 #endif

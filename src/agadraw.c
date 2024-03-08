@@ -13,17 +13,23 @@
 /* TODO: Do error checking on all matrix ops - we're missing a lot of it. */
 
 enum aga_result aga_setdrawparam(void) {
+	enum aga_result result;
+
 	glEnable(GL_CULL_FACE);
-	AGA_GL_CHK("glEnable");
+	result = aga_gl_error(__FILE__, "glEnable");
+	if(result) return result;
 
 	glEnable(GL_BLEND);
-	AGA_GL_CHK("glEnable");
+	result = aga_gl_error(__FILE__, "glEnable");
+	if(result) return result;
 
 	glEnable(GL_FOG);
-	AGA_GL_CHK("glEnable");
+	result = aga_gl_error(__FILE__, "glEnable");
+	if(result) return result;
 
 	glEnable(GL_TEXTURE_2D);
-	AGA_GL_CHK("glEnable");
+	result = aga_gl_error(__FILE__, "glEnable");
+	if(result) return result;
 
 	/*
 	glEnable(GL_LIGHTING);
@@ -31,18 +37,21 @@ enum aga_result aga_setdrawparam(void) {
 	 */
 
 	glEnable(GL_DEPTH_TEST);
-	AGA_GL_CHK("glEnable");
+	result = aga_gl_error(__FILE__, "glEnable");
+	if(result) return result;
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	AGA_GL_CHK("glBlendFunc");
 
-	return AGA_RESULT_OK;
+	return aga_gl_error(__FILE__, "glBlendFunc");
 }
 
 /* TODO: Make more distinct "pipeline modes" rather than random en/disable? */
 enum aga_result aga_pushrawdraw(void) {
+	enum aga_result result;
+
 	glDisable(GL_TEXTURE_2D);
-	AGA_GL_CHK("glDisable");
+	result = aga_gl_error(__FILE__, "glDisable");
+	if(result) return result;
 
 	/*
 	glDisable(GL_LIGHTING);
@@ -50,40 +59,62 @@ enum aga_result aga_pushrawdraw(void) {
 	 */
 
 	glDisable(GL_DEPTH_TEST);
-	AGA_GL_CHK("glDisable");
+	result = aga_gl_error(__FILE__, "glDisable");
+	if(result) return result;
 
 	glMatrixMode(GL_MODELVIEW);
-	AGA_GL_CHK("glMatrixMode");
+	result = aga_gl_error(__FILE__, "glMatrixMode");
+	if(result) return result;
+
 	glPushMatrix();
-	AGA_GL_CHK("glPushMatrix");
+	result = aga_gl_error(__FILE__, "glPushMatrix");
+	if(result) return result;
+
 	glLoadIdentity();
-	AGA_GL_CHK("glLoadIdentity");
+	result = aga_gl_error(__FILE__, "glLoadIdentity");
+	if(result) return result;
+
 	glOrtho(0.0, 1.0, 1.0, 0.0, -1.0, 1.0);
-	AGA_GL_CHK("glOrtho");
+	result = aga_gl_error(__FILE__, "glOrtho");
+	if(result) return result;
 
 	glMatrixMode(GL_PROJECTION);
-	AGA_GL_CHK("glMatrixMode");
+	result = aga_gl_error(__FILE__, "glMatrixMode");
+	if(result) return result;
+
 	glPushMatrix();
-	AGA_GL_CHK("glPushMatrix");
+	result = aga_gl_error(__FILE__, "glPushMatrix");
+	if(result) return result;
+
 	glLoadIdentity();
-	AGA_GL_CHK("glLoadIdentity");
+	result = aga_gl_error(__FILE__, "glLoadIdentity");
+	if(result) return result;
 
 	return AGA_RESULT_OK;
 }
 
 enum aga_result aga_poprawdraw(void) {
+	enum aga_result result;
+
 	glMatrixMode(GL_MODELVIEW);
-	AGA_GL_CHK("glMatrixMode");
+	result = aga_gl_error(__FILE__, "glMatrixMode");
+	if(result) return result;
+
 	glPopMatrix();
-	AGA_GL_CHK("glPopMatrix");
+	result = aga_gl_error(__FILE__, "glPopMatrix");
+	if(result) return result;
 
 	glMatrixMode(GL_PROJECTION);
-	AGA_GL_CHK("glMatrixMode");
+	result = aga_gl_error(__FILE__, "glMatrixMode");
+	if(result) return result;
+
 	glPopMatrix();
-	AGA_GL_CHK("glPopMatrix");
+	result = aga_gl_error(__FILE__, "glPopMatrix");
+	if(result) return result;
 
 	glEnable(GL_TEXTURE_2D);
-	AGA_GL_CHK("glEnable");
+	result = aga_gl_error(__FILE__, "glEnable");
+	if(result) return result;
 
 	/*
 	glEnable(GL_LIGHTING);
@@ -91,29 +122,34 @@ enum aga_result aga_poprawdraw(void) {
 	 */
 
 	glEnable(GL_DEPTH_TEST);
-	AGA_GL_CHK("glEnable");
+	result = aga_gl_error(__FILE__, "glEnable");
+	if(result) return result;
 
 	return AGA_RESULT_OK;
 }
 
 enum aga_result aga_puttext(float x, float y, const char* text) {
-	AGA_CHK(aga_pushrawdraw());
+	enum aga_result result;
+
+	result = aga_pushrawdraw();
+	if(result) return result;
 
 	/* TODO: Proper text parameters. */
 	glColor3f(1.0f, 1.0f, 1.0f);
 
 	glRasterPos2f(x, y);
-	AGA_GL_CHK("glRasterPos2f");
+	result = aga_gl_error(__FILE__, "glRasterPos2f");
+	if(result) return result;
 
 	glListBase(AGA_FONT_LIST_BASE);
-	AGA_GL_CHK("glListBase");
+	result = aga_gl_error(__FILE__, "glListBase");
+	if(result) return result;
 
 	glCallLists((int) strlen(text), GL_UNSIGNED_BYTE, text);
-	AGA_GL_CHK("glCallLists");
+	result = aga_gl_error(__FILE__, "glCallLists");
+	if(result) return result;
 
-	AGA_CHK(aga_poprawdraw());
-
-	return AGA_RESULT_OK;
+	return aga_poprawdraw();
 }
 
 enum aga_result aga_puttextfmt(float x, float y, const char* fmt, ...) {
@@ -128,25 +164,27 @@ enum aga_result aga_puttextfmt(float x, float y, const char* fmt, ...) {
 }
 
 enum aga_result aga_clear(const float* col) {
-	AGA_PARAM_CHK(col);
+	enum aga_result result;
+
+	if(!col) return AGA_RESULT_BAD_PARAM;
 
 	glClearColor(col[0], col[1], col[2], col[3]);
-	AGA_GL_CHK("glClearColor");
+	result = aga_gl_error(__FILE__, "glClearColor");
+	if(result) return result;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	AGA_GL_CHK("glClear");
+	result = aga_gl_error(__FILE__, "glClear");
+	if(result) return result;
 
 	return AGA_RESULT_OK;
 }
 
 enum aga_result aga_flush(void) {
 	glFlush();
-	AGA_GL_CHK("glFlush");
-
-	return AGA_RESULT_OK;
+	return aga_gl_error(__FILE__, "glFlush");
 }
 
-enum aga_result aga_glerr(const char* loc, const char* proc) {
+enum aga_result aga_gl_error(const char* loc, const char* proc) {
 	enum aga_result err = AGA_RESULT_OK;
 
 	unsigned res;

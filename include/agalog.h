@@ -6,6 +6,7 @@
 #ifndef AGA_LOG_H
 #define AGA_LOG_H
 
+#include <agaenv.h>
 #include <agaresult.h>
 
 /*

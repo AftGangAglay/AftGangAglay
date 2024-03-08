@@ -110,7 +110,7 @@ struct py_object* agan_scriptconf(
 			AGA_FALLTHROUGH;
 			/* FALLTHRU */
 		}
-		case AGA_NONE: return AGA_INCREF(PY_NONE);
+		case AGA_NONE: return py_object_incref(PY_NONE);
 		case AGA_STRING: return py_string_new(str);
 		case AGA_INTEGER: return py_int_new(out->data.integer);
 		case AGA_FLOAT: return py_float_new(out->data.flt);
@@ -136,7 +136,7 @@ struct py_object* agan_getkey(struct py_object* self, struct py_object* arg) {
 		}
 	}
 
-	return AGA_INCREF(retval);
+	return py_object_incref(retval);
 }
 
 struct py_object* agan_getmotion(struct py_object* self, struct py_object* arg) {
@@ -202,7 +202,7 @@ struct py_object* agan_setcam(struct py_object* self, struct py_object* arg) {
 	if(aga_script_gl_err("glLoadIdentity")) return 0;
 	if(agan_settransmat(t, AGA_TRUE)) return 0;
 
-	return AGA_INCREF(PY_NONE);
+	return py_object_incref(PY_NONE);
 }
 
 struct py_object* agan_getconf(struct py_object* self, struct py_object* arg) {
@@ -233,7 +233,7 @@ struct py_object* agan_log(struct py_object* self, struct py_object* arg) {
 
 	aga_log(loc, str);
 
-	return AGA_INCREF(PY_NONE);
+	return py_object_incref(PY_NONE);
 }
 
 /*
@@ -269,7 +269,7 @@ struct py_object* agan_fogparam(struct py_object* self, struct py_object* arg) {
 	glFogf(GL_FOG_END, f);
 	if(aga_script_gl_err("glFogf")) return 0;
 
-	return AGA_INCREF(PY_NONE);
+	return py_object_incref(PY_NONE);
 }
 
 struct py_object* agan_fogcol(struct py_object* self, struct py_object* arg) {
@@ -289,7 +289,7 @@ struct py_object* agan_fogcol(struct py_object* self, struct py_object* arg) {
 	glFogfv(GL_FOG_COLOR, col);
 	if(aga_script_gl_err("glFogfv")) return 0;
 
-	return AGA_INCREF(PY_NONE);
+	return py_object_incref(PY_NONE);
 }
 
 struct py_object* agan_text(struct py_object* self, struct py_object* arg) {
@@ -320,7 +320,7 @@ struct py_object* agan_text(struct py_object* self, struct py_object* arg) {
 		return 0;
 	}
 
-	return AGA_INCREF(PY_NONE);
+	return py_object_incref(PY_NONE);
 }
 
 struct py_object* agan_clear(struct py_object* self, struct py_object* arg) {
@@ -342,7 +342,7 @@ struct py_object* agan_clear(struct py_object* self, struct py_object* arg) {
 	result = aga_clear(col);
 	if(aga_script_err("aga_clear", result)) return 0;
 
-	return AGA_INCREF(PY_NONE);
+	return py_object_incref(PY_NONE);
 }
 
 /* Python lacks native bitwise ops @-@ */
@@ -396,7 +396,7 @@ struct py_object* agan_die(struct py_object* self, struct py_object* arg) {
 	if(!(die = aga_getscriptptr(AGA_SCRIPT_DIE))) return 0;
 	*die = AGA_TRUE;
 
-	return AGA_INCREF(PY_NONE);
+	return py_object_incref(PY_NONE);
 }
 
 struct py_object* agan_setcursor(struct py_object* self, struct py_object* arg) {
@@ -424,7 +424,7 @@ struct py_object* agan_setcursor(struct py_object* self, struct py_object* arg) 
 	result = aga_setcursor(env, win, visible, captured);
 	if(aga_script_err("aga_setcursor", result)) return 0;
 
-	return AGA_INCREF(PY_NONE);
+	return py_object_incref(PY_NONE);
 }
 
 static enum aga_result aga_insertfloat(const char* key, double value) {

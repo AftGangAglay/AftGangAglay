@@ -61,3 +61,18 @@ apro_unit_t apro_stamp_us(enum apro_section section) {
 void apro_clear(void) {
 	memset(aga_global_prof, 0, sizeof(aga_global_prof));
 }
+
+const char* apro_section_name(enum apro_section section) {
+	switch(section) {
+		default: return "";
+		case APRO_PRESWAP: return "PRESWAP";
+		case APRO_POLL: return "POLL";
+		case APRO_SCRIPT_UPDATE: return "SCRIPT_UPDATE";
+		case APRO_SCRIPT_INSTCALL_RISING: return "SCRIPT_INSTCALL_RISING";
+		case APRO_SCRIPT_INSTCALL_EXEC: return "SCRIPT_INSTCALL_EXEC";
+		case APRO_CEVAL_CALL_RISING: return "CEVAL_CALL_RISING";
+		case APRO_CEVAL_CALL_EVAL: return "CEVAL_CALL_EVAL";
+		case APRO_RES_SWEEP: return "RES_SWEEP";
+		case APRO_MAX: return "MAX";
+	}
+}

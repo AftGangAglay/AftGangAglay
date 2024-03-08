@@ -7,26 +7,12 @@
 #define AGA_ENV_H
 
 #ifdef __has_attribute
-# if __has_attribute(destructor)
-#  define AGA_DESTRUCTOR __attribute__((destructor))
-# endif
-# if __has_attribute(used)
-#  define AGA_USED __attribute__((used))
-# endif
 # if __has_attribute(noreturn)
 #  define AGA_NORETURN __attribute__((noreturn))
 # endif
 # if __has_attribute(fallthrough)
 #  define AGA_FALLTHROUGH __attribute__((fallthrough))
 # endif
-#endif
-
-#ifndef AGA_DESTRUCTOR
-# define AGA_DESTRUCTOR
-#endif
-
-#ifndef AGA_USED
-# define AGA_USED
 #endif
 
 #ifndef AGA_NORETURN

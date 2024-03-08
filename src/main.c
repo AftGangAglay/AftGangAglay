@@ -42,6 +42,17 @@ static enum aga_result aga_putnil(void) {
 	return aga_puttextfmt(0.05f, 0.2f, str2);
 }
 
+#ifndef NDEBUG
+static void aga_prof_put(unsigned y, unsigned x, enum apro_section s) {
+	aga_ulong_t us = apro_stamp_us(s);
+	float tx = 0.05f + (0.05f * (float) x);
+	float ty = 0.1f + (0.05f * (float) y);
+	enum aga_result result = aga_puttextfmt(
+			tx, ty, "%s: %lluus", apro_section_name(s), us);
+	aga_soft(__FILE__, "aga_puttextfmt", result);
+}
+#endif
+
 int main(int argc, char** argv) {
 	enum aga_result result;
 
@@ -164,23 +175,17 @@ int main(int argc, char** argv) {
 		apro_stamp_end(APRO_PRESWAP);
 
 #ifndef NDEBUG
-# define PROF(i, j, sec) \
-		aga_soft(__FILE__, "aga_puttextfmt", aga_puttextfmt( \
-				0.05f + 0.05f * (j), 0.1f + 0.05f * (i), #sec ": %lluus", \
-				apro_stamp_us(APRO_##sec)))
-
 		{
 			unsigned d = 0;
-			PROF(d++, 0, PRESWAP);
-				PROF(d++, 1, POLL);
-				PROF(d++, 1, SCRIPT_UPDATE);
-					PROF(d++, 2, SCRIPT_INSTCALL_RISING);
-					PROF(d++, 2, SCRIPT_INSTCALL_EXEC);
-						PROF(d++, 3, CEVAL_CALL_RISING);
-						PROF(d++, 3, CEVAL_CALL_EVAL);
-				PROF(d++, 1, RES_SWEEP);
+			aga_prof_put(d++, 0, APRO_PRESWAP);
+				aga_prof_put(d++, 1, APRO_POLL);
+				aga_prof_put(d++, 1, APRO_SCRIPT_UPDATE);
+					aga_prof_put(d++, 2, APRO_SCRIPT_INSTCALL_RISING);
+					aga_prof_put(d++, 2, APRO_SCRIPT_INSTCALL_EXEC);
+						aga_prof_put(d++, 3, APRO_CEVAL_CALL_RISING);
+						aga_prof_put(d++, 3, APRO_CEVAL_CALL_EVAL);
+				aga_prof_put(d++, 1, APRO_RES_SWEEP);
 		}
-# undef PROF
 #endif
 		apro_clear();
 

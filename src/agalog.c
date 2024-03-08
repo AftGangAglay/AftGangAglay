@@ -25,7 +25,15 @@ static void aga_onabrt(int signum) {
 }
 
 /* TODO: MSVC version of this destructor? */
-AGA_USED AGA_DESTRUCTOR void aga_ondestr(void) {
+#ifdef __has_attribute
+# if __has_attribute(used)
+__attribute__((used))
+# endif
+# if __has_attribute(destructor)
+__attribute__((destructor))
+# endif
+#endif
+void aga_ondestr(void) {
 	aga_killlog();
 }
 

@@ -13,9 +13,6 @@
  * 		 Overall verbosity of the Python glue code.
  */
 
-/* TODO: This can just be a function. */
-#define AGA_INCREF(v) (py_object_incref(v), v)
-
 /* TODO: `py_is_*' should be functions. */
 /* TODO: These can just be functions. */
 #define AGA_ARGLIST(type) (arg && py_is_##type(arg))

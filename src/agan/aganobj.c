@@ -281,7 +281,7 @@ struct py_object* agan_killobj(struct py_object* self, struct py_object* arg) {
 
 	py_object_decref(obj->transform);
 
-	return AGA_INCREF(PY_NONE);
+	return py_object_incref(PY_NONE);
 }
 
 struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
@@ -379,7 +379,7 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 	}
 	 */
 
-	return AGA_INCREF(retval);
+	return py_object_incref(retval);
 }
 
 /* TODO: Avoid reloading conf for every call. */
@@ -445,7 +445,7 @@ struct py_object* agan_putobj(struct py_object* self, struct py_object* arg) {
 	glPopMatrix();
 	if(aga_script_gl_err("glPopMatrix")) return 0;
 
-	return AGA_INCREF(PY_NONE);
+	return py_object_incref(PY_NONE);
 }
 
 struct py_object* agan_objtrans(struct py_object* self, struct py_object* arg) {

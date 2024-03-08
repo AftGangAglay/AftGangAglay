@@ -6,6 +6,8 @@
 #ifndef APRO_H
 #define APRO_H
 
+/* TODO: Flag to turn this off. */
+
 /*
  * Profile markers are baked into `apro' to make a simpler API with minimal
  * Overhead. `agaprof' is entirely an internal tool, so it doesn't really
@@ -45,18 +47,12 @@ struct apro_timestamp {
 
 extern struct apro_timestamp aga_global_prof[];
 
-#ifdef NDEBUG
-# define apro_stamp_start(section)
-# define apro_stamp_end(section)
-# define apro_stamp_us(section) (0ull)
-# define apro_clear()
-#else
-
 /* NOTE: This won't work inside recursive call chains atm. */
-void apro_stamp_start(enum apro_section section);
-void apro_stamp_end(enum apro_section section);
-apro_unit_t apro_stamp_us(enum apro_section section);
+void apro_stamp_start(enum apro_section);
+void apro_stamp_end(enum apro_section);
+apro_unit_t apro_stamp_us(enum apro_section);
 void apro_clear(void);
-#endif
+
+const char* apro_section_name(enum apro_section);
 
 #endif

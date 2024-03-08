@@ -10,8 +10,6 @@
 #include <agaerr.h>
 #include <agagl.h>
 
-/* TODO: Do error checking on all matrix ops - we're missing a lot of it. */
-
 enum aga_result aga_setdrawparam(void) {
 	enum aga_result result;
 
@@ -190,7 +188,15 @@ enum aga_result aga_gl_error(const char* loc, const char* proc) {
 	unsigned res;
 
 	while((res = glGetError())) {
-		err = AGA_RESULT_ERROR; /* TODO: Translate GL error. */
+		switch(res) {
+			default: err = AGA_RESULT_ERROR; break;
+			case GL_INVALID_ENUM: err = AGA_RESULT_BAD_PARAM; break;
+			case GL_INVALID_VALUE: err = AGA_RESULT_BAD_PARAM; break;
+			case GL_INVALID_OPERATION: err = AGA_RESULT_BAD_OP; break;
+			case GL_OUT_OF_MEMORY: err = AGA_RESULT_OOM; break;
+			case GL_STACK_UNDERFLOW: err = AGA_RESULT_OOM; break;
+			case GL_STACK_OVERFLOW: err = AGA_RESULT_OOM; break;
+		}
 
 		if(loc) { /* Null `loc' acts to clear the GL error state. */
 			const char* str = (const char*) gluErrorString(res);

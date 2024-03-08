@@ -72,7 +72,7 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	AGAX_CHK(XSetErrorHandler, (aga_xerr_handler));
 
 	env->dpy = AGAX_CHK(XOpenDisplay, (display));
-	AGA_VERIFY(env->dpy, AGA_RESULT_ERROR);
+	if(!env->dpy) return AGA_RESULT_ERROR;
 
 	{
 		int fl;
@@ -90,7 +90,7 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	env->screen = DefaultScreen(env->dpy);
 	env->wm_delete = AGAX_CHK(XInternAtom,
 							  (env->dpy, "WM_DELETE_WINDOW", True));
-	AGA_VERIFY(env->wm_delete != None, AGA_RESULT_BAD_PARAM);
+	if(env->wm_delete == None) return AGA_RESULT_BAD_PARAM;
 
 	env->double_buffered = AGA_TRUE;
 	fb = glXChooseFBConfig(env->dpy, env->screen, double_buffer_fb, &n_fb);
@@ -98,15 +98,15 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 		env->double_buffered = AGA_FALSE;
 		fb = glXChooseFBConfig(
 				env->dpy, env->screen, single_buffer_fb, &n_fb);
-		AGA_VERIFY(fb, AGA_RESULT_ERROR);
+		if(!fb) return AGA_RESULT_ERROR;
 	}
 
 	/* TODO: `glXGetVisualFromFBConfig' is too new for us. */
 	vi = glXGetVisualFromFBConfig(env->dpy, *fb);
-	AGA_VERIFY(vi, AGA_RESULT_ERROR);
+	if(!vi) return AGA_RESULT_ERROR;
 
 	env->glx = glXCreateContext(env->dpy, vi, 0, True);
-	AGA_VERIFY(env->glx, AGA_RESULT_ERROR);
+	if(!env->glx) return AGA_RESULT_ERROR;
 
 	XFree(vi);
 
@@ -123,8 +123,9 @@ enum aga_result aga_killwinenv(struct aga_winenv* env) {
 	return AGA_RESULT_OK;
 }
 
-enum aga_result
-aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
+enum aga_result aga_mkkeymap(
+		struct aga_keymap* keymap, struct aga_winenv* env) {
+
 	int min, max;
 
 	if(!keymap) return AGA_RESULT_BAD_PARAM;
@@ -135,16 +136,16 @@ aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
 	keymap->keycode_len = max - min;
 	keymap->keycode_min = min;
 
-	keymap->keymap = (aga_ulong_t * )AGAX_CHK(XGetKeyboardMapping,
+	keymap->keymap = (aga_ulong_t*) AGAX_CHK(XGetKeyboardMapping,
 											  (env->dpy, min, keymap
 													  ->keycode_len, &keymap
 													  ->keysyms_per_keycode));
-	AGA_VERIFY(keymap->keymap, AGA_RESULT_ERROR);
+	if(!keymap->keymap) return AGA_RESULT_ERROR;
 
 	keymap->keystates = calloc(
 			keymap->keysyms_per_keycode * keymap->keycode_len,
 			sizeof(aga_bool_t));
-	AGA_VERIFY(keymap->keystates, AGA_RESULT_OOM);
+	if(!keymap->keystates) return AGA_RESULT_OOM;
 
 	return AGA_RESULT_OK;
 }
@@ -191,7 +192,7 @@ enum aga_result aga_mkwin(
 
 	win->xwin = AGAX_CHK(XCreateSimpleWindow, (env->dpy, RootWindow(
 			env->dpy, env->screen), 0, 0, width, height, 8, white, black));
-	AGA_VERIFY(win->xwin != None, AGA_RESULT_ERROR);
+	if(win->xwin == None) return AGA_RESULT_ERROR;
 
 	AGAX_CHK(XSetStandardProperties,
 			 (env->dpy, win->xwin, "Aft Gang Aglay", "", None, argv, argc, 0));
@@ -233,9 +234,10 @@ enum aga_result aga_mkwin(
 	AGAX_CHK(XMapRaised, (env->dpy, win->xwin));
 
 	win->blank_cursor = AGAX_CHK(XCreateFontCursor, (env->dpy, XC_tcross));
-	AGA_VERIFY(win->blank_cursor != None, AGA_RESULT_ERROR);
+	if(win->blank_cursor == None) return AGA_RESULT_ERROR;
+
 	win->arrow_cursor = AGAX_CHK(XCreateFontCursor, (env->dpy, XC_arrow));
-	AGA_VERIFY(win->arrow_cursor != None, AGA_RESULT_ERROR);
+	if(win->arrow_cursor == None) return AGA_RESULT_ERROR;
 
 	return AGA_RESULT_OK;
 }
@@ -267,7 +269,7 @@ enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 
 	res = glXMakeContextCurrent(
 			env->dpy, win->xwin, win->xwin, env->glx);
-	AGA_VERIFY(res, AGA_RESULT_ERROR);
+	if(!res) return AGA_RESULT_ERROR;
 
 	while(AGA_TRUE) {
 		char** fontname;
@@ -280,7 +282,7 @@ enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 		fontname = AGAX_CHK(XListFonts, (env->dpy, names[current], 1, &nfonts));
 
 		if(nfonts) {
-			AGA_VERIFY(fontname, AGA_RESULT_ERROR);
+			if(!fontname) return AGA_RESULT_ERROR;
 			aga_log(__FILE__, "Using x11 font `%s'", *fontname);
 			AGAX_CHK(XFreeFontNames, (fontname));
 			break;
@@ -291,7 +293,8 @@ enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	}
 
 	info = AGAX_CHK(XLoadQueryFont, (env->dpy, names[current]));
-	AGA_VERIFY(info, AGA_RESULT_ERROR);
+	if(!info) return AGA_RESULT_ERROR;
+
 	font = info->fid;
 
 	/*

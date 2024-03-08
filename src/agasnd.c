@@ -104,12 +104,14 @@ enum aga_result aga_flushsnd(struct aga_snddev* snddev, aga_size_t* written) {
 }
 
 enum aga_result aga_putclip(struct aga_snddev* snddev, struct aga_clip* clip) {
+	enum aga_result result;
 	aga_size_t written;
 
 	if(!snddev) return AGA_RESULT_BAD_PARAM;
 	if(!clip) return AGA_RESULT_BAD_PARAM;
 
-	AGA_CHK(aga_flushsnd(snddev, &written));
+	result = aga_flushsnd(snddev, &written);
+	if(result) return result;
 
 	clip->pos += written;
 	if(clip->pos < clip->len) {

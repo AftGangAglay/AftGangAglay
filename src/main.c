@@ -107,14 +107,16 @@ int main(int argc, char** argv) {
 	}
 
 	if(!aga_streql(opts.version, AGA_VERSION)) {
-		static const char err[] = "err: Project version `%s' does not match engine version `"
-								  AGA_VERSION "'";
+		static const char err[] = "err: Project version `%s' does not match "
+								  "engine version `" AGA_VERSION "'";
 		aga_log(__FILE__, err, opts.version);
 	}
 
+	aga_log(__FILE__, "Starting up the script engine...");
+
 	result = aga_mkscripteng(
 			&scripteng, opts.startup_script, &pack, opts.python_path);
-	if(result) { aga_soft(__FILE__, "aga_mkscripteng", result); }
+	if(result) aga_soft(__FILE__, "aga_mkscripteng", result);
 	else {
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_KEYMAP, &keymap));
 		SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_POINTER, &pointer));

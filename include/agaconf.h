@@ -38,8 +38,8 @@ struct aga_conf_node {
 /* Specify the filename of the config file being parsed for debug purposes. */
 extern const char* aga_conf_debug_file;
 
-enum aga_result
-aga_mkconf(void* fp, aga_size_t count, struct aga_conf_node* root);
+enum aga_result aga_mkconf(
+		void* fp, aga_size_t count, struct aga_conf_node* root);
 
 enum aga_result aga_killconf(struct aga_conf_node* root);
 

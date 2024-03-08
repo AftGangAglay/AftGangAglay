@@ -11,7 +11,8 @@
 #ifdef _WIN32
 # ifdef _MSC_VER
 #  pragma warning(push)
-#  pragma warning(disable: 4255)
+#  pragma warning(disable: 4255) /* Function with `()' prototype. */
+#  pragma warning(disable: 4668) /* Symbol not defined as macro. */
 # endif
 /*
  * This is super annoying as it leaks a load of garbage into scope.
@@ -20,8 +21,9 @@
  * TODO: `stddef.h' isn't needed under MSVC if the appropriate opt is set.
  */
 # ifndef AGA_WGL_SUPPRESS_AUX
-#  include <windows.h>
-#  include <stddef.h>
+#  define AGA_WANT_WINDOWS_H
+#  include <agaw32.h>
+#  include <agastd.h>
 # endif
 # include <GL/gl.h>
 # include <GL/glu.h>

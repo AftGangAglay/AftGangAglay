@@ -45,11 +45,11 @@ void SGML_character(HTStream* context, char c);
 
 void SGML_free(HTStream* context);
 
-aga_bool_t aga_isblank(char c) {
+static aga_bool_t aga_isblank(char c) {
 	return c == ' ' || c == '\r' || c == '\t' || c == '\n';
 }
 
-enum aga_result aga_sgml_push(
+static enum aga_result aga_sgml_push(
 		struct aga_sgml_structured* s, struct aga_conf_node* node) {
 
 	AGA_PARAM_CHK(s);
@@ -62,9 +62,16 @@ enum aga_result aga_sgml_push(
 	return AGA_RESULT_OK;
 }
 
-void aga_sgml_nil(void) { }
+static void aga_sgml_free(struct aga_sgml_structured* me) {
+	(void) me;
+}
 
-void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
+static void aga_sgml_abort(struct aga_sgml_structured* me, HTError e) {
+	(void) me;
+	(void) e;
+}
+
+static void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
 	struct aga_conf_node* node = me->stack[me->depth - 1];
 	void* newptr;
 
@@ -81,6 +88,17 @@ void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
 
 	node->data.string[node->scratch - 1] = c;
 	node->data.string[node->scratch] = 0;
+}
+
+static void aga_sgml_puts(HTStructured* me, const char* str) {
+	(void) me;
+	(void) str;
+}
+
+static void aga_sgml_write(HTStructured* me, const char* str, unsigned len) {
+	(void) me;
+	(void) str;
+	(void) len;
 }
 
 void aga_sgml_start_element(
@@ -201,18 +219,25 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 	me->depth--;
 }
 
-enum aga_result
-aga_mkconf(void* fp, aga_size_t count, struct aga_conf_node* root) {
+
+static void aga_sgml_put_entity(HTStructured* me, int n) {
+	(void) me;
+	(void) n;
+}
+
+enum aga_result aga_mkconf(
+		void* fp, aga_size_t count, struct aga_conf_node* root) {
+
 	static HTStructuredClass class = {
 			"",
 
-			(void (*)(HTStructured*)) aga_sgml_nil,
-			(void (*)(HTStructured*, HTError)) aga_sgml_nil,
+			(void (*)(HTStructured*)) aga_sgml_free,
+			(void (*)(HTStructured*, HTError)) aga_sgml_abort,
 
 			(void (*)(HTStructured*, char)) aga_sgml_putc,
 
-			(void (*)(HTStructured*, const char*)) aga_sgml_nil,
-			(void (*)(HTStructured*, const char*, int)) aga_sgml_nil,
+			(void (*)(HTStructured*, const char*)) aga_sgml_puts,
+			(void (*)(HTStructured*, const char*, unsigned)) aga_sgml_write,
 
 			(void (*)(
 					HTStructured*, int, const HTBool*,
@@ -220,7 +245,7 @@ aga_mkconf(void* fp, aga_size_t count, struct aga_conf_node* root) {
 
 			(void (*)(HTStructured*, int)) aga_sgml_end_element,
 
-			(void (*)(HTStructured*, int)) aga_sgml_nil };
+			(void (*)(HTStructured*, int)) aga_sgml_put_entity };
 
 	HTStream* s;
 	SGML_dtd dtd;

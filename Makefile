@@ -37,7 +37,18 @@ SET_LDLIBS =
 
 !ifdef MAINTAINER
 SET_CFLAGS = $(SET_CFLAGS) /Wall /WX
-SET_CFLAGS = $(SET_CFLAGS) /wd4820 /wd5045 /wd4706 /wd4061
+
+# Padding
+SET_CFLAGS = $(SET_CFLAGS) /wd4820
+# Spectre mitigations
+SET_CFLAGS = $(SET_CFLAGS) /wd5045
+# Assignment inside conditional expression (even with double paren)
+SET_CFLAGS = $(SET_CFLAGS) /wd4706
+# Non-explicitly handled enum value (Doesn't count `default:')
+SET_CFLAGS = $(SET_CFLAGS) /wd4061
+# Conditional expression is constant (Even if block contains a `break')
+SET_CFLAGS = $(SET_CFLAGS) /wd4127
+# Unused argument
 # TODO: We can't "maybe unused" with MSVC so maybe we give in to the `(void)'.
 SET_CFLAGS = $(SET_CFLAGS) /wd4100
 !endif

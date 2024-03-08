@@ -12,6 +12,9 @@
 # ifndef _CRT_SECURE_NO_WARNINGS
 #  define _CRT_SECURE_NO_WARNINGS
 # endif
+# ifndef _CRT_NONSTDC_NO_WARNINGS
+#  define _CRT_NONSTDC_NO_WARNINGS
+# endif
 #endif
 
 #ifndef _MSC_VER
@@ -22,7 +25,8 @@
 
 #ifdef _MSC_VER
 # pragma warning(push)
-# pragma warning(disable: 4710)
+# pragma warning(disable: 4710) /* Function was not inlined. */
+# pragma warning(disable: 4668) /* Symbol not defined as macro. */
 #endif
 
 #include <stdio.h>
@@ -83,6 +87,7 @@ void aga_close(FILE* fp);
 
 #ifdef _WIN32
 # undef _CRT_SECURE_NO_WARNINGS
+# undef _CRT_NONSTDC_NO_WARNINGS
 #endif
 
 #ifndef _MSC_VER

@@ -8,6 +8,21 @@
 
 #include <agaresult.h>
 
+#ifdef _WIN32
+# ifdef AGA_WANT_WINDOWS_H
+#  ifdef _MSC_VER
+#   pragma warning(push)
+#   pragma warning(disable: 4668) /* Symbol not defined as macro. */
+#  endif
+#  include <windows.h>
+#  include <windowsx.h>
+#  include <hidusage.h>
+#  ifdef _MSC_VER
+#   pragma warning(pop)
+#  endif
+# endif
+#endif
+
 #define AGA_ICON_RESOURCE (10)
 
 #define AGA_AF_WINCHK(proc) \

@@ -3,14 +3,16 @@
  * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
+#ifdef _WIN32
+# define AGA_WANT_WINDOWS_H
+#endif
+
 #include <agaw32.h>
 #include <agalog.h>
 
 #ifdef _WIN32
 
 #include <agastd.h>
-
-#include <windows.h>
 
 #ifndef _DEBUG
 int WinMain(

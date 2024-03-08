@@ -47,22 +47,22 @@ void pyclose(FILE* fp) {
 
 aga_bool_t aga_script_float(struct py_object* o, float* f) {
 	*f = (float) py_float_get(o);
-	return py_error_occurred();
+	return !!py_error_occurred();
 }
 
 aga_bool_t aga_script_int(struct py_object* o, int* i) {
 	*i = py_int_get(o);
-	return py_error_occurred();
+	return !!py_error_occurred();
 }
 
 aga_bool_t aga_script_string(struct py_object* o, const char** s) {
 	*s = py_string_get(o);
-	return py_error_occurred();
+	return !!py_error_occurred();
 }
 
 aga_bool_t aga_script_bool(struct py_object* o, aga_bool_t* b) {
 	*b = !!py_int_get(o);
-	return py_error_occurred();
+	return !!py_error_occurred();
 }
 
 aga_bool_t

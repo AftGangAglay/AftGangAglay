@@ -1,4 +1,4 @@
-/*
+ /*
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
@@ -21,8 +21,6 @@ const char* aga_aga_errname(enum aga_result e) {
 		case AGA_RESULT_BAD_OP: return "bad operation";
 		case AGA_RESULT_OOM: return "out of memory";
 	}
-
-	return "none";
 }
 
 AGA_NORETURN void aga_abort(void) {

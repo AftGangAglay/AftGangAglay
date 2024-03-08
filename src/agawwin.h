@@ -13,11 +13,8 @@
  */
 
 #include <agaerr.h>
+#define AGA_WANT_WINDOWS_H
 #include <agaw32.h>
-
-#include <windows.h>
-#include <windowsx.h>
-#include <hidusage.h>
 
 #define AGA_CLASS_NAME ("Aft Gang Aglay")
 
@@ -36,7 +33,7 @@ struct aga_winproc_pack {
 	aga_uint_t magic;
 };
 
-static LRESULT aga_winproc(
+static LRESULT CALLBACK aga_winproc(
 		HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param) {
 
 	struct aga_winproc_pack* pack;
@@ -155,7 +152,7 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 	}
 
 	class.style = CS_GLOBALCLASS;
-	class.lpfnWndProc = (WNDPROC) aga_winproc;
+	class.lpfnWndProc = aga_winproc;
 	class.cbClsExtra = 0;
 	class.cbWndExtra = 0;
 	class.hInstance = env->module;

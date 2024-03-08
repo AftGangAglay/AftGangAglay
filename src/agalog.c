@@ -95,7 +95,14 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 		}
 	}
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable: 4774)
+#endif
 	if(fprintf(s, f, loc) < 0) perror("fprintf");
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #undef ESC
 #undef CYN

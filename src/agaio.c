@@ -86,9 +86,8 @@ enum aga_result aga_killfmap(void* ptr, aga_size_t size) {
 	return AGA_RESULT_OK;
 }
 # elif defined(AGA_WINMAP)
-# include <agaw32.h>
-
-# include <windows.h>
+#  define AGA_WANT_WINDOWS_H
+#  include <agaw32.h>
 
 enum aga_result aga_mkmapfd(void* fp, struct aga_mapfd* fd) {
 	int fn;
@@ -205,9 +204,8 @@ enum aga_result aga_spawn_sync(const char* program, char** argv, const char* wd)
 }
 # elif defined(AGA_WINSPAWN)
 
+# define AGA_WANT_WINDOWS_H
 # include <agaw32.h>
-
-# include <windows.h>
 
 enum aga_result
 aga_spawn_sync(const char* program, char** argv, const char* wd) {

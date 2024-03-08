@@ -18,11 +18,14 @@
 
 /* TODO: Report object-related errors with path. */
 
-AGAN_SCRIPTPROC(mktrans) {
+struct py_object* agan_mktrans(struct py_object* self, struct py_object* arg) {
 	struct py_object* retval;
 	struct py_object* list;
 	struct py_object* f;
 	aga_size_t i, j;
+
+	(void) self;
+	(void) arg;
 
 	if(!(retval = py_dict_new())) return 0;
 
@@ -213,7 +216,7 @@ static aga_bool_t agan_mkobj_model(
  * TODO: Failure states here are super leaky - we can probably compartmentalise
  * 		 This function a lot more to help remedy this.
  */
-AGAN_SCRIPTPROC(mkobj) {
+struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 	enum aga_result err;
 
 	struct agan_nativeptr* nativeptr;
@@ -222,6 +225,9 @@ AGAN_SCRIPTPROC(mkobj) {
 	struct aga_conf_node conf;
 
 	struct aga_respack* pack;
+
+	(void) self;
+	(void) arg;
 
 	if(!(pack = aga_getscriptptr(AGA_SCRIPT_PACK))) return 0;
 
@@ -259,9 +265,11 @@ AGAN_SCRIPTPROC(mkobj) {
 	return (struct py_object*) retval;
 }
 
-AGAN_SCRIPTPROC(killobj) {
+struct py_object* agan_killobj(struct py_object* self, struct py_object* arg) {
 	struct agan_nativeptr* nativeptr;
 	struct agan_object* obj;
+
+	(void) self;
 
 	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("killobj", "nativeptr");
 
@@ -276,7 +284,7 @@ AGAN_SCRIPTPROC(killobj) {
 	return AGA_INCREF(PY_NONE);
 }
 
-AGAN_SCRIPTPROC(inobj) {
+struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 	struct py_object* retval = PY_FALSE;
 	struct py_object* o;
 	struct py_object* j;
@@ -293,6 +301,8 @@ AGAN_SCRIPTPROC(inobj) {
 	aga_bool_t p, d;
 	aga_size_t i;
 	struct agan_object* obj;
+
+	(void) self;
 
 	if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
 	   !AGA_ARG(point, 1, list) || !AGA_ARG(j, 2, int) ||
@@ -373,7 +383,7 @@ AGAN_SCRIPTPROC(inobj) {
 }
 
 /* TODO: Avoid reloading conf for every call. */
-AGAN_SCRIPTPROC(objconf) {
+struct py_object* agan_objconf(struct py_object* self, struct py_object* arg) {
 	enum aga_result result;
 
 	void* fp;
@@ -384,6 +394,8 @@ AGAN_SCRIPTPROC(objconf) {
 
 	struct aga_conf_node conf;
 	struct agan_object* obj;
+
+	(void) self;
 
 	if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
 	   !AGA_ARG(l, 1, list)) {
@@ -408,9 +420,11 @@ AGAN_SCRIPTPROC(objconf) {
 	return retval;
 }
 
-AGAN_SCRIPTPROC(putobj) {
+struct py_object* agan_putobj(struct py_object* self, struct py_object* arg) {
 	struct agan_nativeptr* nativeptr;
 	struct agan_object* obj;
+
+	(void) self;
 
 	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("putobj", "nativeptr");
 
@@ -434,8 +448,10 @@ AGAN_SCRIPTPROC(putobj) {
 	return AGA_INCREF(PY_NONE);
 }
 
-AGAN_SCRIPTPROC(objtrans) {
+struct py_object* agan_objtrans(struct py_object* self, struct py_object* arg) {
 	struct agan_object* obj;
+
+	(void) self;
 
 	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("objtrans", "nativeptr");
 

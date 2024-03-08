@@ -48,9 +48,6 @@ SET_CFLAGS = $(SET_CFLAGS) /wd4706
 SET_CFLAGS = $(SET_CFLAGS) /wd4061
 # Conditional expression is constant (Even if block contains a `break')
 SET_CFLAGS = $(SET_CFLAGS) /wd4127
-# Unused argument
-# TODO: We can't "maybe unused" with MSVC so maybe we give in to the `(void)'.
-SET_CFLAGS = $(SET_CFLAGS) /wd4100
 !endif
 
 SET_CFLAGS = $(SET_CFLAGS) /I$(APRO) /I$(PYI) /I$(WWW) /Iinclude

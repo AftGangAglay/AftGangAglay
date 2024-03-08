@@ -117,10 +117,12 @@ struct py_object* agan_scriptconf(
 	}
 }
 
-AGAN_SCRIPTPROC(getkey) {
+struct py_object* agan_getkey(struct py_object* self, struct py_object* arg) {
 	int value;
 	struct py_object* retval = PY_NONE;
 	struct aga_keymap* keymap;
+
+	(void) self;
 
 	if(!(keymap = aga_getscriptptr(AGA_SCRIPT_KEYMAP))) return 0;
 
@@ -137,10 +139,13 @@ AGAN_SCRIPTPROC(getkey) {
 	return AGA_INCREF(retval);
 }
 
-AGAN_SCRIPTPROC(getmotion) {
+struct py_object* agan_getmotion(struct py_object* self, struct py_object* arg) {
 	struct py_object* retval;
 	struct py_object* o;
 	struct aga_pointer* pointer;
+
+	(void) self;
+	(void) arg;
 
 	if(!(pointer = aga_getscriptptr(AGA_SCRIPT_POINTER))) return 0;
 
@@ -156,13 +161,15 @@ AGAN_SCRIPTPROC(getmotion) {
 }
 
 /* TODO: Inject true/false constants. */
-AGAN_SCRIPTPROC(setcam) {
+struct py_object* agan_setcam(struct py_object* self, struct py_object* arg) {
 	struct py_object* t;
 	struct py_object* mode;
 	aga_bool_t b;
 	double ar;
 
 	struct aga_opts* opts;
+
+	(void) self;
 
 	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
 
@@ -198,8 +205,10 @@ AGAN_SCRIPTPROC(setcam) {
 	return AGA_INCREF(PY_NONE);
 }
 
-AGAN_SCRIPTPROC(getconf) {
+struct py_object* agan_getconf(struct py_object* self, struct py_object* arg) {
 	struct aga_opts* opts;
+
+	(void) self;
 
 	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
 
@@ -207,9 +216,11 @@ AGAN_SCRIPTPROC(getconf) {
 	return agan_scriptconf(&opts->config, AGA_TRUE, arg);
 }
 
-AGAN_SCRIPTPROC(log) {
+struct py_object* agan_log(struct py_object* self, struct py_object* arg) {
 	const char* str;
 	const char* loc;
+
+	(void) self;
 
 	if(!arg) {
 		py_error_set_string(py_runtime_error, "log() takes one argument");
@@ -229,9 +240,11 @@ AGAN_SCRIPTPROC(log) {
  * NOTE: Fog params follow the following format:
  * 		 [ density(norm), start, end ]
  */
-AGAN_SCRIPTPROC(fogparam) {
+struct py_object* agan_fogparam(struct py_object* self, struct py_object* arg) {
 	struct py_object* v;
 	float f;
+
+	(void) self;
 
 	if(!AGA_ARGLIST(list)) AGA_ARGERR("fogparam", "list");
 
@@ -259,10 +272,12 @@ AGAN_SCRIPTPROC(fogparam) {
 	return AGA_INCREF(PY_NONE);
 }
 
-AGAN_SCRIPTPROC(fogcol) {
+struct py_object* agan_fogcol(struct py_object* self, struct py_object* arg) {
 	struct py_object* v;
 	aga_size_t i;
 	float col[3];
+
+	(void) self;
 
 	if(!AGA_ARGLIST(list)) AGA_ARGERR("fogcol", "list");
 
@@ -277,12 +292,14 @@ AGAN_SCRIPTPROC(fogcol) {
 	return AGA_INCREF(PY_NONE);
 }
 
-AGAN_SCRIPTPROC(text) {
+struct py_object* agan_text(struct py_object* self, struct py_object* arg) {
 	const char* text;
 	struct py_object* str;
 	struct py_object* t;
 	struct py_object* f;
 	float x, y;
+
+	(void) self;
 
 	if(!AGA_ARGLIST(tuple) || !AGA_ARG(str, 0, string) ||
 	   !AGA_ARG(t, 1, list)) {
@@ -306,12 +323,14 @@ AGAN_SCRIPTPROC(text) {
 	return AGA_INCREF(PY_NONE);
 }
 
-AGAN_SCRIPTPROC(clear) {
+struct py_object* agan_clear(struct py_object* self, struct py_object* arg) {
 	enum aga_result result;
 
 	struct py_object* v;
 	float col[4];
 	aga_size_t i;
+
+	(void) self;
 
 	if(!AGA_ARGLIST(list)) AGA_ARGERR("clear", "list");
 
@@ -327,10 +346,12 @@ AGAN_SCRIPTPROC(clear) {
 }
 
 /* Python lacks native bitwise ops @-@ */
-AGAN_SCRIPTPROC(bitand) {
+struct py_object* agan_bitand(struct py_object* self, struct py_object* arg) {
 	struct py_object* a;
 	struct py_object* b;
 	int av, bv;
+
+	(void) self;
 
 	if(!AGA_ARGLIST(tuple) || !AGA_ARG(a, 0, int) || !AGA_ARG(b, 1, int)) {
 		AGA_ARGERR("bitand", "int and int");
@@ -342,10 +363,12 @@ AGAN_SCRIPTPROC(bitand) {
 	return py_int_new(av & bv);
 }
 
-AGAN_SCRIPTPROC(bitshl) {
+struct py_object* agan_bitshl(struct py_object* self, struct py_object* arg) {
 	struct py_object* a;
 	struct py_object* b;
 	int av, bv;
+
+	(void) self;
 
 	if(!AGA_ARGLIST(tuple) || !AGA_ARG(a, 0, int) || !AGA_ARG(b, 1, int)) {
 		AGA_ARGERR("bitshl", "int and int");
@@ -357,19 +380,26 @@ AGAN_SCRIPTPROC(bitshl) {
 	return py_int_new(av << bv);
 }
 
-AGAN_SCRIPTPROC(randnorm) {
+struct py_object* agan_randnorm(struct py_object* self, struct py_object* arg) {
+	(void) self;
+	(void) arg;
+
 	return py_float_new((double) rand() / (double) RAND_MAX);
 }
 
-AGAN_SCRIPTPROC(die) {
+struct py_object* agan_die(struct py_object* self, struct py_object* arg) {
 	aga_bool_t* die;
+
+	(void) self;
+	(void) arg;
+
 	if(!(die = aga_getscriptptr(AGA_SCRIPT_DIE))) return 0;
 	*die = AGA_TRUE;
 
 	return AGA_INCREF(PY_NONE);
 }
 
-AGAN_SCRIPTPROC(setcursor) {
+struct py_object* agan_setcursor(struct py_object* self, struct py_object* arg) {
 	enum aga_result result;
 
 	struct py_object* o;
@@ -378,6 +408,8 @@ AGAN_SCRIPTPROC(setcursor) {
 
 	struct aga_winenv* env;
 	struct aga_win* win;
+
+	(void) self;
 
 	if(!(env = aga_getscriptptr(AGA_SCRIPT_WINENV))) return 0;
 	if(!(win = aga_getscriptptr(AGA_SCRIPT_WIN))) return 0;

@@ -54,18 +54,18 @@ struct agan_object {
 	float max_extent[3];
 };
 
-AGAN_SCRIPTPROC(mktrans);
+struct py_object* agan_mktrans(struct py_object*, struct py_object*);
 
-AGAN_SCRIPTPROC(mkobj);
+struct py_object* agan_mkobj(struct py_object*, struct py_object*);
 
-AGAN_SCRIPTPROC(inobj);
+struct py_object* agan_inobj(struct py_object*, struct py_object*);
 
-AGAN_SCRIPTPROC(putobj);
+struct py_object* agan_putobj(struct py_object*, struct py_object*);
 
-AGAN_SCRIPTPROC(killobj);
+struct py_object* agan_killobj(struct py_object*, struct py_object*);
 
-AGAN_SCRIPTPROC(objtrans);
+struct py_object* agan_objtrans(struct py_object*, struct py_object*);
 
-AGAN_SCRIPTPROC(objconf);
+struct py_object* agan_objconf(struct py_object*, struct py_object*);
 
 #endif

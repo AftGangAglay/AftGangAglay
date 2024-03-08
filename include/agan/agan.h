@@ -22,10 +22,6 @@ extern const struct py_type agan_nativeptr_type;
 
 struct py_object* agan_mknativeptr(void* ptr);
 
-#define AGAN_SCRIPTPROC(name) \
-    struct py_object* agan_##name(AGA_UNUSED struct py_object* self, \
-           AGA_UNUSED struct py_object* arg)
-
 extern struct py_object* agan_dict;
 extern const char* agan_trans_components[3];
 extern const char* agan_conf_components[3];

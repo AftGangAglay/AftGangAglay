@@ -24,6 +24,7 @@ static void aga_onabrt(int signum) {
 	aga_killlog();
 }
 
+/* TODO: MSVC version of this destructor? */
 AGA_USED AGA_DESTRUCTOR void aga_ondestr(void) {
 	aga_killlog();
 }

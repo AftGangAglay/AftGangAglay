@@ -9,9 +9,9 @@ AGANH = include$(SEP)agan$(SEP)
 
 AGA_SRC1 = $(AGA)agaconf.c $(AGA)agadraw.c $(AGA)agaerr.c $(AGA)agaio.c
 AGA_SRC2 = $(AGA)agalog.c $(AGA)agapack.c $(AGA)agapy.c $(AGA)agascript.c
-AGA_SRC3 = $(AGA)agasnd.c $(AGA)agastartup.c $(AGA)agastd.c $(AGA)agautil.c
-AGA_SRC4 = $(AGA)agaw32.c $(AGA)agawin.c $(AGA)main.c
-AGA_SRC5 = $(AGAN)agan.c $(AGAN)aganobj.c $(AGAN)agascriptglue.c
+AGA_SRC3 = $(AGA)agasnd.c $(AGA)agastartup.c $(AGA)agautil.c $(AGA)agaw32.c
+AGA_SRC4 = $(AGA)agawin.c $(AGA)aga.c $(AGAN)agan.c $(AGAN)aganobj.c
+AGA_SRC5 = $(AGAN)agascriptglue.c
 
 AGA_HDR1 = $(AGAH)agaconf.h $(AGAH)agadraw.h $(AGAH)agaenv.h $(AGAH)agaerr.h
 AGA_HDR2 = $(AGAH)agagl.h $(AGAH)agaio.h $(AGAH)agalog.h $(AGAH)agapack.h
@@ -25,7 +25,7 @@ AGA_SRC = $(AGA_SRC1) $(AGA_SRC2) $(AGA_SRC3) $(AGA_SRC4) $(AGA_SRC5)
 AGA_HDR = $(AGA_HDR6) $(AGA_HDR7)
 AGA_OBJ = $(subst .c,$(OBJ),$(AGA_SRC))
 
-AGA_OUT = src$(SEP)main$(EXE)
+AGA_OUT = src$(SEP)aga$(EXE)
 
 $(AGA_OBJ): $(APRO_HDR) $(PY_HDR) $(WWW_OUT) $(AGA_HDR)
 

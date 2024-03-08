@@ -3,8 +3,6 @@
  * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-/* TODO: Rename to `aftgangaglay.c' */
-
 /* TODO: Fuzz headless. */
 
 #include <agawin.h>

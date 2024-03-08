@@ -253,6 +253,22 @@ enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win) {
 	return AGA_RESULT_OK;
 }
 
+enum aga_result aga_keylook(
+		struct aga_keymap* keymap, aga_uint8_t sym, aga_bool_t* state) {
+
+	if(!keymap) return AGA_RESULT_BAD_PARAM;
+	if(!state) return AGA_RESULT_BAD_PARAM;
+
+	if(!keymap->keystates) return AGA_RESULT_ERROR;
+
+	if(sym < keymap->keysyms_per_keycode * keymap->keycode_len) {
+		*state = keymap->keystates[sym];
+		return AGA_RESULT_OK;
+	}
+
+	return AGA_RESULT_BAD_OP;
+}
+
 enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 	static const char* const names[] = {
 			"*bold*iso8859*", "*iso8859*", "*bold*", "*" };

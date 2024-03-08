@@ -195,9 +195,6 @@ aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
 	if(!keymap) return AGA_RESULT_BAD_PARAM;
 	if(!env) return AGA_RESULT_BAD_PARAM;
 
-	keymap->keysyms_per_keycode = 1;
-	keymap->keycode_len = 0xFF;
-
 	/* VK_OEM_CLEAR + 1 */
 	keymap->keystates = calloc(0xFF, sizeof(aga_bool_t));
 	if(!keymap->keystates) return AGA_RESULT_OOM;
@@ -262,6 +259,18 @@ enum aga_result aga_mkwin(
 enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win) {
 	if(!env) return AGA_RESULT_BAD_PARAM;
 	if(!win) return AGA_RESULT_BAD_PARAM;
+
+	return AGA_RESULT_OK;
+}
+
+enum aga_result aga_keylook(
+		struct aga_keymap* keymap, aga_uint8_t sym, aga_bool_t* state) {
+
+	if(!keymap) return AGA_RESULT_BAD_PARAM;
+	if(!state) return AGA_RESULT_BAD_PARAM;
+
+	if(!keymap->keystates) return AGA_RESULT_ERROR;
+	*state = keymap->keystates[sym];
 
 	return AGA_RESULT_OK;
 }

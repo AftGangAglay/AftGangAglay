@@ -118,8 +118,9 @@ struct py_object* agan_scriptconf(
 }
 
 struct py_object* agan_getkey(struct py_object* self, struct py_object* arg) {
+	enum aga_result result;
 	int value;
-	struct py_object* retval = PY_NONE;
+	aga_bool_t b;
 	struct aga_keymap* keymap;
 
 	(void) self;
@@ -130,13 +131,10 @@ struct py_object* agan_getkey(struct py_object* self, struct py_object* arg) {
 
 	if(aga_script_int(arg, &value)) return 0;
 
-	if(keymap->keystates) {
-		if(value < keymap->keysyms_per_keycode * keymap->keycode_len) {
-			retval = keymap->keystates[value] ? PY_TRUE : PY_FALSE;
-		}
-	}
+	result = aga_keylook(keymap, value, &b);
+	if(aga_script_err("aga_keylook", result)) return 0;
 
-	return py_object_incref(retval);
+	return py_object_incref(b ? PY_TRUE : PY_FALSE);
 }
 
 struct py_object* agan_getmotion(struct py_object* self, struct py_object* arg) {

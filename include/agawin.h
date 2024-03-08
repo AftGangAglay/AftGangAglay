@@ -18,14 +18,8 @@ struct aga_win {
 	aga_size_t width, height;
 };
 
-/*
- * TODO: Make a key lookup function to remove redundant `keysyms_per_keycode'
- * 		 and `keycode_len' members here.
- */
 struct aga_keymap {
-	aga_ulong_t* keymap;
 	aga_bool_t* keystates;
-	int keysyms_per_keycode, keycode_len;
 };
 
 struct aga_winenv {
@@ -67,19 +61,21 @@ struct aga_pointer {
  * NOTE: Glyphs are generated as display lists corresponding to the ASCII value
  * 		 Of each printable character (i.e. `glCallList('a')')
  */
-enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display);
+enum aga_result aga_mkwinenv(struct aga_winenv*, const char*);
 
-enum aga_result aga_killwinenv(struct aga_winenv* env);
+enum aga_result aga_killwinenv(struct aga_winenv*);
 
-enum aga_result aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env);
+enum aga_result aga_mkkeymap(struct aga_keymap*, struct aga_winenv*);
 
-enum aga_result aga_killkeymap(struct aga_keymap* keymap);
+enum aga_result aga_killkeymap(struct aga_keymap*);
 
 enum aga_result aga_mkwin(
-		aga_size_t width, aga_size_t height, struct aga_winenv* env,
-		struct aga_win* win, int argc, char** argv);
+		aga_size_t, aga_size_t, struct aga_winenv*, struct aga_win*, int,
+		char**);
 
-enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win);
+enum aga_result aga_killwin(struct aga_winenv*, struct aga_win*);
+
+enum aga_result aga_keylook(struct aga_keymap*, aga_uint8_t, aga_bool_t*);
 
 /*
  * NOTE: Cursor capture is a somewhat importable concept. As it stands, we
@@ -102,6 +98,6 @@ enum aga_result aga_poll(
 
 enum aga_result aga_diag(const char*, const char*, aga_bool_t*, aga_bool_t);
 
-enum aga_result aga_shellopen(const char* uri);
+enum aga_result aga_shellopen(const char*);
 
 #endif

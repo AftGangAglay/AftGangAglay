@@ -101,6 +101,7 @@ static aga_bool_t agan_mkobj_model(
 	unsigned mode = GL_COMPILE;
 	const char* path;
 
+	/* TODO: Delete lists in error conds. */
 	obj->drawlist = glGenLists(1);
 	if(aga_script_gl_err("glGenLists")) return 0;
 
@@ -189,6 +190,7 @@ static aga_bool_t agan_mkobj_model(
 			aga_size_t i, len;
 
 			result = aga_resfptr(pack, path, &fp, &len);
+			/* TODO: We can't return during list build! */
 			if(aga_script_err("aga_resfptr", result)) return AGA_TRUE;
 
 			glBegin(GL_TRIANGLES);
@@ -224,12 +226,14 @@ static aga_bool_t agan_mkobj_model(
  * 		 This function a lot more to help remedy this.
  */
 struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
-	enum aga_result err;
+	enum aga_result result;
 
 	struct agan_nativeptr* nativeptr;
 	struct agan_object* obj;
 	struct py_object* retval;
 	struct aga_conf_node conf;
+	aga_bool_t c = AGA_FALSE;
+	aga_bool_t m = AGA_FALSE;
 
 	struct aga_respack* pack;
 
@@ -248,28 +252,53 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 	}
 
 	obj = nativeptr->ptr;
-	if(!(obj->transform = agan_mktrans(0, 0))) return 0;
+	if(!(obj->transform = agan_mktrans(0, 0))) goto cleanup;
 
 	{
 		const char* path;
 		void* fp;
 
-		if(aga_script_string(arg, &path)) return 0;
+		if(aga_script_string(arg, &path)) goto cleanup;
 
-		err = aga_searchres(pack, path, &obj->res);
-		if(aga_script_err("aga_searchres", err)) return 0;
+		result = aga_searchres(pack, path, &obj->res);
+		if(aga_script_err("aga_searchres", result)) goto cleanup;
 
-		err = aga_resseek(obj->res, &fp);
-		if(aga_script_err("aga_resseek", err)) return 0;
+		result = aga_resseek(obj->res, &fp);
+		if(aga_script_err("aga_resseek", result)) goto cleanup;
 
-		err = aga_mkconf(fp, obj->res->size, &conf);
-		if(aga_script_err("aga_resfptr", err)) return 0;
+		result = aga_mkconf(fp, obj->res->size, &conf);
+		if(aga_script_err("aga_resfptr", result)) goto cleanup;
+
+		c = AGA_TRUE;
 	}
 
-	if(agan_mkobj_trans(obj, &conf)) return 0;
-	if(agan_mkobj_model(obj, &conf, pack)) return 0;
+	if(agan_mkobj_trans(obj, &conf)) goto cleanup;
+	if(agan_mkobj_model(obj, &conf, pack)) goto cleanup;
+
+	m = AGA_TRUE;
+
+	result = aga_killconf(&conf);
+	if(aga_script_err("aga_killconf", result)) goto cleanup;
 
 	return (struct py_object*) retval;
+
+	cleanup: {
+		if(c) {
+			result = aga_killconf(&conf);
+			if(aga_script_err("aga_killconf", result)) return 0;
+		}
+
+		if(m) {
+			glDeleteLists(obj->drawlist, 1);
+			if(aga_script_gl_err("glDeleteLists")) return 0;
+		}
+
+		py_object_decref(obj->transform);
+		free(nativeptr->ptr);
+		py_object_decref(retval);
+
+		return 0;
+	};
 }
 
 struct py_object* agan_killobj(struct py_object* self, struct py_object* arg) {

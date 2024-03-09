@@ -13,7 +13,6 @@
  * 		 Overall verbosity of the Python glue code.
  */
 
-/* TODO: `py_is_*' should be functions. */
 /* TODO: These can just be functions. */
 #define AGA_ARGLIST(type) (arg && py_is_##type(arg))
 #define AGA_ARG(var, n, type) \

@@ -18,7 +18,7 @@ struct agan_nativeptr {
 
 extern const struct py_type agan_nativeptr_type;
 
-#define py_is_nativeptr(op) ((op)->type == &agan_nativeptr_type)
+int py_is_nativeptr(const void*);
 
 struct py_object* agan_mknativeptr(void* ptr);
 

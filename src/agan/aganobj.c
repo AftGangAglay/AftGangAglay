@@ -37,8 +37,7 @@ struct py_object* agan_mktrans(struct py_object* self, struct py_object* arg) {
 			if(aga_list_set(list, j, f)) return 0;
 		}
 
-		if(py_dict_insert(retval, agan_trans_components[i], list) ==
-		   -1) {
+		if(py_dict_insert(retval, agan_trans_components[i], list) == -1) {
 			return 0;
 		}
 	}

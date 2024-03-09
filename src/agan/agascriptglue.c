@@ -486,7 +486,7 @@ enum aga_result aga_mkmod(void** dict) {
 	struct py_object* module = py_module_new_methods("agan", methods);
 	if(!module) return AGA_RESULT_ERROR;
 
-	if(!(agan_dict = py_module_get_dict(module))) {
+	if(!(agan_dict = ((struct py_module*) module)->attr)) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}

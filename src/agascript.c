@@ -112,7 +112,7 @@ static enum aga_result aga_compilescript(
 			fp, script, &py_grammar, PY_GRAMMAR_FILE_INPUT, 0, 0, &node);
 	if(res != PY_RESULT_DONE) return AGA_RESULT_ERROR;
 
-	if(!(*dict = py_module_get_dict(module))) return AGA_RESULT_ERROR;
+	if(!(*dict = ((struct py_module*) module)->attr)) return AGA_RESULT_ERROR;
 	if(!(code = py_compile(node, script))) return AGA_RESULT_ERROR;
 
 	py_tree_delete(node);
@@ -224,7 +224,7 @@ enum aga_result aga_mkscriptinst(
 	if(!inst) return AGA_RESULT_BAD_PARAM;
 
 	inst->class = class;
-	inst->object = py_classmember_new(class->class);
+	inst->object = py_class_member_new(class->class);
 	if(py_error_occurred()) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
@@ -256,7 +256,7 @@ enum aga_result aga_instcall(struct aga_scriptinst* inst, const char* name) {
 		return AGA_RESULT_ERROR;
 	}
 
-	methodcall = py_classmethod_new(proc, inst->object);
+	methodcall = py_class_method_new(proc, inst->object);
 	if(py_error_occurred()) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;

@@ -23,6 +23,10 @@
 int debugging = 0;
 #endif
 
+int py_is_nativeptr(const void* op) {
+	return ((struct py_object*) op)->type == &agan_nativeptr_type;
+}
+
 static void agan_killnativeptr(struct py_object* obj) { free(obj); }
 
 const struct py_type agan_nativeptr_type = {

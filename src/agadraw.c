@@ -71,6 +71,7 @@ enum aga_result aga_pushrawdraw(void) {
 	result = aga_gl_error(__FILE__, "glLoadIdentity");
 	if(result) return result;
 
+	/* TODO: This shouldn't be here but it makes text show up as expected? */
 	glOrtho(0.0, 1.0, 1.0, 0.0, -1.0, 1.0);
 	result = aga_gl_error(__FILE__, "glOrtho");
 	if(result) return result;

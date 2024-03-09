@@ -83,6 +83,30 @@ static aga_bool_t agan_mkobj_trans(
 	return AGA_FALSE;
 }
 
+static void agan_mkobj_extent(
+		struct agan_object* obj, struct aga_conf_node* conf) {
+
+	static const char* min_attr[] = { "MinX", "MinY", "MinZ" };
+	static const char* max_attr[] = { "MaxX", "MaxY", "MaxZ" };
+
+	float (* min)[3] = &obj->min_extent;
+	float (* max)[3] = &obj->max_extent;
+
+	aga_size_t i;
+
+	for(i = 0; i < 3; ++i) {
+		if(aga_conftree(conf, &min_attr[i], 1, &(*min)[i], AGA_FLOAT)) {
+			(*min)[i] = 0.0f;
+		}
+	}
+
+	for(i = 0; i < 3; ++i) {
+		if(aga_conftree(conf, &max_attr[i], 1, &(*max)[i], AGA_FLOAT)) {
+			(*max)[i] = 0.0f;
+		}
+	}
+}
+
 static aga_bool_t agan_mkobj_model(
 		struct agan_object* obj, struct aga_conf_node* conf,
 		struct aga_respack* pack) {
@@ -188,9 +212,15 @@ static aga_bool_t agan_mkobj_model(
 			void* fp;
 			aga_size_t i, len;
 
-			result = aga_resfptr(pack, path, &fp, &len);
+			result = aga_searchres(pack, path, &res);
+			if(aga_script_err("aga_mkres", result)) return AGA_TRUE;
+
+			agan_mkobj_extent(obj, res->conf);
+
+			result = aga_resseek(res, &fp);
 			/* TODO: We can't return during list build! */
 			if(aga_script_err("aga_resfptr", result)) return AGA_TRUE;
+			len = res->size;
 
 			glBegin(GL_TRIANGLES);
 			/* if(aga_script_gl_err("glBegin")) return 0; */
@@ -345,6 +375,8 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
+	/* TODO: Handle 90 degree rotations as a special case. */
+
 	if(!aga_arg_list(arg, &py_tuple_type) ||
 	   !aga_arg(&o, arg, 0, &agan_nativeptr_type) ||
 	   !aga_arg(&point, arg, 1, &py_list_type) ||
@@ -393,14 +425,14 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 		}
 	}
 
-	(void) d;
-	/*
 	if(d) {
 		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_LIGHTING);
+		if(aga_script_gl_err("glDisable")) return 0;
 		glDisable(GL_DEPTH_TEST);
+		if(aga_script_gl_err("glDisable")) return 0;
+
 		glBegin(GL_LINE_STRIP);
-		glColor3f(0.0f, 1.0f, 0.0f);
+			glColor3f(0.0f, 1.0f, 0.0f);
 			glVertex3f(mins[0], maxs[1], maxs[2]);
 			glVertex3f(maxs[0], maxs[1], maxs[2]);
 			glVertex3f(mins[0], mins[1], maxs[2]);
@@ -416,11 +448,13 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 			glVertex3f(mins[0], maxs[1], mins[2]);
 			glVertex3f(maxs[0], maxs[1], mins[2]);
 		glEnd();
+		if(aga_script_gl_err("glEnd")) return 0;
+
 		glEnable(GL_TEXTURE_2D);
-		glEnable(GL_LIGHTING);
+		if(aga_script_gl_err("glEnable")) return 0;
 		glEnable(GL_DEPTH_TEST);
+		if(aga_script_gl_err("glEnable")) return 0;
 	}
-	 */
 
 	return py_object_incref(retval);
 }

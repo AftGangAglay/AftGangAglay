@@ -43,7 +43,6 @@ enum aga_result aga_setdrawparam(void) {
 	return aga_gl_error(__FILE__, "glBlendFunc");
 }
 
-/* TODO: Make more distinct "pipeline modes" rather than random en/disable? */
 enum aga_result aga_pushrawdraw(void) {
 	enum aga_result result;
 

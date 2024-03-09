@@ -277,13 +277,13 @@ enum aga_result aga_mkconf(
 	dtd.tags = tags;
 	dtd.number_of_tags = AGA_LEN(tags);
 
-	/* TODO: Leaky error conditions as usual. */
 	s = SGML_new(&dtd, (HTStructured*) &structured);
 
 	for(i = 0; i < count; ++i) {
 		int c = fgetc(fp);
 
 		if(c == EOF) {
+			SGML_free(s);
 			return aga_errno_path(__FILE__, "fgetc", aga_conf_debug_file);
 		}
 

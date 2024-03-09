@@ -6,8 +6,6 @@
 #ifndef APRO_H
 #define APRO_H
 
-/* TODO: Flag to turn this off. */
-
 /*
  * Profile markers are baked into `apro' to make a simpler API with minimal
  * Overhead. `agaprof' is entirely an internal tool, so it doesn't really

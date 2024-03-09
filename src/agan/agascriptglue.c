@@ -129,8 +129,8 @@ struct py_object* agan_getkey(struct py_object* self, struct py_object* arg) {
 
 	if(aga_script_int(arg, &value)) return 0;
 
-	result = aga_keylook(keymap, value, &b);
-	if(aga_script_err("aga_keylook", result)) return 0;
+	result = aga_keylook(keymap, (aga_uint8_t) value, &b);
+ 	if(aga_script_err("aga_keylook", result)) return 0;
 
 	return py_object_incref(b ? PY_TRUE : PY_FALSE);
 }

@@ -74,6 +74,9 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 		(void) aga_errno_path(__FILE__, "chdir", opts->chdir);
 	}
 # endif
+#else
+    (void) argc;
+    (void) argv;
 #endif
 
 	return AGA_RESULT_OK;

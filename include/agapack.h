@@ -65,6 +65,7 @@ enum aga_result aga_resseek(struct aga_res*, void**);
  * 		 For invalid objects.
  */
 enum aga_result aga_acquireres(struct aga_res*);
+
 enum aga_result aga_releaseres(struct aga_res*);
 
 #endif

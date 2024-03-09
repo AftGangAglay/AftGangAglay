@@ -125,7 +125,7 @@ struct py_object* agan_getkey(struct py_object* self, struct py_object* arg) {
 
 	if(!(keymap = aga_getscriptptr(AGA_SCRIPT_KEYMAP))) return 0;
 
-	if(!AGA_ARGLIST(int)) AGA_ARGERR("getkey", "int");
+	if(!aga_arg_list(arg, &py_int_type)) return aga_arg_error("getkey", "int");
 
 	if(aga_script_int(arg, &value)) return 0;
 
@@ -135,7 +135,8 @@ struct py_object* agan_getkey(struct py_object* self, struct py_object* arg) {
 	return py_object_incref(b ? PY_TRUE : PY_FALSE);
 }
 
-struct py_object* agan_getmotion(struct py_object* self, struct py_object* arg) {
+struct py_object*
+agan_getmotion(struct py_object* self, struct py_object* arg) {
 	struct py_object* retval;
 	struct py_object* o;
 	struct aga_pointer* pointer;
@@ -168,9 +169,11 @@ struct py_object* agan_setcam(struct py_object* self, struct py_object* arg) {
 
 	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
 
-	if(!AGA_ARGLIST(tuple) || !AGA_ARG(t, 0, dict) || !AGA_ARG(mode, 1, int)) {
+	if(!aga_arg_list(arg, &py_tuple_type) ||
+	   !aga_arg(&t, arg, 0, &py_dict_type) ||
+	   !aga_arg(&mode, arg, 1, &py_int_type)) {
 
-		AGA_ARGERR("setcam", "dict and int");
+		return aga_arg_error("setcam", "dict and int");
 	}
 
 	if(aga_script_bool(mode, &b)) return 0;
@@ -207,7 +210,10 @@ struct py_object* agan_getconf(struct py_object* self, struct py_object* arg) {
 
 	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
 
-	if(!AGA_ARGLIST(list)) AGA_ARGERR("getconf", "list");
+	if(!aga_arg_list(arg, &py_list_type)) {
+		return aga_arg_error(
+				"getconf", "list");
+	}
 	return agan_scriptconf(&opts->config, AGA_TRUE, arg);
 }
 
@@ -241,7 +247,10 @@ struct py_object* agan_fogparam(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!AGA_ARGLIST(list)) AGA_ARGERR("fogparam", "list");
+	if(!aga_arg_list(arg, &py_list_type)) {
+		return aga_arg_error(
+				"fogparam", "list");
+	}
 
 	glFogi(GL_FOG_MODE, GL_EXP);
 	if(aga_script_gl_err("glFogi")) return 0;
@@ -274,7 +283,10 @@ struct py_object* agan_fogcol(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!AGA_ARGLIST(list)) AGA_ARGERR("fogcol", "list");
+	if(!aga_arg_list(arg, &py_list_type)) {
+		return aga_arg_error(
+				"fogcol", "list");
+	}
 
 	for(i = 0; i < 3; ++i) {
 		if(aga_list_get(arg, i, &v)) return 0;
@@ -296,10 +308,11 @@ struct py_object* agan_text(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!AGA_ARGLIST(tuple) || !AGA_ARG(str, 0, string) ||
-	   !AGA_ARG(t, 1, list)) {
+	if(!aga_arg_list(arg, &py_tuple_type) ||
+	   !aga_arg(&str, arg, 0, &py_string_type) ||
+	   !aga_arg(&t, arg, 1, &py_list_type)) {
 
-		AGA_ARGERR("text", "string and list");
+		return aga_arg_error("text", "string and list");
 	}
 
 	if(aga_script_string(str, &text)) return 0;
@@ -327,7 +340,7 @@ struct py_object* agan_clear(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!AGA_ARGLIST(list)) AGA_ARGERR("clear", "list");
+	if(!aga_arg_list(arg, &py_list_type)) return aga_arg_error("clear", "list");
 
 	for(i = 0; i < AGA_LEN(col); ++i) {
 		if(aga_list_get(arg, i, &v)) return 0;
@@ -348,8 +361,10 @@ struct py_object* agan_bitand(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!AGA_ARGLIST(tuple) || !AGA_ARG(a, 0, int) || !AGA_ARG(b, 1, int)) {
-		AGA_ARGERR("bitand", "int and int");
+	if(!aga_arg_list(arg, &py_tuple_type) ||
+	   !aga_arg(&a, arg, 0, &py_int_type) ||
+	   !aga_arg(&b, arg, 1, &py_int_type)) {
+		return aga_arg_error("bitand", "int and int");
 	}
 
 	if(aga_script_int(a, &av)) return 0;
@@ -365,8 +380,10 @@ struct py_object* agan_bitshl(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!AGA_ARGLIST(tuple) || !AGA_ARG(a, 0, int) || !AGA_ARG(b, 1, int)) {
-		AGA_ARGERR("bitshl", "int and int");
+	if(!aga_arg_list(arg, &py_tuple_type) ||
+	   !aga_arg(&a, arg, 0, &py_int_type) ||
+	   !aga_arg(&b, arg, 1, &py_int_type)) {
+		return aga_arg_error("bitshl", "int and int");
 	}
 
 	if(aga_script_int(a, &av)) return 0;
@@ -394,7 +411,8 @@ struct py_object* agan_die(struct py_object* self, struct py_object* arg) {
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_setcursor(struct py_object* self, struct py_object* arg) {
+struct py_object*
+agan_setcursor(struct py_object* self, struct py_object* arg) {
 	enum aga_result result;
 
 	struct py_object* o;
@@ -409,8 +427,10 @@ struct py_object* agan_setcursor(struct py_object* self, struct py_object* arg) 
 	if(!(env = aga_getscriptptr(AGA_SCRIPT_WINENV))) return 0;
 	if(!(win = aga_getscriptptr(AGA_SCRIPT_WIN))) return 0;
 
-	if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, int) || !AGA_ARG(v, 1, int)) {
-		AGA_ARGERR("setcursor", "int and int");
+	if(!aga_arg_list(arg, &py_tuple_type) ||
+	   !aga_arg(&o, arg, 0, &py_int_type) ||
+	   !aga_arg(&v, arg, 1, &py_int_type)) {
+		return aga_arg_error("setcursor", "int and int");
 	}
 
 	if(aga_script_bool(o, &visible)) return 0;
@@ -516,7 +536,7 @@ static enum aga_result aga_setkeys(void) {
     do { \
         result = aga_insertint(name, value); \
         if(result) return result; \
-	} while(0)
+    } while(0)
 #ifdef _WIN32
 /*
  * Values taken from:

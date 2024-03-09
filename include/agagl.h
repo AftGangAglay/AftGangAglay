@@ -22,11 +22,15 @@
  */
 # ifndef AGA_WGL_SUPPRESS_AUX
 #  define AGA_WANT_WINDOWS_H
+
 #  include <agaw32.h>
 #  include <agastd.h>
+
 # endif
+
 # include <GL/gl.h>
 # include <GL/glu.h>
+
 # ifdef _MSC_VER
 #  pragma warning(pop)
 # endif

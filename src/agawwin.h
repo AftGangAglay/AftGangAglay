@@ -13,7 +13,9 @@
  */
 
 #include <agaerr.h>
+
 #define AGA_WANT_WINDOWS_H
+
 #include <agaw32.h>
 
 #define AGA_CLASS_NAME ("Aft Gang Aglay")
@@ -229,9 +231,8 @@ enum aga_result aga_mkwin(
 	win->height = height;
 
 	win->hwnd = CreateWindowA(AGA_CLASS_NAME, "Aft Gang Aglay", mask,
-							  CW_USEDEFAULT, CW_USEDEFAULT,
-							  (int) width, (int) height, 0, 0,
-							  env->module, 0);
+							  CW_USEDEFAULT, CW_USEDEFAULT, (int) width,
+							  (int) height, 0, 0, env->module, 0);
 	if(!win->hwnd) return aga_win32_error(__FILE__, "CreateWindowA");
 	if(!ShowWindow((void*) win->hwnd, SW_SHOWNORMAL)) {
 		return aga_win32_error(__FILE__, "ShowWindow");

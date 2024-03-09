@@ -103,14 +103,15 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 			aga_soft(__FILE__, "aga_conftree", result);
 			aga_log(
 					__FILE__, "Resource #%zu appears to be missing an offset "
-					"entry", i);
+							  "entry", i);
 			continue;
 		}
 
 		if(res->offset >= pack->size) {
 			aga_log(
 					__FILE__, "Resource #%zu appears to be beyond resource "
-					"pack bounds (`%zu >= %zu')", i, res->offset, pack->size);
+							  "pack bounds (`%zu >= %zu')", i, res->offset,
+					pack->size);
 			result = AGA_RESULT_BAD_PARAM;
 			goto cleanup;
 		}
@@ -120,15 +121,15 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 			aga_soft(__FILE__, "aga_conftree", result);
 			aga_log(
 					__FILE__, "Resource #%zu appears to be missing a size "
-					"entry", i);
+							  "entry", i);
 			continue;
 		}
 
 		if(res->offset + res->size >= pack->size) {
 			aga_log(
 					__FILE__, "Resource #%zu appears to be beyond resource "
-					"pack bounds (`%zu + %zu >= %zu')", i, res->offset,
-					res->size, pack->size);
+							  "pack bounds (`%zu + %zu >= %zu')", i,
+					res->offset, res->size, pack->size);
 			result = AGA_RESULT_BAD_PARAM;
 			goto cleanup;
 		}
@@ -138,7 +139,8 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 
 	return AGA_RESULT_OK;
 
-	cleanup: {
+	cleanup:
+	{
 		free(pack->db);
 
 		if(pack->fp && fclose(pack->fp) == EOF) {

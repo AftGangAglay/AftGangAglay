@@ -1,7 +1,7 @@
- /*
- * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
- */
+/*
+* SPDX-License-Identifier: GPL-3.0-or-later
+* Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+*/
 
 #include <agaerr.h>
 #include <agastd.h>

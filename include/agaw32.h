@@ -14,9 +14,11 @@
 #   pragma warning(push)
 #   pragma warning(disable: 4668) /* Symbol not defined as macro. */
 #  endif
+
 #  include <windows.h>
 #  include <windowsx.h>
 #  include <hidusage.h>
+
 #  ifdef _MSC_VER
 #   pragma warning(pop)
 #  endif
@@ -27,6 +29,7 @@
 /* #define AGA_ICON_RESOURCE (10) */
 
 enum aga_result aga_win32_error(const char*, const char*);
+
 enum aga_result aga_win32_error_path(const char*, const char*, const char*);
 
 void aga_setw32log(void);

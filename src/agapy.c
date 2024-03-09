@@ -23,15 +23,11 @@
 int debugging = 0;
 #endif
 
-int py_is_nativeptr(const void* op) {
-	return ((struct py_object*) op)->type == &agan_nativeptr_type;
-}
-
 static void agan_killnativeptr(struct py_object* obj) { free(obj); }
 
 const struct py_type agan_nativeptr_type = {
-		{ &py_type_type, 1 },
-		sizeof(struct agan_nativeptr), agan_killnativeptr, 0, 0 };
+		{ &py_type_type, 1 }, sizeof(struct agan_nativeptr), agan_killnativeptr,
+		0, 0 };
 
 struct py_object* agan_mknativeptr(void* ptr) {
 	struct py_object* o = py_object_new((void*) &agan_nativeptr_type);
@@ -72,6 +68,30 @@ void pyclose(FILE* fp) {
 	if(fp == aga_global_pack->fp) return;
 
 	if(fclose(fp) == EOF) aga_errno(__FILE__, "fclose");
+}
+
+aga_bool_t aga_arg_list(
+		const struct py_object* args, const struct py_type* type) {
+
+	return args && args->type == type;
+}
+
+aga_bool_t aga_arg(
+		struct py_object** v, struct py_object* args, aga_size_t n,
+		const struct py_type* type) {
+
+	return (*v = py_tuple_get(args, n)) && (*v)->type == type;
+}
+
+void* aga_arg_error(const char* proc, const char* types) {
+	aga_fixed_buf_t buf;
+
+	strcat(buf, proc);
+	strcat(buf, "() arguments must be ");
+	strcat(buf, types);
+	py_error_set_string(py_type_error, buf);
+
+	return 0;
 }
 
 aga_bool_t aga_script_float(struct py_object* o, float* f) {

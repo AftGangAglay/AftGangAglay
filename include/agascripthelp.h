@@ -8,20 +8,19 @@
 
 #include <agapyinc.h>
 
-/*
- * NOTE: I'm okay with allowing a bit more macro magic in here to reduce the
- * 		 Overall verbosity of the Python glue code.
- */
+aga_bool_t aga_arg_list(
+		const struct py_object*, const struct py_type*);
 
-/* TODO: These can just be functions. */
-#define AGA_ARGLIST(type) (arg && py_is_##type(arg))
-#define AGA_ARG(var, n, type) \
-    (((var) = py_tuple_get(arg, (n))) && py_is_##type((var)))
-#define AGA_ARGERR(func, types) \
-    do { \
-        py_error_set_string(py_type_error, func "() arguments must be " types); \
-        return 0; \
-    } while(0)
+/*
+ * NOTE: This assumes you have already verified the argument list is a valid
+ * 		 Tuple object with `aga_arg_list'.
+ */
+aga_bool_t aga_arg(
+		struct py_object**, struct py_object*, aga_size_t,
+		const struct py_type*);
+
+/* Just returns 0. */
+void* aga_arg_error(const char*, const char*);
 
 aga_bool_t aga_script_float(struct py_object*, float*);
 

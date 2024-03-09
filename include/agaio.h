@@ -31,6 +31,7 @@
 #endif
 
 enum aga_result aga_fplen(void*, aga_size_t*);
+
 enum aga_result aga_fread(void*, aga_size_t, void*);
 
 #ifdef AGA_HAVE_MAP

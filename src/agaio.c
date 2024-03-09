@@ -205,6 +205,7 @@ enum aga_result aga_spawn_sync(const char* program, char** argv, const char* wd)
 # elif defined(AGA_WINSPAWN)
 
 # define AGA_WANT_WINDOWS_H
+
 # include <agaw32.h>
 
 enum aga_result aga_spawn_sync(

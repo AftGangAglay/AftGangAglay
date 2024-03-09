@@ -136,7 +136,7 @@ enum aga_result aga_mkkeymap(
 	keymap->keycode_len = max - min;
 	keymap->keycode_min = min;
 
-	keymap->keymap = (aga_ulong_t*) AGAX_CHK(XGetKeyboardMapping,
+	keymap->keymap = (aga_ulong_t * )AGAX_CHK(XGetKeyboardMapping,
 											  (env->dpy, min, keymap
 													  ->keycode_len, &keymap
 													  ->keysyms_per_keycode));

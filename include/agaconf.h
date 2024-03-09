@@ -40,6 +40,7 @@ struct aga_conf_node {
 extern const char* aga_conf_debug_file;
 
 enum aga_result aga_mkconf(void*, aga_size_t, struct aga_conf_node*);
+
 enum aga_result aga_killconf(struct aga_conf_node*);
 
 aga_bool_t aga_confvar(

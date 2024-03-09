@@ -130,8 +130,8 @@ static enum aga_result aga_compilescript(
 }
 
 enum aga_result aga_mkscripteng(
-		struct aga_scripteng* eng, const char* script,
-		struct aga_respack* pack, const char* pypath) {
+		struct aga_scripteng* eng, const char* script, struct aga_respack* pack,
+		const char* pypath) {
 
 	enum aga_result result;
 

@@ -33,6 +33,7 @@ __attribute__((used))
 __attribute__((destructor))
 # endif
 #endif
+
 void aga_ondestr(void) {
 	aga_killlog();
 }

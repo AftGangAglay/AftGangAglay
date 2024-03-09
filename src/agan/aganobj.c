@@ -241,7 +241,9 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 
 	if(!(pack = aga_getscriptptr(AGA_SCRIPT_PACK))) return 0;
 
-	if(!AGA_ARGLIST(string)) AGA_ARGERR("mkobj", "string");
+	if(!aga_arg_list(arg, &py_string_type)) {
+		return aga_arg_error("mkobj", "string");
+	}
 
 	retval = agan_mknativeptr(0);
 	nativeptr = (struct agan_nativeptr*) retval;
@@ -281,7 +283,8 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 
 	return (struct py_object*) retval;
 
-	cleanup: {
+	cleanup:
+	{
 		if(c) {
 			result = aga_killconf(&conf);
 			if(aga_script_err("aga_killconf", result)) return 0;
@@ -306,7 +309,10 @@ struct py_object* agan_killobj(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("killobj", "nativeptr");
+	if(!aga_arg_list(arg, &agan_nativeptr_type)) {
+		return aga_arg_error(
+				"killobj", "nativeptr");
+	}
 
 	nativeptr = (struct agan_nativeptr*) arg;
 	obj = nativeptr->ptr;
@@ -339,11 +345,13 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
-	   !AGA_ARG(point, 1, list) || !AGA_ARG(j, 2, int) ||
-	   !AGA_ARG(dbg, 3, int)) {
+	if(!aga_arg_list(arg, &py_tuple_type) ||
+	   !aga_arg(&o, arg, 0, &agan_nativeptr_type) ||
+	   !aga_arg(&point, arg, 1, &py_list_type) ||
+	   !aga_arg(&j, arg, 2, &py_int_type) ||
+	   !aga_arg(&dbg, arg, 3, &py_int_type)) {
 
-		AGA_ARGERR("inobj", "nativeptr, list, int and int");
+		return aga_arg_error("inobj", "nativeptr, list, int and int");
 	}
 
 	if(aga_script_bool(j, &p)) return 0;
@@ -432,10 +440,11 @@ struct py_object* agan_objconf(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!AGA_ARGLIST(tuple) || !AGA_ARG(o, 0, nativeptr) ||
-	   !AGA_ARG(l, 1, list)) {
+	if(!aga_arg_list(arg, &py_tuple_type) ||
+	   !aga_arg(&o, arg, 0, &agan_nativeptr_type) ||
+	   !aga_arg(&l, arg, 1, &py_list_type)) {
 
-		AGA_ARGERR("objconf", "nativeptr and list");
+		return aga_arg_error("objconf", "nativeptr and list");
 	}
 
 	obj = ((struct agan_nativeptr*) o)->ptr;
@@ -461,7 +470,10 @@ struct py_object* agan_putobj(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("putobj", "nativeptr");
+	if(!aga_arg_list(arg, &agan_nativeptr_type)) {
+		return aga_arg_error(
+				"putobj", "nativeptr");
+	}
 
 	nativeptr = (struct agan_nativeptr*) arg;
 	obj = nativeptr->ptr;
@@ -488,7 +500,10 @@ struct py_object* agan_objtrans(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!AGA_ARGLIST(nativeptr)) AGA_ARGERR("objtrans", "nativeptr");
+	if(!aga_arg_list(arg, &agan_nativeptr_type)) {
+		return aga_arg_error(
+				"objtrans", "nativeptr");
+	}
 
 	obj = ((struct agan_nativeptr*) arg)->ptr;
 

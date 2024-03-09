@@ -25,7 +25,6 @@
 
 #ifdef _MSC_VER
 # pragma warning(push)
-# pragma warning(disable: 4710) /* Function was not inlined. */
 # pragma warning(disable: 4668) /* Symbol not defined as macro. */
 #endif
 

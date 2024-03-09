@@ -42,8 +42,12 @@ SET_CFLAGS = $(SET_CFLAGS) /Wall /WX
 
 # Padding
 SET_CFLAGS = $(SET_CFLAGS) /wd4820
+# Function was not inlined
+SET_CFLAGS = $(SET_CFLAGS) /wd4710
 # Spectre mitigations
 SET_CFLAGS = $(SET_CFLAGS) /wd5045
+# Function selected for automatic inlining
+SET_CFLAGS = $(SET_CFLAGS) /wd4711
 # Assignment inside conditional expression (even with double paren)
 SET_CFLAGS = $(SET_CFLAGS) /wd4706
 # Non-explicitly handled enum value (Doesn't count `default:')

@@ -14,12 +14,12 @@
 
 #include <agastd.h>
 
+/* TODO: Fix subsystem setting. */
 #ifndef _DEBUG
-int WinMain(
+int main(int, char**);
+int __stdcall WinMain(
 		HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
 		int nShowCmd) {
-
-	int main(int, char**);
 
 	(void) hInstance;
 	(void) hPrevInstance;

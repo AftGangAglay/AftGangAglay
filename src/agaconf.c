@@ -377,7 +377,7 @@ enum aga_result aga_conftree_raw(
 	return AGA_RESULT_ERROR;
 }
 
-enum aga_result aga_conftree_nonroot(
+enum aga_result aga_conftree(
 		struct aga_conf_node* root, const char** names, aga_size_t count,
 		void* value, enum aga_conf_type type) {
 
@@ -393,14 +393,6 @@ enum aga_result aga_conftree_nonroot(
 
 	if(aga_confvar(node->name, node, type, value)) { return AGA_RESULT_OK; }
 	else { return AGA_RESULT_ERROR; }
-}
-
-/* TODO: This should be removed and we should review our invocations. */
-enum aga_result aga_conftree(
-		struct aga_conf_node* root, const char** names, aga_size_t count,
-		void* value, enum aga_conf_type type) {
-
-	return aga_conftree_nonroot(root->children, names, count, value, type);
 }
 
 void outofmem(const char* file, const char* func) {

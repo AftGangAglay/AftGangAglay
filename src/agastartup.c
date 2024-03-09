@@ -106,40 +106,43 @@ enum aga_result aga_setconf(struct aga_opts* opts, struct aga_respack* pack) {
 	if(result) return result;
 
 	result = aga_conftree(
-			&opts->config, enabled, AGA_LEN(enabled), &v, AGA_INTEGER);
+			opts->config.children, enabled, AGA_LEN(enabled), &v, AGA_INTEGER);
 	aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-			&opts->config, version, AGA_LEN(version), &opts->version,
+			opts->config.children, version, AGA_LEN(version), &opts->version,
 			AGA_STRING);
 	aga_soft(__FILE__, "aga_conftree", result);
 
 	if(!opts->audio_dev) {
 		result = aga_conftree(
-				&opts->config, device, AGA_LEN(device), &opts->audio_dev,
-				AGA_STRING);
+				opts->config.children, device, AGA_LEN(device),
+				&opts->audio_dev, AGA_STRING);
 		aga_soft(__FILE__, "aga_conftree", result);
 	}
 
 	result = aga_conftree(
-			&opts->config, startup, AGA_LEN(startup), &opts->startup_script,
+			opts->config.children, startup, AGA_LEN(startup),
+			&opts->startup_script, AGA_STRING);
+	aga_soft(__FILE__, "aga_conftree", result);
+
+	result = aga_conftree(
+			opts->config.children, path, AGA_LEN(path), &opts->python_path,
 			AGA_STRING);
 	aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-			&opts->config, path, AGA_LEN(path), &opts->python_path, AGA_STRING);
+			opts->config.children, width, AGA_LEN(width), &opts->width,
+			AGA_INTEGER);
 	aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-			&opts->config, width, AGA_LEN(width), &opts->width, AGA_INTEGER);
+			opts->config.children, height, AGA_LEN(height), &opts->height,
+			AGA_INTEGER);
 	aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-			&opts->config, height, AGA_LEN(height), &opts->height, AGA_INTEGER);
-	aga_soft(__FILE__, "aga_conftree", result);
-
-	result = aga_conftree(
-			&opts->config, fov, AGA_LEN(fov), &opts->fov, AGA_FLOAT);
+			opts->config.children, fov, AGA_LEN(fov), &opts->fov, AGA_FLOAT);
 	aga_soft(__FILE__, "aga_conftree", result);
 
 	return AGA_RESULT_OK;
@@ -174,7 +177,7 @@ enum aga_result aga_prerun_hook(struct aga_opts* opts) {
 	args[0] = program;
 
 	result = aga_conftree(
-			&opts->config, hook, AGA_LEN(hook), &args[2], AGA_STRING);
+			opts->config.children, hook, AGA_LEN(hook), &args[2], AGA_STRING);
 	if(result) return result;
 
 	aga_log(__FILE__, "Executing project pre-run hook `%s'", args[2]);

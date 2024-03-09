@@ -49,10 +49,6 @@ enum aga_result aga_conftree_raw(
 		struct aga_conf_node*, const char**, aga_size_t,
 		struct aga_conf_node**);
 
-enum aga_result aga_conftree_nonroot(
-		struct aga_conf_node*, const char**, aga_size_t, void*,
-		enum aga_conf_type);
-
 enum aga_result aga_conftree(
 		struct aga_conf_node*, const char**, aga_size_t, void*,
 		enum aga_conf_type);

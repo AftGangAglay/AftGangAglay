@@ -55,6 +55,7 @@ struct py_object* agan_mktrans(struct py_object* self, struct py_object* arg) {
 static aga_bool_t agan_mkobj_trans(
 		struct agan_object* obj, struct aga_conf_node* conf) {
 
+	enum aga_result result;
 	const char* path[2];
 
 	struct py_object* l;
@@ -71,9 +72,9 @@ static aga_bool_t agan_mkobj_trans(
 		for(j = 0; j < 3; ++j) {
 			path[1] = agan_xyz[j];
 
-			if(aga_conftree(conf, path, AGA_LEN(path), &f, AGA_FLOAT)) {
-				f = 0.0f;
-			}
+			result = aga_conftree(
+					conf->children, path, AGA_LEN(path), &f, AGA_FLOAT);
+			if(result) f = 0.0f;
 
 			if(!(o = py_float_new(f))) return 0;
 			if(aga_list_set(l, j, o)) return 0;
@@ -94,7 +95,7 @@ static aga_bool_t agan_mkobj_model(
 
 	/* TODO: Opt to disable textures? */
 
-	enum aga_result err;
+	enum aga_result result;
 
 	struct aga_res* res;
 	unsigned mode = GL_COMPILE;
@@ -115,11 +116,14 @@ static aga_bool_t agan_mkobj_model(
 	{
 		int f;
 
-		if(aga_conftree(conf, &filter, 1, &f, AGA_INTEGER)) f = 1;
+		if(aga_conftree(conf->children, &filter, 1, &f, AGA_INTEGER)) {
+			f = 1;
+		}
+
 		f = f ? GL_LINEAR : GL_NEAREST;
 
 		/* TODO: Specific error type for failure to find entry (?). */
-		if(aga_conftree(conf, &texture, 1, &path, AGA_STRING)) {
+		if(aga_conftree(conf->children, &texture, 1, &path, AGA_STRING)) {
 			aga_log(__FILE__, "warn: Object `%s' is missing a texture entry");
 		}
 		else {
@@ -138,14 +142,15 @@ static aga_bool_t agan_mkobj_model(
 			 * TODO: Handle missing textures etc. gracefully - default/
 			 *       Procedural resources?
 			 */
-			err = aga_mkres(pack, path, &res);
-			if(aga_script_err("aga_mkres", err)) return AGA_TRUE;
+			result = aga_mkres(pack, path, &res);
+			if(aga_script_err("aga_mkres", result)) return AGA_TRUE;
 
-			err = aga_releaseres(res);
-			if(aga_script_err("aga_releaseres", err)) return AGA_TRUE;
+			result = aga_releaseres(res);
+			if(aga_script_err("aga_releaseres", result)) return AGA_TRUE;
 
-			err = aga_conftree_nonroot(res->conf, &width, 1, &w, AGA_INTEGER);
-			if(err) {
+			result = aga_conftree(
+					res->conf, &width, 1, &w, AGA_INTEGER);
+			if(result) {
 				/* TODO: Defaultable conf values as part of the API. */
 				aga_log(__FILE__, "warn: Texture `%s' is missing dimensions");
 				w = 1;
@@ -173,7 +178,9 @@ static aga_bool_t agan_mkobj_model(
 			if(aga_script_gl_err("glTexParameteri")) return AGA_TRUE;
 		}
 
-		if(aga_conftree(conf, &model, 1, &path, AGA_STRING)) {
+		result = aga_conftree(
+				conf->children, &model, 1, &path, AGA_STRING);
+		if(result) {
 			aga_log(__FILE__, "warn: Object `%s' is missing a model entry");
 		}
 		else {
@@ -181,15 +188,15 @@ static aga_bool_t agan_mkobj_model(
 			void* fp;
 			aga_size_t i, len;
 
-			err = aga_resfptr(pack, path, &fp, &len);
-			if(aga_script_err("aga_resfptr", err)) return AGA_TRUE;
+			result = aga_resfptr(pack, path, &fp, &len);
+			if(aga_script_err("aga_resfptr", result)) return AGA_TRUE;
 
 			glBegin(GL_TRIANGLES);
 			/* if(aga_script_gl_err("glBegin")) return 0; */
 
 			for(i = 0; i < len; i += sizeof(v)) {
-				err = aga_fread(&v, sizeof(v), pack->fp);
-				if(aga_script_err("aga_fread", err)) return AGA_TRUE;
+				result = aga_fread(&v, sizeof(v), pack->fp);
+				if(aga_script_err("aga_fread", result)) return AGA_TRUE;
 
 				glColor4fv(v.col);
 				/* if(aga_script_gl_err("glColor4fv")) return AGA_TRUE; */

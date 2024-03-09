@@ -97,10 +97,10 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 		res->conf = node;
 		res->pack = pack;
 
-		result = aga_conftree_nonroot(
+		result = aga_conftree(
 				node, &off, 1, &res->offset, AGA_INTEGER);
 		if(result) {
-			aga_soft(__FILE__, "aga_conftree_nonroot", result);
+			aga_soft(__FILE__, "aga_conftree", result);
 			aga_log(
 					__FILE__, "Resource #%zu appears to be missing an offset "
 					"entry", i);
@@ -115,9 +115,9 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 			goto cleanup;
 		}
 
-		result = aga_conftree_nonroot(node, &size, 1, &res->size, AGA_INTEGER);
+		result = aga_conftree(node, &size, 1, &res->size, AGA_INTEGER);
 		if(result) {
-			aga_soft(__FILE__, "aga_conftree_nonroot", result);
+			aga_soft(__FILE__, "aga_conftree", result);
 			aga_log(
 					__FILE__, "Resource #%zu appears to be missing a size "
 					"entry", i);

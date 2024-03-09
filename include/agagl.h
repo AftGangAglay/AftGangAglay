@@ -18,13 +18,14 @@
  * This is super annoying as it leaks a load of garbage into scope.
  * `windows.h' is needed for declaration attributes.
  * `stddef.h' is needed for `wchar_t'.
- * TODO: `stddef.h' isn't needed under MSVC if the appropriate opt is set.
  */
 # ifndef AGA_WGL_SUPPRESS_AUX
 #  define AGA_WANT_WINDOWS_H
 
 #  include <agaw32.h>
-#  include <agastd.h>
+#  ifndef _WCHAR_T_DEFINED
+#   include <agastd.h>
+#  endif
 
 # endif
 

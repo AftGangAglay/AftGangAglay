@@ -19,10 +19,12 @@ AR = lib /nologo /out:$@ $**
 CCLD = $(CC) /Fe:$@ $**
 WL = /link
 
+SET_CFLAGS = /Zc:wchar_t
+
 !ifdef DEBUG
-SET_CFLAGS = /Od /Zi /D_DEBUG /MTd
+SET_CFLAGS = $(SET_CFLAGS) /Od /Zi /D_DEBUG /MTd
 !else
-SET_CFLAGS = /O2 /DNDEBUG /MT
+SET_CFLAGS = $(SET_CFLAGS) /O2 /DNDEBUG /MT
 !endif
 
 GL_LDLIBS = opengl32.lib glu32.lib gdi32.lib shell32.lib user32.lib

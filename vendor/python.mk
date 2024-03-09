@@ -63,7 +63,6 @@ PYGRAM_SOURCE = $(PY)gr$(SEP)Grammar
 $(PYGRAM): $(PYGRAM_SOURCE) $(PGEN_OUT)
 	$(CROSS_TOOL) $(PGEN_OUT) $(PYGRAM_SOURCE) $(PYGRAM)
 
-$(PY)bltinmodule.c: $(PYGRAM)
 $(PY)compile.c: $(PYGRAM)
 $(PY)import.c: $(PYGRAM)
 

@@ -158,7 +158,6 @@ struct py_object* agan_getmotion(struct py_object* self, struct py_object* arg) 
 	return retval;
 }
 
-/* TODO: Inject true/false constants. */
 struct py_object* agan_setcam(struct py_object* self, struct py_object* arg) {
 	struct py_object* t;
 	struct py_object* mode;

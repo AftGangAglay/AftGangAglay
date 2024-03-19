@@ -79,16 +79,16 @@ void* aga_getscriptptr(const char* key) {
 	ptr = py_dict_lookup(agan_dict, key);
 	if(!ptr) {
 		py_error_set_string(
-				py_runtime_error, "failed to resolve script nativeptr");
+				py_runtime_error, "failed to resolve script pointer");
 		return 0;
 	}
 
-	if(ptr->type != &agan_nativeptr_type) {
+	if(ptr->type != PY_TYPE_INT) {
 		py_error_set_badarg();
 		return 0;
 	}
 
-	return ((struct agan_nativeptr*) ptr)->ptr;
+	return (void*) py_int_get(ptr);
 }
 
 static enum aga_result aga_compilescript(
@@ -179,19 +179,18 @@ enum aga_result aga_killscripteng(struct aga_scripteng* eng) {
 enum aga_result aga_setscriptptr(
 		struct aga_scripteng* eng, const char* key, void* value) {
 
-	struct py_object* nativeptr;
+	struct py_object* v;
 
 	if(!eng) return AGA_RESULT_BAD_PARAM;
 	if(!key) return AGA_RESULT_BAD_PARAM;
 	if(!value) return AGA_RESULT_BAD_PARAM;
 
-	if(!(nativeptr = py_object_new(&agan_nativeptr_type))) {
+	if(!(v = py_int_new((py_value_t) value))) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
-	((struct agan_nativeptr*) nativeptr)->ptr = value;
 
-	if(py_dict_insert(eng->agandict, key, nativeptr) == -1) {
+	if(py_dict_insert(eng->agandict, key, v) == -1) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
@@ -203,6 +202,8 @@ enum aga_result aga_findclass(
 		struct aga_scripteng* eng, struct aga_scriptclass* class,
 		const char* name) {
 
+	struct py_object* cl;
+
 	if(!eng) return AGA_RESULT_BAD_PARAM;
 	if(!class) return AGA_RESULT_BAD_PARAM;
 	if(!name) return AGA_RESULT_BAD_PARAM;
@@ -212,7 +213,8 @@ enum aga_result aga_findclass(
 		return AGA_RESULT_ERROR;
 	}
 
-	if(!py_is_class((struct py_object*) class->class)) return AGA_RESULT_ERROR;
+	cl = class->class;
+	if(cl->type != PY_TYPE_CLASS) return AGA_RESULT_ERROR;
 
 	return AGA_RESULT_OK;
 }

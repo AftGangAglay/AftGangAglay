@@ -400,8 +400,8 @@ static aga_bool_t agan_mkobj_light(
 struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 	enum aga_result result;
 
-	struct agan_nativeptr* nativeptr;
 	struct agan_object* obj;
+	struct py_int* v;
 	struct py_object* retval;
 	struct aga_conf_node conf;
 	aga_bool_t c = AGA_FALSE;
@@ -415,18 +415,18 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 
 	if(!(pack = aga_getscriptptr(AGA_SCRIPT_PACK))) return 0;
 
-	if(!aga_arg_list(arg, &py_string_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_STRING)) {
 		return aga_arg_error("mkobj", "string");
 	}
 
-	retval = agan_mknativeptr(0);
-	nativeptr = (struct agan_nativeptr*) retval;
+	retval = py_int_new(0);
+	v = (struct py_int*) retval;
 
-	if(!(nativeptr->ptr = calloc(1, sizeof(struct agan_object)))) {
+	if(!(v->value = (py_value_t) calloc(1, sizeof(struct agan_object)))) {
 		return py_error_set_nomem();
 	}
 
-	obj = nativeptr->ptr;
+	obj = (void*) v->value;
 	obj->light_data = 0;
 	if(!(obj->transform = agan_mktrans(0, 0))) goto cleanup;
 
@@ -472,7 +472,7 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 
 		free(obj->light_data);
 		py_object_decref(obj->transform);
-		free(nativeptr->ptr);
+		free((void*) v->value);
 		py_object_decref(retval);
 
 		return 0;
@@ -480,18 +480,18 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 }
 
 struct py_object* agan_killobj(struct py_object* self, struct py_object* arg) {
-	struct agan_nativeptr* nativeptr;
 	struct agan_object* obj;
+	struct py_int* v;
 
 	(void) self;
 
-	if(!aga_arg_list(arg, &agan_nativeptr_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_INT)) {
 		return aga_arg_error(
-				"killobj", "nativeptr");
+				"killobj", "int");
 	}
 
-	nativeptr = (struct agan_nativeptr*) arg;
-	obj = nativeptr->ptr;
+	v = (struct py_int*) arg;
+	obj = (void*) v->value;
 
 	glDeleteLists(obj->drawlist, 1);
 	if(aga_script_gl_err("glDeleteLists")) return 0;
@@ -523,19 +523,19 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 
 	/* TODO: Handle 90 degree rotations as a special case. */
 
-	if(!aga_arg_list(arg, &py_tuple_type) ||
-	   !aga_arg(&o, arg, 0, &agan_nativeptr_type) ||
-	   !aga_arg(&point, arg, 1, &py_list_type) ||
-	   !aga_arg(&j, arg, 2, &py_int_type) ||
-	   !aga_arg(&dbg, arg, 3, &py_int_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
+	   !aga_arg(&o, arg, 0, PY_TYPE_INT) ||
+	   !aga_arg(&point, arg, 1, PY_TYPE_LIST) ||
+	   !aga_arg(&j, arg, 2, PY_TYPE_INT) ||
+	   !aga_arg(&dbg, arg, 3, PY_TYPE_INT)) {
 
-		return aga_arg_error("inobj", "nativeptr, list, int and int");
+		return aga_arg_error("inobj", "int, list, int and int");
 	}
 
 	if(aga_script_bool(j, &p)) return 0;
 	if(aga_script_bool(dbg, &d)) return 0;
 
-	obj = ((struct agan_nativeptr*) o)->ptr;
+	obj = (void*) ((struct py_int*) o)->value;
 	memcpy(mins, obj->min_extent, sizeof(mins));
 	memcpy(maxs, obj->max_extent, sizeof(maxs));
 
@@ -576,8 +576,8 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 		if(aga_script_gl_err("glDisable")) return 0;
 		glDisable(GL_DEPTH_TEST);
 		if(aga_script_gl_err("glDisable")) return 0;
-		glDisable(GL_LIGHTING);
-		if(aga_script_gl_err("glDisable")) return 0;
+		/*glDisable(GL_LIGHTING);
+		if(aga_script_gl_err("glDisable")) return 0;*/
 
 		glBegin(GL_LINE_STRIP);
 			glColor3f(0.0f, 1.0f, 0.0f);
@@ -602,8 +602,8 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 		if(aga_script_gl_err("glEnable")) return 0;
 		glEnable(GL_DEPTH_TEST);
 		if(aga_script_gl_err("glEnable")) return 0;
-		glEnable(GL_LIGHTING);
-		if(aga_script_gl_err("glEnable")) return 0;
+		/*glEnable(GL_LIGHTING);
+		if(aga_script_gl_err("glEnable")) return 0;*/
 	}
 
 	return py_object_incref(retval);
@@ -624,14 +624,14 @@ struct py_object* agan_objconf(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!aga_arg_list(arg, &py_tuple_type) ||
-	   !aga_arg(&o, arg, 0, &agan_nativeptr_type) ||
-	   !aga_arg(&l, arg, 1, &py_list_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
+	   !aga_arg(&o, arg, 0, PY_TYPE_INT) ||
+	   !aga_arg(&l, arg, 1, PY_TYPE_LIST)) {
 
-		return aga_arg_error("objconf", "nativeptr and list");
+		return aga_arg_error("objconf", "int and list");
 	}
 
-	obj = ((struct agan_nativeptr*) o)->ptr;
+	obj = (void*) ((struct py_int*) o)->value;
 
 	result = aga_resseek(obj->res, &fp);
 	if(aga_script_err("aga_resseek", result)) return 0;
@@ -690,18 +690,18 @@ static aga_bool_t agan_putobj_light(struct agan_lightdata* data) {
 }
 
 struct py_object* agan_putobj(struct py_object* self, struct py_object* arg) {
-	struct agan_nativeptr* nativeptr;
+	struct py_int* v;
 	struct agan_object* obj;
 
 	(void) self;
 
-	if(!aga_arg_list(arg, &agan_nativeptr_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_INT)) {
 		return aga_arg_error(
-				"putobj", "nativeptr");
+				"putobj", "int");
 	}
 
-	nativeptr = (struct agan_nativeptr*) arg;
-	obj = nativeptr->ptr;
+	v = (struct py_int*) arg;
+	obj = (void*) v->value;
 
 	glMatrixMode(GL_MODELVIEW);
 	if(aga_script_gl_err("glMatrixMode")) return 0;
@@ -727,12 +727,12 @@ struct py_object* agan_objtrans(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!aga_arg_list(arg, &agan_nativeptr_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_INT)) {
 		return aga_arg_error(
-				"objtrans", "nativeptr");
+				"objtrans", "int");
 	}
 
-	obj = ((struct agan_nativeptr*) arg)->ptr;
+	obj = (void*) ((struct py_int*) arg)->value;
 
 	return obj->transform;
 }

@@ -125,7 +125,7 @@ struct py_object* agan_getkey(struct py_object* self, struct py_object* arg) {
 
 	if(!(keymap = aga_getscriptptr(AGA_SCRIPT_KEYMAP))) return 0;
 
-	if(!aga_arg_list(arg, &py_int_type)) return aga_arg_error("getkey", "int");
+	if(!aga_arg_list(arg, PY_TYPE_INT)) return aga_arg_error("getkey", "int");
 
 	if(aga_script_int(arg, &value)) return 0;
 
@@ -169,9 +169,9 @@ struct py_object* agan_setcam(struct py_object* self, struct py_object* arg) {
 
 	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
 
-	if(!aga_arg_list(arg, &py_tuple_type) ||
-	   !aga_arg(&t, arg, 0, &py_dict_type) ||
-	   !aga_arg(&mode, arg, 1, &py_int_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
+	   !aga_arg(&t, arg, 0, PY_TYPE_DICT) ||
+	   !aga_arg(&mode, arg, 1, PY_TYPE_INT)) {
 
 		return aga_arg_error("setcam", "dict and int");
 	}
@@ -210,7 +210,7 @@ struct py_object* agan_getconf(struct py_object* self, struct py_object* arg) {
 
 	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
 
-	if(!aga_arg_list(arg, &py_list_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_LIST)) {
 		return aga_arg_error(
 				"getconf", "list");
 	}
@@ -247,7 +247,7 @@ struct py_object* agan_fogparam(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!aga_arg_list(arg, &py_list_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_LIST)) {
 		return aga_arg_error(
 				"fogparam", "list");
 	}
@@ -283,7 +283,7 @@ struct py_object* agan_fogcol(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!aga_arg_list(arg, &py_list_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_LIST)) {
 		return aga_arg_error(
 				"fogcol", "list");
 	}
@@ -308,9 +308,9 @@ struct py_object* agan_text(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!aga_arg_list(arg, &py_tuple_type) ||
-	   !aga_arg(&str, arg, 0, &py_string_type) ||
-	   !aga_arg(&t, arg, 1, &py_list_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
+	   !aga_arg(&str, arg, 0, PY_TYPE_STRING) ||
+	   !aga_arg(&t, arg, 1, PY_TYPE_LIST)) {
 
 		return aga_arg_error("text", "string and list");
 	}
@@ -340,7 +340,7 @@ struct py_object* agan_clear(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!aga_arg_list(arg, &py_list_type)) return aga_arg_error("clear", "list");
+	if(!aga_arg_list(arg, PY_TYPE_LIST)) return aga_arg_error("clear", "list");
 
 	for(i = 0; i < AGA_LEN(col); ++i) {
 		if(aga_list_get(arg, i, &v)) return 0;
@@ -361,9 +361,9 @@ struct py_object* agan_bitand(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!aga_arg_list(arg, &py_tuple_type) ||
-	   !aga_arg(&a, arg, 0, &py_int_type) ||
-	   !aga_arg(&b, arg, 1, &py_int_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
+	   !aga_arg(&a, arg, 0, PY_TYPE_INT) ||
+	   !aga_arg(&b, arg, 1, PY_TYPE_INT)) {
 		return aga_arg_error("bitand", "int and int");
 	}
 
@@ -380,9 +380,9 @@ struct py_object* agan_bitshl(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
-	if(!aga_arg_list(arg, &py_tuple_type) ||
-	   !aga_arg(&a, arg, 0, &py_int_type) ||
-	   !aga_arg(&b, arg, 1, &py_int_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
+	   !aga_arg(&a, arg, 0, PY_TYPE_INT) ||
+	   !aga_arg(&b, arg, 1, PY_TYPE_INT)) {
 		return aga_arg_error("bitshl", "int and int");
 	}
 
@@ -427,9 +427,9 @@ agan_setcursor(struct py_object* self, struct py_object* arg) {
 	if(!(env = aga_getscriptptr(AGA_SCRIPT_WINENV))) return 0;
 	if(!(win = aga_getscriptptr(AGA_SCRIPT_WIN))) return 0;
 
-	if(!aga_arg_list(arg, &py_tuple_type) ||
-	   !aga_arg(&o, arg, 0, &py_int_type) ||
-	   !aga_arg(&v, arg, 1, &py_int_type)) {
+	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
+	   !aga_arg(&o, arg, 0, PY_TYPE_INT) ||
+	   !aga_arg(&v, arg, 1, PY_TYPE_INT)) {
 		return aga_arg_error("setcursor", "int and int");
 	}
 
@@ -458,7 +458,7 @@ static enum aga_result aga_insertfloat(const char* key, double value) {
 	return AGA_RESULT_OK;
 }
 
-static enum aga_result aga_insertint(const char* key, long value) {
+static enum aga_result aga_insertint(const char* key, py_value_t value) {
 	struct py_object* o;
 
 	if(!(o = py_int_new(value))) {

@@ -10,16 +10,6 @@
 
 struct aga_conf_node;
 
-struct agan_nativeptr {
-	struct py_object ob;
-
-	void* ptr;
-};
-
-extern const struct py_type agan_nativeptr_type;
-
-struct py_object* agan_mknativeptr(void* ptr);
-
 extern struct py_object* agan_dict;
 extern const char* agan_trans_components[3];
 extern const char* agan_conf_components[3];

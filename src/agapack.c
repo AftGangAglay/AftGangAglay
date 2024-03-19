@@ -11,6 +11,12 @@
 #include <agautil.h>
 #include <agascript.h>
 
+/*
+ * TODO: Allow pack input as a "raw" argument and make space for a shebang so
+ * 		 Packs can be executed directly by the shell if we're installed on the
+ * 		 System.
+ */
+
 #define AGA_PACK_MAGIC ((aga_uint32_t) 0xA6A)
 
 struct aga_pack_header {

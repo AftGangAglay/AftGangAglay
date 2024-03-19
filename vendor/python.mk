@@ -12,7 +12,7 @@ PY_SRC4 = $(PY)import.c $(PY)intobject.c $(PY)listnode.c $(PY)listobject.c
 PY_SRC5 = $(PY)mathmodule.c $(PY)methodobject.c $(PY)modsupport.c
 PY_SRC6 = $(PY)moduleobject.c $(PY)node.c $(PY)object.c $(PY)parser.c
 PY_SRC7 = $(PY)parsetok.c $(PY)stringobject.c $(PY)tokenizer.c $(PY)traceback.c
-PY_SRC8 = $(PY)pythonmain.c $(PY)tupleobject.c $(PY)typeobject.c
+PY_SRC8 = $(PY)pythonmain.c $(PY)tupleobject.c $(PY)types.c
 PY_SRC9 = $(PY_SRC1) $(PY_SRC2) $(PY_SRC3) $(PY_SRC4) $(PY_SRC5) $(PY_SRC6)
 PY_SRC10 = $(PY_SRC7) $(PY_SRC8)
 

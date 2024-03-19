@@ -14,26 +14,14 @@
 #include <agan/agan.h>
 
 /*
- * Defines our nativeptr type and a few misc. functions Python wants.
- * Also contains a few scriptglue helpers declared in `agapyinc'.
+ * Defines a few misc. functions Python wants and a few scriptglue helpers
+ * Declared in `agapyinc'.
  */
 
 #ifdef _DEBUG
 /* The extra debug info this enables is a bit too verbose. */
 int debugging = 0;
 #endif
-
-static void agan_killnativeptr(struct py_object* obj) { free(obj); }
-
-const struct py_type agan_nativeptr_type = {
-		{ &py_type_type, 1 }, sizeof(struct agan_nativeptr), agan_killnativeptr,
-		0, 0 };
-
-struct py_object* agan_mknativeptr(void* ptr) {
-	struct py_object* o = py_object_new((void*) &agan_nativeptr_type);
-	((struct agan_nativeptr*) o)->ptr = ptr;
-	return o;
-}
 
 void py_fatal(const char* msg) {
 	aga_log(__FILE__, "Python Fatal Error: %s", msg);
@@ -71,14 +59,14 @@ void pyclose(FILE* fp) {
 }
 
 aga_bool_t aga_arg_list(
-		const struct py_object* args, const struct py_type* type) {
+		const struct py_object* args, enum py_type type) {
 
 	return args && args->type == type;
 }
 
 aga_bool_t aga_arg(
 		struct py_object** v, struct py_object* args, aga_size_t n,
-		const struct py_type* type) {
+		enum py_type type) {
 
 	return (*v = py_tuple_get(args, n)) && (*v)->type == type;
 }

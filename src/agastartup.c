@@ -44,14 +44,22 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 					aga_log(__FILE__, help, argv[0]);
 					goto break2;
 				}
-				case 'f': opts->respack = optarg;
+				case 'f': {
+					opts->respack = optarg;
 					break;
-				case 'A': opts->audio_dev = optarg;
+				}
+				case 'A': {
+					opts->audio_dev = optarg;
 					break;
-				case 'D': opts->display = optarg;
+				}
+				case 'D': {
+					opts->display = optarg;
 					break;
-				case 'C': opts->chdir = optarg;
+				}
+				case 'C': {
+					opts->chdir = optarg;
 					break;
+				}
 				case 'v': {
 					extern int WWW_TraceFlag; /* From libwww. */
 

@@ -9,15 +9,14 @@
 #include <agapyinc.h>
 
 aga_bool_t aga_arg_list(
-		const struct py_object*, const struct py_type*);
+		const struct py_object*, enum py_type);
 
 /*
  * NOTE: This assumes you have already verified the argument list is a valid
  * 		 Tuple object with `aga_arg_list'.
  */
 aga_bool_t aga_arg(
-		struct py_object**, struct py_object*, aga_size_t,
-		const struct py_type*);
+		struct py_object**, struct py_object*, aga_size_t, enum py_type);
 
 /* Just returns 0. */
 void* aga_arg_error(const char*, const char*);

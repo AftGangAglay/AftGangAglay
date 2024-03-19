@@ -21,7 +21,6 @@
 #include <python/bltinmodule.h>
 #include <python/mathmodule.h>
 
-/* TODO: `object' include subdir. */
 #include <python/object.h>
 #include <python/floatobject.h>
 #include <python/stringobject.h>

@@ -22,10 +22,6 @@ struct aga_vertex {
 	float pos[3];
 };
 
-enum agan_lighttype {
-	AGAN_SPOT, AGAN_POINT, AGAN_DIRECTIONAL
-};
-
 struct agan_lightdata {
 	float ambient[4];
 	float diffuse[4];
@@ -37,10 +33,12 @@ struct agan_lightdata {
 
 	float direction[3];
 
-	enum agan_lighttype type;
+	float exponent;
+	float angle;
 
-	aga_uint8_t spot_exponent;
-	aga_uint8_t light_index;
+	aga_bool_t directional;
+
+	aga_uint8_t index;
 };
 
 /* TODO: Central object/light registry and distribute handles. */

@@ -6,6 +6,7 @@
 #include <agan/aganobj.h>
 
 #include <agagl.h>
+#include <agautil.h>
 #include <agaresult.h>
 #include <agalog.h>
 #include <agascript.h>
@@ -109,7 +110,7 @@ static void agan_mkobj_extent(
 
 static aga_bool_t agan_mkobj_model(
 		struct agan_object* obj, struct aga_conf_node* conf,
-		struct aga_respack* pack) {
+		struct aga_respack* pack, const char* objpath) {
 
 	static const char* model = "Model";
 	static const char* texture = "Texture";
@@ -148,7 +149,9 @@ static aga_bool_t agan_mkobj_model(
 
 		/* TODO: Specific error type for failure to find entry (?). */
 		if(aga_conftree(conf->children, &texture, 1, &path, AGA_STRING)) {
-			aga_log(__FILE__, "warn: Object `%s' is missing a texture entry");
+			aga_log(
+					__FILE__, "warn: Object `%s' is missing a texture entry",
+					objpath);
 		}
 		else {
 			static const char* width = "Width";
@@ -205,7 +208,9 @@ static aga_bool_t agan_mkobj_model(
 		result = aga_conftree(
 				conf->children, &model, 1, &path, AGA_STRING);
 		if(result) {
-			aga_log(__FILE__, "warn: Object `%s' is missing a model entry");
+			aga_log(
+					__FILE__, "warn: Object `%s' is missing a model entry",
+					objpath);
 		}
 		else {
 			struct aga_vertex v;
@@ -250,6 +255,144 @@ static aga_bool_t agan_mkobj_model(
 	return AGA_FALSE;
 }
 
+static aga_bool_t agan_mkobj_light(
+		struct agan_object* obj, struct aga_conf_node* conf) {
+
+	static const char* light = "Light";
+
+	struct aga_conf_node* node = conf->children;
+	struct agan_lightdata* data;
+
+	int scr;
+	aga_size_t i, j;
+
+	if(aga_conftree_raw(node, &light, 1, &node)) return AGA_FALSE;
+
+	if(!(obj->light_data = calloc(1, sizeof(struct agan_lightdata)))) {
+		return AGA_TRUE;
+	}
+	data = obj->light_data;
+
+	for(i = 0; i < node->len; ++i) {
+		struct aga_conf_node* child = &node->children[i];
+
+		if(aga_confvar("Index", child, AGA_INTEGER, &data->index)) {
+			if(data->index > 7) {
+				aga_log(
+						__FILE__, "warn: Light index `%u' exceeds max of 7",
+						data->index);
+				free(data);
+				obj->light_data = 0;
+				return AGA_TRUE;
+			}
+		}
+		else if(aga_confvar("Directional", child, AGA_INTEGER, &scr)) {
+			data->directional = !!scr;
+		}
+		else if(aga_confvar("Exponent", child, AGA_FLOAT, &data->exponent)) {
+			continue;
+		}
+		else if(aga_confvar("Angle", child, AGA_FLOAT, &data->angle)) {
+			continue;
+		}
+		else if(aga_streql("Direction", child->name)) {
+			for(j = 0; j < 3; ++j) {
+				const char* comp = agan_xyz[j];
+				float (*dir)[3] = &data->direction;
+
+				if(aga_conftree(child, &comp, 1, &(*dir)[j], AGA_FLOAT)) {
+					(*dir)[j] = 0.0f;
+				}
+			}
+		}
+		/* TODO: General API for getting multiple components from conf node. */
+		else if(aga_streql("Ambient", child->name)) {
+			float (*col)[4] = &data->ambient;
+
+			for(j = 0; j < 3; ++j) {
+				const char* comp = agan_rgb[j];
+
+				if(aga_conftree(child, &comp, 1, &(*col)[j], AGA_FLOAT)) {
+					(*col)[j] = 1.0f;
+				}
+			}
+
+			(*col)[3] = 1.0f;
+		}
+		else if(aga_streql("Diffuse", child->name)) {
+			float (*col)[4] = &data->diffuse;
+
+			for(j = 0; j < 3; ++j) {
+				const char* comp = agan_rgb[j];
+
+				if(aga_conftree(child, &comp, 1, &(*col)[j], AGA_FLOAT)) {
+					(*col)[j] = 1.0f;
+				}
+			}
+
+			(*col)[3] = 1.0f;
+		}
+		else if(aga_streql("Specular", child->name)) {
+			float (*col)[4] = &data->specular;
+
+			for(j = 0; j < 3; ++j) {
+				const char* comp = agan_rgb[j];
+
+				if(aga_conftree(child, &comp, 1, &(*col)[j], AGA_FLOAT)) {
+					(*col)[j] = 1.0f;
+				}
+			}
+
+			(*col)[3] = 1.0f;
+		}
+		else if(aga_streql("Attenuation", child->name)) {
+			static const char* atten[] = { "Constant", "Linear", "Quadratic" };
+			float* at[3];
+			at[0] = &data->constant_attenuation;
+			at[1] = &data->linear_attenuation;
+			at[2] = &data->quadratic_attenuation;
+			for(j = 0; j < 3; ++j) {
+				const char* comp = atten[j];
+
+				if(aga_conftree(child, &comp, 1, at[j], AGA_FLOAT)) {
+					*at[j] = 0.0f;
+				}
+			}
+		}
+	}
+
+	/*
+	aga_log(
+			__FILE__,
+			"\nambient: [ %f, %f, %f, %f ]\n"
+			"diffuse: [ %f, %f, %f, %f ]\n"
+			"specular: [ %f, %f, %f, %f ]\n"
+			"attenuation: {\n"
+			"\tconstant: %f\n"
+			"\tlinear: %f\n"
+			"\tquadratic: %f\n"
+			"}\n"
+			"direction: [ %f, %f, %f ]\n"
+			"exponent: %f\n"
+			"angle: %f\n"
+			"directional: %s\n"
+			"index: %u",
+			data->ambient[0], data->ambient[1], data->ambient[2],
+				data->ambient[3],
+			data->diffuse[0], data->diffuse[1], data->diffuse[2],
+				data->diffuse[3],
+			data->specular[0], data->specular[1], data->specular[2],
+				data->specular[3],
+			data->constant_attenuation, data->linear_attenuation,
+				data->quadratic_attenuation,
+			data->direction[0], data->direction[1], data->direction[2],
+			data->exponent, data->angle, data->directional ? "true" : "false",
+			(unsigned) data->index);
+	 */
+
+	return AGA_FALSE;
+}
+
 /*
  * TODO: Failure states here are super leaky - we can probably compartmentalise
  * 		 This function a lot more to help remedy this.
@@ -264,6 +407,7 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 	aga_bool_t c = AGA_FALSE;
 	aga_bool_t m = AGA_FALSE;
 
+	const char* path;
 	struct aga_respack* pack;
 
 	(void) self;
@@ -283,10 +427,10 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 	}
 
 	obj = nativeptr->ptr;
+	obj->light_data = 0;
 	if(!(obj->transform = agan_mktrans(0, 0))) goto cleanup;
 
 	{
-		const char* path;
 		void* fp;
 
 		if(aga_script_string(arg, &path)) goto cleanup;
@@ -304,7 +448,8 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 	}
 
 	if(agan_mkobj_trans(obj, &conf)) goto cleanup;
-	if(agan_mkobj_model(obj, &conf, pack)) goto cleanup;
+	if(agan_mkobj_model(obj, &conf, pack, path)) goto cleanup;
+	if(agan_mkobj_light(obj, &conf)) goto cleanup;
 
 	m = AGA_TRUE;
 
@@ -325,6 +470,7 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 			if(aga_script_gl_err("glDeleteLists")) return 0;
 		}
 
+		free(obj->light_data);
 		py_object_decref(obj->transform);
 		free(nativeptr->ptr);
 		py_object_decref(retval);
@@ -430,6 +576,8 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 		if(aga_script_gl_err("glDisable")) return 0;
 		glDisable(GL_DEPTH_TEST);
 		if(aga_script_gl_err("glDisable")) return 0;
+		glDisable(GL_LIGHTING);
+		if(aga_script_gl_err("glDisable")) return 0;
 
 		glBegin(GL_LINE_STRIP);
 			glColor3f(0.0f, 1.0f, 0.0f);
@@ -453,6 +601,8 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 		glEnable(GL_TEXTURE_2D);
 		if(aga_script_gl_err("glEnable")) return 0;
 		glEnable(GL_DEPTH_TEST);
+		if(aga_script_gl_err("glEnable")) return 0;
+		glEnable(GL_LIGHTING);
 		if(aga_script_gl_err("glEnable")) return 0;
 	}
 
@@ -498,6 +648,47 @@ struct py_object* agan_objconf(struct py_object* self, struct py_object* arg) {
 	return retval;
 }
 
+static aga_bool_t agan_putobj_light(struct agan_lightdata* data) {
+	unsigned ind = GL_LIGHT0 + data->index;
+	float pos[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	pos[3] = data->directional ? 0.0f : 1.0f;
+
+	glEnable(ind);
+	if(aga_script_gl_err("glEnable")) return AGA_TRUE;
+
+	glLightfv(ind, GL_POSITION, pos);
+	if(aga_script_gl_err("glLightfv")) return AGA_TRUE;
+
+	glLightfv(ind, GL_AMBIENT, data->ambient);
+	if(aga_script_gl_err("glLightfv")) return AGA_TRUE;
+
+	glLightfv(ind, GL_DIFFUSE, data->ambient);
+	if(aga_script_gl_err("glLightfv")) return AGA_TRUE;
+
+	glLightfv(ind, GL_SPECULAR, data->specular);
+	if(aga_script_gl_err("glLightfv")) return AGA_TRUE;
+
+	glLightf(ind, GL_CONSTANT_ATTENUATION, data->constant_attenuation);
+	if(aga_script_gl_err("glLightf")) return AGA_TRUE;
+
+	glLightf(ind, GL_LINEAR_ATTENUATION, data->linear_attenuation);
+	if(aga_script_gl_err("glLightf")) return AGA_TRUE;
+
+	glLightf(ind, GL_SPOT_EXPONENT, data->exponent);
+	if(aga_script_gl_err("glLightf")) return AGA_TRUE;
+
+	glLightf(ind, GL_SPOT_CUTOFF, data->angle);
+	if(aga_script_gl_err("glLightf")) return AGA_TRUE;
+
+	glLightf(ind, GL_QUADRATIC_ATTENUATION,data->quadratic_attenuation);
+	if(aga_script_gl_err("glLightf")) return AGA_TRUE;
+
+	glLightfv(ind, GL_SPOT_DIRECTION, data->direction);
+	if(aga_script_gl_err("glLightfv")) return AGA_TRUE;
+
+	return AGA_FALSE;
+}
+
 struct py_object* agan_putobj(struct py_object* self, struct py_object* arg) {
 	struct agan_nativeptr* nativeptr;
 	struct agan_object* obj;
@@ -517,6 +708,8 @@ struct py_object* agan_putobj(struct py_object* self, struct py_object* arg) {
 	glPushMatrix();
 	if(aga_script_gl_err("glPushMatrix")) return 0;
 	if(agan_settransmat(obj->transform, AGA_FALSE)) return 0;
+
+	if(obj->light_data && agan_putobj_light(obj->light_data)) return 0;
 
 	glCallList(obj->drawlist);
 	if(aga_script_gl_err("glCallList")) return 0;

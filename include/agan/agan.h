@@ -24,6 +24,7 @@ extern struct py_object* agan_dict;
 extern const char* agan_trans_components[3];
 extern const char* agan_conf_components[3];
 extern const char* agan_xyz[3];
+extern const char* agan_rgb[3];
 
 aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv);
 

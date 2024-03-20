@@ -502,7 +502,7 @@ agan_setcursor(struct py_object* self, struct py_object* arg) {
 	}
 
 	if(aga_script_bool(o, &visible)) return 0;
-	if(aga_script_bool(o, &captured)) return 0;
+	if(aga_script_bool(v, &captured)) return 0;
 
 	result = aga_setcursor(env, win, visible, captured);
 	if(aga_script_err("aga_setcursor", result)) return 0;

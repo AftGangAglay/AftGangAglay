@@ -243,8 +243,10 @@ int main(int argc, char** argv) {
 
 	aga_log(__FILE__, "Tearing down...");
 
+#ifdef __APPLE__
 	/* Need to flush before shutdown to avoid NSGL dying */
 	aga_soft(__FILE__, "aga_flush", aga_flush());
+#endif
 
 	if(class.class) {
 		aga_soft(__FILE__, "aga_instcall", aga_instcall(&inst, "close"));

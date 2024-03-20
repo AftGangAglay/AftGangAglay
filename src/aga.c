@@ -44,8 +44,8 @@ static enum aga_result aga_putnil(void) {
 
 static void aga_prof_put(unsigned y, unsigned x, enum apro_section s) {
 	aga_ulong_t us = apro_stamp_us(s);
-	float tx = 0.05f + (0.05f * (float) x);
-	float ty = 0.1f + (0.05f * (float) y);
+	float tx = 0.01f + (0.035f * (float) x);
+	float ty = 0.05f + (0.035f * (float) y);
 	enum aga_result result = aga_puttextfmt(
 			tx, ty, "%s: %lluus", apro_section_name(s), us);
 	aga_soft(__FILE__, "aga_puttextfmt", result);
@@ -188,17 +188,52 @@ int main(int argc, char** argv) {
 		apro_stamp_end(APRO_PRESWAP);
 
 #ifndef NDEBUG
+		/* @formatter:off */
 		{
 			unsigned d = 0;
+			unsigned x = 0;
+			unsigned n = 0;
+
 			aga_prof_put(d++, 0, APRO_PRESWAP);
-			aga_prof_put(d++, 1, APRO_POLL);
-			aga_prof_put(d++, 1, APRO_SCRIPT_UPDATE);
-			aga_prof_put(d++, 2, APRO_SCRIPT_INSTCALL_RISING);
-			aga_prof_put(d++, 2, APRO_SCRIPT_INSTCALL_EXEC);
-			aga_prof_put(d++, 3, APRO_CEVAL_CALL_RISING);
-			aga_prof_put(d++, 3, APRO_CEVAL_CALL_EVAL);
-			aga_prof_put(d++, 1, APRO_RES_SWEEP);
+				aga_prof_put(d++, 1, APRO_POLL);
+				aga_prof_put(d++, 1, APRO_SCRIPT_UPDATE);
+					aga_prof_put(d++, 2, APRO_SCRIPT_INSTCALL_RISING);
+					aga_prof_put(d++, 2, APRO_SCRIPT_INSTCALL_EXEC);
+						aga_prof_put(d++, 3, APRO_CEVAL_CALL_RISING);
+						aga_prof_put(d++, 3, APRO_CEVAL_CALL_EVAL);
+							aga_prof_put(d++, 4, APRO_CEVAL_CODE_EVAL_RISING);
+							aga_prof_put(d++, 4, APRO_CEVAL_CODE_EVAL);
+							aga_prof_put(d++, 4, APRO_CEVAL_CODE_EVAL_FALLING);
+				aga_prof_put(d++, 1, APRO_RES_SWEEP);
+
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_GETKEY);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_GETMOTION);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_SETCURSOR);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_SETCAM);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_TEXT);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_FOGPARAM);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_FOGCOL);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_CLEAR);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_MKTRANS);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_GETCONF);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_LOG);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_DIE);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_MKOBJ);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_INOBJ);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_PUTOBJ);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_KILLOBJ);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_OBJTRANS);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_OBJCONF);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_BITAND);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_BITSHL);
+			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_RANDNORM);
+
+			aga_prof_put(n++, 20, APRO_PUTOBJ_RISING);
+			aga_prof_put(n++, 20, APRO_PUTOBJ_LIGHT);
+			aga_prof_put(n++, 20, APRO_PUTOBJ_CALL);
+			aga_prof_put(n++, 20, APRO_PUTOBJ_FALLING);
 		}
+		/* @formatter:on */
 #endif
 		apro_clear();
 

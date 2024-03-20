@@ -25,6 +25,8 @@
 
 #include <agan/aganobj.h>
 
+#include <apro.h>
+
 aga_bool_t aga_script_gl_err(const char* proc) {
 	return aga_script_err(proc, aga_gl_error(__FILE__, proc));
 }
@@ -123,6 +125,8 @@ struct py_object* agan_getkey(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
+	apro_stamp_start(APRO_SCRIPTGLUE_GETKEY);
+
 	if(!(keymap = aga_getscriptptr(AGA_SCRIPT_KEYMAP))) return 0;
 
 	if(!aga_arg_list(arg, PY_TYPE_INT)) return aga_arg_error("getkey", "int");
@@ -131,6 +135,8 @@ struct py_object* agan_getkey(struct py_object* self, struct py_object* arg) {
 
 	result = aga_keylook(keymap, (aga_uint8_t) value, &b);
  	if(aga_script_err("aga_keylook", result)) return 0;
+
+	apro_stamp_end(APRO_SCRIPTGLUE_GETKEY);
 
 	return py_object_incref(b ? PY_TRUE : PY_FALSE);
 }
@@ -144,6 +150,8 @@ agan_getmotion(struct py_object* self, struct py_object* arg) {
 	(void) self;
 	(void) arg;
 
+	apro_stamp_start(APRO_SCRIPTGLUE_GETMOTION);
+
 	if(!(pointer = aga_getscriptptr(AGA_SCRIPT_POINTER))) return 0;
 
 	if(!(retval = py_list_new(2))) return 0;
@@ -153,6 +161,8 @@ agan_getmotion(struct py_object* self, struct py_object* arg) {
 
 	if(!(o = py_float_new(pointer->dy))) return 0;
 	if(aga_list_set(retval, 1, o)) return 0;
+
+	apro_stamp_end(APRO_SCRIPTGLUE_GETMOTION);
 
 	return retval;
 }
@@ -166,6 +176,8 @@ struct py_object* agan_setcam(struct py_object* self, struct py_object* arg) {
 	struct aga_opts* opts;
 
 	(void) self;
+
+	apro_stamp_start(APRO_SCRIPTGLUE_SETCAM);
 
 	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
 
@@ -200,21 +212,30 @@ struct py_object* agan_setcam(struct py_object* self, struct py_object* arg) {
 	if(aga_script_gl_err("glLoadIdentity")) return 0;
 	if(agan_settransmat(t, AGA_TRUE)) return 0;
 
+	apro_stamp_end(APRO_SCRIPTGLUE_SETCAM);
+
 	return py_object_incref(PY_NONE);
 }
 
 struct py_object* agan_getconf(struct py_object* self, struct py_object* arg) {
 	struct aga_opts* opts;
+	struct py_object* v;
 
 	(void) self;
+
+	apro_stamp_start(APRO_SCRIPTGLUE_GETCONF);
 
 	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
 
 	if(!aga_arg_list(arg, PY_TYPE_LIST)) {
-		return aga_arg_error(
-				"getconf", "list");
+		return aga_arg_error("getconf", "list");
 	}
-	return agan_scriptconf(&opts->config, AGA_TRUE, arg);
+
+	v = agan_scriptconf(&opts->config, AGA_TRUE, arg);
+
+	apro_stamp_end(APRO_SCRIPTGLUE_GETCONF);
+
+	return v;
 }
 
 struct py_object* agan_log(struct py_object* self, struct py_object* arg) {
@@ -222,6 +243,8 @@ struct py_object* agan_log(struct py_object* self, struct py_object* arg) {
 	const char* loc;
 
 	(void) self;
+
+	apro_stamp_start(APRO_SCRIPTGLUE_LOG);
 
 	if(!arg) {
 		py_error_set_string(py_runtime_error, "log() takes one argument");
@@ -233,6 +256,8 @@ struct py_object* agan_log(struct py_object* self, struct py_object* arg) {
 	if(aga_script_string(arg, &str)) return 0;
 
 	aga_log(loc, str);
+
+	apro_stamp_end(APRO_SCRIPTGLUE_LOG);
 
 	return py_object_incref(PY_NONE);
 }
@@ -247,9 +272,10 @@ struct py_object* agan_fogparam(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
+	apro_stamp_start(APRO_SCRIPTGLUE_FOGPARAM);
+
 	if(!aga_arg_list(arg, PY_TYPE_LIST)) {
-		return aga_arg_error(
-				"fogparam", "list");
+		return aga_arg_error("fogparam", "list");
 	}
 
 	glFogi(GL_FOG_MODE, GL_EXP);
@@ -273,6 +299,8 @@ struct py_object* agan_fogparam(struct py_object* self, struct py_object* arg) {
 	glFogf(GL_FOG_END, f);
 	if(aga_script_gl_err("glFogf")) return 0;
 
+	apro_stamp_end(APRO_SCRIPTGLUE_FOGPARAM);
+
 	return py_object_incref(PY_NONE);
 }
 
@@ -282,6 +310,8 @@ struct py_object* agan_fogcol(struct py_object* self, struct py_object* arg) {
 	float col[3];
 
 	(void) self;
+
+	apro_stamp_start(APRO_SCRIPTGLUE_FOGCOL);
 
 	if(!aga_arg_list(arg, PY_TYPE_LIST)) {
 		return aga_arg_error(
@@ -296,6 +326,8 @@ struct py_object* agan_fogcol(struct py_object* self, struct py_object* arg) {
 	glFogfv(GL_FOG_COLOR, col);
 	if(aga_script_gl_err("glFogfv")) return 0;
 
+	apro_stamp_end(APRO_SCRIPTGLUE_FOGCOL);
+
 	return py_object_incref(PY_NONE);
 }
 
@@ -307,6 +339,8 @@ struct py_object* agan_text(struct py_object* self, struct py_object* arg) {
 	float x, y;
 
 	(void) self;
+
+	apro_stamp_start(APRO_SCRIPTGLUE_TEXT);
 
 	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
 	   !aga_arg(&str, arg, 0, PY_TYPE_STRING) ||
@@ -328,6 +362,8 @@ struct py_object* agan_text(struct py_object* self, struct py_object* arg) {
 		return 0;
 	}
 
+	apro_stamp_end(APRO_SCRIPTGLUE_TEXT);
+
 	return py_object_incref(PY_NONE);
 }
 
@@ -340,6 +376,8 @@ struct py_object* agan_clear(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
+	apro_stamp_start(APRO_SCRIPTGLUE_CLEAR);
+
 	if(!aga_arg_list(arg, PY_TYPE_LIST)) return aga_arg_error("clear", "list");
 
 	for(i = 0; i < AGA_LEN(col); ++i) {
@@ -350,6 +388,8 @@ struct py_object* agan_clear(struct py_object* self, struct py_object* arg) {
 	result = aga_clear(col);
 	if(aga_script_err("aga_clear", result)) return 0;
 
+	apro_stamp_end(APRO_SCRIPTGLUE_CLEAR);
+
 	return py_object_incref(PY_NONE);
 }
 
@@ -357,9 +397,12 @@ struct py_object* agan_clear(struct py_object* self, struct py_object* arg) {
 struct py_object* agan_bitand(struct py_object* self, struct py_object* arg) {
 	struct py_object* a;
 	struct py_object* b;
+	struct py_object* v;
 	int av, bv;
 
 	(void) self;
+
+	apro_stamp_start(APRO_SCRIPTGLUE_BITAND);
 
 	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
 	   !aga_arg(&a, arg, 0, PY_TYPE_INT) ||
@@ -370,15 +413,22 @@ struct py_object* agan_bitand(struct py_object* self, struct py_object* arg) {
 	if(aga_script_int(a, &av)) return 0;
 	if(aga_script_int(b, &bv)) return 0;
 
-	return py_int_new(av & bv);
+	v = py_int_new(av & bv);
+
+	apro_stamp_end(APRO_SCRIPTGLUE_BITAND);
+
+	return v;
 }
 
 struct py_object* agan_bitshl(struct py_object* self, struct py_object* arg) {
 	struct py_object* a;
 	struct py_object* b;
+	struct py_object* v;
 	int av, bv;
 
 	(void) self;
+
+	apro_stamp_start(APRO_SCRIPTGLUE_BITSHL);
 
 	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
 	   !aga_arg(&a, arg, 0, PY_TYPE_INT) ||
@@ -389,14 +439,26 @@ struct py_object* agan_bitshl(struct py_object* self, struct py_object* arg) {
 	if(aga_script_int(a, &av)) return 0;
 	if(aga_script_int(b, &bv)) return 0;
 
-	return py_int_new(av << bv);
+	v = py_int_new(av << bv);
+
+	apro_stamp_end(APRO_SCRIPTGLUE_BITSHL);
+
+	return v;
 }
 
 struct py_object* agan_randnorm(struct py_object* self, struct py_object* arg) {
+	struct py_object* v;
+
 	(void) self;
 	(void) arg;
 
-	return py_float_new((double) rand() / (double) RAND_MAX);
+	apro_stamp_start(APRO_SCRIPTGLUE_RANDNORM);
+
+	v = py_float_new((double) rand() / (double) RAND_MAX);
+
+	apro_stamp_end(APRO_SCRIPTGLUE_RANDNORM);
+
+	return v;
 }
 
 struct py_object* agan_die(struct py_object* self, struct py_object* arg) {
@@ -405,8 +467,12 @@ struct py_object* agan_die(struct py_object* self, struct py_object* arg) {
 	(void) self;
 	(void) arg;
 
+	apro_stamp_start(APRO_SCRIPTGLUE_DIE);
+
 	if(!(die = aga_getscriptptr(AGA_SCRIPT_DIE))) return 0;
 	*die = AGA_TRUE;
+
+	apro_stamp_end(APRO_SCRIPTGLUE_DIE);
 
 	return py_object_incref(PY_NONE);
 }
@@ -424,6 +490,8 @@ agan_setcursor(struct py_object* self, struct py_object* arg) {
 
 	(void) self;
 
+	apro_stamp_start(APRO_SCRIPTGLUE_SETCURSOR);
+
 	if(!(env = aga_getscriptptr(AGA_SCRIPT_WINENV))) return 0;
 	if(!(win = aga_getscriptptr(AGA_SCRIPT_WIN))) return 0;
 
@@ -438,6 +506,8 @@ agan_setcursor(struct py_object* self, struct py_object* arg) {
 
 	result = aga_setcursor(env, win, visible, captured);
 	if(aga_script_err("aga_setcursor", result)) return 0;
+
+	apro_stamp_end(APRO_SCRIPTGLUE_SETCURSOR);
 
 	return py_object_incref(PY_NONE);
 }

@@ -35,8 +35,8 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 
 #ifdef AGA_HAVE_GETOPT
 	{
-		const char* help = "warn: usage: %s [-f respack] [-A dsp] [-D display] [-C dir] "
-						   "[-v]";
+		static const char help[] =
+			"warn: usage: %s [-f respack] [-A dsp] [-D display] [-C dir] [-v]";
 		int o;
 		while((o = getopt(argc, argv, "f:s:A:D:C:v")) != -1) {
 			switch(o) {

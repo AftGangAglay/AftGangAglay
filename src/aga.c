@@ -15,6 +15,7 @@
 #include <agadraw.h>
 #include <agastartup.h>
 #include <agascript.h>
+#include <agaresgen.h>
 
 #include <apro.h>
 
@@ -77,6 +78,34 @@ int main(int argc, char** argv) {
 	aga_mklog(logfiles, AGA_LEN(logfiles));
 
 	aga_log(__FILE__, "Breathing in the chemicals...");
+
+	if(argc > 1 && aga_streql(argv[1], "mkres")) {
+		unsigned i;
+		static const struct {
+			const char* type;
+			enum aga_result (*proc)(const char*);
+		} res[] = {
+				{ "aga_resgen_img", aga_resgen_img },
+				{ "aga_resgen_model", aga_resgen_model },
+				{ "aga_resgen_pack", aga_resgen_pack },
+				{ "aga_resgen_snd", aga_resgen_snd },
+		};
+
+		if(argc < 4) {
+			aga_log(__FILE__, "err: usage: %s mkres {img|model|pack|snd} RES");
+			aga_abort();
+		}
+
+		for(i = 0; i < AGA_LEN(res); ++i) {
+			if(aga_streql(argv[2], res[i].type + sizeof("aga_resgen"))) {
+				aga_check(__FILE__, res[i].type, res[i].proc(argv[3]));
+				return 0;
+			}
+		}
+
+		aga_log(__FILE__, "err: Unknown resource type `%s'", argv[2]);
+		aga_abort();
+	}
 
 	aga_soft(__FILE__, "aga_setopts", aga_setopts(&opts, argc, argv));
 	aga_soft(__FILE__, "aga_mkrespack", aga_mkrespack(opts.respack, &pack));

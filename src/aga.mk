@@ -11,7 +11,7 @@ AGA_SRC1 = $(AGA)agaconf.c $(AGA)agadraw.c $(AGA)agaerr.c $(AGA)agaio.c
 AGA_SRC2 = $(AGA)agalog.c $(AGA)agapack.c $(AGA)agapy.c $(AGA)agascript.c
 AGA_SRC3 = $(AGA)agasnd.c $(AGA)agastartup.c $(AGA)agautil.c $(AGA)agaw32.c
 AGA_SRC4 = $(AGA)agawin.c $(AGA)aga.c $(AGAN)agan.c $(AGAN)aganobj.c
-AGA_SRC5 = $(AGAN)agascriptglue.c
+AGA_SRC5 = $(AGAN)agascriptglue.c $(AGA)agaresgen.c
 
 AGA_HDR1 = $(AGAH)agaconf.h $(AGAH)agadraw.h $(AGAH)agaenv.h $(AGAH)agaerr.h
 AGA_HDR2 = $(AGAH)agagl.h $(AGAH)agaio.h $(AGAH)agalog.h $(AGAH)agapack.h

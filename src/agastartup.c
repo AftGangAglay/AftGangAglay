@@ -7,6 +7,7 @@
 #include <agalog.h>
 #include <agapack.h>
 #include <agaerr.h>
+#include <agautil.h>
 #include <agaio.h>
 
 #define AGA_WANT_UNIX
@@ -18,7 +19,7 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	if(!argv) return AGA_RESULT_BAD_PARAM;
 
 	opts->config_file = "aga.sgml";
-	opts->display = getenv("DISPLAY");
+	opts->display = aga_getenv("DISPLAY");
 	opts->chdir = ".";
 	opts->audio_dev = "/dev/dsp1";
 	opts->startup_script = "script/main.py";
@@ -31,7 +32,7 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	opts->version = AGA_VERSION;
 	opts->verbose = AGA_FALSE;
 
-	memset(&opts->config, 0, sizeof(opts->config));
+	aga_memset(&opts->config, 0, sizeof(opts->config));
 
 #ifdef AGA_HAVE_GETOPT
 	{
@@ -165,7 +166,7 @@ enum aga_result aga_prerun_hook(struct aga_opts* opts) {
 	enum aga_result result;
 
 	const char* hook[] = { "Development", "PreHook" };
-	char* program = getenv("SHELL");
+	char* program = aga_getenv("SHELL");
 	char* args[] = { 0 /* shell */, 0 /* -c */, 0 /* exec */, 0 };
 	char* project_path;
 
@@ -196,7 +197,7 @@ enum aga_result aga_prerun_hook(struct aga_opts* opts) {
 	if(project_path) {
 		aga_size_t len = (aga_size_t) (project_path - opts->config_file) + 1;
 
-		project_path = calloc(len + 1, sizeof(char));
+		project_path = aga_calloc(len + 1, sizeof(char));
 		if(!project_path) return AGA_RESULT_OOM;
 
 		strncpy(project_path, opts->config_file, len);
@@ -205,7 +206,7 @@ enum aga_result aga_prerun_hook(struct aga_opts* opts) {
 	result = aga_spawn_sync(program, args, project_path);
 	aga_soft(__FILE__, "aga_spawn_sync", result);
 
-	free(project_path);
+	aga_free(project_path);
 
 	return AGA_RESULT_OK;
 }

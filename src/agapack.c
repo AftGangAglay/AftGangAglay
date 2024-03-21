@@ -87,7 +87,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 	pack->len = pack->root.children->len;
 	pack->data_offset = hdr.size + sizeof(hdr);
 
-	pack->db = calloc(pack->len, sizeof(struct aga_res));
+	pack->db = aga_calloc(pack->len, sizeof(struct aga_res));
 	if(!pack->db) {
 		result = AGA_RESULT_OOM;
 		goto cleanup;
@@ -147,7 +147,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 
 	cleanup:
 	{
-		free(pack->db);
+		aga_free(pack->db);
 
 		if(pack->fp && fclose(pack->fp) == EOF) {
 			return aga_errno(__FILE__, "fclose");
@@ -165,7 +165,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 enum aga_result aga_killrespack(struct aga_respack* pack) {
 	if(!pack) return AGA_RESULT_BAD_PARAM;
 
-	free(pack->db);
+	aga_free(pack->db);
 	if(fclose(pack->fp) == EOF) return aga_errno(__FILE__, "fclose");
 
 	return aga_killconf(&pack->root);
@@ -181,7 +181,7 @@ enum aga_result aga_sweeprespack(struct aga_respack* pack) {
 
 		if(res->refcount || !res->data) continue;
 
-		free(res->data);
+		aga_free(res->data);
 		res->data = 0;
 	}
 
@@ -205,7 +205,7 @@ enum aga_result aga_mkres(
 		if(result) return result;
 
 		/* TODO: Use mapping for large reads. */
-		if(!((*res)->data = malloc((*res)->size))) return AGA_RESULT_OOM;
+		if(!((*res)->data = aga_malloc((*res)->size))) return AGA_RESULT_OOM;
 
 		result = aga_fread((*res)->data, (*res)->size, pack->fp);
 		if(result) return result;

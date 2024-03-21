@@ -26,7 +26,7 @@ struct aga_conf_node {
 	enum aga_conf_type type;
 	union aga_conf_node_data {
 		char* string;
-		long integer;
+		aga_slong_t integer;
 		double flt;
 	} data;
 

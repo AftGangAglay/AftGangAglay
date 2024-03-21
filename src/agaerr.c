@@ -39,15 +39,22 @@ AGA_NORETURN void aga_abort(void) {
 #endif
 
 #ifdef _DEBUG
-# ifdef _WIN32
+# ifdef AGA_NO_STD
+#  ifdef _MSC_VER
 	__debugbreak();
-	AGA_UNREACHABLE;
+#  elif defined(__has_builtin)
+#   if __has_builtin(__builtin_trap)
+	__builtin_trap();
+#   endif
+#  endif
 # else
 	abort();
 # endif
 #else
 	exit(EXIT_FAILURE);
 #endif
+
+	while(1) continue; /* Worst case scenario, we just hang. */
 }
 
 void aga_check(const char* loc, const char* proc, enum aga_result e) {
@@ -69,27 +76,34 @@ enum aga_result aga_errno_path(
 		const char* loc, const char* proc, const char* path) {
 
 	if(loc) {
-		if(path) {
-			aga_log(
-					loc, "err: %s: %s `%s'", proc, strerror(errno), path);
-		}
-		else { aga_log(loc, "err: %s: %s", proc, strerror(errno)); }
+#ifdef AGA_NO_STD
+		if(path) aga_log(loc, "err: %s: unknown error `%s'", proc, path);
+		else aga_log(loc, "err: %s: unknown error", proc);
+#else
+		if(path) aga_log(loc, "err: %s: %s `%s'", proc, strerror(errno), path);
+		else aga_log(loc, "err: %s: %s", proc, strerror(errno));
+#endif
 	}
+
+#ifdef AGA_NO_STD
+	return AGA_RESULT_ERROR;
+#else
 	switch(errno) {
 		default: return AGA_RESULT_ERROR;
 		case 0: return AGA_RESULT_OK;
 
-#ifdef EBADF
+# ifdef EBADF
 		case EBADF: return AGA_RESULT_BAD_PARAM;
-#endif
-#ifdef ENOMEM
+# endif
+# ifdef ENOMEM
 		case ENOMEM: return AGA_RESULT_OOM;
-#endif
-#ifdef EACCES
+# endif
+# ifdef EACCES
 		case EACCES: return AGA_RESULT_BAD_OP;
-#endif
-#ifdef EOPNOTSUPP
+# endif
+# ifdef EOPNOTSUPP
 		case EOPNOTSUPP: return AGA_RESULT_BAD_OP;
-#endif
+# endif
 	}
+#endif
 }

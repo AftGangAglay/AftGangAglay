@@ -17,6 +17,13 @@
 
 #include <apro.h>
 
+#define AGA_SWAPF(a, b) \
+	do { \
+		float scratch = b; \
+		b = a; \
+		a = scratch; \
+	} while(0)
+
 /* TODO: Some `aga_script_*err` disable with noverify. */
 
 /* TODO: Report object-related errors with path. */
@@ -521,12 +528,15 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 	struct py_object* dbg;
 	struct py_object* point;
 	struct py_object* flobj;
-	struct py_object* scale;
+
 	struct py_object* pos;
+	struct py_object* rot;
+	struct py_object* scale;
 
 	float pt[3];
 	float mins[3];
 	float maxs[3];
+	float rotf[3];
 	float f;
 	aga_bool_t p, d;
 	aga_size_t i;
@@ -535,8 +545,6 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_INOBJ);
-
-	/* TODO: Handle 90 degree rotations as a special case. */
 
 	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
 	   !aga_arg(&o, arg, 0, PY_TYPE_INT) ||
@@ -554,8 +562,9 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 	memcpy(mins, obj->min_extent, sizeof(mins));
 	memcpy(maxs, obj->max_extent, sizeof(maxs));
 
-	if(!(scale = py_dict_lookup(obj->transform, "scale"))) return 0;
 	if(!(pos = py_dict_lookup(obj->transform, "pos"))) return 0;
+	if(!(rot = py_dict_lookup(obj->transform, "rot"))) return 0;
+	if(!(scale = py_dict_lookup(obj->transform, "scale"))) return 0;
 
 	for(i = 0; i < 3; ++i) {
 		/* TODO: Static "get N items into buffer" to make noverify easier. */
@@ -568,6 +577,21 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 
 		mins[i] *= f;
 		maxs[i] *= f;
+
+		if(aga_list_get(rot, i, &flobj)) return 0;
+		if(aga_script_float(flobj, &f)) return 0;
+
+		rotf[i] = f;
+	}
+
+	/* TODO: This only handles Y-plane rotations. */
+	/* TODO: This doesn't handle lopsided objects correctly. */
+
+	/* rot[Y] ~= 90 */
+	/* rot[Y] ~= -90 */
+	if(fabs(fabs((double) rotf[1]) - 90.0) < AGA_TRANSFORM_FLOAT_TOLERANCE) {
+		AGA_SWAPF(mins[0], mins[2]);
+		AGA_SWAPF(maxs[0], maxs[2]);
 	}
 
 	for(i = 0; i < 3; ++i) {

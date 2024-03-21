@@ -72,6 +72,8 @@
 # endif
 #endif
 
+/* Epsilon when comparing floats in transforms. */
+#define AGA_TRANSFORM_FLOAT_TOLERANCE (0.01)
 #define AGA_LEN(arr) (sizeof((arr)) / sizeof(*(arr)))
 
 #ifdef __GNUC__

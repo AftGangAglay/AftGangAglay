@@ -527,6 +527,7 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 	struct py_object* j;
 	struct py_object* dbg;
 	struct py_object* point;
+	struct py_object* tol;
 	struct py_object* flobj;
 
 	struct py_object* pos;
@@ -538,6 +539,7 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 	float maxs[3];
 	float rotf[3];
 	float f;
+	float tolerance = AGA_TRANSFORM_TOLERANCE;
 	aga_bool_t p, d;
 	aga_size_t i;
 	struct agan_object* obj;
@@ -553,6 +555,13 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 	   !aga_arg(&dbg, arg, 3, PY_TYPE_INT)) {
 
 		return aga_arg_error("inobj", "int, list, int and int");
+	}
+
+	if(py_varobject_size(arg) > 4) {
+		if(!aga_arg(&tol, arg, 4, PY_TYPE_FLOAT)) {
+			return aga_arg_error("inobj", "int, list, int, int and float");
+		}
+		else if(aga_script_float(tol, &tolerance)) return 0;
 	}
 
 	if(aga_script_bool(j, &p)) return 0;
@@ -589,7 +598,7 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 
 	/* rot[Y] ~= 90 */
 	/* rot[Y] ~= -90 */
-	if(fabs(fabs((double) rotf[1]) - 90.0) < AGA_TRANSFORM_FLOAT_TOLERANCE) {
+	if(fabs(fabs((double) rotf[1]) - 90.0) < AGA_TRANSFORM_TOLERANCE) {
 		AGA_SWAPF(mins[0], mins[2]);
 		AGA_SWAPF(maxs[0], maxs[2]);
 	}
@@ -598,8 +607,8 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 		if(aga_list_get(pos, i, &flobj)) return 0;
 		if(aga_script_float(flobj, &f)) return 0;
 
-		mins[i] += f;
-		maxs[i] += f;
+		mins[i] += f - tolerance;
+		maxs[i] += f + tolerance;
 	}
 
 	/* TODO: Once cells are implemented check against current cell rad. */

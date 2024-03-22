@@ -74,6 +74,10 @@ int main(int argc, char** argv) {
 
 	aga_bool_t die = AGA_FALSE;
 
+#ifndef NDEBUG
+	aga_bool_t do_prof = !!aga_getenv("AGA_DOPROF");
+#endif
+
 	const char* logfiles[] = { 0 /* auto stdout */, "aga.log" };
 	aga_mklog(logfiles, AGA_LEN(logfiles));
 
@@ -218,7 +222,7 @@ int main(int argc, char** argv) {
 
 #ifndef NDEBUG
 		/* @formatter:off */
-		{
+		if(do_prof) {
 			unsigned d = 0;
 			unsigned x = 0;
 			unsigned n = 0;

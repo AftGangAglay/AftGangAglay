@@ -546,6 +546,22 @@ agan_setcursor(struct py_object* self, struct py_object* arg) {
 	return py_object_incref(PY_NONE);
 }
 
+static enum aga_result aga_insertstr(const char* key, const char* value) {
+	struct py_object* o;
+
+	if(!(o = py_string_new(value))) {
+		aga_script_trace();
+		return AGA_RESULT_ERROR;
+	}
+
+	if(py_dict_insert(agan_dict, key, o) == -1) {
+		aga_script_trace();
+		return AGA_RESULT_ERROR;
+	}
+
+	return AGA_RESULT_OK;
+}
+
 static enum aga_result aga_insertfloat(const char* key, double value) {
 	struct py_object* o;
 
@@ -622,6 +638,32 @@ enum aga_result aga_mkmod(void** dict) {
 	if(result) return result;
 
 	result = aga_insertfloat("E", e);
+	if(result) return result;
+
+	result = aga_insertstr("VERSION", AGA_VERSION);
+	if(result) return result;
+
+#ifdef _WIN32
+	result = aga_insertstr("PLATFORM", "win32");
+#else
+	result = aga_insertstr("PLATFORM", "x");
+#endif
+	if(result) return result;
+
+#ifdef _DEBUG
+	result = aga_insertstr("MODE", "debug");
+#else
+	result = aga_insertstr("MODE", "release");
+#endif
+	if(result) return result;
+
+#ifdef _MSC_VER
+	result = aga_insertstr("CENV", "vc");
+#elif defined(__GNUC__)
+	result = aga_insertstr("CENV", "gnu");
+#else
+	result = aga_insertstr("CENV", "std");
+#endif
 	if(result) return result;
 
 	if((result = aga_setkeys())) {

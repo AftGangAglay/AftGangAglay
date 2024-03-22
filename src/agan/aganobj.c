@@ -534,12 +534,12 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 	struct py_object* rot;
 	struct py_object* scale;
 
-	float pt[3];
+	double pt[3];
 	float mins[3];
 	float maxs[3];
-	float rotf[3];
-	float f;
-	float tolerance = AGA_TRANSFORM_TOLERANCE;
+	double rotf[3];
+	double f;
+	double tolerance = AGA_TRANSFORM_TOLERANCE;
 	aga_bool_t p, d;
 	aga_size_t i;
 	struct agan_object* obj;

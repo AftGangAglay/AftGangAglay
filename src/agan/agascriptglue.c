@@ -36,7 +36,7 @@ aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv) {
 	struct py_object* xo;
 	struct py_object* yo;
 	struct py_object* zo;
-	float x, y, z;
+	double x, y, z;
 	aga_size_t i;
 
 	for(i = inv ? 2 : 0; i < 3; inv ? --i : ++i) {
@@ -119,7 +119,7 @@ struct py_object* agan_scriptconf(
 
 struct py_object* agan_getkey(struct py_object* self, struct py_object* arg) {
 	enum aga_result result;
-	int value;
+	py_value_t value;
 	aga_bool_t b;
 	struct aga_keymap* keymap;
 
@@ -239,7 +239,6 @@ struct py_object* agan_getconf(struct py_object* self, struct py_object* arg) {
 }
 
 struct py_object* agan_log(struct py_object* self, struct py_object* arg) {
-	const char* str;
 	const char* loc;
 
 	(void) self;
@@ -253,9 +252,41 @@ struct py_object* agan_log(struct py_object* self, struct py_object* arg) {
 
 	if(aga_script_string(py_frame_current->code->filename, &loc)) return 0;
 
-	if(aga_script_string(arg, &str)) return 0;
+	switch(arg->type) {
+		default: {
+			aga_log(loc, "<object @%p>", arg);
 
-	aga_log(loc, str);
+			break;
+		}
+
+		case PY_TYPE_STRING: {
+			const char* str;
+
+			if(aga_script_string(arg, &str)) return 0;
+			aga_log(loc, str);
+
+			break;
+		}
+
+		/* TODO: Implement `py_string_cat' of non-string objects. */
+		case PY_TYPE_FLOAT: {
+			double f;
+
+			if(aga_script_float(arg, &f)) return 0;
+			aga_log(loc, "%lf", f);
+
+			break;
+		}
+
+		case PY_TYPE_INT: {
+			py_value_t i;
+
+			if(aga_script_int(arg, &i)) return 0;
+			aga_log(loc, "%llu", i);
+
+			break;
+		}
+	}
 
 	apro_stamp_end(APRO_SCRIPTGLUE_LOG);
 
@@ -268,7 +299,7 @@ struct py_object* agan_log(struct py_object* self, struct py_object* arg) {
  */
 struct py_object* agan_fogparam(struct py_object* self, struct py_object* arg) {
 	struct py_object* v;
-	float f;
+	double f;
 
 	(void) self;
 
@@ -307,6 +338,7 @@ struct py_object* agan_fogparam(struct py_object* self, struct py_object* arg) {
 struct py_object* agan_fogcol(struct py_object* self, struct py_object* arg) {
 	struct py_object* v;
 	aga_size_t i;
+	double f;
 	float col[3];
 
 	(void) self;
@@ -314,13 +346,13 @@ struct py_object* agan_fogcol(struct py_object* self, struct py_object* arg) {
 	apro_stamp_start(APRO_SCRIPTGLUE_FOGCOL);
 
 	if(!aga_arg_list(arg, PY_TYPE_LIST)) {
-		return aga_arg_error(
-				"fogcol", "list");
+		return aga_arg_error("fogcol", "list");
 	}
 
 	for(i = 0; i < 3; ++i) {
 		if(aga_list_get(arg, i, &v)) return 0;
-		if(aga_script_float(v, &col[i])) return 0;
+		if(aga_script_float(v, &f)) return 0;
+		col[i] = (float) f;
 	}
 
 	glFogfv(GL_FOG_COLOR, col);
@@ -336,7 +368,7 @@ struct py_object* agan_text(struct py_object* self, struct py_object* arg) {
 	struct py_object* str;
 	struct py_object* t;
 	struct py_object* f;
-	float x, y;
+	double x, y;
 
 	(void) self;
 
@@ -371,6 +403,7 @@ struct py_object* agan_clear(struct py_object* self, struct py_object* arg) {
 	enum aga_result result;
 
 	struct py_object* v;
+	double f;
 	float col[4];
 	aga_size_t i;
 
@@ -382,7 +415,8 @@ struct py_object* agan_clear(struct py_object* self, struct py_object* arg) {
 
 	for(i = 0; i < AGA_LEN(col); ++i) {
 		if(aga_list_get(arg, i, &v)) return 0;
-		if(aga_script_float(v, &col[i])) return 0;
+		if(aga_script_float(v, &f)) return 0;
+		col[i] = (float) f;
 	}
 
 	result = aga_clear(col);
@@ -398,7 +432,7 @@ struct py_object* agan_bitand(struct py_object* self, struct py_object* arg) {
 	struct py_object* a;
 	struct py_object* b;
 	struct py_object* v;
-	int av, bv;
+	py_value_t av, bv;
 
 	(void) self;
 
@@ -424,7 +458,7 @@ struct py_object* agan_bitshl(struct py_object* self, struct py_object* arg) {
 	struct py_object* a;
 	struct py_object* b;
 	struct py_object* v;
-	int av, bv;
+	py_value_t av, bv;
 
 	(void) self;
 

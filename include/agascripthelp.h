@@ -21,9 +21,9 @@ aga_bool_t aga_arg(
 /* Just returns 0. */
 void* aga_arg_error(const char*, const char*);
 
-aga_bool_t aga_script_float(struct py_object*, float*);
+aga_bool_t aga_script_float(struct py_object*, double*);
 
-aga_bool_t aga_script_int(struct py_object*, int*);
+aga_bool_t aga_script_int(struct py_object*, py_value_t*);
 
 aga_bool_t aga_script_string(struct py_object*, const char**);
 

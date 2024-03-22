@@ -196,6 +196,9 @@ int main(int argc, char** argv) {
 
 	aga_log(__FILE__, "Done!");
 
+	result = aga_setscriptptr(&scripteng, "dt", 0);
+	aga_soft(__FILE__, "aga_setscriptptr", result);
+
 	while(!die) {
 		apro_stamp_start(APRO_PRESWAP);
 
@@ -211,7 +214,7 @@ int main(int argc, char** argv) {
 		if(class.class) {
 			aga_soft(__FILE__, "aga_instcall", aga_instcall(&inst, "update"));
 		}
-		else { aga_soft(__FILE__, "aga_putnil", aga_putnil()); }
+		else aga_soft(__FILE__, "aga_putnil", aga_putnil());
 		apro_stamp_end(APRO_SCRIPT_UPDATE);
 
 		apro_stamp_start(APRO_RES_SWEEP);
@@ -219,6 +222,10 @@ int main(int argc, char** argv) {
 		apro_stamp_end(APRO_RES_SWEEP);
 
 		apro_stamp_end(APRO_PRESWAP);
+
+		result = aga_setscriptptr(
+				&scripteng, "dt", (void*) apro_stamp_us(APRO_PRESWAP));
+		aga_soft(__FILE__, "aga_setscriptptr", result);
 
 #ifndef NDEBUG
 		/* @formatter:off */

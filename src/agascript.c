@@ -68,6 +68,7 @@ aga_bool_t aga_script_err(const char* proc, enum aga_result err) {
 	return AGA_TRUE;
 }
 
+/* TODO: Generalised lookup helper since we no longer do nativeptr? */
 void* aga_getscriptptr(const char* key) {
 	struct py_object* ptr;
 
@@ -183,7 +184,6 @@ enum aga_result aga_setscriptptr(
 
 	if(!eng) return AGA_RESULT_BAD_PARAM;
 	if(!key) return AGA_RESULT_BAD_PARAM;
-	if(!value) return AGA_RESULT_BAD_PARAM;
 
 	if(!(v = py_int_new((py_value_t) value))) {
 		aga_script_trace();

@@ -82,12 +82,12 @@ void* aga_arg_error(const char* proc, const char* types) {
 	return 0;
 }
 
-aga_bool_t aga_script_float(struct py_object* o, float* f) {
-	*f = (float) py_float_get(o);
+aga_bool_t aga_script_float(struct py_object* o, double* f) {
+	*f = py_float_get(o);
 	return !!py_error_occurred();
 }
 
-aga_bool_t aga_script_int(struct py_object* o, int* i) {
+aga_bool_t aga_script_int(struct py_object* o, py_value_t * i) {
 	*i = py_int_get(o);
 	return !!py_error_occurred();
 }

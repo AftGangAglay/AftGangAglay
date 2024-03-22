@@ -374,8 +374,7 @@ static aga_bool_t agan_mkobj_light(
 		}
 	}
 
-	/*
-	aga_log(
+	/*aga_log(
 			__FILE__,
 			"\nambient: [ %f, %f, %f, %f ]\n"
 			"diffuse: [ %f, %f, %f, %f ]\n"
@@ -618,12 +617,16 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 	}
 
 	if(d) {
+		/*
+		 * TODO: Pipeline state push/pop akin to matrix stack. i.e.
+		 * 		 `Push(); Set(TEXTURE | LIGHTING); Pop()` or similar.
+		 */
 		glDisable(GL_TEXTURE_2D);
 		if(aga_script_gl_err("glDisable")) return 0;
 		glDisable(GL_DEPTH_TEST);
 		if(aga_script_gl_err("glDisable")) return 0;
-		/*glDisable(GL_LIGHTING);
-		if(aga_script_gl_err("glDisable")) return 0;*/
+		glDisable(GL_LIGHTING);
+		if(aga_script_gl_err("glDisable")) return 0;
 
 		glBegin(GL_LINE_STRIP);
 			glColor3f(0.0f, 1.0f, 0.0f);
@@ -648,8 +651,8 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 		if(aga_script_gl_err("glEnable")) return 0;
 		glEnable(GL_DEPTH_TEST);
 		if(aga_script_gl_err("glEnable")) return 0;
-		/*glEnable(GL_LIGHTING);
-		if(aga_script_gl_err("glEnable")) return 0;*/
+		glEnable(GL_LIGHTING);
+		if(aga_script_gl_err("glEnable")) return 0;
 	}
 
 	apro_stamp_end(APRO_SCRIPTGLUE_INOBJ);
@@ -715,7 +718,7 @@ static aga_bool_t agan_putobj_light(struct agan_lightdata* data) {
 	glLightfv(ind, GL_AMBIENT, data->ambient);
 	if(aga_script_gl_err("glLightfv")) return AGA_TRUE;
 
-	glLightfv(ind, GL_DIFFUSE, data->ambient);
+	glLightfv(ind, GL_DIFFUSE, data->diffuse);
 	if(aga_script_gl_err("glLightfv")) return AGA_TRUE;
 
 	glLightfv(ind, GL_SPECULAR, data->specular);
@@ -727,13 +730,13 @@ static aga_bool_t agan_putobj_light(struct agan_lightdata* data) {
 	glLightf(ind, GL_LINEAR_ATTENUATION, data->linear_attenuation);
 	if(aga_script_gl_err("glLightf")) return AGA_TRUE;
 
+	glLightf(ind, GL_QUADRATIC_ATTENUATION, data->quadratic_attenuation);
+	if(aga_script_gl_err("glLightf")) return AGA_TRUE;
+
 	glLightf(ind, GL_SPOT_EXPONENT, data->exponent);
 	if(aga_script_gl_err("glLightf")) return AGA_TRUE;
 
 	glLightf(ind, GL_SPOT_CUTOFF, data->angle);
-	if(aga_script_gl_err("glLightf")) return AGA_TRUE;
-
-	glLightf(ind, GL_QUADRATIC_ATTENUATION,data->quadratic_attenuation);
 	if(aga_script_gl_err("glLightf")) return AGA_TRUE;
 
 	glLightfv(ind, GL_SPOT_DIRECTION, data->direction);

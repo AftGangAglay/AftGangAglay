@@ -29,9 +29,9 @@ enum aga_result aga_setdrawparam(void) {
 	result = aga_gl_error(__FILE__, "glEnable");
 	if(result) return result;
 
-	/*glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
 	result = aga_gl_error(__FILE__, "glEnable");
-	if(result) return result;*/
+	if(result) return result;
 
 	glEnable(GL_DEPTH_TEST);
 	result = aga_gl_error(__FILE__, "glEnable");
@@ -49,9 +49,9 @@ enum aga_result aga_pushrawdraw(void) {
 	result = aga_gl_error(__FILE__, "glDisable");
 	if(result) return result;
 
-	/*glDisable(GL_LIGHTING);
+	glDisable(GL_LIGHTING);
 	result = aga_gl_error(__FILE__, "glDisable");
-	if(result) return result;*/
+	if(result) return result;
 
 	glDisable(GL_DEPTH_TEST);
 	result = aga_gl_error(__FILE__, "glDisable");
@@ -112,9 +112,9 @@ enum aga_result aga_poprawdraw(void) {
 	result = aga_gl_error(__FILE__, "glEnable");
 	if(result) return result;
 
-	/*glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
 	result = aga_gl_error(__FILE__, "glEnable");
-	if(result) return result;*/
+	if(result) return result;
 
 	glEnable(GL_DEPTH_TEST);
 	result = aga_gl_error(__FILE__, "glEnable");

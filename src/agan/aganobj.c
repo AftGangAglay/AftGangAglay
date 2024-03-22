@@ -434,14 +434,14 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 		return aga_arg_error("mkobj", "string");
 	}
 
-	retval = py_int_new(0);
-	v = (struct py_int*) retval;
-
-	if(!(v->value = (py_value_t) calloc(1, sizeof(struct agan_object)))) {
+	if(!(obj = calloc(1, sizeof(struct agan_object)))) {
 		return py_error_set_nomem();
 	}
 
-	obj = (void*) v->value;
+	retval = aga_script_mkptr(obj);
+	v = (struct py_int*) retval;
+
+
 	obj->light_data = 0;
 	if(!(obj->transform = agan_mktrans(0, 0))) goto cleanup;
 
@@ -489,7 +489,7 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 
 		free(obj->light_data);
 		py_object_decref(obj->transform);
-		free((void*) v->value);
+		free(aga_script_getptr(v));
 		py_object_decref(retval);
 
 		return 0;
@@ -498,7 +498,6 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 
 struct py_object* agan_killobj(struct py_object* self, struct py_object* arg) {
 	struct agan_object* obj;
-	struct py_int* v;
 
 	(void) self;
 
@@ -508,8 +507,7 @@ struct py_object* agan_killobj(struct py_object* self, struct py_object* arg) {
 		return aga_arg_error("killobj", "int");
 	}
 
-	v = (struct py_int*) arg;
-	obj = (void*) v->value;
+	obj = aga_script_getptr(arg);
 
 	glDeleteLists(obj->drawlist, 1);
 	if(aga_script_gl_err("glDeleteLists")) return 0;
@@ -567,7 +565,7 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 	if(aga_script_bool(j, &p)) return 0;
 	if(aga_script_bool(dbg, &d)) return 0;
 
-	obj = (void*) ((struct py_int*) o)->value;
+	obj = aga_script_getptr(o);
 	memcpy(mins, obj->min_extent, sizeof(mins));
 	memcpy(maxs, obj->max_extent, sizeof(maxs));
 
@@ -584,8 +582,8 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 		if(aga_list_get(scale, i, &flobj)) return 0;
 		if(aga_script_float(flobj, &f)) return 0;
 
-		mins[i] *= f;
-		maxs[i] *= f;
+		mins[i] *= (float) f;
+		maxs[i] *= (float) f;
 
 		if(aga_list_get(rot, i, &flobj)) return 0;
 		if(aga_script_float(flobj, &f)) return 0;
@@ -607,8 +605,8 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 		if(aga_list_get(pos, i, &flobj)) return 0;
 		if(aga_script_float(flobj, &f)) return 0;
 
-		mins[i] += f - tolerance;
-		maxs[i] += f + tolerance;
+		mins[i] += (float) (f - tolerance);
+		maxs[i] += (float) (f + tolerance);
 	}
 
 	/* TODO: Once cells are implemented check against current cell rad. */
@@ -683,7 +681,7 @@ struct py_object* agan_objconf(struct py_object* self, struct py_object* arg) {
 		return aga_arg_error("objconf", "int and list");
 	}
 
-	obj = (void*) ((struct py_int*) o)->value;
+	obj = aga_script_getptr(o);
 
 	result = aga_resseek(obj->res, &fp);
 	if(aga_script_err("aga_resseek", result)) return 0;
@@ -745,7 +743,6 @@ static aga_bool_t agan_putobj_light(struct agan_lightdata* data) {
 }
 
 struct py_object* agan_putobj(struct py_object* self, struct py_object* arg) {
-	struct py_int* v;
 	struct agan_object* obj;
 
 	(void) self;
@@ -758,8 +755,7 @@ struct py_object* agan_putobj(struct py_object* self, struct py_object* arg) {
 		return aga_arg_error("putobj", "int");
 	}
 
-	v = (struct py_int*) arg;
-	obj = (void*) v->value;
+	obj = aga_script_getptr(arg);
 
 	glMatrixMode(GL_MODELVIEW);
 	if(aga_script_gl_err("glMatrixMode")) return 0;
@@ -804,11 +800,10 @@ struct py_object* agan_objtrans(struct py_object* self, struct py_object* arg) {
 	apro_stamp_start(APRO_SCRIPTGLUE_OBJTRANS);
 
 	if(!aga_arg_list(arg, PY_TYPE_INT)) {
-		return aga_arg_error(
-				"objtrans", "int");
+		return aga_arg_error("objtrans", "int");
 	}
 
-	obj = (void*) ((struct py_int*) arg)->value;
+	obj = aga_script_getptr(arg);
 
 	apro_stamp_end(APRO_SCRIPTGLUE_OBJTRANS);
 

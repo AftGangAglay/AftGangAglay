@@ -55,22 +55,22 @@ aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv) {
 		switch(i) {
 			default: break;
 			case 0: {
-				glTranslatef(x, y, z);
-				if(aga_script_gl_err("glTranslatef")) return AGA_TRUE;
+				glTranslated(x, y, z);
+				if(aga_script_gl_err("glTranslated")) return AGA_TRUE;
 				break;
 			}
 			case 1: {
-				glRotatef(x, 1.0f, 0.0f, 0.0f);
-				if(aga_script_gl_err("glRotatef")) return AGA_TRUE;
-				glRotatef(y, 0.0f, 1.0f, 0.0f);
-				if(aga_script_gl_err("glRotatef")) return AGA_TRUE;
-				glRotatef(z, 0.0f, 0.0f, 1.0f);
-				if(aga_script_gl_err("glRotatef")) return AGA_TRUE;
+				glRotated(x, 1.0, 0.0, 0.0);
+				if(aga_script_gl_err("glRotated")) return AGA_TRUE;
+				glRotated(y, 0.0, 1.0, 0.0);
+				if(aga_script_gl_err("glRotated")) return AGA_TRUE;
+				glRotated(z, 0.0, 0.0, 1.0);
+				if(aga_script_gl_err("glRotated")) return AGA_TRUE;
 				break;
 			}
 			case 2: {
-				glScalef(x, y, z);
-				if(aga_script_gl_err("glScalef")) return AGA_TRUE;
+				glScaled(x, y, z);
+				if(aga_script_gl_err("glScaled")) return AGA_TRUE;
 				break;
 			}
 		}
@@ -315,19 +315,19 @@ struct py_object* agan_fogparam(struct py_object* self, struct py_object* arg) {
 	if(aga_list_get(arg, 0, &v)) return 0;
 	if(aga_script_float(v, &f)) return 0;
 
-	glFogf(GL_FOG_DENSITY, f);
+	glFogf(GL_FOG_DENSITY, (float) f);
 	if(aga_script_gl_err("glFogf")) return 0;
 
 	if(aga_list_get(arg, 1, &v)) return 0;
 	if(aga_script_float(v, &f)) return 0;
 
-	glFogf(GL_FOG_START, f);
+	glFogf(GL_FOG_START, (float) f);
 	if(aga_script_gl_err("glFogf")) return 0;
 
 	if(aga_list_get(arg, 2, &v)) return 0;
 	if(aga_script_float(v, &f)) return 0;
 
-	glFogf(GL_FOG_END, f);
+	glFogf(GL_FOG_END, (float) f);
 	if(aga_script_gl_err("glFogf")) return 0;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_FOGPARAM);
@@ -390,7 +390,7 @@ struct py_object* agan_text(struct py_object* self, struct py_object* arg) {
 	if(aga_list_get(t, 1, &f)) return 0;
 	if(aga_script_float(f, &y)) return 0;
 
-	if(aga_script_err("aga_puttext", aga_puttext(x, y, text))) {
+	if(aga_script_err("aga_puttext", aga_puttext((float) x, (float) y, text))) {
 		return 0;
 	}
 

@@ -89,7 +89,7 @@ void* aga_getscriptptr(const char* key) {
 		return 0;
 	}
 
-	return (void*) py_int_get(ptr);
+	return aga_script_getptr(ptr);
 }
 
 static enum aga_result aga_compilescript(
@@ -185,7 +185,7 @@ enum aga_result aga_setscriptptr(
 	if(!eng) return AGA_RESULT_BAD_PARAM;
 	if(!key) return AGA_RESULT_BAD_PARAM;
 
-	if(!(v = py_int_new((py_value_t) value))) {
+	if(!(v = aga_script_mkptr(value))) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}

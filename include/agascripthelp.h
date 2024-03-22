@@ -8,6 +8,9 @@
 
 #include <agapyinc.h>
 
+void* aga_script_mkptr(void*);
+void* aga_script_getptr(void*);
+
 aga_bool_t aga_arg_list(
 		const struct py_object*, enum py_type);
 

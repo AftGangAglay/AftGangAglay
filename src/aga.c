@@ -223,9 +223,16 @@ int main(int argc, char** argv) {
 
 		apro_stamp_end(APRO_PRESWAP);
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable: 4305) /* Type cast truncates. */
+#endif
 		result = aga_setscriptptr(
 				&scripteng, "dt", (void*) apro_stamp_us(APRO_PRESWAP));
 		aga_soft(__FILE__, "aga_setscriptptr", result);
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 #ifndef NDEBUG
 		/* @formatter:off */

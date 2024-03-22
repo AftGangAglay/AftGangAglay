@@ -58,6 +58,24 @@ void pyclose(FILE* fp) {
 	if(fclose(fp) == EOF) aga_errno(__FILE__, "fclose");
 }
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable: 4305) /* Type cast truncates. */
+# pragma warning(disable: 4826) /* Sign extending cast. */
+#endif
+
+void* aga_script_mkptr(void* p) {
+	return py_int_new((py_value_t) p);
+}
+
+void* aga_script_getptr(void* op) {
+	return (void*) py_int_get(op);
+}
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
+
 aga_bool_t aga_arg_list(
 		const struct py_object* args, enum py_type type) {
 

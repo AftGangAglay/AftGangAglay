@@ -126,7 +126,7 @@ void aga_loghdr(void* s, const char* loc, enum aga_logsev sev) {
 
 #ifdef _MSC_VER
 # pragma warning(push)
-# pragma warning(disable: 4774)
+# pragma warning(disable: 4774) /* Variable referenced has different types. */
 #endif
 	if(fprintf(s, f, loc) < 0) perror("fprintf");
 #ifdef _MSC_VER

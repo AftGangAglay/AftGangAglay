@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 

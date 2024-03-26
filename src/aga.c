@@ -11,6 +11,7 @@
 #include <agalog.h>
 #include <agaerr.h>
 #include <agapack.h>
+#include <agamidi.h>
 #include <agaio.h>
 #include <agadraw.h>
 #include <agastartup.h>
@@ -62,6 +63,7 @@ int main(int argc, char** argv) {
 	struct aga_respack pack;
 
 	struct aga_snddev snd;
+	struct aga_mididev midi;
 
 	struct aga_winenv env;
 	struct aga_win win;
@@ -143,12 +145,32 @@ int main(int argc, char** argv) {
 		result = aga_mksnddev(opts.audio_dev, &snd);
 		if(result) {
 			aga_soft(__FILE__, "aga_mksnddev", result);
+			/* TODO: Separate "unavailable snd/midi" and user defined. */
 			opts.audio_enabled = AGA_FALSE;
 		}
 	}
 
+	/* TODO: Work on MIDI. */
+	/* TODO: This is only a hard error while it's WIP. */
+	(void) midi;
+	/*
+	aga_check(__FILE__, "aga_mkmididev", aga_mkmididev(&midi));
+	{
+		struct aga_res* mres;
+		struct aga_midi m;
+
+		result = aga_mkres(&pack, "snd/sndtest.mid.raw", &mres);
+		aga_check(__FILE__, "aga_mkres", result);
+
+		result = aga_mkmidi(&midi, &m, mres->data, mres->size);
+		aga_check(__FILE__, "aga_mkmidi", result);
+
+		result = aga_midi_play(&midi, &m);
+		aga_check(__FILE__, "aga_midi_play", result);
+	}*/
+
 	if(!aga_streql(opts.version, AGA_VERSION)) {
-		static const char err[] = "err: Project version `%s' does not match "
+		static const char err[] = "warn: Project version `%s' does not match "
 								  "engine version `" AGA_VERSION "'";
 		aga_log(__FILE__, err, opts.version);
 	}

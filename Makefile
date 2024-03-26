@@ -27,7 +27,7 @@ SET_CFLAGS = $(SET_CFLAGS) /Od /Zi /D_DEBUG /MTd
 SET_CFLAGS = $(SET_CFLAGS) /O2 /DNDEBUG /MT
 !endif
 
-GL_LDLIBS = opengl32.lib glu32.lib gdi32.lib shell32.lib user32.lib
+GL_LDLIBS = opengl32.lib glu32.lib gdi32.lib shell32.lib user32.lib winmm.lib
 
 !include lib/prof/apro.mk
 !include vendor/python.mk

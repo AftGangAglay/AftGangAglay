@@ -31,9 +31,15 @@ static const PIXELFORMATDESCRIPTOR pixel_format = {
 struct aga_winproc_pack {
 	struct aga_keymap* keymap;
 	struct aga_pointer* pointer;
+	struct aga_buttons* buttons;
 	aga_bool_t* die;
 	aga_uint_t magic;
 };
+
+static void aga_setbuttondown(struct aga_buttons* b, enum aga_button t) {
+	enum aga_button_state* v = &b->states[t];
+	*v = ((*v == AGA_BUTTON_UP) ? AGA_BUTTON_CLICK : AGA_BUTTON_DOWN);
+}
 
 static LRESULT CALLBACK aga_winproc(
 		HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param) {
@@ -117,6 +123,33 @@ static LRESULT CALLBACK aga_winproc(
 			return 0;
 		}
 
+		case WM_LBUTTONDOWN: {
+			aga_setbuttondown(pack->buttons, AGA_BUTTON_LEFT);
+			return 0;
+		}
+		case WM_LBUTTONUP: {
+			pack->buttons->states[AGA_BUTTON_LEFT] = AGA_BUTTON_UP;
+			return 0;
+		}
+
+		case WM_RBUTTONDOWN: {
+			aga_setbuttondown(pack->buttons, AGA_BUTTON_RIGHT);
+			return 0;
+		}
+		case WM_RBUTTONUP: {
+			pack->buttons->states[AGA_BUTTON_RIGHT] = AGA_BUTTON_UP;
+			return 0;
+		}
+
+		case WM_MBUTTONDOWN: {
+			aga_setbuttondown(pack->buttons, AGA_BUTTON_MIDDLE);
+			return 0;
+		}
+		case WM_MBUTTONUP: {
+			pack->buttons->states[AGA_BUTTON_MIDDLE] = AGA_BUTTON_UP;
+			return 0;
+		}
+
 		case WM_CLOSE: {
 			if(!ReleaseDC(wnd, GetDC(wnd))) {
 				(void) aga_win32_error(__FILE__, "ReleaseDC");
@@ -192,8 +225,9 @@ enum aga_result aga_killwinenv(struct aga_winenv* env) {
 	return AGA_RESULT_OK;
 }
 
-enum aga_result
-aga_mkkeymap(struct aga_keymap* keymap, struct aga_winenv* env) {
+enum aga_result aga_mkkeymap(
+		struct aga_keymap* keymap, struct aga_winenv* env) {
+
 	if(!keymap) return AGA_RESULT_BAD_PARAM;
 	if(!env) return AGA_RESULT_BAD_PARAM;
 
@@ -374,22 +408,32 @@ enum aga_result aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
 
 enum aga_result aga_poll(
 		struct aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
-		struct aga_pointer* pointer, aga_bool_t* die) {
+		struct aga_pointer* pointer, aga_bool_t* die,
+		struct aga_buttons* buttons) {
 
 	enum aga_result result;
 	MSG msg;
 	struct aga_winproc_pack pack;
+	aga_size_t i;
 
 	if(!env) return AGA_RESULT_BAD_PARAM;
 	if(!keymap) return AGA_RESULT_BAD_PARAM;
 	if(!win) return AGA_RESULT_BAD_PARAM;
 	if(!pointer) return AGA_RESULT_BAD_PARAM;
 	if(!die) return AGA_RESULT_BAD_PARAM;
+	if(!buttons) return AGA_RESULT_BAD_PARAM;
 
 	pack.die = die;
 	pack.keymap = keymap;
 	pack.pointer = pointer;
+	pack.buttons = buttons;
 	pack.magic = AGA_WINPROC_PACK_MAGIC;
+
+	for(i = 0; i < AGA_LEN(buttons->states); ++i) {
+		if(buttons->states[i] == AGA_BUTTON_CLICK) {
+			buttons->states[i] = AGA_BUTTON_DOWN;
+		}
+	}
 
 	if(env->captured) {
 		result = aga_setclipcursor(win, GetActiveWindow() == win->hwnd);

@@ -17,6 +17,7 @@
 #define AGA_SCRIPT_WINENV ("winenv")
 #define AGA_SCRIPT_WIN ("win")
 #define AGA_SCRIPT_PACK ("respack")
+#define AGA_SCRIPT_BUTTONS ("buttons")
 
 struct aga_res;
 struct aga_respack;

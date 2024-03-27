@@ -74,7 +74,7 @@
 
 /* Epsilon when comparing floats in transforms. */
 #define AGA_TRANSFORM_TOLERANCE (0.1f)
-#define AGA_LEN(arr) (sizeof((arr)) / sizeof(*(arr)))
+#define AGA_LEN(arr) (sizeof((arr)) / sizeof((arr)[0]))
 
 #ifdef __GNUC__
 # pragma GCC diagnostic push

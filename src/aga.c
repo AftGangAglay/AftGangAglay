@@ -69,6 +69,7 @@ int main(int argc, char** argv) {
 	struct aga_win win;
 	struct aga_keymap keymap;
 	struct aga_pointer pointer;
+	struct aga_buttons buttons = { 0 };
 
 	struct aga_scripteng scripteng;
 	struct aga_scriptclass class = { 0 };
@@ -202,6 +203,9 @@ int main(int argc, char** argv) {
 		aga_soft(
 				__FILE__, "aga_setscriptptr", aga_setscriptptr(
 						&scripteng, AGA_SCRIPT_WIN, &win));
+		aga_soft(
+				__FILE__, "aga_setscriptptr", aga_setscriptptr(
+						&scripteng, AGA_SCRIPT_BUTTONS, &buttons));
 		/* Pack gets set during script engine init. */
 		/* SOFT(aga_setscriptptr, (&scripteng, AGA_SCRIPT_PACK, &pack)); */
 
@@ -225,11 +229,12 @@ int main(int argc, char** argv) {
 		apro_stamp_start(APRO_PRESWAP);
 
 		apro_stamp_start(APRO_POLL);
+
 		pointer.dx = 0;
 		pointer.dy = 0;
-		aga_soft(
-				__FILE__, "aga_poll", aga_poll(
-						&env, &keymap, &win, &pointer, &die));
+
+		aga_soft(__FILE__, "aga_poll", aga_poll(
+						&env, &keymap, &win, &pointer, &die, &buttons));
 		apro_stamp_end(APRO_POLL);
 
 		apro_stamp_start(APRO_SCRIPT_UPDATE);

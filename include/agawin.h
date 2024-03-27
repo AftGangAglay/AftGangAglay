@@ -52,6 +52,24 @@ struct aga_winenv {
 };
 #endif
 
+enum aga_button_state {
+	AGA_BUTTON_UP,
+	AGA_BUTTON_DOWN,
+	AGA_BUTTON_CLICK /* Became held this frame. */
+};
+
+enum aga_button {
+	AGA_BUTTON_LEFT,
+	AGA_BUTTON_RIGHT,
+	AGA_BUTTON_MIDDLE,
+
+	AGA_BUTTON_MAX
+};
+
+struct aga_buttons {
+	enum aga_button_state states[AGA_BUTTON_MAX];
+};
+
 struct aga_pointer {
 	int dx, dy;
 	int x, y;
@@ -94,7 +112,7 @@ enum aga_result aga_swapbuf(struct aga_winenv*, struct aga_win*);
 
 enum aga_result aga_poll(
 		struct aga_winenv*, struct aga_keymap*, struct aga_win*,
-		struct aga_pointer*, aga_bool_t*);
+		struct aga_pointer*, aga_bool_t*, struct aga_buttons*);
 
 enum aga_result aga_diag(const char*, const char*, aga_bool_t*, aga_bool_t);
 

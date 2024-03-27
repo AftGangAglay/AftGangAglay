@@ -511,8 +511,9 @@ struct py_object* agan_die(struct py_object* self, struct py_object* arg) {
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object*
-agan_setcursor(struct py_object* self, struct py_object* arg) {
+struct py_object* agan_setcursor(
+		struct py_object* self, struct py_object* arg) {
+
 	enum aga_result result;
 
 	struct py_object* o;
@@ -532,6 +533,7 @@ agan_setcursor(struct py_object* self, struct py_object* arg) {
 	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
 	   !aga_arg(&o, arg, 0, PY_TYPE_INT) ||
 	   !aga_arg(&v, arg, 1, PY_TYPE_INT)) {
+
 		return aga_arg_error("setcursor", "int and int");
 	}
 
@@ -544,6 +546,61 @@ agan_setcursor(struct py_object* self, struct py_object* arg) {
 	apro_stamp_end(APRO_SCRIPTGLUE_SETCURSOR);
 
 	return py_object_incref(PY_NONE);
+}
+
+static struct py_object* agan_shadeflat(
+		struct py_object* self, struct py_object* arg) {
+
+	py_value_t v;
+
+	(void) self;
+
+	apro_stamp_start(APRO_SCRIPTGLUE_SHADEFLAT);
+
+	if(!aga_arg_list(arg, PY_TYPE_INT)) {
+		return aga_arg_error("shadeflat", "int");
+	}
+
+	if(aga_script_int(arg, &v)) return 0;
+
+	glShadeModel(v ? GL_FLAT : GL_SMOOTH);
+	if(aga_script_gl_err("glShadeModel")) return 0;
+
+	apro_stamp_end(APRO_SCRIPTGLUE_SHADEFLAT);
+
+	return py_object_incref(PY_NONE);
+}
+
+/*
+ * TODO: We need to do a massive revamp where we *decref anything we don't
+ * 		 Return during an error state.
+ */
+static struct py_object* agan_getbuttons(
+		struct py_object* self, struct py_object* arg) {
+
+	struct py_object* retval;
+	struct aga_buttons* buttons;
+	unsigned i;
+
+	(void) self;
+	(void) arg;
+
+	apro_stamp_start(APRO_SCRIPTGLUE_GETBUTTONS);
+
+	if(!(buttons = aga_getscriptptr(AGA_SCRIPT_BUTTONS))) return 0;
+
+	if(!(retval = py_list_new(AGA_BUTTON_MAX))) return 0;
+
+	for(i = 0; i < AGA_LEN(buttons->states); ++i) {
+		struct py_object* v;
+
+		if(!(v = py_int_new(buttons->states[i]))) return 0;
+		if(aga_list_set(retval, i, v)) return 0;
+	}
+
+	apro_stamp_end(APRO_SCRIPTGLUE_GETBUTTONS);
+
+	return retval;
 }
 
 static enum aga_result aga_insertstr(const char* key, const char* value) {
@@ -606,10 +663,11 @@ enum aga_result aga_mkmod(void** dict) {
 #define _(name) { #name, agan_##name }
 	static const struct py_methodlist methods[] = {
 			/* Input */
-			_(getkey), _(getmotion), _(setcursor),
+			_(getkey), _(getmotion), _(setcursor), _(getbuttons),
 
 			/* Drawing */
 			_(setcam), _(text), _(fogparam), _(fogcol), _(clear), _(mktrans),
+			_(shadeflat),
 
 			/* Miscellaneous */
 			_(getconf), _(log), _(die),
@@ -638,6 +696,15 @@ enum aga_result aga_mkmod(void** dict) {
 	if(result) return result;
 
 	result = aga_insertfloat("E", e);
+	if(result) return result;
+
+	result = aga_insertint("CLICK", AGA_BUTTON_CLICK);
+	if(result) return result;
+
+	result = aga_insertint("DOWN", AGA_BUTTON_DOWN);
+	if(result) return result;
+
+	result = aga_insertint("UP", AGA_BUTTON_UP);
 	if(result) return result;
 
 	result = aga_insertstr("VERSION", AGA_VERSION);

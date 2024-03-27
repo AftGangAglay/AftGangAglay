@@ -355,7 +355,8 @@ enum aga_result aga_swapbuf(struct aga_winenv* env, struct aga_win* win) {
 
 enum aga_result aga_poll(
 		struct aga_winenv* env, struct aga_keymap* keymap, struct aga_win* win,
-		struct aga_pointer* pointer, aga_bool_t* die) {
+		struct aga_pointer* pointer, aga_bool_t* die,
+		struct aga_buttons* buttons) {
 
 	XEvent event;
 	struct pollfd pollfd;
@@ -363,7 +364,10 @@ enum aga_result aga_poll(
 
 	if(!env) return AGA_RESULT_BAD_PARAM;
 	if(!keymap) return AGA_RESULT_BAD_PARAM;
+	if(!win) return AGA_RESULT_BAD_PARAM;
 	if(!pointer) return AGA_RESULT_BAD_PARAM;
+	if(!die) return AGA_RESULT_BAD_PARAM;
+	if(!buttons) return AGA_RESULT_BAD_PARAM;
 
 	pollfd.fd = env->dpy_fd;
 	pollfd.events = POLLIN;

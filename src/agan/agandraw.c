@@ -8,8 +8,10 @@
 #include <agascript.h>
 #include <agascripthelp.h>
 #include <agastartup.h>
+#include <agawin.h>
 #include <agagl.h>
 #include <agadraw.h>
+#include <agalog.h>
 
 #include <apro.h>
 
@@ -254,28 +256,33 @@ struct py_object* agan_shadeflat(
 }
 
 struct py_object* agan_getpix(struct py_object* self, struct py_object* arg) {
-
 	aga_uint8_t pix[3];
 	py_value_t x, y;
 	unsigned i;
+	int h;
 	struct py_object* xo;
 	struct py_object* yo;
 	struct py_object* retval;
 
+	struct aga_win* win;
+
 	(void) self;
 
-	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
-	   !aga_arg(&xo, arg, 0, PY_TYPE_INT) ||
-	   !aga_arg(&yo, arg, 1, PY_TYPE_INT)) {
+	if(!(win = aga_getscriptptr(AGA_SCRIPT_WIN))) return 0;
 
-		return aga_arg_error("getpix", "int and int");
+	if(!aga_arg_list(arg, PY_TYPE_LIST)) {
+		return aga_arg_error("getpix", "list");
 	}
+
+	if(aga_list_get(arg, 0, &xo)) return 0;
+	if(aga_list_get(arg, 1, &yo)) return 0;
 
 	if(aga_script_int(xo, &x)) return 0;
 	if(aga_script_int(yo, &y)) return 0;
 
 	/* TODO: Invert `y' to start from top left. */
-	glReadPixels((int) x, (int) y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pix);
+	h = (int) (win->height - y);
+	glReadPixels((int) x, h, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pix);
 	if(aga_script_gl_err("glReadPixels")) return 0;
 
 	if(!(retval = py_list_new(AGA_LEN(pix)))) return 0;

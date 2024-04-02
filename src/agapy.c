@@ -90,7 +90,7 @@ aga_bool_t aga_arg(
 }
 
 void* aga_arg_error(const char* proc, const char* types) {
-	aga_fixed_buf_t buf;
+	aga_fixed_buf_t buf = { 0 };
 
 	strcat(buf, proc);
 	strcat(buf, "() arguments must be ");

@@ -16,6 +16,8 @@ struct aga_win {
 	void* hwnd;
 	void* dc;
 	aga_size_t width, height;
+
+	int client_off_x, client_off_y;
 };
 
 struct aga_keymap {

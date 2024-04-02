@@ -29,6 +29,7 @@ static const PIXELFORMATDESCRIPTOR pixel_format = {
 #define AGA_WINPROC_PACK_MAGIC (0x547123AA)
 
 struct aga_winproc_pack {
+	struct aga_win* win;
 	struct aga_keymap* keymap;
 	struct aga_pointer* pointer;
 	struct aga_buttons* buttons;
@@ -118,8 +119,8 @@ static LRESULT CALLBACK aga_winproc(
 		}
 
 		case WM_MOUSEMOVE: {
-			pack->pointer->x = GET_X_LPARAM(l_param);
-			pack->pointer->y = GET_Y_LPARAM(l_param);
+			pack->pointer->x = GET_X_LPARAM(l_param) - pack->win->client_off_x;
+			pack->pointer->y = GET_Y_LPARAM(l_param) - pack->win->client_off_y;
 			return 0;
 		}
 
@@ -261,9 +262,6 @@ enum aga_result aga_mkwin(
 	if(!env) return AGA_RESULT_BAD_PARAM;
 	if(!win) return AGA_RESULT_BAD_PARAM;
 
-	win->width = width;
-	win->height = height;
-
 	win->hwnd = CreateWindowA(AGA_CLASS_NAME, "Aft Gang Aglay", mask,
 							  CW_USEDEFAULT, CW_USEDEFAULT, (int) width,
 							  (int) height, 0, 0, env->module, 0);
@@ -284,8 +282,21 @@ enum aga_result aga_mkwin(
 	}
 
 	mouse.hwndTarget = win->hwnd;
-	if(RegisterRawInputDevices(&mouse, 1, sizeof(mouse))) {
+	if(!RegisterRawInputDevices(&mouse, 1, sizeof(mouse))) {
 		return aga_win32_error(__FILE__, "RegisterRawInputDevices");
+	}
+
+	{
+		RECT r;
+		if(!GetClientRect(win->hwnd, &r)) {
+			return aga_win32_error(__FILE__, "GetClientRect");
+		}
+
+		win->width = r.right - r.left;
+		win->height = r.bottom - r.top;
+
+		win->client_off_x = r.left;
+		win->client_off_y = r.top;
 	}
 
 	return AGA_RESULT_OK;
@@ -428,6 +439,7 @@ enum aga_result aga_poll(
 	pack.pointer = pointer;
 	pack.buttons = buttons;
 	pack.magic = AGA_WINPROC_PACK_MAGIC;
+	pack.win = win;
 
 	for(i = 0; i < AGA_LEN(buttons->states); ++i) {
 		if(buttons->states[i] == AGA_BUTTON_CLICK) {

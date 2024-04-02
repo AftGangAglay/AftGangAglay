@@ -130,3 +130,25 @@ struct py_object* agan_getbuttons(
 
 	return retval;
 }
+
+struct py_object* agan_getpos(struct py_object* self, struct py_object* arg) {
+	struct py_object* retval;
+	struct py_object* v;
+
+	struct aga_pointer* pointer;
+
+	(void) self;
+	(void) arg;
+
+	if(!(pointer = aga_getscriptptr(AGA_SCRIPT_POINTER))) return 0;
+
+	if(!(retval = py_list_new(2))) return 0;
+
+	if(!(v = py_int_new(pointer->x))) return 0;
+	if(aga_list_set(retval, 0, v)) return 0;
+
+	if(!(v = py_int_new(pointer->y))) return 0;
+	if(aga_list_set(retval, 1, v)) return 0;
+
+	return retval;
+}

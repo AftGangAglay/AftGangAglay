@@ -16,4 +16,6 @@ struct py_object* agan_setcursor(struct py_object*, struct py_object*);
 
 struct py_object* agan_getbuttons(struct py_object*, struct py_object*);
 
+struct py_object* agan_getpos(struct py_object*, struct py_object*);
+
 #endif

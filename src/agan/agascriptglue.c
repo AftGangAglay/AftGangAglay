@@ -85,7 +85,7 @@ enum aga_result aga_mkmod(void** dict) {
 #define _(name) { #name, agan_##name }
 	static const struct py_methodlist methods[] = {
 			/* Input */
-			_(getkey), _(getmotion), _(setcursor), _(getbuttons),
+			_(getkey), _(getmotion), _(setcursor), _(getbuttons), _(getpos),
 
 			/* Drawing */
 			_(setcam), _(text), _(fogparam), _(fogcol), _(clear), _(mktrans),

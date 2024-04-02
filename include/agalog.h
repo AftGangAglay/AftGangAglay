@@ -9,14 +9,6 @@
 #include <agaenv.h>
 #include <agaresult.h>
 
-/*
- * NOTE: This exists for cases where we are forced to use fixed size buffers
- * 		 Due to limitations like the nonexistence of `vsnprintf'.
- * 		 This is NOT an excuse to use this pattern unnecessarily - play nice
- * 		 With your buffers.
- */
-typedef char aga_fixed_buf_t[2048 + 1];
-
 struct aga_logctx {
 	void** targets;
 	aga_size_t len;

@@ -22,4 +22,6 @@ enum aga_result aga_clear(const float*);
 
 enum aga_result aga_flush(void);
 
+enum aga_result aga_gl_error(const char*, const char*);
+
 #endif

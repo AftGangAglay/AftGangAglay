@@ -52,8 +52,6 @@ struct agan_object {
 	float max_extent[3];
 };
 
-struct py_object* agan_mktrans(struct py_object*, struct py_object*);
-
 struct py_object* agan_mkobj(struct py_object*, struct py_object*);
 
 struct py_object* agan_inobj(struct py_object*, struct py_object*);

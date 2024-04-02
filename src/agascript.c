@@ -4,6 +4,7 @@
  */
 
 #include <agascript.h>
+#include <agascripthelp.h>
 #include <agalog.h>
 #include <agaerr.h>
 #include <agapack.h>
@@ -54,46 +55,9 @@ void aga_script_trace(void) {
 	}
 }
 
-aga_bool_t aga_script_err(const char* proc, enum aga_result err) {
-	aga_fixed_buf_t buf = { 0 };
-
-	if(!err) return AGA_FALSE;
-
-	if(sprintf(buf, "%s: %s", proc, aga_result_name(err)) < 0) {
-		aga_errno(__FILE__, "sprintf");
-		return AGA_TRUE;
-	}
-	py_error_set_string(py_runtime_error, buf);
-
-	return AGA_TRUE;
-}
-
-/* TODO: Generalised lookup helper since we no longer do nativeptr? */
-void* aga_getscriptptr(const char* key) {
-	struct py_object* ptr;
-
-	if(!key) {
-		py_error_set_string(py_runtime_error, "unexpected null pointer");
-		return 0;
-	}
-
-	ptr = py_dict_lookup(agan_dict, key);
-	if(!ptr) {
-		py_error_set_string(
-				py_runtime_error, "failed to resolve script pointer");
-		return 0;
-	}
-
-	if(ptr->type != PY_TYPE_INT) {
-		py_error_set_badarg();
-		return 0;
-	}
-
-	return aga_script_getptr(ptr);
-}
-
 static enum aga_result aga_compilescript(
-		const char* script, struct aga_respack* pack, struct py_object** dict) {
+		const char* script, struct aga_respack* pack,
+		struct py_object** dict) {
 
 	enum aga_result result;
 	void* fp;

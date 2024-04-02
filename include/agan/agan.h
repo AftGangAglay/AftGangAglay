@@ -6,7 +6,8 @@
 #ifndef AGAN_H
 #define AGAN_H
 
-#include <agascripthelp.h>
+#include <agaresult.h>
+#include <agapyinc.h>
 
 struct aga_conf_node;
 
@@ -16,9 +17,15 @@ extern const char* agan_conf_components[3];
 extern const char* agan_xyz[3];
 extern const char* agan_rgb[3];
 
-aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv);
+aga_bool_t aga_script_err(const char*, enum aga_result);
+
+aga_bool_t aga_script_gl_err(const char*);
+
+void* aga_getscriptptr(const char*);
+
+aga_bool_t agan_settransmat(struct py_object*, aga_bool_t);
 
 struct py_object* agan_scriptconf(
-		struct aga_conf_node* node, aga_bool_t root, struct py_object* list);
+		struct aga_conf_node*, aga_bool_t, struct py_object*);
 
 #endif

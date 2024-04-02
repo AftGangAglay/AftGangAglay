@@ -12,17 +12,21 @@ AGA_SRC2 = $(AGA)agalog.c $(AGA)agapack.c $(AGA)agapy.c $(AGA)agascript.c
 AGA_SRC3 = $(AGA)agasnd.c $(AGA)agastartup.c $(AGA)agautil.c $(AGA)agaw32.c
 AGA_SRC4 = $(AGA)agawin.c $(AGA)aga.c $(AGAN)agan.c $(AGAN)aganobj.c
 AGA_SRC5 = $(AGAN)agascriptglue.c $(AGA)agaresgen.c $(AGA)agamidi.c
+AGA_SRC6 = $(AGAN)aganio.c $(AGAN)agandraw.c $(AGAN)aganmisc.c
+AGA_SRC7 = $(AGAN)aganmath.c
+AGA_SRC8 = $(AGA_SRC1) $(AGA_SRC2) $(AGA_SRC3) $(AGA_SRC4) $(AGA_SRC5)
 
 AGA_HDR1 = $(AGAH)agaconf.h $(AGAH)agadraw.h $(AGAH)agaenv.h $(AGAH)agaerr.h
 AGA_HDR2 = $(AGAH)agagl.h $(AGAH)agaio.h $(AGAH)agalog.h $(AGAH)agapack.h
 AGA_HDR3 = $(AGAH)agapyinc.h $(AGAH)agaresult.h $(AGAH)agascript.h
 AGA_HDR4 = $(AGAH)agascripthelp.h $(AGAH)agasnd.h $(AGAH)agastartup.h
 AGA_HDR5 = $(AGAH)agastd.h $(AGAH)agautil.h $(AGAH)agaw32.h $(AGAH)agawin.h
-AGA_HDR6 = $(AGANH)agan.h $(AGANH)aganobj.h
-AGA_HDR7 = $(AGA_HDR1) $(AGA_HDR2) $(AGA_HDR3) $(AGA_HDR4) $(AGA_HDR5)
+AGA_HDR6 = $(AGANH)agan.h $(AGANH)aganobj.h $(AGANH)aganio.h $(AGANH)agandraw.h
+AGA_HDR7 = $(AGANH)aganmisc.h
+AGA_HDR8 = $(AGA_HDR1) $(AGA_HDR2) $(AGA_HDR3) $(AGA_HDR4) $(AGA_HDR5)
 
-AGA_SRC = $(AGA_SRC1) $(AGA_SRC2) $(AGA_SRC3) $(AGA_SRC4) $(AGA_SRC5)
-AGA_HDR = $(AGA_HDR6) $(AGA_HDR7)
+AGA_SRC = $(AGA_SRC6) $(AGA_SRC7) $(AGA_SRC8)
+AGA_HDR = $(AGA_HDR6) $(AGA_HDR7) $(AGA_HDR8)
 AGA_OBJ = $(subst .c,$(OBJ),$(AGA_SRC))
 
 AGA_OUT = src$(SEP)aga$(EXE)

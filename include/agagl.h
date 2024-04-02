@@ -44,6 +44,4 @@
 # undef GL_GLEXT_PROTOTYPES
 #endif
 
-enum aga_result aga_gl_error(const char*, const char*);
-
 #endif

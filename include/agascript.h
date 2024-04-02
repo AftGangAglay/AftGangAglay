@@ -43,8 +43,6 @@ enum aga_result aga_killscripteng(struct aga_scripteng*);
 
 enum aga_result aga_setscriptptr(struct aga_scripteng*, const char*, void*);
 
-void* aga_getscriptptr(const char*);
-
 enum aga_result aga_findclass(
 		struct aga_scripteng*, struct aga_scriptclass*, const char*);
 
@@ -56,10 +54,6 @@ enum aga_result aga_killscriptinst(struct aga_scriptinst*);
 enum aga_result aga_instcall(struct aga_scriptinst*, const char*);
 
 void aga_script_trace(void);
-
-aga_bool_t aga_script_err(const char*, enum aga_result);
-
-aga_bool_t aga_script_gl_err(const char*);
 
 enum aga_result aga_mkmod(void**);
 

@@ -4,16 +4,15 @@
  */
 
 #include <agan/aganobj.h>
+#include <agan/agandraw.h>
 
 #include <agagl.h>
 #include <agautil.h>
-#include <agaresult.h>
 #include <agalog.h>
 #include <agascript.h>
+#include <agascripthelp.h>
 #include <agapack.h>
 #include <agaio.h>
-#include <agapyinc.h>
-#include <agascripthelp.h>
 
 #include <apro.h>
 
@@ -28,41 +27,14 @@
 
 /* TODO: Report object-related errors with path. */
 
-struct py_object* agan_mktrans(struct py_object* self, struct py_object* arg) {
-	struct py_object* retval;
-	struct py_object* list;
-	struct py_object* f;
-	aga_size_t i, j;
-
-	(void) self;
-	(void) arg;
-
-	apro_stamp_start(APRO_SCRIPTGLUE_MKTRANS);
-
-	if(!(retval = py_dict_new())) return 0;
-
-	for(i = 0; i < 3; ++i) {
-		if(!(list = py_list_new(3))) return 0;
-
-		for(j = 0; j < 3; ++j) {
-			if(!(f = py_float_new((i == 2 ? 1.0 : 0.0)))) return 0;
-			if(aga_list_set(list, j, f)) return 0;
-		}
-
-		if(py_dict_insert(retval, agan_trans_components[i], list) == -1) {
-			return 0;
-		}
-	}
-
-	apro_stamp_end(APRO_SCRIPTGLUE_MKTRANS);
-
-	return retval;
-}
-
 /*
  * TODO: Object init uses a lot of nonlinear conf lookup. If we just traversed
  * 		 The tree "as-is" it'd require the conf to be well-ordered (which we
  * 		 Don't want) - so we need a hybrid approach.
+ */
+
+/*
+ * TODO: "Portal" object property using stencil buffers and camera state.
  */
 
 static aga_bool_t agan_mkobj_trans(

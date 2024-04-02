@@ -3,10 +3,13 @@
  * Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
+/* TODO: This should probably be in agan. */
+
 #ifndef AGA_SCRIPTHELP_H
 #define AGA_SCRIPTHELP_H
 
 #include <agapyinc.h>
+#include <agascript.h> /* For scriptptr defs. */
 
 void* aga_script_mkptr(void*);
 void* aga_script_getptr(void*);

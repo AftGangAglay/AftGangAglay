@@ -75,6 +75,10 @@ int main(int argc, char** argv) {
 	struct aga_scriptclass class = { 0 };
 	struct aga_scriptinst inst;
 
+	enum aga_drawflags drawflags = AGA_DRAW_BACKFACE | AGA_DRAW_FOG |
+								   AGA_DRAW_TEXTURE | AGA_DRAW_LIGHTING |
+								   AGA_DRAW_DEPTH;
+
 	aga_bool_t die = AGA_FALSE;
 
 #ifndef NDEBUG
@@ -134,7 +138,7 @@ int main(int argc, char** argv) {
 
 	aga_log(__FILE__, "Acquired GL context");
 
-	aga_check(__FILE__, "aga_setdrawparam", aga_setdrawparam());
+	aga_check(__FILE__, "aga_setdraw", aga_setdraw(drawflags));
 
 #ifdef _DEBUG
 # ifdef AGA_HAVE_SPAWN

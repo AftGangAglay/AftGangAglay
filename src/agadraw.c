@@ -10,36 +10,39 @@
 #include <agaerr.h>
 #include <agagl.h>
 
-enum aga_result aga_setdrawparam(void) {
+static enum aga_drawflags aga_global_drawflags = 0;
+
+enum aga_result aga_setdraw(enum aga_drawflags flags) {
+	static const char* name[] = { "glDisable", "glEnable" };
+	static void (*func[])(GLenum) = { glDisable, glEnable };
+	static struct {
+		enum aga_drawflags flag;
+		GLenum cap;
+	} flag[] = {
+			{ AGA_DRAW_BACKFACE, GL_CULL_FACE },
+			{ AGA_DRAW_BLEND, GL_BLEND },
+			{ AGA_DRAW_FOG, GL_FOG },
+			{ AGA_DRAW_TEXTURE, GL_TEXTURE_2D },
+			{ AGA_DRAW_LIGHTING, GL_LIGHTING },
+			{ AGA_DRAW_DEPTH, GL_DEPTH_TEST }
+	};
+
 	enum aga_result result;
+	aga_size_t i;
 
-	glEnable(GL_CULL_FACE);
-	result = aga_gl_error(__FILE__, "glEnable");
-	if(result) return result;
+	for(i = 0; i < AGA_LEN(flag); ++i) {
+		aga_bool_t x = !!(flags & flag[i].flag);
+		func[x](flag[i].cap);
+		if((result = aga_gl_error(__FILE__, name[x]))) return result;
+	}
 
-	glEnable(GL_BLEND);
-	result = aga_gl_error(__FILE__, "glEnable");
-	if(result) return result;
+	aga_global_drawflags = flags;
 
-	glEnable(GL_FOG);
-	result = aga_gl_error(__FILE__, "glEnable");
-	if(result) return result;
+	return AGA_RESULT_OK;
+}
 
-	glEnable(GL_TEXTURE_2D);
-	result = aga_gl_error(__FILE__, "glEnable");
-	if(result) return result;
-
-	glEnable(GL_LIGHTING);
-	result = aga_gl_error(__FILE__, "glEnable");
-	if(result) return result;
-
-	glEnable(GL_DEPTH_TEST);
-	result = aga_gl_error(__FILE__, "glEnable");
-	if(result) return result;
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	return aga_gl_error(__FILE__, "glBlendFunc");
+enum aga_drawflags aga_getdraw(void) {
+	return aga_global_drawflags;
 }
 
 enum aga_result aga_pushrawdraw(void) {

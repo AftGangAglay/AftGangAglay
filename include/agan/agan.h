@@ -17,6 +17,14 @@ extern const char* agan_conf_components[3];
 extern const char* agan_xyz[3];
 extern const char* agan_rgb[3];
 
+enum aga_result aga_insertstr(const char*, const char*);
+
+enum aga_result aga_insertfloat(const char*, double);
+
+enum aga_result aga_insertint(const char*, py_value_t);
+
+enum aga_result aga_mkmod(void**);
+
 aga_bool_t aga_script_err(const char*, enum aga_result);
 
 aga_bool_t aga_script_gl_err(const char*);

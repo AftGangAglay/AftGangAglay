@@ -15,7 +15,11 @@
 
 #include <apro.h>
 
-struct py_object* agan_setcam(struct py_object* self, struct py_object* arg) {
+enum aga_result agan_draw_register(void) {
+	return AGA_RESULT_OK;
+}
+
+struct py_object* agan_setcam(struct py_object* self, struct py_object* args) {
 	struct py_object* t;
 	struct py_object* mode;
 	aga_bool_t b;
@@ -29,9 +33,9 @@ struct py_object* agan_setcam(struct py_object* self, struct py_object* arg) {
 
 	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
 
-	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
-	   !aga_arg(&t, arg, 0, PY_TYPE_DICT) ||
-	   !aga_arg(&mode, arg, 1, PY_TYPE_INT)) {
+	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
+	   !aga_arg(&t, args, 0, PY_TYPE_DICT) ||
+	   !aga_arg(&mode, args, 1, PY_TYPE_INT)) {
 
 		return aga_arg_error("setcam", "dict and int");
 	}
@@ -65,7 +69,7 @@ struct py_object* agan_setcam(struct py_object* self, struct py_object* arg) {
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_text(struct py_object* self, struct py_object* arg) {
+struct py_object* agan_text(struct py_object* self, struct py_object* args) {
 	const char* text;
 	struct py_object* str;
 	struct py_object* t;
@@ -76,9 +80,9 @@ struct py_object* agan_text(struct py_object* self, struct py_object* arg) {
 
 	apro_stamp_start(APRO_SCRIPTGLUE_TEXT);
 
-	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
-	   !aga_arg(&str, arg, 0, PY_TYPE_STRING) ||
-	   !aga_arg(&t, arg, 1, PY_TYPE_LIST)) {
+	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
+	   !aga_arg(&str, args, 0, PY_TYPE_STRING) ||
+	   !aga_arg(&t, args, 1, PY_TYPE_LIST)) {
 
 		return aga_arg_error("text", "string and list");
 	}
@@ -106,7 +110,7 @@ struct py_object* agan_text(struct py_object* self, struct py_object* arg) {
  * 		 [ density(norm), start, end ]
  */
 struct py_object* agan_fogparam(
-		struct py_object* self, struct py_object* arg) {
+		struct py_object* self, struct py_object* args) {
 
 	struct py_object* v;
 	double f;
@@ -115,26 +119,26 @@ struct py_object* agan_fogparam(
 
 	apro_stamp_start(APRO_SCRIPTGLUE_FOGPARAM);
 
-	if(!aga_arg_list(arg, PY_TYPE_LIST)) {
+	if(!aga_arg_list(args, PY_TYPE_LIST)) {
 		return aga_arg_error("fogparam", "list");
 	}
 
 	glFogi(GL_FOG_MODE, GL_EXP);
 	if(aga_script_gl_err("glFogi")) return 0;
 
-	if(aga_list_get(arg, 0, &v)) return 0;
+	if(aga_list_get(args, 0, &v)) return 0;
 	if(aga_script_float(v, &f)) return 0;
 
 	glFogf(GL_FOG_DENSITY, (float) f);
 	if(aga_script_gl_err("glFogf")) return 0;
 
-	if(aga_list_get(arg, 1, &v)) return 0;
+	if(aga_list_get(args, 1, &v)) return 0;
 	if(aga_script_float(v, &f)) return 0;
 
 	glFogf(GL_FOG_START, (float) f);
 	if(aga_script_gl_err("glFogf")) return 0;
 
-	if(aga_list_get(arg, 2, &v)) return 0;
+	if(aga_list_get(args, 2, &v)) return 0;
 	if(aga_script_float(v, &f)) return 0;
 
 	glFogf(GL_FOG_END, (float) f);
@@ -145,7 +149,7 @@ struct py_object* agan_fogparam(
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_fogcol(struct py_object* self, struct py_object* arg) {
+struct py_object* agan_fogcol(struct py_object* self, struct py_object* args) {
 	struct py_object* v;
 	aga_size_t i;
 	double f;
@@ -155,12 +159,12 @@ struct py_object* agan_fogcol(struct py_object* self, struct py_object* arg) {
 
 	apro_stamp_start(APRO_SCRIPTGLUE_FOGCOL);
 
-	if(!aga_arg_list(arg, PY_TYPE_LIST)) {
+	if(!aga_arg_list(args, PY_TYPE_LIST)) {
 		return aga_arg_error("fogcol", "list");
 	}
 
 	for(i = 0; i < 3; ++i) {
-		if(aga_list_get(arg, i, &v)) return 0;
+		if(aga_list_get(args, i, &v)) return 0;
 		if(aga_script_float(v, &f)) return 0;
 		col[i] = (float) f;
 	}
@@ -173,7 +177,7 @@ struct py_object* agan_fogcol(struct py_object* self, struct py_object* arg) {
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_clear(struct py_object* self, struct py_object* arg) {
+struct py_object* agan_clear(struct py_object* self, struct py_object* args) {
 	enum aga_result result;
 
 	struct py_object* v;
@@ -185,10 +189,10 @@ struct py_object* agan_clear(struct py_object* self, struct py_object* arg) {
 
 	apro_stamp_start(APRO_SCRIPTGLUE_CLEAR);
 
-	if(!aga_arg_list(arg, PY_TYPE_LIST)) return aga_arg_error("clear", "list");
+	if(!aga_arg_list(args, PY_TYPE_LIST)) return aga_arg_error("clear", "list");
 
 	for(i = 0; i < AGA_LEN(col); ++i) {
-		if(aga_list_get(arg, i, &v)) return 0;
+		if(aga_list_get(args, i, &v)) return 0;
 		if(aga_script_float(v, &f)) return 0;
 		col[i] = (float) f;
 	}
@@ -201,14 +205,14 @@ struct py_object* agan_clear(struct py_object* self, struct py_object* arg) {
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_mktrans(struct py_object* self, struct py_object* arg) {
+struct py_object* agan_mktrans(struct py_object* self, struct py_object* args) {
 	struct py_object* retval;
 	struct py_object* list;
 	struct py_object* f;
 	aga_size_t i, j;
 
 	(void) self;
-	(void) arg;
+	(void) args;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_MKTRANS);
 
@@ -233,7 +237,7 @@ struct py_object* agan_mktrans(struct py_object* self, struct py_object* arg) {
 }
 
 struct py_object* agan_shadeflat(
-		struct py_object* self, struct py_object* arg) {
+		struct py_object* self, struct py_object* args) {
 
 	py_value_t v;
 
@@ -241,11 +245,11 @@ struct py_object* agan_shadeflat(
 
 	apro_stamp_start(APRO_SCRIPTGLUE_SHADEFLAT);
 
-	if(!aga_arg_list(arg, PY_TYPE_INT)) {
+	if(!aga_arg_list(args, PY_TYPE_INT)) {
 		return aga_arg_error("shadeflat", "int");
 	}
 
-	if(aga_script_int(arg, &v)) return 0;
+	if(aga_script_int(args, &v)) return 0;
 
 	glShadeModel(v ? GL_FLAT : GL_SMOOTH);
 	if(aga_script_gl_err("glShadeModel")) return 0;
@@ -255,7 +259,10 @@ struct py_object* agan_shadeflat(
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_getpix(struct py_object* self, struct py_object* arg) {
+struct py_object* agan_getpix(struct py_object* self, struct py_object* args) {
+	static aga_uint_t surface_names[] = {
+			GL_FRONT, GL_BACK, GL_STENCIL, GL_DEPTH };
+
 	aga_uint8_t pix[3];
 	py_value_t x, y;
 	unsigned i;
@@ -263,22 +270,48 @@ struct py_object* agan_getpix(struct py_object* self, struct py_object* arg) {
 	struct py_object* xo;
 	struct py_object* yo;
 	struct py_object* retval;
+	struct py_object* list;
+	/* TODO: Gracefully handle single vs. double buffered envs. */
+	enum agan_surface surface = AGAN_SURFACE_BACK;
 
 	struct aga_win* win;
 
 	(void) self;
 
+	apro_stamp_start(APRO_SCRIPTGLUE_GETPIX);
+
 	if(!(win = aga_getscriptptr(AGA_SCRIPT_WIN))) return 0;
 
-	if(!aga_arg_list(arg, PY_TYPE_LIST)) {
-		return aga_arg_error("getpix", "list");
+	list = args;
+	if(!aga_arg_list(args, PY_TYPE_LIST)) {
+		struct py_object* target;
+
+		if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
+			!aga_arg(&list, args, 0, PY_TYPE_LIST) ||
+			!aga_arg(&target, args, 1, PY_TYPE_INT)) {
+
+			return aga_arg_error("getpix", "list and int");
+		}
+		else {
+			py_value_t v;
+			if(aga_script_int(target, &v)) return 0;
+
+			if(v < AGAN_SURFACE_FRONT || v > AGAN_SURFACE_DEPTH) {
+				py_error_set_badarg();
+				return 0;
+			}
+			surface = v;
+		}
 	}
 
-	if(aga_list_get(arg, 0, &xo)) return 0;
-	if(aga_list_get(arg, 1, &yo)) return 0;
+	if(aga_list_get(args, 0, &xo)) return 0;
+	if(aga_list_get(args, 1, &yo)) return 0;
 
 	if(aga_script_int(xo, &x)) return 0;
 	if(aga_script_int(yo, &y)) return 0;
+
+	glReadBuffer(surface_names[surface]);
+	if(aga_script_gl_err("glReadBuffer")) return 0;
 
 	/* TODO: Invert `y' to start from top left. */
 	h = (int) (win->height - y);
@@ -294,5 +327,34 @@ struct py_object* agan_getpix(struct py_object* self, struct py_object* arg) {
 		if(aga_list_set(retval, i, v)) return 0;
 	}
 
+	apro_stamp_end(APRO_SCRIPTGLUE_GETPIX);
+
 	return retval;
+}
+
+struct py_object* agan_setflag(
+		struct py_object* self, struct py_object* args) {
+
+	py_value_t v;
+
+	(void) self;
+
+	if(!aga_arg_list(args, PY_TYPE_INT)) {
+		return aga_arg_error("setflag", "int");
+	}
+
+	if(aga_script_int(args, &v)) return 0;
+
+	if(aga_script_err("aga_setdraw", aga_setdraw(v))) return 0;
+
+	return py_object_incref(PY_NONE);
+}
+
+struct py_object* agan_getflag(
+		struct py_object* self, struct py_object* args) {
+
+	(void) self;
+	(void) args;
+
+	return py_int_new(aga_getdraw());
 }

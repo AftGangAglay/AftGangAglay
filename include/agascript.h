@@ -55,6 +55,4 @@ enum aga_result aga_instcall(struct aga_scriptinst*, const char*);
 
 void aga_script_trace(void);
 
-enum aga_result aga_mkmod(void**);
-
 #endif

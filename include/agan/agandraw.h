@@ -8,6 +8,15 @@
 
 #include <agan/agan.h>
 
+enum agan_surface {
+	AGAN_SURFACE_FRONT,
+	AGAN_SURFACE_BACK,
+	AGAN_SURFACE_STENCIL,
+	AGAN_SURFACE_DEPTH
+};
+
+enum aga_result agan_draw_register(void);
+
 struct py_object* agan_setcam(struct py_object*, struct py_object*);
 
 struct py_object* agan_text(struct py_object*, struct py_object*);
@@ -23,5 +32,9 @@ struct py_object* agan_mktrans(struct py_object*, struct py_object*);
 struct py_object* agan_shadeflat(struct py_object*, struct py_object*);
 
 struct py_object* agan_getpix(struct py_object*, struct py_object*);
+
+struct py_object* agan_setflag(struct py_object*, struct py_object*);
+
+struct py_object* agan_getflag(struct py_object*, struct py_object*);
 
 #endif

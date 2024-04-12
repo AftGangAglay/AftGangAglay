@@ -8,6 +8,8 @@
 
 #include <agan/agan.h>
 
+enum aga_result agan_io_register(void);
+
 struct py_object* agan_getkey(struct py_object*, struct py_object*);
 
 struct py_object* agan_getmotion(struct py_object*, struct py_object*);

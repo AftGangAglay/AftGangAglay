@@ -9,6 +9,7 @@
 #include <agagl.h>
 #include <agautil.h>
 #include <agalog.h>
+#include <agadraw.h>
 #include <agascript.h>
 #include <agascripthelp.h>
 #include <agapack.h>
@@ -36,6 +37,10 @@
 /*
  * TODO: "Portal" object property using stencil buffers and camera state.
  */
+
+enum aga_result agan_obj_register(void) {
+	return AGA_RESULT_OK;
+}
 
 static aga_bool_t agan_mkobj_trans(
 		struct agan_object* obj, struct aga_conf_node* conf) {
@@ -381,7 +386,7 @@ static aga_bool_t agan_mkobj_light(
  * TODO: Failure states here are super leaky - we can probably compartmentalise
  * 		 This function a lot more to help remedy this.
  */
-struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
+struct py_object* agan_mkobj(struct py_object* self, struct py_object* args) {
 	enum aga_result result;
 
 	struct agan_object* obj;
@@ -395,13 +400,13 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 	struct aga_respack* pack;
 
 	(void) self;
-	(void) arg;
+	(void) args;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_MKOBJ);
 
 	if(!(pack = aga_getscriptptr(AGA_SCRIPT_PACK))) return 0;
 
-	if(!aga_arg_list(arg, PY_TYPE_STRING)) {
+	if(!aga_arg_list(args, PY_TYPE_STRING)) {
 		return aga_arg_error("mkobj", "string");
 	}
 
@@ -419,7 +424,7 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 	{
 		void* fp;
 
-		if(aga_script_string(arg, &path)) goto cleanup;
+		if(aga_script_string(args, &path)) goto cleanup;
 
 		result = aga_searchres(pack, path, &obj->res);
 		if(aga_script_err("aga_searchres", result)) goto cleanup;
@@ -467,18 +472,18 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* arg) {
 	};
 }
 
-struct py_object* agan_killobj(struct py_object* self, struct py_object* arg) {
+struct py_object* agan_killobj(struct py_object* self, struct py_object* args) {
 	struct agan_object* obj;
 
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_KILLOBJ);
 
-	if(!aga_arg_list(arg, PY_TYPE_INT)) {
+	if(!aga_arg_list(args, PY_TYPE_INT)) {
 		return aga_arg_error("killobj", "int");
 	}
 
-	obj = aga_script_getptr(arg);
+	obj = aga_script_getptr(args);
 
 	glDeleteLists(obj->drawlist, 1);
 	if(aga_script_gl_err("glDeleteLists")) return 0;
@@ -490,7 +495,7 @@ struct py_object* agan_killobj(struct py_object* self, struct py_object* arg) {
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
+struct py_object* agan_inobj(struct py_object* self, struct py_object* args) {
 	struct py_object* retval = PY_FALSE;
 	struct py_object* o;
 	struct py_object* j;
@@ -517,17 +522,17 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 
 	apro_stamp_start(APRO_SCRIPTGLUE_INOBJ);
 
-	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
-	   !aga_arg(&o, arg, 0, PY_TYPE_INT) ||
-	   !aga_arg(&point, arg, 1, PY_TYPE_LIST) ||
-	   !aga_arg(&j, arg, 2, PY_TYPE_INT) ||
-	   !aga_arg(&dbg, arg, 3, PY_TYPE_INT)) {
+	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
+	   !aga_arg(&o, args, 0, PY_TYPE_INT) ||
+	   !aga_arg(&point, args, 1, PY_TYPE_LIST) ||
+	   !aga_arg(&j, args, 2, PY_TYPE_INT) ||
+	   !aga_arg(&dbg, args, 3, PY_TYPE_INT)) {
 
 		return aga_arg_error("inobj", "int, list, int and int");
 	}
 
-	if(py_varobject_size(arg) > 4) {
-		if(!aga_arg(&tol, arg, 4, PY_TYPE_FLOAT)) {
+	if(py_varobject_size(args) > 4) {
+		if(!aga_arg(&tol, args, 4, PY_TYPE_FLOAT)) {
 			return aga_arg_error("inobj", "int, list, int, int and float");
 		}
 		else if(aga_script_float(tol, &tolerance)) return 0;
@@ -589,16 +594,9 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 	}
 
 	if(d) {
-		/*
-		 * TODO: Pipeline state push/pop akin to matrix stack. i.e.
-		 * 		 `Push(); Set(TEXTURE | LIGHTING); Pop()` or similar.
-		 */
-		glDisable(GL_TEXTURE_2D);
-		if(aga_script_gl_err("glDisable")) return 0;
-		glDisable(GL_DEPTH_TEST);
-		if(aga_script_gl_err("glDisable")) return 0;
-		glDisable(GL_LIGHTING);
-		if(aga_script_gl_err("glDisable")) return 0;
+		enum aga_drawflags fl = aga_getdraw();
+
+		if(aga_script_err("aga_setdraw", aga_setdraw(AGA_DRAW_NONE))) return 0;
 
 		glBegin(GL_LINE_STRIP);
 			glColor3f(0.0f, 1.0f, 0.0f);
@@ -619,12 +617,7 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 		glEnd();
 		if(aga_script_gl_err("glEnd")) return 0;
 
-		glEnable(GL_TEXTURE_2D);
-		if(aga_script_gl_err("glEnable")) return 0;
-		glEnable(GL_DEPTH_TEST);
-		if(aga_script_gl_err("glEnable")) return 0;
-		glEnable(GL_LIGHTING);
-		if(aga_script_gl_err("glEnable")) return 0;
+		if(aga_script_err("aga_setdraw", aga_setdraw(fl))) return 0;
 	}
 
 	apro_stamp_end(APRO_SCRIPTGLUE_INOBJ);
@@ -633,7 +626,9 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* arg) {
 }
 
 /* TODO: Avoid reloading conf for every call. */
-struct py_object* agan_objconf(struct py_object* self, struct py_object* arg) {
+struct py_object* agan_objconf(
+		struct py_object* self, struct py_object* args) {
+
 	enum aga_result result;
 
 	void* fp;
@@ -649,9 +644,9 @@ struct py_object* agan_objconf(struct py_object* self, struct py_object* arg) {
 
 	apro_stamp_start(APRO_SCRIPTGLUE_OBJCONF);
 
-	if(!aga_arg_list(arg, PY_TYPE_TUPLE) ||
-	   !aga_arg(&o, arg, 0, PY_TYPE_INT) ||
-	   !aga_arg(&l, arg, 1, PY_TYPE_LIST)) {
+	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
+	   !aga_arg(&o, args, 0, PY_TYPE_INT) ||
+	   !aga_arg(&l, args, 1, PY_TYPE_LIST)) {
 
 		return aga_arg_error("objconf", "int and list");
 	}
@@ -717,7 +712,7 @@ static aga_bool_t agan_putobj_light(struct agan_lightdata* data) {
 	return AGA_FALSE;
 }
 
-struct py_object* agan_putobj(struct py_object* self, struct py_object* arg) {
+struct py_object* agan_putobj(struct py_object* self, struct py_object* args) {
 	struct agan_object* obj;
 
 	(void) self;
@@ -726,11 +721,11 @@ struct py_object* agan_putobj(struct py_object* self, struct py_object* arg) {
 
 	apro_stamp_start(APRO_PUTOBJ_RISING);
 
-	if(!aga_arg_list(arg, PY_TYPE_INT)) {
+	if(!aga_arg_list(args, PY_TYPE_INT)) {
 		return aga_arg_error("putobj", "int");
 	}
 
-	obj = aga_script_getptr(arg);
+	obj = aga_script_getptr(args);
 
 	glMatrixMode(GL_MODELVIEW);
 	if(aga_script_gl_err("glMatrixMode")) return 0;
@@ -767,18 +762,18 @@ struct py_object* agan_putobj(struct py_object* self, struct py_object* arg) {
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_objtrans(struct py_object* self, struct py_object* arg) {
+struct py_object* agan_objtrans(struct py_object* self, struct py_object* args) {
 	struct agan_object* obj;
 
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_OBJTRANS);
 
-	if(!aga_arg_list(arg, PY_TYPE_INT)) {
+	if(!aga_arg_list(args, PY_TYPE_INT)) {
 		return aga_arg_error("objtrans", "int");
 	}
 
-	obj = aga_script_getptr(arg);
+	obj = aga_script_getptr(args);
 
 	apro_stamp_end(APRO_SCRIPTGLUE_OBJTRANS);
 

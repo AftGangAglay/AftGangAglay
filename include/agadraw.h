@@ -21,9 +21,8 @@ enum aga_drawflags {
 enum aga_result aga_setdraw(enum aga_drawflags);
 enum aga_drawflags aga_getdraw(void);
 
-enum aga_result aga_pushrawdraw(void);
-
-enum aga_result aga_poprawdraw(void);
+enum aga_result aga_pushall_ident(void);
+enum aga_result aga_popall(void);
 
 enum aga_result aga_puttext(float, float, const char*);
 

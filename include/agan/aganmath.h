@@ -8,10 +8,14 @@
 
 #include <agan/agan.h>
 
+enum aga_result agan_math_register(void);
+
 struct py_object* agan_bitand(struct py_object*, struct py_object*);
 
 struct py_object* agan_bitshl(struct py_object*, struct py_object*);
 
 struct py_object* agan_randnorm(struct py_object*, struct py_object*);
+
+struct py_object* agan_bitor(struct py_object*, struct py_object*);
 
 #endif

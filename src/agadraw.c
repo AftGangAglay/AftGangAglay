@@ -45,109 +45,74 @@ enum aga_drawflags aga_getdraw(void) {
 	return aga_global_drawflags;
 }
 
-enum aga_result aga_pushrawdraw(void) {
+enum aga_result aga_pushall_ident(void) {
 	enum aga_result result;
 
-	glDisable(GL_TEXTURE_2D);
-	result = aga_gl_error(__FILE__, "glDisable");
-	if(result) return result;
-
-	glDisable(GL_LIGHTING);
-	result = aga_gl_error(__FILE__, "glDisable");
-	if(result) return result;
-
-	glDisable(GL_DEPTH_TEST);
-	result = aga_gl_error(__FILE__, "glDisable");
-	if(result) return result;
-
 	glMatrixMode(GL_MODELVIEW);
-	result = aga_gl_error(__FILE__, "glMatrixMode");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glMatrixMode"))) return result;
 
 	glPushMatrix();
-	result = aga_gl_error(__FILE__, "glPushMatrix");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glPushMatrix"))) return result;
 
 	glLoadIdentity();
-	result = aga_gl_error(__FILE__, "glLoadIdentity");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glLoadIdentity"))) return result;
 
 	/* TODO: This shouldn't be here but it makes text show up as expected? */
 	glOrtho(0.0, 1.0, 1.0, 0.0, -1.0, 1.0);
-	result = aga_gl_error(__FILE__, "glOrtho");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glOrtho"))) return result;
 
 	glMatrixMode(GL_PROJECTION);
-	result = aga_gl_error(__FILE__, "glMatrixMode");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glMatrixMode"))) return result;
 
 	glPushMatrix();
-	result = aga_gl_error(__FILE__, "glPushMatrix");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glPushMatrix"))) return result;
 
 	glLoadIdentity();
-	result = aga_gl_error(__FILE__, "glLoadIdentity");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glLoadIdentity"))) return result;
 
 	return AGA_RESULT_OK;
 }
 
-enum aga_result aga_poprawdraw(void) {
+enum aga_result aga_popall(void) {
 	enum aga_result result;
 
 	glMatrixMode(GL_MODELVIEW);
-	result = aga_gl_error(__FILE__, "glMatrixMode");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glMatrixMode"))) return result;
 
 	glPopMatrix();
-	result = aga_gl_error(__FILE__, "glPopMatrix");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glPushMatrix"))) return result;
 
 	glMatrixMode(GL_PROJECTION);
-	result = aga_gl_error(__FILE__, "glMatrixMode");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glMatrixMode"))) return result;
 
 	glPopMatrix();
-	result = aga_gl_error(__FILE__, "glPopMatrix");
-	if(result) return result;
-
-	glEnable(GL_TEXTURE_2D);
-	result = aga_gl_error(__FILE__, "glEnable");
-	if(result) return result;
-
-	glEnable(GL_LIGHTING);
-	result = aga_gl_error(__FILE__, "glEnable");
-	if(result) return result;
-
-	glEnable(GL_DEPTH_TEST);
-	result = aga_gl_error(__FILE__, "glEnable");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glPushMatrix"))) return result;
 
 	return AGA_RESULT_OK;
 }
 
 enum aga_result aga_puttext(float x, float y, const char* text) {
 	enum aga_result result;
+	enum aga_drawflags fl = aga_getdraw();
 
-	result = aga_pushrawdraw();
-	if(result) return result;
+	if((result = aga_pushall_ident())) return result;
+	if((result = aga_setdraw(AGA_DRAW_NONE))) return result;
 
 	/* TODO: Proper text parameters. */
 	glColor3f(1.0f, 1.0f, 1.0f);
 
 	glRasterPos2f(x, y);
-	result = aga_gl_error(__FILE__, "glRasterPos2f");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glRasterPos2f"))) return result;
 
 	glListBase(AGA_FONT_LIST_BASE);
-	result = aga_gl_error(__FILE__, "glListBase");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glListBase"))) return result;
 
 	glCallLists((int) strlen(text), GL_UNSIGNED_BYTE, text);
-	result = aga_gl_error(__FILE__, "glCallLists");
-	if(result) return result;
+	if((result = aga_gl_error(__FILE__, "glCallLists"))) return result;
 
-	return aga_poprawdraw();
+	if((result = aga_popall())) return result;
+
+	return aga_setdraw(fl);
 }
 
 enum aga_result aga_puttextfmt(float x, float y, const char* fmt, ...) {

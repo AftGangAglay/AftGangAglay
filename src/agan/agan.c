@@ -4,12 +4,25 @@
  */
 
 #include <agan/agan.h>
+#include <agan/aganobj.h>
+#include <agan/aganio.h>
+#include <agan/agandraw.h>
+#include <agan/aganmisc.h>
+#include <agan/aganmath.h>
 
 #include <agaerr.h>
 #include <agascripthelp.h>
 #include <agadraw.h>
 #include <agaconf.h>
 #include <agagl.h>
+
+/*
+ * TODO: Switch to unchecked List/Tuple/String accesses for release/noverify
+ * 		 Builds? Disable parameter type strictness for noverify+dist?
+ * 		 Enforce in main Python as global switch?
+ */
+
+/* TODO: Mode disable error-to-exception propagation - "continue". */
 
 /*
  * NOTE: We need a bit of global state here to get engine system contexts etc.
@@ -22,6 +35,97 @@ const char* agan_trans_components[3] = { "pos", "rot", "scale" };
 const char* agan_conf_components[3] = { "Position", "Rotation", "Scale" };
 const char* agan_xyz[3] = { "X", "Y", "Z" };
 const char* agan_rgb[3] = { "R", "G", "B" };
+
+enum aga_result aga_insertstr(const char* key, const char* value) {
+	struct py_object* o;
+
+	if(!(o = py_string_new(value))) {
+		aga_script_trace();
+		return AGA_RESULT_ERROR;
+	}
+
+	if(py_dict_insert(agan_dict, key, o) == -1) {
+		aga_script_trace();
+		return AGA_RESULT_ERROR;
+	}
+
+	return AGA_RESULT_OK;
+}
+
+enum aga_result aga_insertfloat(const char* key, double value) {
+	struct py_object* o;
+
+	if(!(o = py_float_new(value))) {
+		aga_script_trace();
+		return AGA_RESULT_ERROR;
+	}
+
+	if(py_dict_insert(agan_dict, key, o) == -1) {
+		aga_script_trace();
+		return AGA_RESULT_ERROR;
+	}
+
+	return AGA_RESULT_OK;
+}
+
+enum aga_result aga_insertint(const char* key, py_value_t value) {
+	struct py_object* o;
+
+	if(!(o = py_int_new(value))) {
+		aga_script_trace();
+		return AGA_RESULT_ERROR;
+	}
+
+	if(py_dict_insert(agan_dict, key, o) == -1) {
+		aga_script_trace();
+		return AGA_RESULT_ERROR;
+	}
+
+	return AGA_RESULT_OK;
+}
+
+enum aga_result aga_mkmod(void** dict) {
+	enum aga_result result;
+
+	/* TODO: Move method registration out to modules aswell. */
+#define _(name) { #name, agan_##name }
+	static const struct py_methodlist methods[] = {
+			/* Input */
+			_(getkey), _(getmotion), _(setcursor), _(getbuttons), _(getpos),
+
+			/* Drawing */
+			_(setcam), _(text), _(fogparam), _(fogcol), _(clear), _(mktrans),
+			_(shadeflat), _(getpix), _(setflag), _(getflag),
+
+			/* Miscellaneous */
+			_(getconf), _(log), _(die),
+
+			/* Objects */
+			_(mkobj), _(inobj), _(putobj), _(killobj), _(objtrans), _(objconf),
+
+			/* Maths */
+			_(bitand), _(bitshl), _(randnorm), _(bitor),
+
+			{ 0, 0 } };
+#undef _
+
+	struct py_object* module = py_module_new_methods("agan", methods);
+	if(!module) return AGA_RESULT_ERROR;
+
+	if(!(agan_dict = ((struct py_module*) module)->attr)) {
+		aga_script_trace();
+		return AGA_RESULT_ERROR;
+	}
+
+	if((result = agan_draw_register())) return result;
+	if((result = agan_io_register())) return result;
+	if((result = agan_math_register())) return result;
+	if((result = agan_misc_register())) return result;
+
+	*dict = agan_dict;
+
+	return AGA_RESULT_OK;
+}
 
 aga_bool_t aga_script_err(const char* proc, enum aga_result err) {
 	aga_fixed_buf_t buf = { 0 };

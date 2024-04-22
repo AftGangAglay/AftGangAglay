@@ -131,9 +131,7 @@ static aga_bool_t agan_mkobj_model(
 	{
 		int f;
 
-		if(aga_conftree(conf->children, &filter, 1, &f, AGA_INTEGER)) {
-			f = 1;
-		}
+		if(aga_conftree(conf->children, &filter, 1, &f, AGA_INTEGER)) f = 1;
 
 		f = f ? GL_LINEAR : GL_NEAREST;
 
@@ -224,7 +222,13 @@ static aga_bool_t agan_mkobj_model(
 				result = aga_fread(&v, sizeof(v), pack->fp);
 				if(aga_script_err("aga_fread", result)) return AGA_TRUE;
 
-				glColor4fv(v.col);
+				{
+					aga_uchar_t r = (obj->ind >> (2 * 8)) & 0xFF;
+					aga_uchar_t g = (obj->ind >> (1 * 8)) & 0xFF;
+					aga_uchar_t b = (obj->ind >> (0 * 8)) & 0xFF;
+					/* TODO: Remove `v.col' since we override it here. */
+					glColor3ub(r, g, b);
+				}
 				/* if(aga_script_gl_err("glColor4fv")) return AGA_TRUE; */
 				glTexCoord2fv(v.uv);
 				/* if(aga_script_gl_err("glTexCoord2fv")) return AGA_TRUE; */
@@ -399,6 +403,12 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* args) {
 	const char* path;
 	struct aga_respack* pack;
 
+	/*
+	 * TODO: This is horrible (but only exists until we have an object registry
+	 * 		 To get small unique handle IDs for colour picking.
+	 */
+	static aga_uint32_t objn = 0;
+
 	(void) self;
 	(void) args;
 
@@ -417,7 +427,7 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* args) {
 	retval = aga_script_mkptr(obj);
 	v = (struct py_int*) retval;
 
-
+	obj->ind = objn++;
 	obj->light_data = 0;
 	if(!(obj->transform = agan_mktrans(0, 0))) goto cleanup;
 
@@ -778,4 +788,22 @@ struct py_object* agan_objtrans(struct py_object* self, struct py_object* args) 
 	apro_stamp_end(APRO_SCRIPTGLUE_OBJTRANS);
 
 	return obj->transform;
+}
+
+struct py_object* agan_objind(struct py_object* self, struct py_object* args) {
+	struct agan_object* obj;
+
+	(void) self;
+
+	apro_stamp_start(APRO_SCRIPTGLUE_OBJTRANS);
+
+	if(!aga_arg_list(args, PY_TYPE_INT)) {
+		return aga_arg_error("agan_objind", "int");
+	}
+
+	obj = aga_script_getptr(args);
+
+	apro_stamp_end(APRO_SCRIPTGLUE_OBJTRANS);
+
+	return py_int_new(obj->ind);
 }

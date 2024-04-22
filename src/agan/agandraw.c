@@ -16,6 +16,20 @@
 #include <apro.h>
 
 enum aga_result agan_draw_register(void) {
+	enum aga_result res;
+
+	if((res = aga_insertint("BACKFACE", AGA_DRAW_BACKFACE))) return res;
+	if((res = aga_insertint("BLEND", AGA_DRAW_BLEND))) return res;
+	if((res = aga_insertint("FOG", AGA_DRAW_FOG))) return res;
+	if((res = aga_insertint("TEXTURE", AGA_DRAW_TEXTURE))) return res;
+	if((res = aga_insertint("LIGHTING", AGA_DRAW_LIGHTING))) return res;
+	if((res = aga_insertint("DEPTH", AGA_DRAW_DEPTH))) return res;
+
+	if((res = aga_insertint("FRONT", AGAN_SURFACE_FRONT))) return res;
+	if((res = aga_insertint("BACK", AGAN_SURFACE_BACK))) return res;
+	if((res = aga_insertint("STENCIL", AGAN_SURFACE_STENCIL))) return res;
+	if((res = aga_insertint("DEPTHBUF", AGAN_SURFACE_DEPTH))) return res;
+
 	return AGA_RESULT_OK;
 }
 
@@ -149,6 +163,10 @@ struct py_object* agan_fogparam(
 	return py_object_incref(PY_NONE);
 }
 
+/*
+ * TODO: We should ideally have a consolidated way to get vector-y types
+ * 		 Out of scriptland.
+ */
 struct py_object* agan_fogcol(struct py_object* self, struct py_object* args) {
 	struct py_object* v;
 	aga_size_t i;
@@ -236,6 +254,7 @@ struct py_object* agan_mktrans(struct py_object* self, struct py_object* args) {
 	return retval;
 }
 
+/* TODO: Move to draw flag. */
 struct py_object* agan_shadeflat(
 		struct py_object* self, struct py_object* args) {
 
@@ -297,15 +316,17 @@ struct py_object* agan_getpix(struct py_object* self, struct py_object* args) {
 			if(aga_script_int(target, &v)) return 0;
 
 			if(v < AGAN_SURFACE_FRONT || v > AGAN_SURFACE_DEPTH) {
+				aga_log(__FILE__, "err: Surface name out of range `%u'", v);
 				py_error_set_badarg();
 				return 0;
 			}
+
 			surface = v;
 		}
 	}
 
-	if(aga_list_get(args, 0, &xo)) return 0;
-	if(aga_list_get(args, 1, &yo)) return 0;
+	if(aga_list_get(list, 0, &xo)) return 0;
+	if(aga_list_get(list, 1, &yo)) return 0;
 
 	if(aga_script_int(xo, &x)) return 0;
 	if(aga_script_int(yo, &y)) return 0;

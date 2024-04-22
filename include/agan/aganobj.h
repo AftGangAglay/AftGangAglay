@@ -46,6 +46,7 @@ struct agan_object {
 	struct py_object* transform;
 	struct aga_res* res;
 	struct agan_lightdata* light_data;
+	aga_uint32_t ind;
 
 	aga_uint_t drawlist;
 	float min_extent[3];
@@ -65,5 +66,7 @@ struct py_object* agan_killobj(struct py_object*, struct py_object*);
 struct py_object* agan_objtrans(struct py_object*, struct py_object*);
 
 struct py_object* agan_objconf(struct py_object*, struct py_object*);
+
+struct py_object* agan_objind(struct py_object*, struct py_object*);
 
 #endif

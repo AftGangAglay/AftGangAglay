@@ -14,7 +14,11 @@ static enum aga_drawflags aga_global_drawflags = 0;
 
 enum aga_result aga_setdraw(enum aga_drawflags flags) {
 	static const char* name[] = { "glDisable", "glEnable" };
-	static void (*func[])(GLenum) = { glDisable, glEnable };
+#ifdef _WIN32
+	static void (APIENTRY *func[2])(GLenum);
+#else
+	static void (*func[2])(GLenum);
+#endif
 	static struct {
 		enum aga_drawflags flag;
 		GLenum cap;
@@ -26,6 +30,9 @@ enum aga_result aga_setdraw(enum aga_drawflags flags) {
 			{ AGA_DRAW_LIGHTING, GL_LIGHTING },
 			{ AGA_DRAW_DEPTH, GL_DEPTH_TEST }
 	};
+
+	func[0] = glDisable;
+	func[1] = glEnable;
 
 	enum aga_result result;
 	aga_size_t i;

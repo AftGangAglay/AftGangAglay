@@ -12,13 +12,12 @@
 enum aga_result agan_math_register(void) {
 	static const double pi = 3.14159265358979323846;
 	static const double e = 2.71828182845904523536;
-	static const double rads = pi / 180.0;
 
 	enum aga_result result;
 
 	if((result = aga_insertfloat("PI", pi))) return result;
 
-	if((result = aga_insertfloat("RADS", rads))) return result;
+	if((result = aga_insertfloat("RADS", pi / 180.0))) return result;
 
 	if((result = aga_insertfloat("E", e))) return result;
 

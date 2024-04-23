@@ -37,4 +37,6 @@ struct py_object* agan_setflag(struct py_object*, struct py_object*);
 
 struct py_object* agan_getflag(struct py_object*, struct py_object*);
 
+struct py_object* agan_line3d(struct py_object*, struct py_object*);
+
 #endif

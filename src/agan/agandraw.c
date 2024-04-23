@@ -379,3 +379,67 @@ struct py_object* agan_getflag(
 
 	return py_int_new(aga_getdraw());
 }
+
+struct py_object* agan_line3d(struct py_object* self, struct py_object* args) {
+	aga_size_t i;
+
+	struct py_object* from;
+	struct py_object* to;
+	struct py_object* pt;
+	struct py_object* col;
+
+	double fromf[3];
+	double tof[3];
+	double ptf;
+	double colf[3];
+
+	(void) self;
+
+	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
+		!aga_arg(&from, args, 0, PY_TYPE_LIST) ||
+		py_varobject_size(from) != 3 ||
+		!aga_arg(&to, args, 1, PY_TYPE_LIST) ||
+		py_varobject_size(to) != 3 ||
+		!aga_arg(&pt, args, 2, PY_TYPE_FLOAT) ||
+		!aga_arg(&col, args, 3, PY_TYPE_LIST) ||
+		py_varobject_size(col) != 3) {
+
+		/* TODO: Add length checking like this elsewhere. */
+		/*
+		 * TODO: Make some of these optional -- let's make a cleaner/clearer
+		 * 		 Optional arg IF.
+		 */
+		return aga_arg_error("line3d", "list[3], list[3], float and list[3]");
+	}
+
+	/*
+	 * TODO: We really don't need to do these checked gets if the type was
+	 * 		 Already verified (i.e. by `aga_arg').
+	 */
+	if(aga_script_float(pt, &ptf)) return 0;
+
+	for(i = 0; i < 3; ++i) {
+		struct py_object* v;
+
+		if(aga_list_get(from, i, &v)) return 0;
+		if(aga_script_float(v, &fromf[i])) return 0;
+
+		if(aga_list_get(to, i, &v)) return 0;
+		if(aga_script_float(v, &tof[i])) return 0;
+
+		if(aga_list_get(col, i, &v)) return 0;
+		if(aga_script_float(v, &colf[i])) return 0;
+	}
+
+	glLineWidth((float) ptf);
+	if(aga_script_gl_err("glLineWidth")) return 0;
+
+	glBegin(GL_LINES);
+		glColor3dv(colf);
+		glVertex3dv(fromf);
+		glVertex3dv(tof);
+	glEnd();
+	if(aga_script_gl_err("glEnd")) return 0;
+
+	return py_object_incref(PY_NONE);
+}

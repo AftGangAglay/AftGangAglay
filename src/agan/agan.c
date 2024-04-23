@@ -95,7 +95,7 @@ enum aga_result aga_mkmod(void** dict) {
 
 			/* Drawing */
 			_(setcam), _(text), _(fogparam), _(fogcol), _(clear), _(mktrans),
-			_(shadeflat), _(getpix), _(setflag), _(getflag),
+			_(shadeflat), _(getpix), _(setflag), _(getflag), _(line3d),
 
 			/* Miscellaneous */
 			_(getconf), _(log), _(die),

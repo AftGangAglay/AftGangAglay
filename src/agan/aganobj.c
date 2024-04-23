@@ -608,6 +608,9 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* args) {
 
 		if(aga_script_err("aga_setdraw", aga_setdraw(AGA_DRAW_NONE))) return 0;
 
+		glLineWidth(1.0f);
+		if(aga_script_gl_err("glLineWidth")) return 0;
+
 		glBegin(GL_LINE_STRIP);
 			glColor3f(0.0f, 1.0f, 0.0f);
 			glVertex3f(mins[0], maxs[1], maxs[2]);

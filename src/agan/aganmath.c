@@ -25,6 +25,8 @@ enum aga_result agan_math_register(void) {
 	return AGA_RESULT_OK;
 }
 
+/* TODO: Make other bitwise ops take lists and move to builtinmodule. */
+
 /* Python lacks native bitwise ops @-@ */
 struct py_object* agan_bitand(struct py_object* self, struct py_object* args) {
 	struct py_object* a;

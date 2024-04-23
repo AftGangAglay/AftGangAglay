@@ -114,6 +114,11 @@ for f in file_list:
         conf += '\t\t\t' + str(f[MODEL_MAX_Z]) + '\n'
         conf += '\t\t</item>\n'
 
+        # Version 2 -- we started discarding model vertex colouration.
+        conf += '\t\t<item name="Version" type="Integer">\n'
+        conf += '\t\t\t2\n'
+        conf += '\t\t</item>\n'
+
     conf += '\t</item>\n'
 conf += '</root>\n'
 

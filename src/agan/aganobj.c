@@ -91,6 +91,7 @@ static void agan_mkobj_extent(
 		}
 	}
 
+	/* TODO: Can't these just be merged? */
 	for(i = 0; i < 3; ++i) {
 		if(aga_conftree(conf, &max_attr[i], 1, &(*max)[i], AGA_FLOAT)) {
 			(*max)[i] = 0.0f;
@@ -201,14 +202,20 @@ static aga_bool_t agan_mkobj_model(
 					objpath);
 		}
 		else {
+			static const char* version = "Version";
+
 			struct aga_vertex v;
 			void* fp;
 			aga_size_t i, len;
+			long ver; /* TODO: Update all `long' with `long long' once conf. */
 
 			result = aga_searchres(pack, path, &res);
 			if(aga_script_err("aga_mkres", result)) return AGA_TRUE;
 
 			agan_mkobj_extent(obj, res->conf);
+
+			result = aga_conftree(res->conf, &version, 1, &ver, AGA_INTEGER);
+			if(result) ver = 1;
 
 			result = aga_resseek(res, &fp);
 			/* TODO: We can't return during list build! */
@@ -222,14 +229,18 @@ static aga_bool_t agan_mkobj_model(
 				result = aga_fread(&v, sizeof(v), pack->fp);
 				if(aga_script_err("aga_fread", result)) return AGA_TRUE;
 
-				{
+				/*
+				 * Models from v2.1.0 and below respected model vertex
+				 * Colouration.
+				 */
+				if(ver == 2) {
 					aga_uchar_t r = (obj->ind >> (2 * 8)) & 0xFF;
 					aga_uchar_t g = (obj->ind >> (1 * 8)) & 0xFF;
 					aga_uchar_t b = (obj->ind >> (0 * 8)) & 0xFF;
-					/* TODO: Remove `v.col' since we override it here. */
 					glColor3ub(r, g, b);
 				}
-				/* if(aga_script_gl_err("glColor4fv")) return AGA_TRUE; */
+				else glColor4fv(v.col); /* TODO: Deprecation warning. */
+
 				glTexCoord2fv(v.uv);
 				/* if(aga_script_gl_err("glTexCoord2fv")) return AGA_TRUE; */
 				glNormal3fv(v.norm);

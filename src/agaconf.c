@@ -193,7 +193,7 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 	switch(node->type) {
 		default: break;
 		case AGA_INTEGER: {
-			long res;
+			long res; /* TODO: ll instead of l. */
 			if(!string) {
 				node->data.integer = 0;
 				break;

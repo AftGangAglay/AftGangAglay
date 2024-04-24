@@ -24,6 +24,7 @@ enum aga_result agan_draw_register(void) {
 	if((res = aga_insertint("TEXTURE", AGA_DRAW_TEXTURE))) return res;
 	if((res = aga_insertint("LIGHTING", AGA_DRAW_LIGHTING))) return res;
 	if((res = aga_insertint("DEPTH", AGA_DRAW_DEPTH))) return res;
+	if((res = aga_insertint("SHADEFLAT", AGA_DRAW_FLAT))) return res;
 
 	if((res = aga_insertint("FRONT", AGAN_SURFACE_FRONT))) return res;
 	if((res = aga_insertint("BACK", AGAN_SURFACE_BACK))) return res;
@@ -259,6 +260,8 @@ struct py_object* agan_shadeflat(
 		struct py_object* self, struct py_object* args) {
 
 	py_value_t v;
+
+	AGAN_DEPRCALL("agan.shadeflat", "agan.setflag");
 
 	(void) self;
 

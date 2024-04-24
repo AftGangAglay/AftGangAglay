@@ -15,7 +15,8 @@ enum aga_drawflags {
 	AGA_DRAW_FOG = 1 << 2,
 	AGA_DRAW_TEXTURE = 1 << 3,
 	AGA_DRAW_LIGHTING = 1 << 4,
-	AGA_DRAW_DEPTH = 1 << 5
+	AGA_DRAW_DEPTH = 1 << 5,
+	AGA_DRAW_FLAT = 1 << 6
 };
 
 enum aga_result aga_setdraw(enum aga_drawflags);

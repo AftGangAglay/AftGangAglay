@@ -37,6 +37,11 @@ enum aga_result aga_setdraw(enum aga_drawflags flags) {
 	func[0] = glDisable;
 	func[1] = glEnable;
 
+	glShadeModel((flags & AGA_DRAW_FLAT) ? GL_FLAT : GL_SMOOTH);
+	if((result = aga_gl_error(__FILE__, "glShadeModel"))) return result;
+
+	flags &= ~AGA_DRAW_FLAT;
+
 	for(i = 0; i < AGA_LEN(flag); ++i) {
 		aga_bool_t x = !!(flags & flag[i].flag);
 		func[x](flag[i].cap);

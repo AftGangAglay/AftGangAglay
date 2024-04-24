@@ -39,7 +39,7 @@ struct py_object* agan_bitand(struct py_object* self, struct py_object* args) {
 	struct py_object* v;
 	py_value_t av, bv;
 
-	AGAN_DEPRCALL("agan.bitand", "andb");
+	AGAN_DEPRCALL("agan.bitand", "math.andb");
 
 	(void) self;
 
@@ -67,9 +67,9 @@ struct py_object* agan_bitshl(struct py_object* self, struct py_object* args) {
 	struct py_object* v;
 	py_value_t av, bv;
 
-	(void) self;
+	AGAN_DEPRCALL("agan.bitshl", "math.shl");
 
-	AGAN_DEPRCALL("agan.bitshl", "shl");
+	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_BITSHL);
 
@@ -94,6 +94,8 @@ struct py_object* agan_randnorm(
 
 	struct py_object* v;
 
+	AGAN_DEPRCALL("agan.randnorm", "math.randf");
+
 	(void) self;
 	(void) args;
 
@@ -113,6 +115,8 @@ struct py_object* agan_bitor(
 	py_value_t v;
 	py_value_t res = 0;
 	unsigned i;
+
+	AGAN_DEPRCALL("agan.bitor", "math.orb");
 
 	(void) self;
 

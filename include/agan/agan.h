@@ -11,6 +11,17 @@
 
 struct aga_conf_node;
 
+#define AGAN_DEPRCALL(curr, alt) \
+	{ \
+		static aga_bool_t _deprflag = AGA_TRUE; \
+		if(_deprflag) { \
+			aga_log( \
+				__FILE__, \
+				"warn: %s is deprecated in favor of %s", curr, alt); \
+			_deprflag = AGA_FALSE; \
+		} \
+	}
+
 extern struct py_object* agan_dict;
 extern const char* agan_trans_components[3];
 extern const char* agan_conf_components[3];

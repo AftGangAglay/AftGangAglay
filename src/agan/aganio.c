@@ -174,10 +174,10 @@ struct py_object* agan_getpos(struct py_object* self, struct py_object* args) {
 static enum aga_result aga_setkeys(void) {
 	enum aga_result result;
 #define _(name, value) \
-    do { \
-        result = aga_insertint(name, value); \
-        if(result) return result; \
-    } while(0)
+	do { \
+		result = aga_insertint(name, value); \
+		if(result) return result; \
+	} while(0)
 #ifdef _WIN32
 /*
  * Values taken from:

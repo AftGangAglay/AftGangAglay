@@ -9,13 +9,13 @@ from mido import MidiFile
 MAGIC = 0xA6A31D10
 
 if len(argv) != 3:
-    print('usage: ' + argv[0] + ' <input> <output>')
-    exit(1)
+	print('usage: ' + argv[0] + ' <input> <output>')
+	exit(1)
 
 with open(argv[2], 'wb+') as f:
-    mid = MidiFile(argv[1])
-    for msg in mid:
-        if(msg.is_meta): continue
-        f.write(pack('II', msg.time, 0))
-        f.write(msg.bin())
-        f.write(pack('I', 0))
+	mid = MidiFile(argv[1])
+	for msg in mid:
+		if(msg.is_meta): continue
+		f.write(pack('II', msg.time, 0))
+		f.write(msg.bin())
+		f.write(pack('I', 0))

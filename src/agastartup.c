@@ -84,8 +84,8 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	}
 # endif
 #else
-    (void) argc;
-    (void) argv;
+	(void) argc;
+	(void) argv;
 #endif
 
 	return AGA_RESULT_OK;

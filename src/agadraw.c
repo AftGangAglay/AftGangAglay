@@ -31,11 +31,11 @@ enum aga_result aga_setdraw(enum aga_drawflags flags) {
 			{ AGA_DRAW_DEPTH, GL_DEPTH_TEST }
 	};
 
-	func[0] = glDisable;
-	func[1] = glEnable;
-
 	enum aga_result result;
 	aga_size_t i;
+
+	func[0] = glDisable;
+	func[1] = glEnable;
 
 	for(i = 0; i < AGA_LEN(flag); ++i) {
 		aga_bool_t x = !!(flags & flag[i].flag);

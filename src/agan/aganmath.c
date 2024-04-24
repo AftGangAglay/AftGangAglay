@@ -6,8 +6,14 @@
 #include <agan/aganmath.h>
 
 #include <agascripthelp.h>
+#include <agalog.h>
 
 #include <apro.h>
+
+/*
+ * NOTE: The `aganmath' module is **DEPRECATED** in favour of placing relevant
+ * 		 Procs. in `builtinmodule' or `mathmodule'.
+ */
 
 enum aga_result agan_math_register(void) {
 	static const double pi = 3.14159265358979323846;
@@ -32,6 +38,8 @@ struct py_object* agan_bitand(struct py_object* self, struct py_object* args) {
 	struct py_object* b;
 	struct py_object* v;
 	py_value_t av, bv;
+
+	AGAN_DEPRCALL("agan.bitand", "andb");
 
 	(void) self;
 
@@ -60,6 +68,8 @@ struct py_object* agan_bitshl(struct py_object* self, struct py_object* args) {
 	py_value_t av, bv;
 
 	(void) self;
+
+	AGAN_DEPRCALL("agan.bitshl", "shl");
 
 	apro_stamp_start(APRO_SCRIPTGLUE_BITSHL);
 

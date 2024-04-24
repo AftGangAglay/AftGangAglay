@@ -353,6 +353,7 @@ struct py_object* agan_getpix(struct py_object* self, struct py_object* args) {
 	return retval;
 }
 
+/* TODO: Could just take a list here. */
 struct py_object* agan_setflag(
 		struct py_object* self, struct py_object* args) {
 

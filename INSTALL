@@ -18,7 +18,7 @@ The `stdout' output of the build is a full reproduction of the build command
 list. i.e. `make > test.sh' will produce a script equivalent to running `make'
 without timestamping.
 
-        Prerequisites
+		Prerequisites
 
 A functioning C compiler and archiver is all the project requires at a top
 level. GNU/Make and Microsoft NMake are the only tested Make implementations.

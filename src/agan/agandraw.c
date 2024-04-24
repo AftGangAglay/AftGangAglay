@@ -91,6 +91,8 @@ struct py_object* agan_text(struct py_object* self, struct py_object* args) {
 	struct py_object* f;
 	double x, y;
 
+	AGAN_DEPRCALL("agan.text", "agan.text2d");
+
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_TEXT);

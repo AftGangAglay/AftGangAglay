@@ -132,7 +132,10 @@ enum aga_result aga_puttextfmt(float x, float y, const char* fmt, ...) {
 	va_list l;
 
 	va_start(l, fmt);
-	if(vsprintf(buf, fmt, l) < 0) return aga_errno(__FILE__, "vsprintf");
+	if(vsprintf(buf, fmt, l) < 0) {
+		va_end(l);
+		return aga_errno(__FILE__, "vsprintf");
+	}
 	va_end(l);
 
 	return aga_puttext(x, y, buf);

@@ -56,6 +56,16 @@ enum aga_result aga_fread(void* data, aga_size_t size, void* fp) {
 	return AGA_RESULT_OK;
 }
 
+enum aga_result aga_fputn(int c, aga_size_t n, void* fp) {
+	aga_size_t i;
+
+	for(i = 0; i < n; ++i) {
+		if(putc(c, fp) == EOF) return aga_errno(__FILE__, "putc");
+	}
+
+	return AGA_RESULT_OK;
+}
+
 #ifdef AGA_HAVE_MAP
 # ifdef AGA_NIXMAP
 enum aga_result aga_mkmapfd(void* fp, struct aga_mapfd* fd) {

@@ -34,6 +34,8 @@ enum aga_result aga_fplen(void*, aga_size_t*);
 
 enum aga_result aga_fread(void*, aga_size_t, void*);
 
+enum aga_result aga_fputn(int, aga_size_t, void*);
+
 #ifdef AGA_HAVE_MAP
 # ifdef AGA_NIXMAP
 struct aga_mapfd {

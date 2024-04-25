@@ -102,7 +102,7 @@ enum aga_result aga_mkmod(void** dict) {
 
 			/* Objects */
 			_(mkobj), _(inobj), _(putobj), _(killobj), _(objtrans), _(objconf),
-			_(objind),
+			_(objind), _(dumpobj),
 
 			/* Maths */
 			_(bitand), _(bitshl), _(randnorm), _(bitor),

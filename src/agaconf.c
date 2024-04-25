@@ -163,8 +163,12 @@ void aga_sgml_start_element(
 						typename, "String")) { node->type = AGA_STRING; }
 				else if(aga_streql(
 						typename, "Float")) { node->type = AGA_FLOAT; }
+				else if(aga_streql(
+						typename, "None")) { node->type = AGA_NONE; }
 				else {
-					static const char fmt[] = "warn: <item> element has unknown type `%s' in `%s'";
+					static const char fmt[] =
+							"warn: <item> element has unknown type "
+							"`%s' in `%s'";
 					aga_log(__FILE__, fmt, typename, aga_conf_debug_file);
 					node->type = AGA_NONE;
 				}
@@ -223,6 +227,11 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 static void aga_sgml_put_entity(HTStructured* me, int n) {
 	(void) me;
 	(void) n;
+}
+
+void outofmem(const char* file, const char* func) {
+	aga_log(file, "%s: out of memory", func);
+	aga_abort();
 }
 
 enum aga_result aga_mkconf(
@@ -395,7 +404,79 @@ enum aga_result aga_conftree(
 	else { return AGA_RESULT_ERROR; }
 }
 
-void outofmem(const char* file, const char* func) {
-	fprintf(stderr, "%s %s: out of memory.\nProgram aborted.\n", file, func);
-	exit(1);
+static enum aga_result aga_dumpf(void* fp, const char* fmt, ...) {
+	va_list ap;
+	va_start(ap, fmt);
+
+	if(vfprintf(fp, fmt, ap) < 0) {
+		va_end(ap);
+		return aga_errno(__FILE__, "vfprintf");
+	}
+
+	va_end(ap);
+	return AGA_RESULT_OK;
+}
+
+/*
+ * TODO: Make a no-write mode to avoid importability to immutable storage
+ * 		 Systems/"Edit builds". (?)
+ */
+static enum aga_result aga_dumptree_int(
+		struct aga_conf_node* node, void* fp, aga_size_t depth) {
+
+	enum aga_result result;
+	aga_size_t i;
+
+	for(i = 0; i < node->len; ++i) {
+		static const char fmt[] = "<item name=\"%s\" type=\"%s\">\n";
+		static const char* tnames[] = { "None", "String", "Integer", "Float" };
+
+		struct aga_conf_node* n = &node->children[i];
+		const char* tname = tnames[n->type];
+		const char* nname = n->name ? n->name : "(none)";
+
+		if((result = aga_fputn('\t', depth, fp))) return result;
+		if((result = aga_dumpf(fp, fmt, nname, tname))) return result;
+		if(n->type) {
+			if((result = aga_fputn('\t', depth + 1, fp))) return result;
+			switch(n->type) {
+				default: break;
+				case AGA_STRING: {
+					const char* s = n->data.string ? n->data.string : "";
+					result = aga_dumpf(fp, "%s\n", s);
+					if(result) return result;
+					break;
+				}
+				case AGA_INTEGER: {
+					result = aga_dumpf(fp, "%lld\n", n->data.integer);
+					if(result) return result;
+					break;
+				}
+				case AGA_FLOAT: {
+					result = aga_dumpf(fp, "%lf\n", n->data.flt);
+					if(result) return result;
+					break;
+				}
+			}
+		}
+		if((result = aga_dumptree_int(n, fp, depth + 1))) return result;
+		if((result = aga_fputn('\t', depth, fp))) return result;
+		if((result = aga_dumpf(fp, "</item>\n"))) return result;
+	}
+
+	return AGA_RESULT_OK;
+}
+
+/*
+ * TODO: Make generic tree traversal callback-based function to decrease code
+ * 		 Duplication in here.
+ */
+enum aga_result aga_dumptree(struct aga_conf_node* root, void* fp) {
+	enum aga_result result;
+
+	if((result = aga_dumpf(fp, "<root>\n"))) return result;
+	if((result = aga_dumptree_int(root, fp, 1))) return result;
+	if((result = aga_dumpf(fp, "</root>"))) return result;
+
+	return AGA_RESULT_OK;
 }

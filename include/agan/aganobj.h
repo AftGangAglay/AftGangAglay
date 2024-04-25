@@ -69,4 +69,6 @@ struct py_object* agan_objconf(struct py_object*, struct py_object*);
 
 struct py_object* agan_objind(struct py_object*, struct py_object*);
 
+struct py_object* agan_dumpobj(struct py_object*, struct py_object*);
+
 #endif

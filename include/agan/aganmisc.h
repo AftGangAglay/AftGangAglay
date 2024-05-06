@@ -16,4 +16,7 @@ struct py_object* agan_log(struct py_object*, struct py_object*);
 
 struct py_object* agan_die(struct py_object*, struct py_object*);
 
+struct py_object* agan_killpack(struct py_object*, struct py_object*);
+struct py_object* agan_mkpack(struct py_object*, struct py_object*);
+
 #endif

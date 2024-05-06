@@ -32,6 +32,10 @@ struct aga_respack {
 	struct aga_res* db;
 	aga_size_t len; /* Alias for `pack->root.children->len'. */
 
+#ifdef _DEBUG
+	aga_size_t outstanding_refs;
+#endif
+
 	struct aga_conf_node root;
 };
 

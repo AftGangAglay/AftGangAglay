@@ -87,6 +87,11 @@ enum aga_result aga_insertint(const char* key, py_value_t value) {
 enum aga_result aga_mkmod(void** dict) {
 	enum aga_result result;
 
+	/*
+	 * TODO: Put "editor" functions in their own module/namespace which isn't
+	 * 		 Present in distribution.
+	 */
+
 	/* TODO: Move method registration out to modules aswell. */
 #define _(name) { #name, agan_##name }
 	static const struct py_methodlist methods[] = {
@@ -98,7 +103,7 @@ enum aga_result aga_mkmod(void** dict) {
 			_(shadeflat), _(getpix), _(setflag), _(getflag), _(line3d),
 
 			/* Miscellaneous */
-			_(getconf), _(log), _(die),
+			_(getconf), _(log), _(die), _(killpack), _(mkpack),
 
 			/* Objects */
 			_(mkobj), _(inobj), _(putobj), _(killobj), _(objtrans), _(objconf),

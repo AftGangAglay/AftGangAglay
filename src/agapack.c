@@ -60,6 +60,10 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 	pack->db = 0;
 	pack->len = 0;
 
+#ifdef _DEBUG
+	pack->outstanding_refs = 0;
+#endif
+
 	aga_log(__FILE__, "Loading resource pack `%s'...", path);
 
 	if(!(pack->fp = fopen(path, "rb"))) {
@@ -163,7 +167,19 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 }
 
 enum aga_result aga_killrespack(struct aga_respack* pack) {
+	enum aga_result res;
+
 	if(!pack) return AGA_RESULT_BAD_PARAM;
+
+	if((res = aga_sweeprespack(pack))) return 0;
+
+#ifdef _DEBUG
+	if(pack->outstanding_refs) {
+		aga_log(
+				__FILE__, "warn: `%zu' outstanding refs held in freed respack",
+				pack->outstanding_refs);
+	}
+#endif
 
 	aga_free(pack->db);
 	if(fclose(pack->fp) == EOF) return aga_errno(__FILE__, "fclose");
@@ -180,6 +196,10 @@ enum aga_result aga_sweeprespack(struct aga_respack* pack) {
 		struct aga_res* res = &pack->db[i];
 
 		if(res->refcount || !res->data) continue;
+
+#ifdef _DEBUG
+		pack->outstanding_refs--;
+#endif
 
 		aga_free(res->data);
 		res->data = 0;
@@ -203,6 +223,10 @@ enum aga_result aga_mkres(
 	if(!(*res)->data) {
 		result = aga_resseek(*res, 0);
 		if(result) return result;
+
+#ifdef _DEBUG
+		pack->outstanding_refs++;
+#endif
 
 		/* TODO: Use mapping for large reads. */
 		if(!((*res)->data = aga_malloc((*res)->size))) return AGA_RESULT_OOM;

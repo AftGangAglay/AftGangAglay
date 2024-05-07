@@ -650,8 +650,12 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* args) {
 	return py_object_incref(retval);
 }
 
-/* TODO: Avoid reloading conf for every call. */
-static enum aga_result agan_getobjconf(
+/*
+ * TODO: Avoid reloading conf for every call. We shouldn't permanently cache
+ * 		 The config tree but it would be wise to selectively hold it for a
+ * 		 Load/save period.
+ */
+enum aga_result agan_getobjconf(
 		struct agan_object* obj, struct aga_conf_node* node) {
 
 	void* fp;
@@ -831,88 +835,4 @@ struct py_object* agan_objind(struct py_object* self, struct py_object* args) {
 	apro_stamp_end(APRO_SCRIPTGLUE_OBJTRANS);
 
 	return py_int_new(obj->ind);
-}
-
-struct py_object* agan_dumpobj(
-		struct py_object* self, struct py_object* args) {
-
-	enum aga_result result;
-
-	struct py_object* objp;
-	struct py_object* pathp;
-
-	struct agan_object* obj;
-	struct aga_conf_node node;
-	const char* path;
-
-	(void) self;
-
-	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
-		!aga_arg(&objp, args, 0, PY_TYPE_INT) ||
-		!aga_arg(&pathp, args, 1, PY_TYPE_STRING)) {
-
-		return aga_arg_error("dumpobj", "int and string");
-	}
-
-	if(aga_script_int(objp, (py_value_t*) &obj)) return 0;
-	if(aga_script_string(pathp, &path)) return 0;
-
-	result = agan_getobjconf(obj, &node);
-	if(aga_script_err("agan_getobjconf", result)) return 0;
-
-	/* TODO: This is copied from `mkobj_trans'. */
-	{
-		aga_size_t i, j;
-
-		const char* elem[2];
-
-		for(i = 0; i < 3; ++i) {
-			struct py_object* l;
-
-			elem[0] = agan_conf_components[i];
-
-			l = py_dict_lookup(obj->transform, agan_trans_components[i]);
-			if(!l) return 0;
-
-			for(j = 0; j < 3; ++j) {
-				struct aga_conf_node* n;
-				struct py_object* o;
-				double f;
-
-				elem[1] = agan_xyz[j];
-
-				result = aga_conftree_raw(
-						node.children, elem, AGA_LEN(elem), &n);
-				if(aga_script_err("aga_conftree_raw", result)) return 0;
-
-				if(aga_list_get(l, j, &o)) return 0;
-				if(aga_script_float(o, &f)) return 0;
-
-				n->data.flt = f;
-			}
-		}
-	}
-
-	{
-		FILE* outp = fopen(path, "wb+");
-		if(!outp) {
-			aga_script_err("fopen", aga_errno_path(__FILE__, "fopen", path));
-			return 0;
-		}
-
-		/* TODO: Leaky stream. */
-		result = aga_dumptree(node.children, outp);
-		if(aga_script_err("aga_dumptree", result)) return 0;
-
-		if(fclose(outp) == EOF) {
-			aga_script_err("fopen", aga_errno(__FILE__, "fclose"));
-			return 0;
-		}
-	}
-
-	/* TODO: Leaky conf.. */
-	result = aga_killconf(&node);
-	if(aga_script_err("aga_killconf", result)) return 0;
-
-	return py_object_incref(PY_NONE);
 }

@@ -13,7 +13,7 @@ AGA_SRC3 = $(AGA)agasnd.c $(AGA)agastartup.c $(AGA)agautil.c $(AGA)agaw32.c
 AGA_SRC4 = $(AGA)agawin.c $(AGA)aga.c $(AGAN)agan.c $(AGAN)aganobj.c
 AGA_SRC5 = $(AGA)agaresgen.c $(AGA)agamidi.c
 AGA_SRC6 = $(AGAN)aganio.c $(AGAN)agandraw.c $(AGAN)aganmisc.c
-AGA_SRC7 = $(AGAN)aganmath.c
+AGA_SRC7 = $(AGAN)aganmath.c $(AGAN)aganed.c
 AGA_SRC8 = $(AGA_SRC1) $(AGA_SRC2) $(AGA_SRC3) $(AGA_SRC4) $(AGA_SRC5)
 
 AGA_HDR1 = $(AGAH)agaconf.h $(AGAH)agadraw.h $(AGAH)agaenv.h $(AGAH)agaerr.h

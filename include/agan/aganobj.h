@@ -53,6 +53,8 @@ struct agan_object {
 	float max_extent[3];
 };
 
+enum aga_result agan_getobjconf(struct agan_object*, struct aga_conf_node*);
+
 enum aga_result agan_obj_register(void);
 
 struct py_object* agan_mkobj(struct py_object*, struct py_object*);
@@ -68,7 +70,5 @@ struct py_object* agan_objtrans(struct py_object*, struct py_object*);
 struct py_object* agan_objconf(struct py_object*, struct py_object*);
 
 struct py_object* agan_objind(struct py_object*, struct py_object*);
-
-struct py_object* agan_dumpobj(struct py_object*, struct py_object*);
 
 #endif

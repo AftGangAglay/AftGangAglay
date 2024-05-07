@@ -9,6 +9,7 @@
 #include <agan/agandraw.h>
 #include <agan/aganmisc.h>
 #include <agan/aganmath.h>
+#include <agan/aganed.h>
 
 #include <agaerr.h>
 #include <agascripthelp.h>
@@ -92,7 +93,10 @@ enum aga_result aga_mkmod(void** dict) {
 	 * 		 Present in distribution.
 	 */
 
-	/* TODO: Move method registration out to modules aswell. */
+	/*
+	 * TODO: Put each module in a "namespace" (i.e. `agan.io.getkey' etc.).
+	 * 		 Similar to how `ed' is structured.
+	 */
 #define _(name) { #name, agan_##name }
 	static const struct py_methodlist methods[] = {
 			/* Input */
@@ -103,11 +107,11 @@ enum aga_result aga_mkmod(void** dict) {
 			_(shadeflat), _(getpix), _(setflag), _(getflag), _(line3d),
 
 			/* Miscellaneous */
-			_(getconf), _(log), _(die), _(killpack), _(mkpack),
+			_(getconf), _(log), _(die),
 
 			/* Objects */
 			_(mkobj), _(inobj), _(putobj), _(killobj), _(objtrans), _(objconf),
-			_(objind), _(dumpobj),
+			_(objind),
 
 			/* Maths */
 			_(bitand), _(bitshl), _(randnorm), _(bitor),
@@ -127,6 +131,7 @@ enum aga_result aga_mkmod(void** dict) {
 	if((result = agan_io_register())) return result;
 	if((result = agan_math_register())) return result;
 	if((result = agan_misc_register())) return result;
+	if((result = agan_ed_register())) return result;
 
 	*dict = agan_dict;
 

@@ -67,4 +67,4 @@ $(PY)compile.c: $(PYGRAM)
 $(PY)import.c: $(PYGRAM)
 
 clean_python:
-	$(RM) $(PY_OBJ) $(PGEN_OBJ) $(PYGRAM) $(PGEN_OUT)
+	$(RM) $(PY_OBJ) $(PY_OUT) $(PGEN_OBJ) $(PYGRAM) $(PGEN_OUT)

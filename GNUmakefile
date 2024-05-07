@@ -47,6 +47,7 @@ ifdef WINDOWS
 	A = .lib
 
 	GL_LDLIBS = -lopengl32 -lglu32 -lgdi32 -lshell32 -luser32 -lwinmm
+	GL_LDLIBS += -lcomdlg32
 else
 	LIB = lib
 	OBJ = .o

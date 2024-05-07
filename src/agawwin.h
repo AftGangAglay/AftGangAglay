@@ -13,12 +13,13 @@
  */
 
 #include <agaerr.h>
+#include <agautil.h>
 
 #define AGA_WANT_WINDOWS_H
 
 #include <agaw32.h>
 
-#define AGA_CLASS_NAME ("Aft Gang Aglay")
+#define AGA_CLASS_NAME ("AftGangAglay")
 
 static const PIXELFORMATDESCRIPTOR pixel_format = {
 		sizeof(PIXELFORMATDESCRIPTOR), 1,
@@ -483,6 +484,51 @@ enum aga_result aga_diag(
 	}
 
 	*response = (res == IDYES);
+
+	return AGA_RESULT_OK;
+}
+
+static enum aga_result aga_windiagerr(DWORD err) {
+	switch(err) {
+		default: return AGA_RESULT_ERROR;
+		case CDERR_DIALOGFAILURE: return AGA_RESULT_ERROR;
+		case CDERR_FINDRESFAILURE: return AGA_RESULT_ERROR;
+		case CDERR_INITIALIZATION: return AGA_RESULT_OOM;
+		case CDERR_LOADRESFAILURE: return AGA_RESULT_ERROR;
+		case CDERR_LOADSTRFAILURE: return AGA_RESULT_ERROR;
+		case CDERR_LOCKRESFAILURE: return AGA_RESULT_BAD_OP;
+		case CDERR_MEMALLOCFAILURE: return AGA_RESULT_OOM;
+		case CDERR_MEMLOCKFAILURE: return AGA_RESULT_BAD_OP;
+		case CDERR_NOHINSTANCE: return AGA_RESULT_ERROR;
+		case CDERR_NOHOOK: return AGA_RESULT_ERROR;
+		case CDERR_NOTEMPLATE: return AGA_RESULT_ERROR;
+		case CDERR_REGISTERMSGFAIL: return AGA_RESULT_ERROR;
+		case CDERR_STRUCTSIZE: return AGA_RESULT_BAD_PARAM;
+		case FNERR_BUFFERTOOSMALL: return AGA_RESULT_ERROR;
+		case FNERR_INVALIDFILENAME: return AGA_RESULT_BAD_PARAM;
+		case FNERR_SUBCLASSFAILURE: return AGA_RESULT_OOM;
+	}
+}
+
+enum aga_result aga_filediag(char** result) {
+	OPENFILENAMEA openfile = { 0 };
+
+	if(!result) return AGA_RESULT_BAD_PARAM;
+
+	/* Not ideal but seems to be correct for this particular invoc. pattern. */
+	if(!(*result = aga_calloc(MAX_PATH, sizeof(char)))) return AGA_RESULT_OOM;
+
+	openfile.lStructSize = sizeof(openfile);
+	openfile.lpstrFilter = "All Files\0*.*\0\0";
+	openfile.lpstrFile = *result;
+	openfile.nMaxFile = MAX_PATH;
+	openfile.lpstrInitialDir = ".";
+	openfile.Flags = OFN_FILEMUSTEXIST;
+
+	if(!GetOpenFileNameA(&openfile)) {
+		aga_free(*result);
+		return aga_windiagerr(CommDlgExtendedError());
+	}
 
 	return AGA_RESULT_OK;
 }

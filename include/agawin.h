@@ -118,6 +118,8 @@ enum aga_result aga_poll(
 
 enum aga_result aga_diag(const char*, const char*, aga_bool_t*, aga_bool_t);
 
+enum aga_result aga_filediag(char**);
+
 enum aga_result aga_shellopen(const char*);
 
 #endif

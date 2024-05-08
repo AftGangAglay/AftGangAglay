@@ -167,11 +167,11 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 }
 
 enum aga_result aga_killrespack(struct aga_respack* pack) {
-	enum aga_result res;
+	enum aga_result result;
 
 	if(!pack) return AGA_RESULT_BAD_PARAM;
 
-	if((res = aga_sweeprespack(pack))) return 0;
+	if((result = aga_sweeprespack(pack))) return result;
 
 #ifdef _DEBUG
 	if(pack->outstanding_refs) {

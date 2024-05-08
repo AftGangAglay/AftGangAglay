@@ -81,7 +81,7 @@ static void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
 	newptr = realloc(node->data.string, ++node->scratch + 1);
 	if(!newptr) {
 		aga_errno(__FILE__, "realloc");
-		free(node->data.string);
+		free(node->data.string); /* TODO: Allocator indirection here. */
 		node->data.string = 0;
 	}
 	node->data.string = newptr;

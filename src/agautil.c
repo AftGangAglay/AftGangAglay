@@ -146,3 +146,9 @@ void aga_free(void* p) {
 	free(p);
 #endif
 }
+
+char* aga_strdup(const char* s) {
+	aga_size_t l = aga_strlen(s);
+	char* ret = aga_malloc(l + 1);
+	return aga_memcpy(ret, s, l + 1);
+}

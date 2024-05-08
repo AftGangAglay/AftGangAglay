@@ -195,7 +195,7 @@ enum aga_result aga_mkwin(
 	if(win->xwin == None) return AGA_RESULT_ERROR;
 
 	AGAX_CHK(XSetStandardProperties,
-			 (env->dpy, win->xwin, "Aft Gang Aglay", "", None, argv, argc, 0));
+			 (env->dpy, win->xwin, "AftGangAglay", "", None, argv, argc, 0));
 
 	AGAX_CHK(XSelectInput, (env->dpy, win->xwin, mask));
 	{

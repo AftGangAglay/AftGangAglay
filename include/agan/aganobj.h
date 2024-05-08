@@ -41,12 +41,22 @@ struct agan_lightdata {
 	aga_uint8_t index;
 };
 
-/* TODO: Central object/light registry and distribute handles. */
+/*
+ * TODO: Central object/light registry and distribute handles. Spatializing
+ * 		 This makes it easier to do streaming/chunking and means we can ensure
+ * 		 Sequential reads -- which is super important if we want to run off CD
+ * 		 Media. Maybe add a separate file type in packs which represent
+ * 		 Contiguous interleaved objects to avoid needing to seek over
+ * 		 Intermediate structures or rely on pack ordering at an application
+ * 		 Maintainer level.
+ */
 struct agan_object {
 	struct py_object* transform;
 	struct aga_res* res;
 	struct agan_lightdata* light_data;
 	aga_uint32_t ind;
+
+	char* modelpath;
 
 	aga_uint_t drawlist;
 	float min_extent[3];

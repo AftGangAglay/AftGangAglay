@@ -12,6 +12,12 @@
 #include <agastartup.h>
 #include <agaconf.h>
 #include <agaerr.h>
+#include <agautil.h>
+#include <agawin.h>
+
+#include <agalog.h>
+#define AGA_WANT_UNIX
+#include <agastd.h>
 
 /*
  * "Editor" functions are isolated here as they should not be callable in
@@ -36,7 +42,7 @@
  * TODO: Tear down and reload script land (or just user scripts) once we
  * 		 Consolidate Python state more to allow it.
  */
-struct py_object* agan_killpack(
+static struct py_object* agan_killpack(
 		struct py_object* self, struct py_object* args) {
 
 	struct aga_respack* pack;
@@ -51,7 +57,7 @@ struct py_object* agan_killpack(
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_mkpack(
+static struct py_object* agan_mkpack(
 		struct py_object* self, struct py_object* args) {
 
 	struct aga_respack* pack;
@@ -70,7 +76,7 @@ struct py_object* agan_mkpack(
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_dumpobj(
+static struct py_object* agan_dumpobj(
 		struct py_object* self, struct py_object* args) {
 
 	enum aga_result result;
@@ -97,6 +103,7 @@ struct py_object* agan_dumpobj(
 	result = agan_getobjconf(obj, &node);
 	if(aga_script_err("agan_getobjconf", result)) return 0;
 
+	/* Update conf tree with current transform data. */
 	/* TODO: This is copied from `mkobj_trans'. */
 	{
 		aga_size_t i, j;
@@ -130,6 +137,19 @@ struct py_object* agan_dumpobj(
 		}
 	}
 
+	/* Update conf tree with current model path. */
+	{
+		static const char* model = "Model";
+
+		struct aga_conf_node* n;
+
+		result = aga_conftree_raw(node.children, &model, 1, &n);
+		if(aga_script_err("aga_conftree_raw", result)) return 0;
+
+		aga_free(n->data.string);
+		n->data.string = aga_strdup(obj->modelpath);
+	}
+
 	{
 		FILE* outp = fopen(path, "wb+");
 		if(!outp) {
@@ -154,10 +174,75 @@ struct py_object* agan_dumpobj(
 	return py_object_incref(PY_NONE);
 }
 
+static struct py_object* agan_fdiag(
+		struct py_object* self, struct py_object* args) {
+
+	char* path;
+	struct py_object* str;
+
+	(void) self;
+	(void) args;
+
+	if(aga_script_err("aga_filediag", aga_filediag(&path))) return 0;
+
+	str = py_string_new(path);
+	aga_free(path);
+
+	return str;
+}
+
+static struct py_object* agan_setobjmdl(
+		struct py_object* self, struct py_object* args) {
+
+	static const char* model = "Model";
+
+	enum aga_result result;
+
+	struct aga_conf_node root;
+	struct aga_conf_node* node;
+
+	struct py_object* objp;
+	struct py_object* pathp;
+
+	struct agan_object* obj;
+	const char* path;
+
+	(void) self;
+
+	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
+		!aga_arg(&objp, args, 0, PY_TYPE_INT) ||
+		!aga_arg(&pathp, args, 1, PY_TYPE_STRING)) {
+
+		return aga_arg_error("setobjmdl", "int and string");
+	}
+
+	obj = aga_script_getptr(objp);
+
+	if(aga_script_string(pathp, &path)) return 0;
+
+	result = agan_getobjconf(obj, &root);
+	if(aga_script_err("agan_getobjconf", result)) return 0;
+
+	/* TODO: We really need to work out this whole root/non-root fiasco. */
+	result = aga_conftree_raw(root.children, &model, 1, &node);
+	if(aga_script_err("aga_conftree_raw", result)) return 0;
+
+	/*
+	 * TODO: We don't validate that the conf node is the correct type here nor
+	 * 		 Above.
+	 */
+	aga_free(node->data.string);
+	node->data.string = aga_strdup(path);
+
+	/* TODO: Soft reload object model here. Delete old drawlist etc. */
+
+	return py_object_incref(PY_NONE);
+}
+
 enum aga_result agan_ed_register(void) {
 #define _(name) { #name, agan_##name }
 	static const struct py_methodlist methods[] = {
-			_(killpack), _(mkpack), _(dumpobj),
+			_(killpack), _(mkpack), _(dumpobj), _(fdiag), _(setobjmdl),
 
 			{ 0, 0 }
 	};

@@ -195,8 +195,7 @@ static aga_bool_t agan_mkobj_model(
 			if(aga_script_gl_err("glTexParameteri")) return AGA_TRUE;
 		}
 
-		result = aga_conftree(
-				conf->children, &model, 1, &path, AGA_STRING);
+		result = aga_conftree(conf->children, &model, 1, &path, AGA_STRING);
 		if(result) {
 			aga_log(
 					__FILE__, "warn: Object `%s' is missing a model entry",
@@ -209,6 +208,9 @@ static aga_bool_t agan_mkobj_model(
 			void* fp;
 			aga_size_t i, len;
 			long ver; /* TODO: Update all `long' with `long long' once conf. */
+
+			aga_free(obj->modelpath);
+			obj->modelpath = aga_strdup(path);
 
 			result = aga_searchres(pack, path, &res);
 			if(aga_script_err("aga_mkres", result)) return AGA_TRUE;
@@ -511,6 +513,10 @@ struct py_object* agan_killobj(struct py_object* self, struct py_object* args) {
 	if(aga_script_gl_err("glDeleteLists")) return 0;
 
 	py_object_decref(obj->transform);
+
+	aga_free(obj->modelpath);
+
+	aga_free(obj);
 
 	apro_stamp_end(APRO_SCRIPTGLUE_KILLOBJ);
 

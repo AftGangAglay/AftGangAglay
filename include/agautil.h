@@ -67,4 +67,6 @@ void* aga_calloc(aga_size_t, aga_size_t);
 void* aga_realloc(void*, aga_size_t);
 void aga_free(void*);
 
+char* aga_strdup(const char*);
+
 #endif

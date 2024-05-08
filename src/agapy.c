@@ -68,6 +68,10 @@ void* aga_script_mkptr(void* p) {
 	return py_int_new((py_value_t) p);
 }
 
+/*
+ * TODO: This is not following the `aga_script_<type>' pattern used elsewhere
+ * 		 And does not typecheck/nullcheck.
+ */
 void* aga_script_getptr(void* op) {
 	return (void*) py_int_get(op);
 }

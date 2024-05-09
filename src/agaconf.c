@@ -73,18 +73,15 @@ static void aga_sgml_abort(struct aga_sgml_structured* me, HTError e) {
 
 static void aga_sgml_putc(struct aga_sgml_structured* me, char c) {
 	struct aga_conf_node* node = me->stack[me->depth - 1];
-	void* newptr;
 
 	if(node->type == AGA_NONE) return;
 	if(!node->data.string && aga_isblank(c)) return;
 
-	newptr = realloc(node->data.string, ++node->scratch + 1);
-	if(!newptr) {
-		aga_errno(__FILE__, "realloc");
-		free(node->data.string); /* TODO: Allocator indirection here. */
-		node->data.string = 0;
+	node->data.string = aga_realloc(node->data.string, ++node->scratch + 1);
+	if(!node->data.string) {
+		aga_errno(__FILE__, "aga_realloc");
+		return;
 	}
-	node->data.string = newptr;
 
 	node->data.string[node->scratch - 1] = c;
 	node->data.string[node->scratch] = 0;
@@ -107,20 +104,15 @@ void aga_sgml_start_element(
 
 	struct aga_conf_node* parent = me->stack[me->depth - 1];
 	struct aga_conf_node* node;
-	void* newptr;
 	enum aga_result result;
 
 	aga_size_t sz = ++parent->len * sizeof(struct aga_conf_node);
 
-	newptr = realloc(parent->children, sz);
-	if(!newptr) {
-		aga_errno(__FILE__, "realloc");
-		free(parent->children);
-		parent->children = 0;
+	if(!(parent->children = aga_realloc(parent->children, sz))) {
+		aga_errno(__FILE__, "aga_realloc");
 		parent->len = 0;
 		return;
 	}
-	parent->children = newptr;
 
 	node = &parent->children[parent->len - 1];
 	memset(node, 0, sizeof(struct aga_conf_node));
@@ -147,8 +139,8 @@ void aga_sgml_start_element(
 			else {
 				const char* value = attribute_value[AGA_ITEM_NAME];
 				aga_size_t len = strlen(value);
-				if(!(node->name = malloc(len + 1))) {
-					aga_errno(__FILE__, "malloc");
+				if(!(node->name = aga_malloc(len + 1))) {
+					aga_errno(__FILE__, "aga_malloc");
 					return;
 				}
 				memcpy(node->name, value, len + 1);
@@ -197,13 +189,15 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 	switch(node->type) {
 		default: break;
 		case AGA_INTEGER: {
-			long res; /* TODO: ll instead of l. */
+			aga_slong_t res;
 			if(!string) {
 				node->data.integer = 0;
 				break;
 			}
-			res = strtol(node->data.string, 0, 0);
-			free(string);
+
+			/* TODO: Technically not C89. */
+			res = strtoll(node->data.string, 0, 0);
+			aga_free(string);
 			node->data.integer = res;
 			break;
 		}
@@ -214,7 +208,7 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 				break;
 			}
 			res = strtod(node->data.string, 0);
-			free(string);
+			aga_free(string);
 			node->data.flt = res;
 			break;
 		}
@@ -311,10 +305,10 @@ void aga_free_node(struct aga_conf_node* node) {
 		aga_free_node(&node->children[i]);
 	}
 
-	if(node->type == AGA_STRING) free(node->data.string);
+	if(node->type == AGA_STRING) aga_free(node->data.string);
 
-	free(node->name);
-	free(node->children);
+	aga_free(node->name);
+	aga_free(node->children);
 }
 
 enum aga_result aga_killconf(struct aga_conf_node* root) {

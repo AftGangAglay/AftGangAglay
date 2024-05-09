@@ -12,6 +12,7 @@
 #include <agagl.h>
 #include <agadraw.h>
 #include <agalog.h>
+#include <agadiag.h>
 
 #include <apro.h>
 
@@ -93,7 +94,7 @@ struct py_object* agan_text(struct py_object* self, struct py_object* args) {
 	struct py_object* f;
 	double x, y;
 
-	AGAN_DEPRCALL("agan.text", "agan.text2d");
+	AGA_DEPRCALL("agan.text", "agan.text2d");
 
 	(void) self;
 
@@ -259,13 +260,12 @@ struct py_object* agan_mktrans(struct py_object* self, struct py_object* args) {
 	return retval;
 }
 
-/* TODO: Move to draw flag. */
 struct py_object* agan_shadeflat(
 		struct py_object* self, struct py_object* args) {
 
 	py_value_t v;
 
-	AGAN_DEPRCALL("agan.shadeflat", "agan.setflag");
+	AGA_DEPRCALL("agan.shadeflat", "agan.setflag");
 
 	(void) self;
 
@@ -341,7 +341,6 @@ struct py_object* agan_getpix(struct py_object* self, struct py_object* args) {
 	glReadBuffer(surface_names[surface]);
 	if(aga_script_gl_err("glReadBuffer")) return 0;
 
-	/* TODO: Invert `y' to start from top left. */
 	h = (int) (win->height - y);
 	glReadPixels((int) x, h, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pix);
 	if(aga_script_gl_err("glReadPixels")) return 0;

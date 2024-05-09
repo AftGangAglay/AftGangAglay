@@ -89,11 +89,6 @@ enum aga_result aga_mkmod(void** dict) {
 	enum aga_result result;
 
 	/*
-	 * TODO: Put "editor" functions in their own module/namespace which isn't
-	 * 		 Present in distribution.
-	 */
-
-	/*
 	 * TODO: Put each module in a "namespace" (i.e. `agan.io.getkey' etc.).
 	 * 		 Similar to how `ed' is structured.
 	 */

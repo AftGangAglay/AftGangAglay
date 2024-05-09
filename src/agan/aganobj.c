@@ -15,15 +15,9 @@
 #include <agapack.h>
 #include <agaio.h>
 #include <agaerr.h>
+#include <agadiag.h>
 
 #include <apro.h>
-
-#define AGA_SWAPF(a, b) \
-	do { \
-		float scratch = b; \
-		b = a; \
-		a = scratch; \
-	} while(0)
 
 /* TODO: Some `aga_script_*err` disable with noverify. */
 
@@ -90,11 +84,7 @@ static void agan_mkobj_extent(
 		if(aga_conftree(conf, &min_attr[i], 1, &(*min)[i], AGA_FLOAT)) {
 			(*min)[i] = 0.0f;
 		}
-	}
-
-	/* TODO: Can't these just be merged? */
-	for(i = 0; i < 3; ++i) {
-		if(aga_conftree(conf, &max_attr[i], 1, &(*max)[i], AGA_FLOAT)) {
+		else if(aga_conftree(conf, &max_attr[i], 1, &(*max)[i], AGA_FLOAT)) {
 			(*max)[i] = 0.0f;
 		}
 	}
@@ -107,9 +97,6 @@ static aga_bool_t agan_mkobj_model(
 	static const char* model = "Model";
 	static const char* texture = "Texture";
 	static const char* filter = "Filter";
-	/* static const char* unlit = "Unlit"; */
-
-	/* TODO: Opt to disable textures? */
 
 	enum aga_result result;
 
@@ -128,8 +115,6 @@ static aga_bool_t agan_mkobj_model(
 	glNewList(obj->drawlist, mode);
 	if(aga_script_gl_err("glNewList")) return 0;
 
-	/* TODO: Handle unlit. */
-
 	{
 		int f;
 
@@ -137,7 +122,6 @@ static aga_bool_t agan_mkobj_model(
 
 		f = f ? GL_LINEAR : GL_NEAREST;
 
-		/* TODO: Specific error type for failure to find entry (?). */
 		if(aga_conftree(conf->children, &texture, 1, &path, AGA_STRING)) {
 			aga_log(
 					__FILE__, "warn: Object `%s' is missing a texture entry",
@@ -242,7 +226,11 @@ static aga_bool_t agan_mkobj_model(
 					aga_uchar_t b = (obj->ind >> (0 * 8)) & 0xFF;
 					glColor3ub(r, g, b);
 				}
-				else glColor4fv(v.col); /* TODO: Deprecation warning. */
+				else {
+					AGA_DEPRSTAMP(
+							"Loading Version 1 model data is deprecated");
+					glColor4fv(v.col);
+				}
 
 				glTexCoord2fv(v.uv);
 				/* if(aga_script_gl_err("glTexCoord2fv")) return AGA_TRUE; */
@@ -400,10 +388,6 @@ static aga_bool_t agan_mkobj_light(
 	return AGA_FALSE;
 }
 
-/*
- * TODO: Failure states here are super leaky - we can probably compartmentalise
- * 		 This function a lot more to help remedy this.
- */
 struct py_object* agan_mkobj(struct py_object* self, struct py_object* args) {
 	enum aga_result result;
 
@@ -670,7 +654,11 @@ enum aga_result agan_getobjconf(
 	result = aga_resseek(obj->res, &fp);
 	if(aga_script_err("aga_resseek", result)) return 0;
 
-	/* TODO: Set aga_conf_debug_file = obj->res. whatever. */
+	/*
+	 * TODO: We can't currently set `aga_conf_debug_file' to anything sensible
+	 * 		 Here as we don't cache object conf paths in the object
+	 * 		 (Rightfully so).
+	 */
 	result = aga_mkconf(fp, obj->res->size, node);
 	if(aga_script_err("aga_mkconf", result)) return 0;
 

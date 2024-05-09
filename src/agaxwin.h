@@ -20,14 +20,8 @@
 
 static const char* agax_chk_last = "xlib";
 
-/* TODO: Find a more standard way to do this nicely. */
-#ifdef __GNUC__
-# pragma GCC diagnostic ignored "-Wpedantic"
 /* TODO: Check against return value for `0'. */
-# define AGAX_CHK(proc, param) ({ agax_chk_last = #proc; proc param; })
-#else
-# define AGAX_CHK(proc, param) proc param
-#endif
+#define AGAX_CHK(proc, param) (agax_chk_last = #proc, proc param)
 
 static const int single_buffer_fb[] = {
 		GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT, GLX_RENDER_TYPE, GLX_RGBA_BIT,
@@ -81,7 +75,8 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 		if((fl = fcntl(env->dpy_fd, F_GETFL)) == -1) {
 			return aga_errno(__FILE__, "fcntl");
 		}
-		fl |= O_NONBLOCK; /* TODO: We could use `O_ASYNC' for this. */
+
+		fl |= O_NONBLOCK;
 		if(fcntl(env->dpy_fd, F_SETFL, fl) == -1) {
 			return aga_errno(__FILE__, "fcntl");
 		}

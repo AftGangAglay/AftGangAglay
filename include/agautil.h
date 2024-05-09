@@ -9,6 +9,13 @@
 #include <agaenv.h>
 #include <agaresult.h>
 
+#define AGA_SWAPF(a, b) \
+	do { \
+		float scratch = b; \
+		b = a; \
+		a = scratch; \
+	} while(0)
+
 enum aga_stream_whence {
 	AGA_STREAM_SET,
 	AGA_STREAM_END,

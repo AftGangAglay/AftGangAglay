@@ -18,11 +18,6 @@
  * Declared in `agapyinc'.
  */
 
-#ifdef _DEBUG
-/* The extra debug info this enables is a bit too verbose. */
-int debugging = 0;
-#endif
-
 void py_fatal(const char* msg) {
 	aga_log(__FILE__, "Python Fatal Error: %s", msg);
 	abort();

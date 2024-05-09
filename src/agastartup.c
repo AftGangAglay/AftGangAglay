@@ -63,12 +63,6 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 				}
 				case 'v': {
 					extern int WWW_TraceFlag; /* From libwww. */
-
-#ifdef _DEBUG
-					extern int debugging; /* From python. */
-					debugging = 1;
-#endif
-
 					WWW_TraceFlag = 1;
 
 					opts->verbose = AGA_TRUE;

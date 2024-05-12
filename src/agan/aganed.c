@@ -244,7 +244,7 @@ static struct py_object* agan_setobjmdl(
 	return py_object_incref(PY_NONE);
 }
 
-enum aga_result agan_ed_register(void) {
+enum aga_result agan_ed_register(struct py_env* env) {
 #define _(name) { #name, agan_##name }
 	static const struct py_methodlist methods[] = {
 			_(killpack), _(mkpack), _(dumpobj), _(fdiag), _(setobjmdl),
@@ -265,7 +265,7 @@ enum aga_result agan_ed_register(void) {
 	 * User is not meant to access `ed' directly as a module -- but as an attr
 	 * of `agan'.
 	 */
-	if(!(ed = py_module_new_methods("_ed", methods))) {
+	if(!(ed = py_module_new_methods(env, "_ed", methods))) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}

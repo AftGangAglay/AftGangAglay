@@ -87,7 +87,7 @@ static enum aga_result aga_compilescript(
 	result = aga_resfptr(pack, script, &fp, &size);
 	if(result) return result;
 
-	if(!(module = py_module_add("__main__"))) return AGA_RESULT_ERROR;
+	if(!(module = py_module_add(env, "__main__"))) return AGA_RESULT_ERROR;
 
 	res = py_parse_file(
 			fp, script, &py_grammar, PY_GRAMMAR_FILE_INPUT, 0, 0, &node);
@@ -133,12 +133,13 @@ enum aga_result aga_mkscripteng(
 	pyres = py_env_new(eng->py, eng->env);
 	if(pyres != PY_RESULT_OK) return aga_pyresult(pyres);
 
-	/* TODO: EH */
-	py_import_init();
-	py_builtin_init();
-	py_math_init();
+	pyres = py_builtin_init(eng->env);
+	if(pyres != PY_RESULT_OK) return aga_pyresult(pyres);
 
-	result = aga_mkmod((void**) &eng->agandict);
+	pyres = py_math_init(eng->env);
+	if(pyres != PY_RESULT_OK) return aga_pyresult(pyres);
+
+	result = aga_mkmod(eng->env, (void**) &eng->agandict);
 	if(result) return result;
 
 	if(!(py_path = py_path_new(pypath))) {
@@ -159,7 +160,7 @@ enum aga_result aga_mkscripteng(
 enum aga_result aga_killscripteng(struct aga_scripteng* eng) {
 	if(!eng) return AGA_RESULT_BAD_PARAM;
 
-	py_import_done();
+	py_import_done(eng->env);
 	py_builtin_done();
 	py_done_dict();
 

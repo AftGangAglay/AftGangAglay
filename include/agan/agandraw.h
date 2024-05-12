@@ -15,7 +15,7 @@ enum agan_surface {
 	AGAN_SURFACE_DEPTH
 };
 
-enum aga_result agan_draw_register(void);
+enum aga_result agan_draw_register(struct py_env*);
 
 struct py_object* agan_setcam(
 		struct py_env* env, struct py_object*, struct py_object*);

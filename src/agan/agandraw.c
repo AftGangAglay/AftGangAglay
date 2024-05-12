@@ -16,8 +16,10 @@
 
 #include <apro.h>
 
-enum aga_result agan_draw_register(void) {
+enum aga_result agan_draw_register(struct py_env* env) {
 	enum aga_result result;
+
+	(void) env;
 
 	if((result = aga_insertint("BACKFACE", AGA_DRAW_BACKFACE))) return result;
 	if((result = aga_insertint("BLEND", AGA_DRAW_BLEND))) return result;

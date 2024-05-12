@@ -33,7 +33,8 @@
  * TODO: "Portal" object property using stencil buffers and camera state.
  */
 
-enum aga_result agan_obj_register(void) {
+enum aga_result agan_obj_register(struct py_env* env) {
+	(void) env;
 	return AGA_RESULT_OK;
 }
 

@@ -85,7 +85,7 @@ enum aga_result aga_insertint(const char* key, py_value_t value) {
 	return AGA_RESULT_OK;
 }
 
-enum aga_result aga_mkmod(void** dict) {
+enum aga_result aga_mkmod(struct py_env* env, void** dict) {
 	enum aga_result result;
 
 	/*
@@ -114,7 +114,7 @@ enum aga_result aga_mkmod(void** dict) {
 			{ 0, 0 } };
 #undef _
 
-	struct py_object* module = py_module_new_methods("agan", methods);
+	struct py_object* module = py_module_new_methods(env, "agan", methods);
 	if(!module) return AGA_RESULT_ERROR;
 
 	if(!(agan_dict = ((struct py_module*) module)->attr)) {
@@ -122,11 +122,11 @@ enum aga_result aga_mkmod(void** dict) {
 		return AGA_RESULT_ERROR;
 	}
 
-	if((result = agan_draw_register())) return result;
-	if((result = agan_io_register())) return result;
-	if((result = agan_math_register())) return result;
-	if((result = agan_misc_register())) return result;
-	if((result = agan_ed_register())) return result;
+	if((result = agan_draw_register(env))) return result;
+	if((result = agan_io_register(env))) return result;
+	if((result = agan_math_register(env))) return result;
+	if((result = agan_misc_register(env))) return result;
+	if((result = agan_ed_register(env))) return result;
 
 	*dict = agan_dict;
 

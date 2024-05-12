@@ -25,7 +25,7 @@ enum aga_result aga_insertfloat(const char*, double);
 
 enum aga_result aga_insertint(const char*, py_value_t);
 
-enum aga_result aga_mkmod(void**);
+enum aga_result aga_mkmod(struct py_env*, void**);
 
 aga_bool_t aga_script_err(const char*, enum aga_result);
 

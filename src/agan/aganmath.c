@@ -16,11 +16,13 @@
  * 		 Procs. in `builtinmodule' or `mathmodule'.
  */
 
-enum aga_result agan_math_register(void) {
+enum aga_result agan_math_register(struct py_env* env) {
 	static const double pi = 3.14159265358979323846;
 	static const double e = 2.71828182845904523536;
 
 	enum aga_result result;
+
+	(void) env;
 
 	if((result = aga_insertfloat("PI", pi))) return result;
 

@@ -8,7 +8,7 @@
 
 #include <agan/agan.h>
 
-enum aga_result agan_math_register(void);
+enum aga_result agan_math_register(struct py_env*);
 
 struct py_object* agan_bitand(
 		struct py_env* env, struct py_object*, struct py_object*);

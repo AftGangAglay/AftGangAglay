@@ -13,8 +13,10 @@
 
 static enum aga_result aga_setkeys(void);
 
-enum aga_result agan_io_register(void) {
+enum aga_result agan_io_register(struct py_env* env) {
 	enum aga_result result;
+
+	(void) env;
 
 	if((result = aga_insertint("CLICK", AGA_BUTTON_CLICK))) return result;
 	if((result = aga_insertint("DOWN", AGA_BUTTON_DOWN))) return result;

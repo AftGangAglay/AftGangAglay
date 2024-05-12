@@ -12,8 +12,10 @@
 
 #include <apro.h>
 
-enum aga_result agan_misc_register(void) {
+enum aga_result agan_misc_register(struct py_env* env) {
 	enum aga_result result;
+
+	(void) env;
 
 	if((result = aga_insertstr("VERSION", AGA_VERSION))) return result;
 

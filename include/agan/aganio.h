@@ -8,7 +8,7 @@
 
 #include <agan/agan.h>
 
-enum aga_result agan_io_register(void);
+enum aga_result agan_io_register(struct py_env*);
 
 struct py_object* agan_getkey(
 		struct py_env* env, struct py_object*, struct py_object*);

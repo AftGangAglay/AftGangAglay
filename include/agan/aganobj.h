@@ -65,7 +65,7 @@ struct agan_object {
 
 enum aga_result agan_getobjconf(struct agan_object*, struct aga_conf_node*);
 
-enum aga_result agan_obj_register(void);
+enum aga_result agan_obj_register(struct py_env*);
 
 struct py_object* agan_mkobj(
 		struct py_env* env, struct py_object*, struct py_object*);

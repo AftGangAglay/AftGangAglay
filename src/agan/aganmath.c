@@ -32,7 +32,8 @@ enum aga_result agan_math_register(void) {
 }
 
 /* Python lacks native bitwise ops @-@ */
-struct py_object* agan_bitand(struct py_object* self, struct py_object* args) {
+struct py_object* agan_bitand(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 	struct py_object* a;
 	struct py_object* b;
 	struct py_object* v;
@@ -40,6 +41,7 @@ struct py_object* agan_bitand(struct py_object* self, struct py_object* args) {
 
 	AGA_DEPRCALL("agan.bitand", "math.andb");
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_BITAND);
@@ -60,7 +62,8 @@ struct py_object* agan_bitand(struct py_object* self, struct py_object* args) {
 	return v;
 }
 
-struct py_object* agan_bitshl(struct py_object* self, struct py_object* args) {
+struct py_object* agan_bitshl(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 	struct py_object* a;
 	struct py_object* b;
 	struct py_object* v;
@@ -68,6 +71,7 @@ struct py_object* agan_bitshl(struct py_object* self, struct py_object* args) {
 
 	AGA_DEPRCALL("agan.bitshl", "math.shl");
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_BITSHL);
@@ -89,12 +93,13 @@ struct py_object* agan_bitshl(struct py_object* self, struct py_object* args) {
 }
 
 struct py_object* agan_randnorm(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	struct py_object* v;
 
 	AGA_DEPRCALL("agan.randnorm", "math.randf");
 
+	(void) env;
 	(void) self;
 	(void) args;
 
@@ -108,7 +113,7 @@ struct py_object* agan_randnorm(
 }
 
 struct py_object* agan_bitor(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	struct py_object* ob;
 	py_value_t v;
@@ -117,6 +122,7 @@ struct py_object* agan_bitor(
 
 	AGA_DEPRCALL("agan.bitor", "math.orb");
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_BITOR);

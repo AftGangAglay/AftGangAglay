@@ -7,6 +7,7 @@
 #include <agascripthelp.h>
 #include <agalog.h>
 #include <agaerr.h>
+#include <agautil.h>
 #include <agapack.h>
 #include <agapyinc.h>
 
@@ -55,9 +56,24 @@ void aga_script_trace(void) {
 	}
 }
 
+enum aga_result aga_pyresult(enum py_result result) {
+	switch(result) {
+		default: return AGA_RESULT_ERROR;
+		case PY_RESULT_OK: return AGA_RESULT_OK;
+		case PY_RESULT_EOF: return AGA_RESULT_BAD_PARAM;
+		case PY_RESULT_TOKEN: return AGA_RESULT_BAD_PARAM;
+		case PY_RESULT_SYNTAX: return AGA_RESULT_BAD_PARAM;
+		case PY_RESULT_OOM: return AGA_RESULT_OOM;
+		case PY_RESULT_DONE: return AGA_RESULT_OK;
+	}
+
+	return AGA_RESULT_ERROR;
+}
+
+/* TODO: Separate interpreter state and environments in our script API. */
 static enum aga_result aga_compilescript(
-		const char* script, struct aga_respack* pack,
-		struct py_object** dict) {
+		struct py_env* env, const char* script,
+		struct aga_respack* pack, struct py_object** dict) {
 
 	enum aga_result result;
 	void* fp;
@@ -65,7 +81,7 @@ static enum aga_result aga_compilescript(
 	struct py_object* module;
 	struct py_object* eval;
 	struct py_node* node;
-	int res;
+	enum py_result res;
 	struct py_code* code;
 
 	result = aga_resfptr(pack, script, &fp, &size);
@@ -75,14 +91,14 @@ static enum aga_result aga_compilescript(
 
 	res = py_parse_file(
 			fp, script, &py_grammar, PY_GRAMMAR_FILE_INPUT, 0, 0, &node);
-	if(res != PY_RESULT_DONE) return AGA_RESULT_ERROR;
+	if(res != PY_RESULT_DONE) return aga_pyresult(res);
 
 	if(!(*dict = ((struct py_module*) module)->attr)) return AGA_RESULT_ERROR;
 	if(!(code = py_compile(node, script))) return AGA_RESULT_ERROR;
 
 	py_tree_delete(node);
 
-	eval = py_code_eval(code, *dict, *dict, 0);
+	eval = py_code_eval(env, code, *dict, *dict, 0);
 	if(py_error_occurred()) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;
@@ -99,9 +115,23 @@ enum aga_result aga_mkscripteng(
 		const char* pypath) {
 
 	enum aga_result result;
+	enum py_result pyres;
 
 	if(!eng) return AGA_RESULT_BAD_PARAM;
 	if(!script) return AGA_RESULT_BAD_PARAM;
+
+	eng->py = aga_calloc(1, sizeof(struct py));
+	if(!eng->py) return AGA_RESULT_OOM;
+
+	eng->env = aga_calloc(1, sizeof(struct py_env));
+	if(!eng->env) return AGA_RESULT_OOM;
+
+	/* TODO: Cleanup these. */
+	pyres = py_new(eng->py);
+	if(pyres != PY_RESULT_OK) return aga_pyresult(pyres);
+
+	pyres = py_env_new(eng->py, eng->env);
+	if(pyres != PY_RESULT_OK) return aga_pyresult(pyres);
 
 	/* TODO: EH */
 	py_import_init();
@@ -120,7 +150,7 @@ enum aga_result aga_mkscripteng(
 	if(result) return result;
 
 	result = aga_compilescript(
-			script, pack, (struct py_object**) &eng->global);
+			eng->env, script, pack, (struct py_object**) &eng->global);
 	if(result) return result;
 
 	return AGA_RESULT_OK;
@@ -207,7 +237,10 @@ enum aga_result aga_killscriptinst(struct aga_scriptinst* inst) {
 	return AGA_RESULT_OK;
 }
 
-enum aga_result aga_instcall(struct aga_scriptinst* inst, const char* name) {
+enum aga_result aga_instcall(
+		struct aga_scripteng* eng, struct aga_scriptinst* inst,
+		const char* name) {
+
 	struct py_object* proc;
 	struct py_object* methodcall;
 
@@ -232,7 +265,7 @@ enum aga_result aga_instcall(struct aga_scriptinst* inst, const char* name) {
 
 	apro_stamp_start(APRO_SCRIPT_INSTCALL_EXEC);
 
-	py_call_function(methodcall, 0);
+	py_call_function(eng->env, methodcall, 0);
 	if(py_error_occurred()) {
 		aga_script_trace();
 		return AGA_RESULT_ERROR;

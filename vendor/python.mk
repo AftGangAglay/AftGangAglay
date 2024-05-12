@@ -12,7 +12,7 @@ PY_SRC4 = $(PY)import.c $(PY)intobject.c $(PY)listnode.c $(PY)listobject.c
 PY_SRC5 = $(PY)mathmodule.c $(PY)methodobject.c $(PY)modsupport.c
 PY_SRC6 = $(PY)moduleobject.c $(PY)node.c $(PY)object.c $(PY)parser.c
 PY_SRC7 = $(PY)parsetok.c $(PY)stringobject.c $(PY)tokenizer.c $(PY)traceback.c
-PY_SRC8 = $(PY)pythonmain.c $(PY)tupleobject.c $(PY)types.c
+PY_SRC8 = $(PY)pythonmain.c $(PY)tupleobject.c $(PY)types.c $(PY)state.c
 PY_SRC9 = $(PY_SRC1) $(PY_SRC2) $(PY_SRC3) $(PY_SRC4) $(PY_SRC5) $(PY_SRC6)
 PY_SRC10 = $(PY_SRC7) $(PY_SRC8)
 
@@ -25,7 +25,7 @@ PY_HDR6 = $(PYH)methodobject.h $(PYH)modsupport.h $(PYH)moduleobject.h
 PY_HDR7 = $(PYH)node.h $(PYH)object.h $(PYH)opcode.h $(PYH)parser.h
 PY_HDR8 = $(PYH)parsetok.h $(PYH)pgen.h $(PYH)result.h $(PYH)std.h
 PY_HDR9 = $(PYH)stringobject.h $(PYH)token.h $(PYH)tokenizer.h
-PY_HDR10 = $(PYH)traceback.h $(PYH)tupleobject.h
+PY_HDR10 = $(PYH)traceback.h $(PYH)tupleobject.h $(PYH)state.h $(PYH)types.h
 PY_HDR11 = $(PY_HDR1) $(PY_HDR2) $(PY_HDR3) $(PY_HDR4) $(PY_HDR5) $(PY_HDR6)
 PY_HDR12 = $(PY_HDR7) $(PY_HDR8) $(PY_HDR9) $(PY_HDR10)
 

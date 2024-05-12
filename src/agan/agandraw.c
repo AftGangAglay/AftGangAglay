@@ -37,7 +37,9 @@ enum aga_result agan_draw_register(void) {
 	return AGA_RESULT_OK;
 }
 
-struct py_object* agan_setcam(struct py_object* self, struct py_object* args) {
+struct py_object* agan_setcam(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	struct py_object* t;
 	struct py_object* mode;
 	aga_bool_t b;
@@ -45,6 +47,7 @@ struct py_object* agan_setcam(struct py_object* self, struct py_object* args) {
 
 	struct aga_opts* opts;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_SETCAM);
@@ -87,7 +90,9 @@ struct py_object* agan_setcam(struct py_object* self, struct py_object* args) {
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_text(struct py_object* self, struct py_object* args) {
+struct py_object* agan_text(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	const char* text;
 	struct py_object* str;
 	struct py_object* t;
@@ -96,6 +101,7 @@ struct py_object* agan_text(struct py_object* self, struct py_object* args) {
 
 	AGA_DEPRCALL("agan.text", "agan.text2d");
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_TEXT);
@@ -130,11 +136,12 @@ struct py_object* agan_text(struct py_object* self, struct py_object* args) {
  * 		 [ density(norm), start, end ]
  */
 struct py_object* agan_fogparam(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	struct py_object* v;
 	double f;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_FOGPARAM);
@@ -173,12 +180,15 @@ struct py_object* agan_fogparam(
  * TODO: We should ideally have a consolidated way to get vector-y types
  * 		 Out of scriptland.
  */
-struct py_object* agan_fogcol(struct py_object* self, struct py_object* args) {
+struct py_object* agan_fogcol(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	struct py_object* v;
 	aga_size_t i;
 	double f;
 	float col[3];
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_FOGCOL);
@@ -201,7 +211,9 @@ struct py_object* agan_fogcol(struct py_object* self, struct py_object* args) {
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_clear(struct py_object* self, struct py_object* args) {
+struct py_object* agan_clear(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	enum aga_result result;
 
 	struct py_object* v;
@@ -209,6 +221,7 @@ struct py_object* agan_clear(struct py_object* self, struct py_object* args) {
 	float col[4];
 	aga_size_t i;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_CLEAR);
@@ -229,12 +242,15 @@ struct py_object* agan_clear(struct py_object* self, struct py_object* args) {
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_mktrans(struct py_object* self, struct py_object* args) {
+struct py_object* agan_mktrans(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	struct py_object* retval;
 	struct py_object* list;
 	struct py_object* f;
 	aga_size_t i, j;
 
+	(void) env;
 	(void) self;
 	(void) args;
 
@@ -261,12 +277,13 @@ struct py_object* agan_mktrans(struct py_object* self, struct py_object* args) {
 }
 
 struct py_object* agan_shadeflat(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	py_value_t v;
 
 	AGA_DEPRCALL("agan.shadeflat", "agan.setflag");
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_SHADEFLAT);
@@ -285,7 +302,9 @@ struct py_object* agan_shadeflat(
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_getpix(struct py_object* self, struct py_object* args) {
+struct py_object* agan_getpix(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	static aga_uint_t surface_names[] = {
 			GL_FRONT, GL_BACK, GL_STENCIL, GL_DEPTH };
 
@@ -302,6 +321,7 @@ struct py_object* agan_getpix(struct py_object* self, struct py_object* args) {
 
 	struct aga_win* win;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_GETPIX);
@@ -361,10 +381,11 @@ struct py_object* agan_getpix(struct py_object* self, struct py_object* args) {
 
 /* TODO: Could just take a list here. */
 struct py_object* agan_setflag(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	py_value_t v;
 
+	(void) env;
 	(void) self;
 
 	if(!aga_arg_list(args, PY_TYPE_INT)) {
@@ -379,15 +400,17 @@ struct py_object* agan_setflag(
 }
 
 struct py_object* agan_getflag(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
+	(void) env;
 	(void) self;
 	(void) args;
 
 	return py_int_new(aga_getdraw());
 }
 
-struct py_object* agan_line3d(struct py_object* self, struct py_object* args) {
+struct py_object* agan_line3d(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 	aga_size_t i;
 
 	struct py_object* from;
@@ -400,6 +423,7 @@ struct py_object* agan_line3d(struct py_object* self, struct py_object* args) {
 	double ptf;
 	double colf[3];
 
+	(void) env;
 	(void) self;
 
 	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||

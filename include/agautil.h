@@ -69,6 +69,10 @@ char* aga_getenv(const char*);
  * 		 Alternative impls should set errno in these wrappers if they don't
  * 		 Do so natively.
  */
+/*
+ * TODO: Massively inconsistent between using errno and just returning OOM on
+ * 		 Failure for these.
+ */
 void* aga_malloc(aga_size_t);
 void* aga_calloc(aga_size_t, aga_size_t);
 void* aga_realloc(void*, aga_size_t);

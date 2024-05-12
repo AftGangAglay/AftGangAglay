@@ -40,10 +40,13 @@ enum aga_result agan_misc_register(void) {
 	return AGA_RESULT_OK;
 }
 
-struct py_object* agan_getconf(struct py_object* self, struct py_object* args) {
+struct py_object* agan_getconf(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	struct aga_opts* opts;
 	struct py_object* v;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_GETCONF);
@@ -61,9 +64,12 @@ struct py_object* agan_getconf(struct py_object* self, struct py_object* args) {
 	return v;
 }
 
-struct py_object* agan_log(struct py_object* self, struct py_object* args) {
+struct py_object* agan_log(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	const char* loc;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_LOG);
@@ -73,7 +79,7 @@ struct py_object* agan_log(struct py_object* self, struct py_object* args) {
 		return 0;
 	}
 
-	if(aga_script_string(py_frame_current->code->filename, &loc)) return 0;
+	if(aga_script_string(env->current->code->filename, &loc)) return 0;
 
 	switch(args->type) {
 		default: {
@@ -116,9 +122,12 @@ struct py_object* agan_log(struct py_object* self, struct py_object* args) {
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_die(struct py_object* self, struct py_object* args) {
+struct py_object* agan_die(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	aga_bool_t* die;
 
+	(void) env;
 	(void) self;
 	(void) args;
 

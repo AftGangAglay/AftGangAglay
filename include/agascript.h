@@ -32,6 +32,9 @@ struct aga_scriptinst {
 };
 
 struct aga_scripteng {
+	struct py* py;
+	struct py_env* env; /* TODO: This is temporary. */
+
 	void* global;
 	void* agandict;
 };
@@ -51,7 +54,8 @@ enum aga_result aga_mkscriptinst(
 
 enum aga_result aga_killscriptinst(struct aga_scriptinst*);
 
-enum aga_result aga_instcall(struct aga_scriptinst*, const char*);
+enum aga_result aga_instcall(
+		struct aga_scripteng* eng, struct aga_scriptinst*, const char*);
 
 void aga_script_trace(void);
 

@@ -137,7 +137,7 @@ enum aga_result aga_mkkeymap(
 													  ->keysyms_per_keycode));
 	if(!keymap->keymap) return AGA_RESULT_ERROR;
 
-	keymap->keystates = calloc(
+	keymap->keystates = aga_calloc(
 			keymap->keysyms_per_keycode * keymap->keycode_len,
 			sizeof(aga_bool_t));
 	if(!keymap->keystates) return AGA_RESULT_OOM;
@@ -149,7 +149,7 @@ enum aga_result aga_killkeymap(struct aga_keymap* keymap) {
 	if(!keymap) return AGA_RESULT_BAD_PARAM;
 
 	XFree(keymap->keymap);
-	free(keymap->keystates);
+	aga_free(keymap->keystates);
 
 	return AGA_RESULT_OK;
 }
@@ -205,7 +205,7 @@ enum aga_result aga_mkwin(
 			count = 0;
 		}
 
-		new_prots = malloc((count + 1) * sizeof(Atom));
+		new_prots = aga_malloc((count + 1) * sizeof(Atom));
 		if(!new_prots) {
 			if(prots) XFree(prots);
 			return AGA_RESULT_OOM;
@@ -218,11 +218,11 @@ enum aga_result aga_mkwin(
 		res = AGAX_CHK(XSetWMProtocols,
 					   (env->dpy, win->xwin, new_prots, count + 1));
 		if(!res) {
-			free(new_prots);
+			aga_free(new_prots);
 			return AGA_RESULT_ERROR;
 		}
 
-		free(new_prots);
+		aga_free(new_prots);
 	}
 	AGAX_CHK(XSetInputFocus, (env->dpy, win->xwin, RevertToNone, CurrentTime));
 

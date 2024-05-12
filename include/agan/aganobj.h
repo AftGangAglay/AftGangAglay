@@ -67,18 +67,25 @@ enum aga_result agan_getobjconf(struct agan_object*, struct aga_conf_node*);
 
 enum aga_result agan_obj_register(void);
 
-struct py_object* agan_mkobj(struct py_object*, struct py_object*);
+struct py_object* agan_mkobj(
+		struct py_env* env, struct py_object*, struct py_object*);
 
-struct py_object* agan_inobj(struct py_object*, struct py_object*);
+struct py_object* agan_inobj(
+		struct py_env* env, struct py_object*, struct py_object*);
 
-struct py_object* agan_putobj(struct py_object*, struct py_object*);
+struct py_object* agan_putobj(
+		struct py_env* env, struct py_object*, struct py_object*);
 
-struct py_object* agan_killobj(struct py_object*, struct py_object*);
+struct py_object* agan_killobj(
+		struct py_env* env, struct py_object*, struct py_object*);
 
-struct py_object* agan_objtrans(struct py_object*, struct py_object*);
+struct py_object* agan_objtrans(
+		struct py_env* env, struct py_object*, struct py_object*);
 
-struct py_object* agan_objconf(struct py_object*, struct py_object*);
+struct py_object* agan_objconf(
+		struct py_env* env, struct py_object*, struct py_object*);
 
-struct py_object* agan_objind(struct py_object*, struct py_object*);
+struct py_object* agan_objind(
+		struct py_env* env, struct py_object*, struct py_object*);
 
 #endif

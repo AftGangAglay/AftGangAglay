@@ -9,6 +9,8 @@
 #include <agaresult.h>
 #include <agapyinc.h>
 
+struct py_env;
+
 struct aga_conf_node;
 
 extern struct py_object* agan_dict;

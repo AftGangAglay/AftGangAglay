@@ -28,12 +28,15 @@ enum aga_result agan_io_register(void) {
 	return AGA_RESULT_OK;
 }
 
-struct py_object* agan_getkey(struct py_object* self, struct py_object* args) {
+struct py_object* agan_getkey(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	enum aga_result result;
 	py_value_t value;
 	aga_bool_t b;
 	struct aga_keymap* keymap;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_GETKEY);
@@ -53,12 +56,13 @@ struct py_object* agan_getkey(struct py_object* self, struct py_object* args) {
 }
 
 struct py_object* agan_getmotion(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	struct py_object* retval;
 	struct py_object* o;
 	struct aga_pointer* pointer;
 
+	(void) env;
 	(void) self;
 	(void) args;
 
@@ -80,7 +84,7 @@ struct py_object* agan_getmotion(
 }
 
 struct py_object* agan_setcursor(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	enum aga_result result;
 
@@ -88,14 +92,15 @@ struct py_object* agan_setcursor(
 	struct py_object* v;
 	aga_bool_t visible, captured;
 
-	struct aga_winenv* env;
+	struct aga_winenv* winenv;
 	struct aga_win* win;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_SETCURSOR);
 
-	if(!(env = aga_getscriptptr(AGA_SCRIPT_WINENV))) return 0;
+	if(!(winenv = aga_getscriptptr(AGA_SCRIPT_WINENV))) return 0;
 	if(!(win = aga_getscriptptr(AGA_SCRIPT_WIN))) return 0;
 
 	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
@@ -108,7 +113,7 @@ struct py_object* agan_setcursor(
 	if(aga_script_bool(o, &visible)) return 0;
 	if(aga_script_bool(v, &captured)) return 0;
 
-	result = aga_setcursor(env, win, visible, captured);
+	result = aga_setcursor(winenv, win, visible, captured);
 	if(aga_script_err("aga_setcursor", result)) return 0;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_SETCURSOR);
@@ -121,12 +126,13 @@ struct py_object* agan_setcursor(
  * 		 Return during an error state.
  */
 struct py_object* agan_getbuttons(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	struct py_object* retval;
 	struct aga_buttons* buttons;
 	unsigned i;
 
+	(void) env;
 	(void) self;
 	(void) args;
 
@@ -148,12 +154,15 @@ struct py_object* agan_getbuttons(
 	return retval;
 }
 
-struct py_object* agan_getpos(struct py_object* self, struct py_object* args) {
+struct py_object* agan_getpos(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	struct py_object* retval;
 	struct py_object* v;
 
 	struct aga_pointer* pointer;
 
+	(void) env;
 	(void) self;
 	(void) args;
 

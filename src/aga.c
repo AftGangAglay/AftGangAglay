@@ -220,7 +220,9 @@ int main(int argc, char** argv) {
 				__FILE__, "aga_mkscriptinst", aga_mkscriptinst(
 						&class, &inst));
 
-		aga_soft(__FILE__, "aga_instcall", aga_instcall(&inst, "create"));
+		aga_soft(
+				__FILE__, "aga_instcall", aga_instcall(
+						&scripteng, &inst, "create"));
 		aga_log(__FILE__, "Hello, script engine!");
 	}
 
@@ -243,7 +245,9 @@ int main(int argc, char** argv) {
 
 		apro_stamp_start(APRO_SCRIPT_UPDATE);
 		if(class.class) {
-			aga_soft(__FILE__, "aga_instcall", aga_instcall(&inst, "update"));
+			aga_soft(
+					__FILE__, "aga_instcall", aga_instcall(
+							&scripteng, &inst, "update"));
 		}
 		else aga_soft(__FILE__, "aga_putnil", aga_putnil());
 		apro_stamp_end(APRO_SCRIPT_UPDATE);
@@ -327,7 +331,9 @@ int main(int argc, char** argv) {
 #endif
 
 	if(class.class) {
-		aga_soft(__FILE__, "aga_instcall", aga_instcall(&inst, "close"));
+		aga_soft(
+				__FILE__, "aga_instcall", aga_instcall(
+						&scripteng, &inst, "close"));
 		aga_soft(__FILE__, "aga_killscriptinst", aga_killscriptinst(&inst));
 	}
 

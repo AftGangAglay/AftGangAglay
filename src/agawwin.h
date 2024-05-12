@@ -97,8 +97,8 @@ static LRESULT CALLBACK aga_winproc(
 				return 0;
 			}
 
-			if(!(data = malloc(input_size))) {
-				(void) aga_errno(__FILE__, "malloc");
+			if(!(data = aga_malloc(input_size))) {
+				(void) aga_errno(__FILE__, "aga_malloc");
 				return 0;
 			}
 
@@ -106,7 +106,7 @@ static LRESULT CALLBACK aga_winproc(
 					hnd, RID_INPUT, data, &input_size, header_size);
 			if(result == err) {
 				(void) aga_win32_error(__FILE__, "GetRawInputData");
-				free(data);
+				aga_free(data);
 				return 0;
 			}
 
@@ -115,7 +115,7 @@ static LRESULT CALLBACK aga_winproc(
 				pack->pointer->dy = data->data.mouse.lLastY;
 			}
 
-			free(data);
+			aga_free(data);
 			return 0;
 		}
 
@@ -234,8 +234,8 @@ enum aga_result aga_mkkeymap(
 	if(!env) return AGA_RESULT_BAD_PARAM;
 
 	/* VK_OEM_CLEAR + 1 */
-	keymap->keystates = calloc(0xFF, sizeof(aga_bool_t));
-	if(!keymap->keystates) return AGA_RESULT_OOM;
+	keymap->keystates = aga_calloc(0xFF, sizeof(aga_bool_t));
+	if(!keymap->keystates) return aga_errno(__FILE__, "aga_calloc");
 
 	return AGA_RESULT_OK;
 }
@@ -243,7 +243,7 @@ enum aga_result aga_mkkeymap(
 enum aga_result aga_killkeymap(struct aga_keymap* keymap) {
 	if(!keymap) return AGA_RESULT_BAD_PARAM;
 
-	free(keymap->keystates);
+	aga_free(keymap->keystates);
 
 	return AGA_RESULT_OK;
 }

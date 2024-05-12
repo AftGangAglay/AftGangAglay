@@ -194,7 +194,10 @@ static aga_bool_t agan_mkobj_model(
 			long ver; /* TODO: Update all `long' with `long long' once conf. */
 
 			aga_free(obj->modelpath);
-			obj->modelpath = aga_strdup(path);
+			if(!(obj->modelpath = aga_strdup(path))) {
+				py_error_set_nomem();
+				return 0;
+			}
 
 			result = aga_searchres(pack, path, &res);
 			if(aga_script_err("aga_mkres", result)) return AGA_TRUE;
@@ -388,7 +391,9 @@ static aga_bool_t agan_mkobj_light(
 	return AGA_FALSE;
 }
 
-struct py_object* agan_mkobj(struct py_object* self, struct py_object* args) {
+struct py_object* agan_mkobj(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	enum aga_result result;
 
 	struct agan_object* obj;
@@ -407,8 +412,8 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* args) {
 	 */
 	static aga_uint32_t objn = 0;
 
+	(void) env;
 	(void) self;
-	(void) args;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_MKOBJ);
 
@@ -418,7 +423,7 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* args) {
 		return aga_arg_error("mkobj", "string");
 	}
 
-	if(!(obj = calloc(1, sizeof(struct agan_object)))) {
+	if(!(obj = aga_calloc(1, sizeof(struct agan_object)))) {
 		return py_error_set_nomem();
 	}
 
@@ -427,7 +432,7 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* args) {
 
 	obj->ind = objn++;
 	obj->light_data = 0;
-	if(!(obj->transform = agan_mktrans(0, 0))) goto cleanup;
+	if(!(obj->transform = agan_mktrans(env, 0, 0))) goto cleanup;
 
 	{
 		void* fp;
@@ -471,18 +476,21 @@ struct py_object* agan_mkobj(struct py_object* self, struct py_object* args) {
 			if(aga_script_gl_err("glDeleteLists")) return 0;
 		}
 
-		free(obj->light_data);
+		aga_free(obj->light_data);
 		py_object_decref(obj->transform);
-		free(aga_script_getptr(v));
+		aga_free(aga_script_getptr(v));
 		py_object_decref(retval);
 
 		return 0;
 	};
 }
 
-struct py_object* agan_killobj(struct py_object* self, struct py_object* args) {
+struct py_object* agan_killobj(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	struct agan_object* obj;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_KILLOBJ);
@@ -507,7 +515,9 @@ struct py_object* agan_killobj(struct py_object* self, struct py_object* args) {
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_inobj(struct py_object* self, struct py_object* args) {
+struct py_object* agan_inobj(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	struct py_object* retval = PY_FALSE;
 	struct py_object* o;
 	struct py_object* j;
@@ -530,6 +540,7 @@ struct py_object* agan_inobj(struct py_object* self, struct py_object* args) {
 	aga_size_t i;
 	struct agan_object* obj;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_INOBJ);
@@ -666,7 +677,7 @@ enum aga_result agan_getobjconf(
 }
 
 struct py_object* agan_objconf(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	enum aga_result result;
 
@@ -677,6 +688,7 @@ struct py_object* agan_objconf(
 	struct aga_conf_node conf;
 	struct agan_object* obj;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_OBJCONF);
@@ -745,9 +757,12 @@ static aga_bool_t agan_putobj_light(struct agan_lightdata* data) {
 	return AGA_FALSE;
 }
 
-struct py_object* agan_putobj(struct py_object* self, struct py_object* args) {
+struct py_object* agan_putobj(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	struct agan_object* obj;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_PUTOBJ);
@@ -795,9 +810,12 @@ struct py_object* agan_putobj(struct py_object* self, struct py_object* args) {
 	return py_object_incref(PY_NONE);
 }
 
-struct py_object* agan_objtrans(struct py_object* self, struct py_object* args) {
+struct py_object* agan_objtrans(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	struct agan_object* obj;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_OBJTRANS);
@@ -813,9 +831,12 @@ struct py_object* agan_objtrans(struct py_object* self, struct py_object* args) 
 	return obj->transform;
 }
 
-struct py_object* agan_objind(struct py_object* self, struct py_object* args) {
+struct py_object* agan_objind(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	struct agan_object* obj;
 
+	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_OBJTRANS);

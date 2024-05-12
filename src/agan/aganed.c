@@ -43,10 +43,11 @@
  * 		 Consolidate Python state more to allow it.
  */
 static struct py_object* agan_killpack(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	struct aga_respack* pack;
 
+	(void) env;
 	(void) self;
 	(void) args;
 
@@ -58,11 +59,12 @@ static struct py_object* agan_killpack(
 }
 
 static struct py_object* agan_mkpack(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	struct aga_respack* pack;
 	struct aga_opts* opts;
 
+	(void) env;
 	(void) self;
 	(void) args;
 
@@ -77,7 +79,7 @@ static struct py_object* agan_mkpack(
 }
 
 static struct py_object* agan_dumpobj(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	enum aga_result result;
 
@@ -88,6 +90,7 @@ static struct py_object* agan_dumpobj(
 	struct aga_conf_node node;
 	const char* path;
 
+	(void) env;
 	(void) self;
 
 	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
@@ -175,11 +178,12 @@ static struct py_object* agan_dumpobj(
 }
 
 static struct py_object* agan_fdiag(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	char* path;
 	struct py_object* str;
 
+	(void) env;
 	(void) self;
 	(void) args;
 
@@ -192,7 +196,7 @@ static struct py_object* agan_fdiag(
 }
 
 static struct py_object* agan_setobjmdl(
-		struct py_object* self, struct py_object* args) {
+		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	static const char* model = "Model";
 
@@ -207,6 +211,7 @@ static struct py_object* agan_setobjmdl(
 	struct agan_object* obj;
 	const char* path;
 
+	(void) env;
 	(void) self;
 
 	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||

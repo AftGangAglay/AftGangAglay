@@ -23,7 +23,7 @@ void py_fatal(const char* msg) {
 	abort();
 }
 
-FILE* pyopen_r(const char* path) {
+FILE* py_open_r(const char* path) {
 	void* fp;
 	aga_size_t i;
 
@@ -46,7 +46,7 @@ FILE* pyopen_r(const char* path) {
 	return fp;
 }
 
-void pyclose(FILE* fp) {
+void py_close(FILE* fp) {
 	if(!fp) return;
 	if(fp == aga_global_pack->fp) return;
 

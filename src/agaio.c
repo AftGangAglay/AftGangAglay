@@ -6,6 +6,7 @@
 #include <agaio.h>
 #include <agaerr.h>
 #include <agalog.h>
+#include <agautil.h>
 
 #define AGA_WANT_UNIX
 
@@ -233,12 +234,10 @@ enum aga_result aga_spawn_sync(
 
 	for(; *argv; ++argv) {
 		aga_size_t l = strlen(*argv);
-		char* tmp = realloc(cli, len + l + 2);
-		if(!tmp) {
-			free(cli);
-			return aga_errno(__FILE__, "realloc");
-		}
-		cli = tmp;
+
+		cli = aga_realloc(cli, len + l + 2);
+		if(!cli) return aga_errno(__FILE__, "aga_realloc");
+
 		memcpy(cli + len, *argv, l);
 		cli[len + l] = ' ';
 		len += l + 1;
@@ -247,11 +246,11 @@ enum aga_result aga_spawn_sync(
 	if(cli) cli[len] = 0;
 
 	if(!CreateProcessA(0, cli, 0, 0, FALSE, 0, 0, wd, &startup, &info)) {
-		free(cli);
+		aga_free(cli);
 		return aga_win32_error(__FILE__, "CreateProcessA");
 	}
 
-	free(cli);
+	aga_free(cli);
 
 	if(WaitForSingleObject(info.hProcess, INFINITE) == WAIT_FAILED) {
 		return aga_win32_error(__FILE__, "WaitForSingleObject");

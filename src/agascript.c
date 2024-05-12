@@ -127,7 +127,7 @@ enum aga_result aga_mkscripteng(
 	if(!eng->env) return AGA_RESULT_OOM;
 
 	/* TODO: Cleanup these. */
-	pyres = py_new(eng->py);
+	pyres = py_new(eng->py, pypath);
 	if(pyres != PY_RESULT_OK) return aga_pyresult(pyres);
 
 	pyres = py_env_new(eng->py, eng->env);
@@ -141,11 +141,6 @@ enum aga_result aga_mkscripteng(
 
 	result = aga_mkmod(eng->env, (void**) &eng->agandict);
 	if(result) return result;
-
-	if(!(py_path = py_path_new(pypath))) {
-		aga_script_trace();
-		return AGA_RESULT_ERROR;
-	}
 
 	result = aga_setscriptptr(eng, AGA_SCRIPT_PACK, pack);
 	if(result) return result;

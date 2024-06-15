@@ -111,13 +111,18 @@ struct py_object* agan_log(
 
 	loc = py_string_get(env->current->code->filename);
 
-	if(py_is_varobject(args)) {
+	if(py_is_varobject(args) && args->type != PY_TYPE_STRING) {
 		for(i = 0; i < py_varobject_size(args); ++i) {
 			/*
 			 * TODO: Single line logging instead of the series of logs that
 			 *       This produces.
 			 */
-			agan_log_object(args, loc);
+			if(args->type == PY_TYPE_LIST) {
+				agan_log_object(py_list_get(args, i), loc);
+			}
+			else if(args->type == PY_TYPE_TUPLE) {
+				agan_log_object(py_tuple_get(args, i), loc);
+			}
 		}
 	}
 	else agan_log_object(args, loc);
@@ -134,7 +139,6 @@ struct py_object* agan_die(
 
 	(void) env;
 	(void) self;
-	(void) args;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_DIE);
 

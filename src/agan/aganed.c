@@ -49,9 +49,10 @@ static struct py_object* agan_killpack(
 
 	(void) env;
 	(void) self;
-	(void) args;
 
 	if(!(pack = aga_getscriptptr(AGA_SCRIPT_PACK))) return 0;
+
+	if(args) return aga_arg_error("killpack", "none");
 
 	if(aga_script_err("aga_killrespack", aga_killrespack(pack))) return 0;
 
@@ -66,10 +67,11 @@ static struct py_object* agan_mkpack(
 
 	(void) env;
 	(void) self;
-	(void) args;
 
 	if(!(pack = aga_getscriptptr(AGA_SCRIPT_PACK))) return 0;
 	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
+
+	if(args) return aga_arg_error("mkpack", "none");
 
 	if(aga_script_err("aga_mkrespack", aga_mkrespack(opts->respack, pack))) {
 		return 0;
@@ -190,7 +192,8 @@ static struct py_object* agan_fdiag(
 
 	(void) env;
 	(void) self;
-	(void) args;
+
+	if(args) return aga_arg_error("fdiag", "none");
 
 	if(aga_script_err("aga_filediag", aga_filediag(&path))) return 0;
 

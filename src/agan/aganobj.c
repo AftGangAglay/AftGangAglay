@@ -471,8 +471,7 @@ struct py_object* agan_mkobj(
 
 	return (struct py_object*) retval;
 
-	cleanup:
-	{
+	cleanup: {
 		if(c) {
 			result = aga_killconf(&conf);
 			if(aga_script_err("aga_killconf", result)) return 0;

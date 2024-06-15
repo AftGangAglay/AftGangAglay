@@ -145,7 +145,7 @@ struct py_object* agan_bitor(
 			return 0;
 		}
 
-		res |= py_int_get(py_list_get(args, i));
+		res |= py_int_get(op);
 	}
 
 	apro_stamp_end(APRO_SCRIPTGLUE_BITOR);

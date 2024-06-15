@@ -12,9 +12,9 @@ PYOH = $(PYH)object$(SEP)
 PYMH = $(PYH)module$(SEP)
 
 PY1 = $(PY)acceler.c $(PY)ceval.c $(PY)compile.c $(PY)errors.c $(PY)graminit.c
-PY2 = $(PY)grammar1.c $(PY)import.c $(PY)listnode.c $(PY)modsupport.c
+PY2 = $(PY)grammar1.c $(PY)import.c $(PY)listnode.c $(PY)state.c $(PY)types.c
 PY3 = $(PY)node.c $(PY)object.c $(PY)parser.c $(PY)parsetok.c $(PY)tokenizer.c
-PY4 = $(PY)traceback.c $(PY)pythonmain.c $(PY)types.c $(PY)state.c
+PY4 = $(PY)traceback.c $(PY)pythonmain.c $(PY)modsupport.c $(PY)evalops.c
 
 PYO1 = $(PYO)list.c $(PYO)dict.c $(PYO)float.c $(PYO)frame.c $(PYO)func.c
 PYO2 = $(PYO)class.c $(PYO)method.c $(PYO)module.c $(PYO)string.c $(PYO)tuple.c

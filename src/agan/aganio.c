@@ -71,12 +71,12 @@ struct py_object* agan_getmotion(
 
 	if(!(pointer = aga_getscriptptr(AGA_SCRIPT_POINTER))) return 0;
 
-	if(!(retval = py_list_new(2))) return 0;
+	if(!(retval = py_list_new(2))) return py_error_set_nomem();
 
-	if(!(o = py_float_new(pointer->dx))) return 0;
+	if(!(o = py_float_new(pointer->dx))) return py_error_set_nomem();
 	py_list_set(retval, 0, o);
 
-	if(!(o = py_float_new(pointer->dy))) return 0;
+	if(!(o = py_float_new(pointer->dy))) return py_error_set_nomem();
 	py_list_set(retval, 1, o);
 
 	apro_stamp_end(APRO_SCRIPTGLUE_GETMOTION);
@@ -139,12 +139,12 @@ struct py_object* agan_getbuttons(
 
 	if(!(buttons = aga_getscriptptr(AGA_SCRIPT_BUTTONS))) return 0;
 
-	if(!(retval = py_list_new(AGA_BUTTON_MAX))) return 0;
+	if(!(retval = py_list_new(AGA_BUTTON_MAX))) return py_error_set_nomem();
 
 	for(i = 0; i < AGA_LEN(buttons->states); ++i) {
 		struct py_object* v;
 
-		if(!(v = py_int_new(buttons->states[i]))) return 0;
+		if(!(v = py_int_new(buttons->states[i]))) return py_error_set_nomem();
 		py_list_set(retval, i, v);
 	}
 
@@ -163,13 +163,12 @@ struct py_object* agan_getpos(
 
 	(void) env;
 	(void) self;
-	(void) args;
 
 	if(!(pointer = aga_getscriptptr(AGA_SCRIPT_POINTER))) return 0;
 
 	if(args) return aga_arg_error("getpos", "none");
 
-	if(!(retval = py_list_new(2))) return 0;
+	if(!(retval = py_list_new(2))) return py_error_set_nomem();
 
 	if(!(v = py_int_new(pointer->x))) {
 		py_error_set_nomem();

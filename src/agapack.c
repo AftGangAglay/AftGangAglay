@@ -149,8 +149,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 
 	return AGA_RESULT_OK;
 
-	cleanup:
-	{
+	cleanup: {
 		aga_free(pack->db);
 
 		if(pack->fp && fclose(pack->fp) == EOF) {

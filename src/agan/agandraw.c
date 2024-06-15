@@ -233,7 +233,6 @@ struct py_object* agan_mktrans(
 
 	(void) env;
 	(void) self;
-	(void) args;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_MKTRANS);
 
@@ -242,11 +241,10 @@ struct py_object* agan_mktrans(
 	if(!(retval = py_dict_new())) return py_error_set_nomem();
 
 	for(i = 0; i < 3; ++i) {
-		if(!(list = py_list_new(3))) return 0;
+		if(!(list = py_list_new(3))) return py_error_set_nomem();
 
 		for(j = 0; j < 3; ++j) {
-			double v = (i == 2 ? 1.0 : 0.0);
-			if(py_list_set(list, j, py_float_new(v))) return 0;
+			py_list_set(list, j, py_float_new(i == 2 ? 1.0 : 0.0));
 		}
 
 		if(py_dict_insert(retval, agan_trans_components[i], list) == -1) {
@@ -343,10 +341,10 @@ struct py_object* agan_getpix(
 	glReadPixels((int) x, h, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pix);
 	if(aga_script_gl_err("glReadPixels")) return 0;
 
-	if(!(retval = py_list_new(AGA_LEN(pix)))) return 0;
+	if(!(retval = py_list_new(AGA_LEN(pix)))) return py_error_set_nomem();
 
 	for(i = 0; i < AGA_LEN(pix); ++i) {
-		if(py_list_set(retval, i, py_int_new(pix[i]))) return 0;
+		py_list_set(retval, i, py_int_new(pix[i]));
 	}
 
 	apro_stamp_end(APRO_SCRIPTGLUE_GETPIX);

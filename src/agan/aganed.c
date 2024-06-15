@@ -250,13 +250,14 @@ static struct py_object* agan_setobjmdl(
 }
 
 enum aga_result agan_ed_register(struct py_env* env) {
-#define _(name) { #name, agan_##name }
+#define aga_(name) { #name, agan_##name }
 	static const struct py_methodlist methods[] = {
-			_(killpack), _(mkpack), _(dumpobj), _(fdiag), _(setobjmdl),
+			aga_(killpack), aga_(mkpack), aga_(dumpobj), aga_(fdiag),
+			aga_(setobjmdl),
 
 			{ 0, 0 }
 	};
-#undef _
+#undef aga_
 
 	struct py_object* ed;
 

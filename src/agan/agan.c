@@ -74,27 +74,29 @@ enum aga_result aga_mkmod(struct py_env* env, void** dict) {
 	 * TODO: Put each module in a "namespace" (i.e. `agan.io.getkey' etc.).
 	 * 		 Similar to how `ed' is structured.
 	 */
-#define _(name) { #name, agan_##name }
+#define aga_(name) { #name, agan_##name }
 	static const struct py_methodlist methods[] = {
 			/* Input */
-			_(getkey), _(getmotion), _(setcursor), _(getbuttons), _(getpos),
+			aga_(getkey), aga_(getmotion), aga_(setcursor), aga_(getbuttons),
+			aga_(getpos),
 
 			/* Drawing */
-			_(setcam), _(text), _(fogparam), _(fogcol), _(clear), _(mktrans),
-			_(shadeflat), _(getpix), _(setflag), _(getflag), _(line3d),
+			aga_(setcam), aga_(text), aga_(fogparam), aga_(fogcol),
+			aga_(clear), aga_(mktrans), aga_(line3d), aga_(getflag),
+			aga_(shadeflat), aga_(getpix), aga_(setflag),
 
 			/* Miscellaneous */
-			_(getconf), _(log), _(die),
+			aga_(getconf), aga_(log), aga_(die),
 
 			/* Objects */
-			_(mkobj), _(inobj), _(putobj), _(killobj), _(objtrans), _(objconf),
-			_(objind),
+			aga_(mkobj), aga_(inobj), aga_(putobj), aga_(killobj),
+			aga_(objind), aga_(objtrans), aga_(objconf),
 
 			/* Maths */
-			_(bitand), _(bitshl), _(randnorm), _(bitor),
+			aga_(bitand), aga_(bitshl), aga_(randnorm), aga_(bitor),
 
 			{ 0, 0 } };
-#undef _
+#undef aga_
 
 	struct py_object* module = py_module_new_methods(env, "agan", methods);
 	if(!module) return AGA_RESULT_ERROR;

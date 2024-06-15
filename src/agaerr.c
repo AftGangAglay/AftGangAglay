@@ -10,10 +10,8 @@
 
 const char* aga_result_name(enum aga_result e) {
 	switch(e) {
-		default: {
-			AGA_FALLTHROUGH;
-			/* FALLTHRU */
-		}
+		default:; AGA_FALLTHROUGH;
+		/* FALLTHROUGH */
 		case AGA_RESULT_OK: return "none";
 
 		case AGA_RESULT_ERROR: return "unknown";

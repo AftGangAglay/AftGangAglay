@@ -70,9 +70,11 @@ static LRESULT CALLBACK aga_winproc(
 			return DefWindowProcA(wnd, msg, w_param, l_param);
 		}
 
-		case WM_KEYUP: down = AGA_FALSE;
+		case WM_KEYUP: {
+			down = AGA_FALSE;
 			AGA_FALLTHROUGH;
-			/* FALLTHRU */
+		}
+		/* FALLTHROUGH */
 		case WM_KEYDOWN: {
 			pack->keymap->keystates[w_param] = down;
 			return 0;

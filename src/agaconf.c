@@ -329,10 +329,8 @@ aga_bool_t aga_confvar(
 			return AGA_TRUE;
 		}
 		switch(type) {
-			default: {
-				AGA_FALLTHROUGH;
-				/* FALLTHRU */
-			}
+			default:; AGA_FALLTHROUGH;
+			/* FALLTHROUGH */
 			case AGA_NONE: break;
 			case AGA_STRING: {
 				*(char**) value = node->data.string;

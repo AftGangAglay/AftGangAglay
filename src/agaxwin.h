@@ -387,9 +387,11 @@ enum aga_result aga_poll(
 			switch(event.type) {
 				default: break;
 
-				case KeyPress: press = AGA_TRUE;
+				case KeyPress: {
+					press = AGA_TRUE;
 					AGA_FALLTHROUGH;
-					/* FALLTHRU */
+				}
+				/* FALLTHROUGH */
 				case KeyRelease: {
 					unsigned keycode = event.xkey.keycode;
 					aga_size_t keysym_idx = (keycode - keymap->keycode_min) *

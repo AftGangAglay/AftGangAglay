@@ -246,10 +246,8 @@ struct py_object* agan_scriptconf(
 
 	str = out->data.string ? out->data.string : "";
 	switch(out->type) {
-		default: {
-			AGA_FALLTHROUGH;
-			/* FALLTHRU */
-		}
+		default:; AGA_FALLTHROUGH;
+		/* FALLTHROUGH */
 		case AGA_NONE: retval = py_object_incref(PY_NONE); break;
 		case AGA_STRING: retval = py_string_new(str); break;
 		case AGA_INTEGER: retval = py_int_new(out->data.integer); break;

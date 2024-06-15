@@ -19,18 +19,18 @@
 #include <python/pgen.h>
 #include <python/modsupport.h>
 
-#include <python/bltinmodule.h>
-#include <python/mathmodule.h>
+#include <python/module/builtin.h>
+#include <python/module/math.h>
 
 #include <python/object.h>
-#include <python/floatobject.h>
-#include <python/stringobject.h>
-#include <python/moduleobject.h>
-#include <python/intobject.h>
-#include <python/listobject.h>
-#include <python/tupleobject.h>
-#include <python/dictobject.h>
-#include <python/classobject.h>
-#include <python/methodobject.h>
+#include <python/object/float.h>
+#include <python/object/string.h>
+#include <python/object/module.h>
+#include <python/object/int.h>
+#include <python/object/list.h>
+#include <python/object/tuple.h>
+#include <python/object/dict.h>
+#include <python/object/class.h>
+#include <python/object/method.h>
 
 #endif

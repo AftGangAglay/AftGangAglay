@@ -197,7 +197,13 @@ static struct py_object* agan_fdiag(
 
 	if(aga_script_err("aga_filediag", aga_filediag(&path))) return 0;
 
-	str = py_string_new(path);
+	if(!(str = py_string_new(path))) {
+		aga_free(path);
+
+		py_error_set_nomem();
+		return 0;
+	}
+
 	aga_free(path);
 
 	return str;

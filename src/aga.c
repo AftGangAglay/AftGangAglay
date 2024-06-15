@@ -278,11 +278,9 @@ int main(int argc, char** argv) {
 				aga_prof_put(d++, 1, APRO_SCRIPT_UPDATE);
 					aga_prof_put(d++, 2, APRO_SCRIPT_INSTCALL_RISING);
 					aga_prof_put(d++, 2, APRO_SCRIPT_INSTCALL_EXEC);
-						aga_prof_put(d++, 3, APRO_CEVAL_CALL_RISING);
-						aga_prof_put(d++, 3, APRO_CEVAL_CALL_EVAL);
-							aga_prof_put(d++, 4, APRO_CEVAL_CODE_EVAL_RISING);
-							aga_prof_put(d++, 4, APRO_CEVAL_CODE_EVAL);
-							aga_prof_put(d++, 4, APRO_CEVAL_CODE_EVAL_FALLING);
+						aga_prof_put(d++, 4, APRO_CEVAL_CODE_EVAL_RISING);
+						aga_prof_put(d++, 4, APRO_CEVAL_CODE_EVAL);
+						aga_prof_put(d++, 4, APRO_CEVAL_CODE_EVAL_FALLING);
 				aga_prof_put(d++, 1, APRO_RES_SWEEP);
 
 			aga_prof_put(x++, 12, APRO_SCRIPTGLUE_GETKEY);

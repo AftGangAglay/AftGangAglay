@@ -22,9 +22,6 @@ enum apro_section {
 	APRO_SCRIPT_INSTCALL_RISING, /* Rising edge for script Python exec. */
 	APRO_SCRIPT_INSTCALL_EXEC, /* Script Python exec. */
 
-	APRO_CEVAL_CALL_RISING, /* Rising edge for ceval call dispatch. */
-	APRO_CEVAL_CALL_EVAL, /* Ceval call dispatch */
-
 	APRO_CEVAL_CODE_EVAL_RISING, /* Rising edge for ceval code eval. */
 	APRO_CEVAL_CODE_EVAL, /* Ceval code eval. */
 	APRO_CEVAL_CODE_EVAL_FALLING, /* Falling edge for ceval code eval. */

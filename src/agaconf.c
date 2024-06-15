@@ -195,8 +195,8 @@ void aga_sgml_end_element(struct aga_sgml_structured* me, int element_number) {
 				break;
 			}
 
-			/* TODO: Technically not C89. */
-			res = strtoll(node->data.string, 0, 0);
+			/* TODO: `strtoll` not C89. */
+			res = strtol(node->data.string, 0, 0);
 			aga_free(string);
 			node->data.integer = res;
 			break;

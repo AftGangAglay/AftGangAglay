@@ -18,6 +18,13 @@ struct aga_midi {
 	void* hdr;
 };
 #else
+struct aga_mididev {
+    char dummy;
+};
+
+struct aga_midi {
+    char dummy;
+};
 #endif
 
 enum aga_result aga_mkmididev(struct aga_mididev*);

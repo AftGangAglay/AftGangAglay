@@ -11,7 +11,7 @@
 *.pdb
 Tools.ini
 
-src/main
+src/aga
 
 res/*.res
 

@@ -9,6 +9,8 @@
 #include <agagl.h>
 #include <agalog.h>
 #include <agaerr.h>
+#include <agautil.h>
+#include <agadraw.h>
 
 #define AGA_WANT_UNIX
 
@@ -451,6 +453,29 @@ enum aga_result aga_diag(
 		*response = (toupper(c) == 'Y');
 	}
 	else { *response = AGA_FALSE; }
+
+	return AGA_RESULT_OK;
+}
+
+enum aga_result aga_filediag(char** result) {
+	/*
+	 * TODO: `_POSIX_C_SOURCE=2` doesn't seem to define `PATH_MAX` even though
+	 * 		 `_POSIX_C_SOURCE=1` does.
+	 */
+	static const aga_size_t path_max = 4096;
+
+	if(!result) return AGA_RESULT_BAD_PARAM;
+
+	if(!(*result = aga_calloc(path_max, sizeof(char)))) return AGA_RESULT_OOM;
+
+	if(!fgets(*result, (int) path_max, stdin)) {
+		if(feof(stdin)) {
+			*result[0] = 0;
+			return AGA_RESULT_OK;
+		}
+
+		return aga_errno(__FILE__, "fgets");
+	}
 
 	return AGA_RESULT_OK;
 }

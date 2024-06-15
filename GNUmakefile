@@ -17,7 +17,7 @@ else
 		endif
 	endif
 
-	RM = rm
+	RM = rm -f
 	SEP = /
 endif
 

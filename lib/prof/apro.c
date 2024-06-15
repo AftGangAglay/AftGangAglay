@@ -3,7 +3,7 @@
  * Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#include "apro.h"
+#include <apro.h>
 
 #include <string.h>
 #include <stdio.h>

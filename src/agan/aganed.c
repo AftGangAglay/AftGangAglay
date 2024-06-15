@@ -276,10 +276,7 @@ enum aga_result agan_ed_register(struct py_env* env) {
 	}
 #endif
 
-	if(py_dict_insert(agan_dict, "ed", ed) == -1) {
-		aga_script_trace();
-		return AGA_RESULT_ERROR;
-	}
+	if(py_dict_insert(agan_dict, "ed", ed) == -1) return AGA_RESULT_ERROR;
 
 	return AGA_RESULT_OK;
 }

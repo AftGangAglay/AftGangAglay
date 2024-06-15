@@ -40,15 +40,9 @@ const char* agan_rgb[3] = { "R", "G", "B" };
 enum aga_result aga_insertstr(const char* key, const char* value) {
 	struct py_object* o;
 
-	if(!(o = py_string_new(value))) {
-		aga_script_trace();
-		return AGA_RESULT_ERROR;
-	}
+	if(!(o = py_string_new(value))) return AGA_RESULT_OOM;
 
-	if(py_dict_insert(agan_dict, key, o) == -1) {
-		aga_script_trace();
-		return AGA_RESULT_ERROR;
-	}
+	if(py_dict_insert(agan_dict, key, o) == -1) return AGA_RESULT_ERROR;
 
 	return AGA_RESULT_OK;
 }
@@ -56,15 +50,9 @@ enum aga_result aga_insertstr(const char* key, const char* value) {
 enum aga_result aga_insertfloat(const char* key, double value) {
 	struct py_object* o;
 
-	if(!(o = py_float_new(value))) {
-		aga_script_trace();
-		return AGA_RESULT_ERROR;
-	}
+	if(!(o = py_float_new(value))) return AGA_RESULT_OOM;
 
-	if(py_dict_insert(agan_dict, key, o) == -1) {
-		aga_script_trace();
-		return AGA_RESULT_ERROR;
-	}
+	if(py_dict_insert(agan_dict, key, o) == -1) return AGA_RESULT_ERROR;
 
 	return AGA_RESULT_OK;
 }
@@ -72,15 +60,9 @@ enum aga_result aga_insertfloat(const char* key, double value) {
 enum aga_result aga_insertint(const char* key, py_value_t value) {
 	struct py_object* o;
 
-	if(!(o = py_int_new(value))) {
-		aga_script_trace();
-		return AGA_RESULT_ERROR;
-	}
+	if(!(o = py_int_new(value))) return AGA_RESULT_OOM;
 
-	if(py_dict_insert(agan_dict, key, o) == -1) {
-		aga_script_trace();
-		return AGA_RESULT_ERROR;
-	}
+	if(py_dict_insert(agan_dict, key, o) == -1) return AGA_RESULT_ERROR;
 
 	return AGA_RESULT_OK;
 }
@@ -160,8 +142,7 @@ void* aga_getscriptptr(const char* key) {
 		return 0;
 	}
 
-	ptr = py_dict_lookup(agan_dict, key);
-	if(!ptr) {
+	if(!(ptr = py_dict_lookup(agan_dict, key))) {
 		py_error_set_string(
 				py_runtime_error, "failed to resolve script pointer");
 		return 0;

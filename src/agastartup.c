@@ -114,6 +114,7 @@ enum aga_result aga_setconf(struct aga_opts* opts, struct aga_respack* pack) {
 	result = aga_conftree(
 			opts->config.children, enabled, AGA_LEN(enabled), &v, AGA_INTEGER);
 	aga_soft(__FILE__, "aga_conftree", result);
+	opts->audio_enabled = !!v;
 
 	result = aga_conftree(
 			opts->config.children, version, AGA_LEN(version), &opts->version,

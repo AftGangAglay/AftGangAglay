@@ -175,15 +175,9 @@ enum aga_result aga_setscriptptr(
 	if(!eng) return AGA_RESULT_BAD_PARAM;
 	if(!key) return AGA_RESULT_BAD_PARAM;
 
-	if(!(v = aga_script_mkptr(value))) {
-		aga_script_trace();
-		return AGA_RESULT_ERROR;
-	}
+	if(!(v = aga_script_mkptr(value))) return AGA_RESULT_ERROR;
 
-	if(py_dict_insert(eng->agandict, key, v) == -1) {
-		aga_script_trace();
-		return AGA_RESULT_ERROR;
-	}
+	if(py_dict_insert(eng->agandict, key, v) == -1) return AGA_RESULT_ERROR;
 
 	return AGA_RESULT_OK;
 }
@@ -199,7 +193,6 @@ enum aga_result aga_findclass(
 	if(!name) return AGA_RESULT_BAD_PARAM;
 
 	if(!(class->class = py_dict_lookup(eng->global, name))) {
-		aga_script_trace();
 		return AGA_RESULT_ERROR;
 	}
 
@@ -216,9 +209,7 @@ enum aga_result aga_mkscriptinst(
 	if(!inst) return AGA_RESULT_BAD_PARAM;
 
 	inst->class = class;
-	inst->object = py_class_member_new(class->class);
-	if(py_error_occurred()) {
-		aga_script_trace();
+	if(!(inst->object = py_class_member_new(class->class))) {
 		return AGA_RESULT_ERROR;
 	}
 
@@ -245,9 +236,7 @@ enum aga_result aga_instcall(
 
 	apro_stamp_start(APRO_SCRIPT_INSTCALL_RISING);
 
-	proc = py_class_get_attr(inst->class->class, name);
-	if(py_error_occurred()) {
-		aga_script_trace();
+	if(!(proc = py_class_get_attr(inst->class->class, name))) {
 		return AGA_RESULT_ERROR;
 	}
 

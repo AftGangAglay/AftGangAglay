@@ -125,11 +125,9 @@ int main(int argc, char** argv) {
 	aga_log(__FILE__, "Initializing systems...");
 
 	aga_check(
-			__FILE__, "aga_mkwinenv", aga_mkwinenv(
-					&env, opts.display));
+			__FILE__, "aga_mkwinenv", aga_mkwinenv(&env, opts.display));
 	aga_check(
-			__FILE__, "aga_mkkeymap", aga_mkkeymap(
-					&keymap, &env));
+			__FILE__, "aga_mkkeymap", aga_mkkeymap(&keymap, &env));
 	aga_check(
 			__FILE__, "aga_mkwin", aga_mkwin(
 					opts.width, opts.height, &env, &win, argc, argv));
@@ -147,8 +145,7 @@ int main(int argc, char** argv) {
 #endif
 
 	if(opts.audio_enabled) {
-		result = aga_mksnddev(opts.audio_dev, &snd);
-		if(result) {
+		if((result = aga_mksnddev(opts.audio_dev, &snd))) {
 			aga_soft(__FILE__, "aga_mksnddev", result);
 			/* TODO: Separate "unavailable snd/midi" and user defined. */
 			opts.audio_enabled = AGA_FALSE;

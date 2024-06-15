@@ -269,6 +269,7 @@ struct py_object* agan_mktrans(
 		}
 
 		if(py_dict_insert(retval, agan_trans_components[i], list) == -1) {
+			py_error_set_key();
 			return 0;
 		}
 	}

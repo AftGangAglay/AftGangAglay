@@ -36,10 +36,10 @@ enum aga_result agan_math_register(struct py_env* env) {
 /* Python lacks native bitwise ops @-@ */
 struct py_object* agan_bitand(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	struct py_object* a;
 	struct py_object* b;
 	struct py_object* v;
-	py_value_t av, bv;
 
 	AGA_DEPRCALL("agan.bitand", "math.andb");
 
@@ -48,16 +48,17 @@ struct py_object* agan_bitand(
 
 	apro_stamp_start(APRO_SCRIPTGLUE_BITAND);
 
-	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
-	   !aga_arg(&a, args, 0, PY_TYPE_INT) ||
-	   !aga_arg(&b, args, 1, PY_TYPE_INT)) {
+	/* bitand(int, int) */
+	if(!aga_vararg_list(args, PY_TYPE_TUPLE, 2) ||
+		!aga_arg(&a, args, 0, PY_TYPE_INT) ||
+		!aga_arg(&b, args, 1, PY_TYPE_INT)) {
+
 		return aga_arg_error("bitand", "int and int");
 	}
 
-	if(aga_script_int(a, &av)) return 0;
-	if(aga_script_int(b, &bv)) return 0;
-
-	v = py_int_new(av & bv);
+	if(!(v = py_int_new(py_int_get(a) & py_int_get(b)))) {
+		py_error_set_nomem();
+	}
 
 	apro_stamp_end(APRO_SCRIPTGLUE_BITAND);
 
@@ -66,10 +67,10 @@ struct py_object* agan_bitand(
 
 struct py_object* agan_bitshl(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
+
 	struct py_object* a;
 	struct py_object* b;
 	struct py_object* v;
-	py_value_t av, bv;
 
 	AGA_DEPRCALL("agan.bitshl", "math.shl");
 
@@ -78,16 +79,17 @@ struct py_object* agan_bitshl(
 
 	apro_stamp_start(APRO_SCRIPTGLUE_BITSHL);
 
-	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
-	   !aga_arg(&a, args, 0, PY_TYPE_INT) ||
-	   !aga_arg(&b, args, 1, PY_TYPE_INT)) {
+	/* bitshl(int, int) */
+	if(!aga_vararg_list(args, PY_TYPE_TUPLE, 2) ||
+		!aga_arg(&a, args, 0, PY_TYPE_INT) ||
+		!aga_arg(&b, args, 1, PY_TYPE_INT)) {
+
 		return aga_arg_error("bitshl", "int and int");
 	}
 
-	if(aga_script_int(a, &av)) return 0;
-	if(aga_script_int(b, &bv)) return 0;
-
-	v = py_int_new(av << bv);
+	if(!(v = py_int_new(py_int_get(a) << py_int_get(b)))) {
+		py_error_set_nomem();
+	}
 
 	apro_stamp_end(APRO_SCRIPTGLUE_BITSHL);
 
@@ -103,11 +105,14 @@ struct py_object* agan_randnorm(
 
 	(void) env;
 	(void) self;
-	(void) args;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_RANDNORM);
 
-	v = py_float_new((double) rand() / (double) RAND_MAX);
+	if(args) return aga_arg_error("randnorm", "none");
+
+	if(!(v = py_float_new((double) rand() / (double) RAND_MAX))) {
+		py_error_set_nomem();
+	}
 
 	apro_stamp_end(APRO_SCRIPTGLUE_RANDNORM);
 
@@ -117,8 +122,6 @@ struct py_object* agan_randnorm(
 struct py_object* agan_bitor(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
-	struct py_object* ob;
-	py_value_t v;
 	py_value_t res = 0;
 	unsigned i;
 
@@ -129,15 +132,20 @@ struct py_object* agan_bitor(
 
 	apro_stamp_start(APRO_SCRIPTGLUE_BITOR);
 
+	/* bitor(int...) */
 	if(!aga_arg_list(args, PY_TYPE_LIST)) {
-		return aga_arg_error("bitor", "list");
+		return aga_arg_error("bitor", "int...");
 	}
 
 	for(i = 0; i < py_varobject_size(args); ++i) {
-		if(aga_list_get(args, i, &ob)) return 0;
-		if(aga_script_int(ob, &v)) return 0;
+		struct py_object* op = py_list_get(args, i);
 
-		res |= v;
+		if(op->type != PY_TYPE_INT) {
+			py_error_set_badarg();
+			return 0;
+		}
+
+		res |= py_int_get(py_list_get(args, i));
 	}
 
 	apro_stamp_end(APRO_SCRIPTGLUE_BITOR);

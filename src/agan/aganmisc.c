@@ -7,8 +7,8 @@
 
 #include <agascripthelp.h>
 #include <agastartup.h>
-#include <agapack.h>
 #include <agalog.h>
+#include <agascript.h>
 
 #include <apro.h>
 
@@ -55,6 +55,7 @@ struct py_object* agan_getconf(
 
 	if(!(opts = aga_getscriptptr(AGA_SCRIPT_OPTS))) return 0;
 
+	/* getconf(list[...]) */
 	if(!aga_arg_list(args, PY_TYPE_LIST)) {
 		return aga_arg_error("getconf", "list");
 	}
@@ -66,9 +67,36 @@ struct py_object* agan_getconf(
 	return v;
 }
 
+static void agan_log_object(struct py_object* op, const char* loc) {
+	switch(op->type) {
+		default: {
+			/* TODO: Re-implement `str()` for all objects. */
+			aga_log(loc, "<object @%p>", (void*) op);
+			break;
+		}
+
+		case PY_TYPE_STRING: {
+			aga_log(loc, py_string_get(op));
+			break;
+		}
+
+		/* TODO: Implement `py_string_cat' of non-string objects. */
+		case PY_TYPE_FLOAT: {
+			aga_log(loc, "%lf", py_float_get(op));
+			break;
+		}
+
+		case PY_TYPE_INT: {
+			aga_log(loc, "%llu", py_int_get(op));
+			break;
+		}
+	}
+}
+
 struct py_object* agan_log(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
+	unsigned i;
 	const char* loc;
 
 	(void) env;
@@ -76,48 +104,23 @@ struct py_object* agan_log(
 
 	apro_stamp_start(APRO_SCRIPTGLUE_LOG);
 
+	/* log(object...) */
 	if(!args) {
-		py_error_set_string(py_runtime_error, "log() takes one argument");
-		return 0;
+		return aga_arg_error("log", "object...");
 	}
 
-	if(aga_script_string(env->current->code->filename, &loc)) return 0;
+	loc = py_string_get(env->current->code->filename);
 
-	switch(args->type) {
-		default: {
-			aga_log(loc, "<object @%p>", args);
-
-			break;
-		}
-
-		case PY_TYPE_STRING: {
-			const char* str;
-
-			if(aga_script_string(args, &str)) return 0;
-			aga_log(loc, str);
-
-			break;
-		}
-
-		/* TODO: Implement `py_string_cat' of non-string objects. */
-		case PY_TYPE_FLOAT: {
-			double f;
-
-			if(aga_script_float(args, &f)) return 0;
-			aga_log(loc, "%lf", f);
-
-			break;
-		}
-
-		case PY_TYPE_INT: {
-			py_value_t i;
-
-			if(aga_script_int(args, &i)) return 0;
-			aga_log(loc, "%llu", i);
-
-			break;
+	if(py_is_varobject(args)) {
+		for(i = 0; i < py_varobject_size(args); ++i) {
+			/*
+			 * TODO: Single line logging instead of the series of logs that
+			 *       This produces.
+			 */
+			agan_log_object(args, loc);
 		}
 	}
+	else agan_log_object(args, loc);
 
 	apro_stamp_end(APRO_SCRIPTGLUE_LOG);
 
@@ -134,6 +137,8 @@ struct py_object* agan_die(
 	(void) args;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_DIE);
+
+	if(args) return aga_arg_error("die", "none");
 
 	if(!(die = aga_getscriptptr(AGA_SCRIPT_DIE))) return 0;
 	*die = AGA_TRUE;

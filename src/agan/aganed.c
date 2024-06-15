@@ -93,15 +93,16 @@ static struct py_object* agan_dumpobj(
 	(void) env;
 	(void) self;
 
-	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
-	   !aga_arg(&objp, args, 0, PY_TYPE_INT) ||
-	   !aga_arg(&pathp, args, 1, PY_TYPE_STRING)) {
+	/* dumpobj(int, string) */
+	if(!aga_vararg_list(args, PY_TYPE_TUPLE, 2) ||
+		!aga_arg(&objp, args, 0, PY_TYPE_INT) ||
+		!aga_arg(&pathp, args, 1, PY_TYPE_STRING)) {
 
 		return aga_arg_error("dumpobj", "int and string");
 	}
 
-	if(aga_script_int(objp, (py_value_t*) &obj)) return 0;
-	if(aga_script_string(pathp, &path)) return 0;
+	obj = (void*) py_int_get(objp);
+	path = py_string_get(pathp);
 
 	result = agan_getobjconf(obj, &node);
 	if(aga_script_err("agan_getobjconf", result)) return 0;
@@ -119,12 +120,14 @@ static struct py_object* agan_dumpobj(
 			elem[0] = agan_conf_components[i];
 
 			l = py_dict_lookup(obj->transform, agan_trans_components[i]);
-			if(!l) return 0;
+			if(!l) {
+				py_error_set_key();
+				return 0;
+			}
 
 			for(j = 0; j < 3; ++j) {
 				struct aga_conf_node* n;
 				struct py_object* o;
-				double f;
 
 				elem[1] = agan_xyz[j];
 
@@ -132,10 +135,12 @@ static struct py_object* agan_dumpobj(
 						node.children, elem, AGA_LEN(elem), &n);
 				if(aga_script_err("aga_conftree_raw", result)) return 0;
 
-				if(aga_list_get(l, j, &o)) return 0;
-				if(aga_script_float(o, &f)) return 0;
+				if((o = py_list_get(l, j))->type != PY_TYPE_FLOAT) {
+					py_error_set_badarg();
+					return 0;
+				}
 
-				n->data.flt = f;
+				n->data.flt = py_float_get(o);
 			}
 		}
 	}
@@ -214,7 +219,8 @@ static struct py_object* agan_setobjmdl(
 	(void) env;
 	(void) self;
 
-	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
+	/* setobjmdl(int, string) */
+	if(!aga_vararg_list(args, PY_TYPE_TUPLE, 2) ||
 		!aga_arg(&objp, args, 0, PY_TYPE_INT) ||
 		!aga_arg(&pathp, args, 1, PY_TYPE_STRING)) {
 
@@ -222,8 +228,7 @@ static struct py_object* agan_setobjmdl(
 	}
 
 	obj = aga_script_getptr(objp);
-
-	if(aga_script_string(pathp, &path)) return 0;
+	path = py_string_get(pathp);
 
 	result = agan_getobjconf(obj, &root);
 	if(aga_script_err("agan_getobjconf", result)) return 0;

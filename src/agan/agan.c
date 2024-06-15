@@ -99,10 +99,7 @@ enum aga_result aga_mkmod(struct py_env* env, void** dict) {
 	struct py_object* module = py_module_new_methods(env, "agan", methods);
 	if(!module) return AGA_RESULT_ERROR;
 
-	if(!(agan_dict = ((struct py_module*) module)->attr)) {
-		aga_script_trace();
-		return AGA_RESULT_ERROR;
-	}
+	agan_dict = ((struct py_module*) module)->attr;
 
 	if((result = agan_draw_register(env))) return result;
 	if((result = agan_io_register(env))) return result;
@@ -166,16 +163,28 @@ aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv) {
 
 	for(i = inv ? 2 : 0; i < 3; inv ? --i : ++i) {
 		if(!(comp = py_dict_lookup(trans, agan_trans_components[i]))) {
+			py_error_set_key();
 			return AGA_TRUE;
 		}
 
-		if(aga_list_get(comp, 0, &xo)) return 0;
-		if(aga_list_get(comp, 1, &yo)) return 0;
-		if(aga_list_get(comp, 2, &zo)) return 0;
+		if((xo = py_list_get(comp, 0))->type != PY_TYPE_FLOAT) {
+			py_error_set_badarg();
+			return 0;
+		}
 
-		if(aga_script_float(xo, &x)) return 0;
-		if(aga_script_float(yo, &y)) return 0;
-		if(aga_script_float(zo, &z)) return 0;
+		if((yo = py_list_get(comp, 1))->type != PY_TYPE_FLOAT) {
+			py_error_set_badarg();
+			return 0;
+		}
+
+		if((zo = py_list_get(comp, 2))->type != PY_TYPE_FLOAT) {
+			py_error_set_badarg();
+			return 0;
+		}
+
+		x = py_float_get(xo);
+		y = py_float_get(yo);
+		z = py_float_get(zo);
 
 		switch(i) {
 			default: break;
@@ -213,16 +222,20 @@ struct py_object* agan_scriptconf(
 	struct aga_conf_node* out;
 	const char** names;
 	aga_size_t i, len = py_varobject_size(list);
-	struct py_object* v;
+	struct py_object* retval;
 
 	if(!(names = malloc(len * sizeof(char*)))) return py_error_set_nomem();
 
 	for(i = 0; i < len; ++i) {
-		if(aga_list_get(list, i, &v)) return 0;
-		if(!(names[i] = py_string_get(v))) {
+		struct py_object* op = py_list_get(list, i);
+
+		if(op->type != PY_TYPE_STRING) {
 			free(names);
+			py_error_set_badarg();
 			return 0;
 		}
+
+		names[i] = py_string_get(op);
 	}
 
 	result = aga_conftree_raw(root ? node->children : node, names, len, &out);
@@ -235,9 +248,13 @@ struct py_object* agan_scriptconf(
 			AGA_FALLTHROUGH;
 			/* FALLTHRU */
 		}
-		case AGA_NONE: return py_object_incref(PY_NONE);
-		case AGA_STRING: return py_string_new(str);
-		case AGA_INTEGER: return py_int_new(out->data.integer);
-		case AGA_FLOAT: return py_float_new(out->data.flt);
+		case AGA_NONE: retval = py_object_incref(PY_NONE); break;
+		case AGA_STRING: retval = py_string_new(str); break;
+		case AGA_INTEGER: retval = py_int_new(out->data.integer); break;
+		case AGA_FLOAT: retval = py_float_new(out->data.flt); break;
 	}
+
+	if(!retval) py_error_set_nomem();
+
+	return retval;
 }

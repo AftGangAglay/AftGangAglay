@@ -81,11 +81,66 @@ aga_bool_t aga_arg_list(
 	return args && args->type == type;
 }
 
+aga_bool_t aga_vararg_list(
+		const struct py_object* args, enum py_type type, aga_size_t len) {
+
+	return aga_arg_list(args, type) && py_varobject_size(args) == len;
+}
+
+aga_bool_t aga_vararg_list_typed(
+		const struct py_object* args, enum py_type type, aga_size_t len,
+		enum py_type membtype) {
+
+	unsigned i;
+	aga_bool_t b = aga_vararg_list(args, type, len);
+
+	if(!b) return AGA_FALSE;
+
+	for(i = 0; i < len; ++i) {
+		if(type == PY_TYPE_LIST) {
+			if(py_list_get(args, i)->type != membtype) return AGA_FALSE;
+		}
+		else if(type == PY_TYPE_TUPLE) {
+			if(py_tuple_get(args, i)->type != membtype) return AGA_FALSE;
+		}
+	}
+
+	return AGA_TRUE;
+}
+
 aga_bool_t aga_arg(
 		struct py_object** v, struct py_object* args, aga_size_t n,
 		enum py_type type) {
 
 	return (*v = py_tuple_get(args, n)) && (*v)->type == type;
+}
+
+aga_bool_t aga_vararg(
+		struct py_object** v, struct py_object* args, aga_size_t n,
+		enum py_type type, aga_size_t len) {
+
+	return aga_arg(v, args, n, type) && py_varobject_size(*v) == len;
+}
+
+aga_bool_t aga_vararg_typed(
+		struct py_object** v, struct py_object* args, aga_size_t n,
+		enum py_type type, aga_size_t len, enum py_type membtype) {
+
+	unsigned i;
+	aga_bool_t b = aga_vararg(v, args, n, type, len);
+
+	if(!b) return AGA_FALSE;
+
+	for(i = 0; i < len; ++i) {
+		if(type == PY_TYPE_LIST) {
+			if(py_list_get(*v, i)->type != membtype) return AGA_FALSE;
+		}
+		else if(type == PY_TYPE_TUPLE) {
+			if(py_tuple_get(*v, i)->type != membtype) return AGA_FALSE;
+		}
+	}
+
+	return AGA_TRUE;
 }
 
 void* aga_arg_error(const char* proc, const char* types) {
@@ -97,36 +152,4 @@ void* aga_arg_error(const char* proc, const char* types) {
 	py_error_set_string(py_type_error, buf);
 
 	return 0;
-}
-
-aga_bool_t aga_script_float(struct py_object* o, double* f) {
-	*f = py_float_get(o);
-	return !!py_error_occurred();
-}
-
-aga_bool_t aga_script_int(struct py_object* o, py_value_t * i) {
-	*i = py_int_get(o);
-	return !!py_error_occurred();
-}
-
-aga_bool_t aga_script_string(struct py_object* o, const char** s) {
-	*s = py_string_get(o);
-	return !!py_error_occurred();
-}
-
-aga_bool_t aga_script_bool(struct py_object* o, aga_bool_t* b) {
-	*b = !!py_int_get(o);
-	return !!py_error_occurred();
-}
-
-aga_bool_t aga_list_set(
-		struct py_object* list, aga_size_t n, struct py_object* v) {
-
-	return py_list_set(list, (int) n, v) == -1;
-}
-
-aga_bool_t aga_list_get(
-		struct py_object* list, aga_size_t n, struct py_object** v) {
-
-	return !(*v = py_list_get(list, (int) n));
 }

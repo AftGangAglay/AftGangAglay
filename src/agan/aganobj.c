@@ -53,7 +53,10 @@ static aga_bool_t agan_mkobj_trans(
 		path[0] = agan_conf_components[i];
 
 		l = py_dict_lookup(obj->transform, agan_trans_components[i]);
-		if(!l) return AGA_TRUE;
+		if(!l) {
+			py_error_set_key();
+			return AGA_TRUE;
+		}
 
 		for(j = 0; j < 3; ++j) {
 			path[1] = agan_xyz[j];
@@ -62,8 +65,11 @@ static aga_bool_t agan_mkobj_trans(
 					conf->children, path, AGA_LEN(path), &f, AGA_FLOAT);
 			if(result) f = 0.0f;
 
-			if(!(o = py_float_new(f))) return 0;
-			if(aga_list_set(l, j, o)) return 0;
+			if(!(o = py_float_new(f))) {
+				py_error_set_nomem();
+				return 0;
+			}
+			py_list_set(l, j, o);
 		}
 	}
 
@@ -76,8 +82,8 @@ static void agan_mkobj_extent(
 	static const char* min_attr[] = { "MinX", "MinY", "MinZ" };
 	static const char* max_attr[] = { "MaxX", "MaxY", "MaxZ" };
 
-	float (* min)[3] = &obj->min_extent;
-	float (* max)[3] = &obj->max_extent;
+	float (*min)[3] = &obj->min_extent;
+	float (*max)[3] = &obj->max_extent;
 
 	aga_size_t i;
 
@@ -438,7 +444,7 @@ struct py_object* agan_mkobj(
 	{
 		void* fp;
 
-		if(aga_script_string(args, &path)) goto cleanup;
+		path = py_string_get(args);
 
 		result = aga_searchres(pack, path, &obj->res);
 		if(aga_script_err("aga_searchres", result)) goto cleanup;
@@ -520,75 +526,76 @@ struct py_object* agan_inobj(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	struct py_object* retval = PY_FALSE;
-	struct py_object* o;
-	struct py_object* j;
-	struct py_object* dbg;
-	struct py_object* point;
-	struct py_object* tol;
-	struct py_object* flobj;
+
+	struct py_object* objp;
+	struct py_object* planarp;
+	struct py_object* dbgp;
+	struct py_object* pointp;
+	struct py_object* tolerancep;
 
 	struct py_object* pos;
 	struct py_object* rot;
 	struct py_object* scale;
 
-	double pt[3];
-	float mins[3];
-	float maxs[3];
-	double rotf[3];
-	double f;
-	double tolerance = AGA_TRANSFORM_TOLERANCE;
-	aga_bool_t p, d;
+	double point[3];
+	float min[3];
+	float max[3];
+	double rotation[3];
+
+	aga_bool_t planar;
 	aga_size_t i;
 	struct agan_object* obj;
+	double tolerance = AGA_TRANSFORM_TOLERANCE;
 
 	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_INOBJ);
 
-	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
-	   !aga_arg(&o, args, 0, PY_TYPE_INT) ||
-	   !aga_arg(&point, args, 1, PY_TYPE_LIST) ||
-	   !aga_arg(&j, args, 2, PY_TYPE_INT) ||
-	   !aga_arg(&dbg, args, 3, PY_TYPE_INT)) {
+	if(!aga_vararg_list(args, PY_TYPE_TUPLE, 4) ||
+		!aga_arg(&objp, args, 0, PY_TYPE_INT) ||
+		!aga_vararg_typed(&pointp, args, 1, PY_TYPE_LIST, 3, PY_TYPE_FLOAT) ||
+		!aga_arg(&planarp, args, 2, PY_TYPE_INT) ||
+		!aga_arg(&dbgp, args, 3, PY_TYPE_INT)) {
 
-		return aga_arg_error("inobj", "int, list, int and int");
-	}
+		if(!aga_vararg_list(args, PY_TYPE_TUPLE, 5) ||
+			!aga_arg(&objp, args, 0, PY_TYPE_INT) ||
+			!aga_vararg_typed(
+					&pointp, args, 1, PY_TYPE_LIST, 3, PY_TYPE_FLOAT) ||
+			!aga_arg(&planarp, args, 2, PY_TYPE_INT) ||
+			!aga_arg(&dbgp, args, 3, PY_TYPE_INT) ||
+			!aga_arg(&tolerancep, args, 4, PY_TYPE_FLOAT)) {
 
-	if(py_varobject_size(args) > 4) {
-		if(!aga_arg(&tol, args, 4, PY_TYPE_FLOAT)) {
-			return aga_arg_error("inobj", "int, list, int, int and float");
+			return aga_arg_error(
+					"inobj", "int, float[3], int, int [and float]");
 		}
-		else if(aga_script_float(tol, &tolerance)) return 0;
+
+		tolerance = py_float_get(tolerancep);
 	}
 
-	if(aga_script_bool(j, &p)) return 0;
-	if(aga_script_bool(dbg, &d)) return 0;
+	planar = !!py_int_get(planarp);
 
-	obj = aga_script_getptr(o);
-	memcpy(mins, obj->min_extent, sizeof(mins));
-	memcpy(maxs, obj->max_extent, sizeof(maxs));
+	obj = aga_script_getptr(objp);
+	memcpy(min, obj->min_extent, sizeof(min));
+	memcpy(max, obj->max_extent, sizeof(max));
 
 	if(!(pos = py_dict_lookup(obj->transform, "pos"))) return 0;
 	if(!(rot = py_dict_lookup(obj->transform, "rot"))) return 0;
 	if(!(scale = py_dict_lookup(obj->transform, "scale"))) return 0;
 
-	for(i = 0; i < 3; ++i) {
+	for(i = 0; i < AGA_LEN(min); ++i) {
+		float f;
+
 		/* TODO: Static "get N items into buffer" to make noverify easier. */
 
-		if(aga_list_get(point, i, &flobj)) return 0;
-		if(aga_script_float(flobj, &pt[i])) return 0;
+		point[i] = py_float_get(py_list_get(pointp, i));
 
-		if(aga_list_get(scale, i, &flobj)) return 0;
-		if(aga_script_float(flobj, &f)) return 0;
+		f = (float) py_float_get(py_list_get(scale, i));
 
-		mins[i] *= (float) f;
-		maxs[i] *= (float) f;
+		min[i] *= f;
+		max[i] *= f;
 
-		if(aga_list_get(rot, i, &flobj)) return 0;
-		if(aga_script_float(flobj, &f)) return 0;
-
-		rotf[i] = f;
+		rotation[i] = py_float_get(py_list_get(rot, i));
 	}
 
 	/* TODO: This only handles Y-plane rotations. */
@@ -596,28 +603,32 @@ struct py_object* agan_inobj(
 
 	/* rot[Y] ~= 90 */
 	/* rot[Y] ~= -90 */
-	if(fabs(fabs((double) rotf[1]) - 90.0) < AGA_TRANSFORM_TOLERANCE) {
-		AGA_SWAPF(mins[0], mins[2]);
-		AGA_SWAPF(maxs[0], maxs[2]);
+	if(fabs(fabs(rotation[1]) - 90.0) < AGA_TRANSFORM_TOLERANCE) {
+		AGA_SWAPF(min[0], min[2]);
+		AGA_SWAPF(max[0], max[2]);
 	}
 
-	for(i = 0; i < 3; ++i) {
-		if(aga_list_get(pos, i, &flobj)) return 0;
-		if(aga_script_float(flobj, &f)) return 0;
+	for(i = 0; i < AGA_LEN(min); ++i) {
+		double f = py_float_get(py_list_get(pos, i));
 
-		mins[i] += (float) (f - tolerance);
-		maxs[i] += (float) (f + tolerance);
+		min[i] += (float) (f - tolerance);
+		max[i] += (float) (f + tolerance);
 	}
 
 	/* TODO: Once cells are implemented check against current cell rad. */
 
-	if(pt[0] > mins[0] && (p || pt[1] > mins[1]) && pt[2] > mins[2]) {
-		if(pt[0] < maxs[0] && (p || pt[1] < maxs[1]) && pt[2] < maxs[2]) {
-			retval = PY_TRUE;
+	if(planar || point[1] > min[1]) {
+		if(point[0] > min[0] && point[2] > min[2]) {
+
+			if(planar || point[1] < max[1]) {
+				if(point[0] < max[0] && point[2] < max[2]) {
+					retval = PY_TRUE;
+				}
+			}
 		}
 	}
 
-	if(d) {
+	if(py_int_get(dbgp)) {
 		enum aga_drawflags fl = aga_getdraw();
 
 		if(aga_script_err("aga_setdraw", aga_setdraw(AGA_DRAW_NONE))) return 0;
@@ -627,20 +638,20 @@ struct py_object* agan_inobj(
 
 		glBegin(GL_LINE_STRIP);
 			glColor3f(0.0f, 1.0f, 0.0f);
-			glVertex3f(mins[0], maxs[1], maxs[2]);
-			glVertex3f(maxs[0], maxs[1], maxs[2]);
-			glVertex3f(mins[0], mins[1], maxs[2]);
-			glVertex3f(maxs[0], mins[1], maxs[2]);
-			glVertex3f(maxs[0], mins[1], mins[2]);
-			glVertex3f(maxs[0], maxs[1], maxs[2]);
-			glVertex3f(maxs[0], maxs[1], mins[2]);
-			glVertex3f(mins[0], maxs[1], maxs[2]);
-			glVertex3f(mins[0], maxs[1], mins[2]);
-			glVertex3f(mins[0], mins[1], maxs[2]);
-			glVertex3f(mins[0], mins[1], mins[2]);
-			glVertex3f(maxs[0], mins[1], mins[2]);
-			glVertex3f(mins[0], maxs[1], mins[2]);
-			glVertex3f(maxs[0], maxs[1], mins[2]);
+			glVertex3f(min[0], max[1], max[2]);
+			glVertex3f(max[0], max[1], max[2]);
+			glVertex3f(min[0], min[1], max[2]);
+			glVertex3f(max[0], min[1], max[2]);
+			glVertex3f(max[0], min[1], min[2]);
+			glVertex3f(max[0], max[1], max[2]);
+			glVertex3f(max[0], max[1], min[2]);
+			glVertex3f(min[0], max[1], max[2]);
+			glVertex3f(min[0], max[1], min[2]);
+			glVertex3f(min[0], min[1], max[2]);
+			glVertex3f(min[0], min[1], min[2]);
+			glVertex3f(max[0], min[1], min[2]);
+			glVertex3f(min[0], max[1], min[2]);
+			glVertex3f(max[0], max[1], min[2]);
 		glEnd();
 		if(aga_script_gl_err("glEnd")) return 0;
 

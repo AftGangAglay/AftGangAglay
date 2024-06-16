@@ -12,8 +12,8 @@ PYOH = $(PYH)object$(SEP)
 PYMH = $(PYH)module$(SEP)
 
 PY1 = $(PY)acceler.c $(PY)ceval.c $(PY)compile.c $(PY)errors.c $(PY)graminit.c
-PY2 = $(PY)grammar1.c $(PY)import.c $(PY)listnode.c $(PY)state.c $(PY)types.c
-PY3 = $(PY)node.c $(PY)object.c $(PY)parser.c $(PY)parsetok.c $(PY)tokenizer.c
+PY2 = $(PY)import.c $(PY)listnode.c $(PY)state.c $(PY)types.c $(PY)node.c
+PY3 = $(PY)object.c $(PY)parser.c $(PY)parsetok.c $(PY)tokenizer.c
 PY4 = $(PY)traceback.c $(PY)pythonmain.c $(PY)evalops.c
 
 PYO1 = $(PYO)list.c $(PYO)dict.c $(PYO)float.c $(PYO)frame.c $(PYO)func.c
@@ -47,12 +47,11 @@ $(PY_OUT): $(APRO_OUT)
 $(PY_OUT): $(PY_OBJ)
 	$(AR)
 
-PGEN1 = $(PY)pgenmain.c $(PY)acceler.c $(PY)grammar1.c $(PY)listnode.c
-PGEN2 = $(PY)node.c $(PY)parser.c $(PY)parsetok.c $(PY)tokenizer.c
+PGEN1 = $(PY)pgenmain.c $(PY)acceler.c $(PY)listnode.c $(PY)printgrammar.c
+PGEN2 = $(PY)node.c $(PY)parser.c $(PY)parsetok.c $(PY)tokenizer.c $(PY)pgen.c
 PGEN3 = $(PY)bitset.c $(PY)firstsets.c $(PY)grammar.c $(PY)metagrammar.c
-PGEN4 = $(PY)pgen.c $(PY)printgrammar.c
 
-PGEN_SRC = $(PGEN1) $(PGEN2) $(PGEN3) $(PGEN4)
+PGEN_SRC = $(PGEN1) $(PGEN2) $(PGEN3)
 PGEN_OBJ = $(subst .c,$(OBJ),$(PGEN_SRC))
 
 PGEN_OUT = $(PY)pgenmain$(EXE)

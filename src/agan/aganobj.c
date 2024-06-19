@@ -47,7 +47,7 @@ static aga_bool_t agan_mkobj_trans(
 	struct py_object* l;
 	struct py_object* o;
 	aga_size_t i, j;
-	float f;
+	double f;
 
 	for(i = 0; i < 3; ++i) {
 		path[0] = agan_conf_components[i];
@@ -88,12 +88,17 @@ static void agan_mkobj_extent(
 	aga_size_t i;
 
 	for(i = 0; i < 3; ++i) {
-		if(aga_conftree(conf, &min_attr[i], 1, &(*min)[i], AGA_FLOAT)) {
+		double v;
+
+		if(aga_conftree(conf, &min_attr[i], 1, &v, AGA_FLOAT)) {
 			(*min)[i] = 0.0f;
 		}
-		else if(aga_conftree(conf, &max_attr[i], 1, &(*max)[i], AGA_FLOAT)) {
+		else (*min)[i] = (float) v;
+
+		if(aga_conftree(conf, &max_attr[i], 1, &v, AGA_FLOAT)) {
 			(*max)[i] = 0.0f;
 		}
+		else (*max)[i] = (float) v;
 	}
 }
 
@@ -123,7 +128,7 @@ static aga_bool_t agan_mkobj_model(
 	if(aga_script_gl_err("glNewList")) return 0;
 
 	{
-		int f;
+		aga_slong_t f;
 
 		if(aga_conftree(conf->children, &filter, 1, &f, AGA_INTEGER)) f = 1;
 
@@ -137,7 +142,7 @@ static aga_bool_t agan_mkobj_model(
 		else {
 			static const char* width = "Width";
 
-			int w, h;
+			aga_slong_t w, h;
 
 			/*
 			 * TODO: "Just trusting" that this make/release pattern is safe to
@@ -198,7 +203,7 @@ static aga_bool_t agan_mkobj_model(
 			struct aga_vertex v;
 			void* fp;
 			aga_size_t i, len;
-			long ver; /* TODO: Update all `long' with `long long' once conf. */
+			aga_slong_t ver;
 
 			aga_free(obj->modelpath);
 			if(!(obj->modelpath = aga_strdup(path))) {
@@ -269,8 +274,10 @@ static aga_bool_t agan_mkobj_light(
 	struct aga_conf_node* node = conf->children;
 	struct agan_lightdata* data;
 
-	int scr;
+	aga_slong_t scr;
 	aga_size_t i, j;
+
+	double v;
 
 	if(aga_conftree_raw(node, &light, 1, &node)) return AGA_FALSE;
 
@@ -280,9 +287,11 @@ static aga_bool_t agan_mkobj_light(
 	data = obj->light_data;
 
 	for(i = 0; i < node->len; ++i) {
+		aga_slong_t index;
 		struct aga_conf_node* child = &node->children[i];
 
-		if(aga_confvar("Index", child, AGA_INTEGER, &data->index)) {
+		if(aga_confvar("Index", child, AGA_INTEGER, &index)) {
+			data->index = index;
 			if(data->index > 7) {
 				aga_log(
 						__FILE__, "warn: Light index `%u' exceeds max of 7",
@@ -295,20 +304,21 @@ static aga_bool_t agan_mkobj_light(
 		else if(aga_confvar("Directional", child, AGA_INTEGER, &scr)) {
 			data->directional = !!scr;
 		}
-		else if(aga_confvar("Exponent", child, AGA_FLOAT, &data->exponent)) {
-			continue;
+		else if(aga_confvar("Exponent", child, AGA_FLOAT, &v)) {
+			data->exponent = (float) v;
 		}
-		else if(aga_confvar("Angle", child, AGA_FLOAT, &data->angle)) {
-			continue;
+		else if(aga_confvar("Angle", child, AGA_FLOAT, &v)) {
+			data->angle = (float) v;
 		}
 		else if(aga_streql("Direction", child->name)) {
 			for(j = 0; j < 3; ++j) {
 				const char* comp = agan_xyz[j];
 				float (*dir)[3] = &data->direction;
 
-				if(aga_conftree(child, &comp, 1, &(*dir)[j], AGA_FLOAT)) {
+				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT)) {
 					(*dir)[j] = 0.0f;
 				}
+				else (*dir)[j] = (float) v;
 			}
 		}
 		/* TODO: General API for getting multiple components from conf node. */
@@ -318,9 +328,10 @@ static aga_bool_t agan_mkobj_light(
 			for(j = 0; j < 3; ++j) {
 				const char* comp = agan_rgb[j];
 
-				if(aga_conftree(child, &comp, 1, &(*col)[j], AGA_FLOAT)) {
+				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT)) {
 					(*col)[j] = 1.0f;
 				}
+				else (*col)[j] = (float) v;
 			}
 
 			(*col)[3] = 1.0f;
@@ -331,9 +342,10 @@ static aga_bool_t agan_mkobj_light(
 			for(j = 0; j < 3; ++j) {
 				const char* comp = agan_rgb[j];
 
-				if(aga_conftree(child, &comp, 1, &(*col)[j], AGA_FLOAT)) {
+				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT)) {
 					(*col)[j] = 1.0f;
 				}
+				else (*col)[j] = (float) v;
 			}
 
 			(*col)[3] = 1.0f;
@@ -344,25 +356,27 @@ static aga_bool_t agan_mkobj_light(
 			for(j = 0; j < 3; ++j) {
 				const char* comp = agan_rgb[j];
 
-				if(aga_conftree(child, &comp, 1, &(*col)[j], AGA_FLOAT)) {
+				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT)) {
 					(*col)[j] = 1.0f;
 				}
+				else (*col)[j] = (float) v;
 			}
 
 			(*col)[3] = 1.0f;
 		}
 		else if(aga_streql("Attenuation", child->name)) {
 			static const char* atten[] = { "Constant", "Linear", "Quadratic" };
-			float* at[3];
+			float* at[AGA_LEN(atten)];
 			at[0] = &data->constant_attenuation;
 			at[1] = &data->linear_attenuation;
 			at[2] = &data->quadratic_attenuation;
-			for(j = 0; j < 3; ++j) {
+			for(j = 0; j < AGA_LEN(at); ++j) {
 				const char* comp = atten[j];
 
-				if(aga_conftree(child, &comp, 1, at[j], AGA_FLOAT)) {
+				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT)) {
 					*at[j] = 0.0f;
 				}
+				else *at[j] = (float) v;
 			}
 		}
 	}

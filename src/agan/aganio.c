@@ -47,7 +47,7 @@ struct py_object* agan_getkey(
 	/* getkey(int) */
 	if(!aga_arg_list(args, PY_TYPE_INT)) return aga_arg_error("getkey", "int");
 
-	result = aga_keylook(keymap, (aga_uint8_t) py_int_get(args), &b);
+	result = aga_keylook(keymap, py_int_get(args), &b);
 	if(aga_script_err("aga_keylook", result)) return 0;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_GETKEY);

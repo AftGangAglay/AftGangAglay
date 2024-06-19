@@ -21,6 +21,8 @@
 
 #define AGA_CLASS_NAME ("AftGangAglay")
 
+#define AGAW_KEYMAX (0xFF)
+
 static const PIXELFORMATDESCRIPTOR pixel_format = {
 		sizeof(PIXELFORMATDESCRIPTOR), 1,
 		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
@@ -236,7 +238,7 @@ enum aga_result aga_mkkeymap(
 	if(!env) return AGA_RESULT_BAD_PARAM;
 
 	/* VK_OEM_CLEAR + 1 */
-	keymap->keystates = aga_calloc(0xFF, sizeof(aga_bool_t));
+	keymap->keystates = aga_calloc(AGAW_KEYMAX, sizeof(aga_bool_t));
 	if(!keymap->keystates) return aga_errno(__FILE__, "aga_calloc");
 
 	return AGA_RESULT_OK;
@@ -313,12 +315,15 @@ enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win) {
 }
 
 enum aga_result aga_keylook(
-		struct aga_keymap* keymap, aga_uint8_t sym, aga_bool_t* state) {
+		struct aga_keymap* keymap, unsigned sym, aga_bool_t* state) {
 
 	if(!keymap) return AGA_RESULT_BAD_PARAM;
 	if(!state) return AGA_RESULT_BAD_PARAM;
 
 	if(!keymap->keystates) return AGA_RESULT_ERROR;
+
+	if(sym > AGAW_KEYMAX) return AGA_RESULT_BAD_OP;
+
 	*state = keymap->keystates[sym];
 
 	return AGA_RESULT_OK;

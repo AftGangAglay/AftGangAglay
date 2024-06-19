@@ -89,7 +89,8 @@ enum aga_result aga_setconf(struct aga_opts* opts, struct aga_respack* pack) {
 	enum aga_result result;
 	void* fp;
 	aga_size_t size;
-	int v;
+	aga_slong_t v;
+	double fv;
 
 	static const char* enabled[] = { "Audio", "Enabled" };
 	static const char* device[] = { "Audio", "Device" };
@@ -114,7 +115,7 @@ enum aga_result aga_setconf(struct aga_opts* opts, struct aga_respack* pack) {
 	result = aga_conftree(
 			opts->config.children, enabled, AGA_LEN(enabled), &v, AGA_INTEGER);
 	aga_soft(__FILE__, "aga_conftree", result);
-	opts->audio_enabled = !!v;
+	if(!result) opts->audio_enabled = !!v;
 
 	result = aga_conftree(
 			opts->config.children, version, AGA_LEN(version), &opts->version,
@@ -139,18 +140,21 @@ enum aga_result aga_setconf(struct aga_opts* opts, struct aga_respack* pack) {
 	aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
-			opts->config.children, width, AGA_LEN(width), &opts->width,
+			opts->config.children, width, AGA_LEN(width), &v,
 			AGA_INTEGER);
 	aga_soft(__FILE__, "aga_conftree", result);
+	if(!result) opts->width = v;
 
 	result = aga_conftree(
-			opts->config.children, height, AGA_LEN(height), &opts->height,
+			opts->config.children, height, AGA_LEN(height), &v,
 			AGA_INTEGER);
 	aga_soft(__FILE__, "aga_conftree", result);
+	if(!result) opts->height = v;
 
 	result = aga_conftree(
-			opts->config.children, fov, AGA_LEN(fov), &opts->fov, AGA_FLOAT);
+			opts->config.children, fov, AGA_LEN(fov), &fv, AGA_FLOAT);
 	aga_soft(__FILE__, "aga_conftree", result);
+	if(!result) opts->fov = (float) fv;
 
 	return AGA_RESULT_OK;
 }

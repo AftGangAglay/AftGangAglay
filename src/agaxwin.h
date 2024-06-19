@@ -20,6 +20,14 @@
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
 
+/*
+ * NOTE: `0xFF**' represents the highest class of "normal" keycodes which
+ * 		 Are supported in `aganio' for X systems. We're sitting in a
+ * 		 Transitional period before XKB when keyhandling was a bit all over the
+ * 		 Place so this will have to do for now.
+ */
+#define AGAX_KEYMAX (0xFFFF)
+
 static const char* agax_chk_last = "xlib";
 
 /* TODO: Check against return value for `0'. */
@@ -123,25 +131,10 @@ enum aga_result aga_killwinenv(struct aga_winenv* env) {
 enum aga_result aga_mkkeymap(
 		struct aga_keymap* keymap, struct aga_winenv* env) {
 
-	int min, max;
-
 	if(!keymap) return AGA_RESULT_BAD_PARAM;
 	if(!env) return AGA_RESULT_BAD_PARAM;
 
-	AGAX_CHK(XDisplayKeycodes, (env->dpy, &min, &max));
-
-	keymap->keycode_len = max - min;
-	keymap->keycode_min = min;
-
-	keymap->keymap = (aga_ulong_t * )AGAX_CHK(XGetKeyboardMapping,
-											  (env->dpy, min, keymap
-													  ->keycode_len, &keymap
-													  ->keysyms_per_keycode));
-	if(!keymap->keymap) return AGA_RESULT_ERROR;
-
-	keymap->keystates = aga_calloc(
-			keymap->keysyms_per_keycode * keymap->keycode_len,
-			sizeof(aga_bool_t));
+	keymap->keystates = aga_calloc(AGAX_KEYMAX, sizeof(aga_bool_t));
 	if(!keymap->keystates) return AGA_RESULT_OOM;
 
 	return AGA_RESULT_OK;
@@ -150,7 +143,6 @@ enum aga_result aga_mkkeymap(
 enum aga_result aga_killkeymap(struct aga_keymap* keymap) {
 	if(!keymap) return AGA_RESULT_BAD_PARAM;
 
-	XFree(keymap->keymap);
 	aga_free(keymap->keystates);
 
 	return AGA_RESULT_OK;
@@ -176,7 +168,9 @@ enum aga_result aga_mkwin(
 		struct aga_win* win, int argc, char** argv) {
 
 	aga_ulong_t black, white;
-	long mask = KeyPressMask | KeyReleaseMask | PointerMotionMask;
+	long mask = KeyPressMask | KeyReleaseMask |
+					PointerMotionMask |
+					ButtonPressMask | ButtonReleaseMask;
 
 	if(!env) return AGA_RESULT_BAD_PARAM;
 	if(!win) return AGA_RESULT_BAD_PARAM;
@@ -251,19 +245,18 @@ enum aga_result aga_killwin(struct aga_winenv* env, struct aga_win* win) {
 }
 
 enum aga_result aga_keylook(
-		struct aga_keymap* keymap, aga_uint8_t sym, aga_bool_t* state) {
+		struct aga_keymap* keymap, unsigned sym, aga_bool_t* state) {
 
 	if(!keymap) return AGA_RESULT_BAD_PARAM;
 	if(!state) return AGA_RESULT_BAD_PARAM;
 
 	if(!keymap->keystates) return AGA_RESULT_ERROR;
 
-	if(sym < keymap->keysyms_per_keycode * keymap->keycode_len) {
-		*state = keymap->keystates[sym];
-		return AGA_RESULT_OK;
-	}
+	if(sym > AGAX_KEYMAX) return AGA_RESULT_BAD_OP;
 
-	return AGA_RESULT_BAD_OP;
+	*state = keymap->keystates[sym];
+
+	return AGA_RESULT_OK;
 }
 
 enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
@@ -331,6 +324,8 @@ enum aga_result aga_setcursor(
 	if(!env) return AGA_RESULT_BAD_PARAM;
 	if(!win) return AGA_RESULT_BAD_PARAM;
 
+	env->captured = captured;
+
 	cur = visible ? win->arrow_cursor : win->blank_cursor;
 	AGAX_CHK(XDefineCursor, (env->dpy, win->xwin, cur));
 
@@ -358,6 +353,7 @@ enum aga_result aga_poll(
 	XEvent event;
 	struct pollfd pollfd;
 	int rdy;
+	unsigned i;
 
 	if(!env) return AGA_RESULT_BAD_PARAM;
 	if(!keymap) return AGA_RESULT_BAD_PARAM;
@@ -365,6 +361,12 @@ enum aga_result aga_poll(
 	if(!pointer) return AGA_RESULT_BAD_PARAM;
 	if(!die) return AGA_RESULT_BAD_PARAM;
 	if(!buttons) return AGA_RESULT_BAD_PARAM;
+
+	for(i = 0; i < AGA_LEN(buttons->states); ++i) {
+		if(buttons->states[i] == AGA_BUTTON_CLICK) {
+			buttons->states[i] = AGA_BUTTON_DOWN;
+		}
+	}
 
 	pollfd.fd = env->dpy_fd;
 	pollfd.events = POLLIN;
@@ -387,6 +389,27 @@ enum aga_result aga_poll(
 			switch(event.type) {
 				default: break;
 
+				/*
+				 * NOTE: This assumes `Button1 -> LMB', `Button2 -> RMB' and
+				 * 		 `Button3 -> MMB' which (apparently) isn't always true.
+				 */
+				case ButtonPress: {
+					press = AGA_TRUE;
+					AGA_FALLTHROUGH;
+				}
+				/* FALLTHROUGH */
+				case ButtonRelease: {
+					enum aga_button button = event.xbutton.button - 1;
+					enum aga_button_state state = press ? AGA_BUTTON_CLICK :
+														  AGA_BUTTON_UP;
+					buttons->states[button] = state;
+					break;
+				}
+
+#ifdef __GNUC__
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 				case KeyPress: {
 					press = AGA_TRUE;
 					AGA_FALLTHROUGH;
@@ -394,16 +417,16 @@ enum aga_result aga_poll(
 				/* FALLTHROUGH */
 				case KeyRelease: {
 					unsigned keycode = event.xkey.keycode;
-					aga_size_t keysym_idx = (keycode - keymap->keycode_min) *
-											keymap->keysyms_per_keycode;
-					aga_ulong_t keysym = keymap->keymap[keysym_idx];
-					aga_size_t bound =
-							keymap->keysyms_per_keycode * keymap->keycode_len;
+					KeySym keysym = XKeycodeToKeysym(env->dpy, keycode, 0);
 
-					if(keysym < bound) keymap->keystates[keysym] = press;
+					if(keysym > AGAX_KEYMAX) break; /* Key out of range. */
 
+					keymap->keystates[keysym] = press;
 					break;
 				}
+#ifdef __GNUC__
+# pragma GCC diagnostic pop
+#endif
 
 				case MotionNotify: {
 					int mid_x = (int) win->width / 2;
@@ -412,11 +435,14 @@ enum aga_result aga_poll(
 					if(event.xmotion.window != win->xwin) break;
 
 					if(event.xmotion.x != mid_x || event.xmotion.y != mid_y) {
-						aga_centreptr(env, win);
+						if(env->captured) aga_centreptr(env, win);
 					}
 
-					pointer->dx = event.xmotion.x - mid_x;
-					pointer->dy = event.xmotion.y - mid_y;
+					pointer->dx = event.xmotion.x - pointer->x;
+					pointer->dy = event.xmotion.y - pointer->y;
+
+					pointer->x = event.xmotion.x;
+					pointer->y = event.xmotion.y;
 
 					break;
 				}

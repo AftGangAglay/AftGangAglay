@@ -7,9 +7,7 @@
 #include <agagl.h>
 
 #ifdef _WIN32
-
 # include "agawwin.h"
-
 #else
 # include "agaxwin.h"
 #endif

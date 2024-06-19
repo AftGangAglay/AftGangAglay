@@ -146,17 +146,15 @@ void aga_sgml_start_element(
 				memcpy(node->name, value, len + 1);
 			}
 
-			if(!attribute_present[AGA_ITEM_TYPE]) { node->type = AGA_NONE; }
+			if(!attribute_present[AGA_ITEM_TYPE]) node->type = AGA_NONE;
 			else {
 				const char* typename = attribute_value[AGA_ITEM_TYPE];
-				if(aga_streql(
-						typename, "Integer")) { node->type = AGA_INTEGER; }
-				else if(aga_streql(
-						typename, "String")) { node->type = AGA_STRING; }
-				else if(aga_streql(
-						typename, "Float")) { node->type = AGA_FLOAT; }
-				else if(aga_streql(
-						typename, "None")) { node->type = AGA_NONE; }
+				if(aga_streql(typename, "Integer")) node->type = AGA_INTEGER;
+				else if(aga_streql(typename, "String")) {
+					node->type = AGA_STRING;
+				}
+				else if(aga_streql(typename, "Float")) node->type = AGA_FLOAT;
+				else if(aga_streql(typename, "None")) node->type = AGA_NONE;
 				else {
 					static const char fmt[] =
 							"warn: <item> element has unknown type "
@@ -337,11 +335,11 @@ aga_bool_t aga_confvar(
 				break;
 			}
 			case AGA_INTEGER: {
-				*(int*) value = (int) node->data.integer;
+				*(aga_slong_t*) value = node->data.integer;
 				break;
 			}
 			case AGA_FLOAT: {
-				*(float*) value = (float) node->data.flt;
+				*(double*) value = node->data.flt;
 				break;
 			}
 		}

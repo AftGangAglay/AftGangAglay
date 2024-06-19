@@ -39,9 +39,7 @@ struct aga_win {
 };
 
 struct aga_keymap {
-	aga_ulong_t* keymap;
 	aga_bool_t* keystates;
-	int keysyms_per_keycode, keycode_len, keycode_min;
 };
 
 struct aga_winenv {
@@ -51,6 +49,7 @@ struct aga_winenv {
 	int dpy_fd;
 	int screen;
 	aga_bool_t double_buffered;
+	aga_bool_t captured;
 };
 #endif
 
@@ -95,7 +94,7 @@ enum aga_result aga_mkwin(
 
 enum aga_result aga_killwin(struct aga_winenv*, struct aga_win*);
 
-enum aga_result aga_keylook(struct aga_keymap*, aga_uint8_t, aga_bool_t*);
+enum aga_result aga_keylook(struct aga_keymap*, unsigned, aga_bool_t*);
 
 /*
  * NOTE: Cursor capture is a somewhat importable concept. As it stands, we

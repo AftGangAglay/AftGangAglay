@@ -197,6 +197,7 @@ struct py_object* agan_fogcol(
 	return py_object_incref(PY_NONE);
 }
 
+/* TODO: Take surface ID/mask like `getpix()'. */
 struct py_object* agan_clear(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
@@ -210,7 +211,7 @@ struct py_object* agan_clear(
 
 	/* fogcol(float[4]) */
 	if(!aga_vararg_list_typed(args, PY_TYPE_LIST, 4, PY_TYPE_FLOAT)) {
-		return aga_arg_error("clear", "list");
+		return aga_arg_error("clear", "float[4]");
 	}
 
 	for(i = 0; i < AGA_LEN(col); ++i) {

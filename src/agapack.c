@@ -99,16 +99,18 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 
 	for(i = 0; i < pack->len; ++i) {
 		static const char* off = "Offset";
-		static const char* size = "Size";
+		static const char* sz = "Size";
 
 		struct aga_res* res = &pack->db[i];
 		struct aga_conf_node* node = &pack->root.children->children[i];
 
+		aga_slong_t offset;
+		aga_slong_t size;
+
 		res->conf = node;
 		res->pack = pack;
 
-		result = aga_conftree(
-				node, &off, 1, &res->offset, AGA_INTEGER);
+		result = aga_conftree(node, &off, 1, &offset, AGA_INTEGER);
 		if(result) {
 			aga_soft(__FILE__, "aga_conftree", result);
 			aga_log(
@@ -116,6 +118,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 							  "entry", i);
 			continue;
 		}
+		res->offset = offset;
 
 		if(res->offset >= pack->size) {
 			aga_log(
@@ -126,7 +129,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 			goto cleanup;
 		}
 
-		result = aga_conftree(node, &size, 1, &res->size, AGA_INTEGER);
+		result = aga_conftree(node, &sz, 1, &size, AGA_INTEGER);
 		if(result) {
 			aga_soft(__FILE__, "aga_conftree", result);
 			aga_log(
@@ -134,6 +137,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 							  "entry", i);
 			continue;
 		}
+		res->size = size;
 
 		if(res->offset + res->size >= pack->size) {
 			aga_log(

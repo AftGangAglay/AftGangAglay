@@ -133,9 +133,9 @@ static struct py_object* agan_dumpobj(
 
 				elem[1] = agan_xyz[j];
 
-				result = aga_conftree_raw(
+				result = aga_conftree_wrap(
 						node.children, elem, AGA_LEN(elem), &n);
-				if(aga_script_err("aga_conftree_raw", result)) return 0;
+				if(aga_script_err("aga_conftree_wrap", result)) return 0;
 
 				if((o = py_list_get(l, j))->type != PY_TYPE_FLOAT) {
 					py_error_set_badarg();
@@ -153,15 +153,15 @@ static struct py_object* agan_dumpobj(
 
 		struct aga_conf_node* n;
 
-		result = aga_conftree_raw(node.children, &model, 1, &n);
-		if(aga_script_err("aga_conftree_raw", result)) return 0;
+		result = aga_conftree_wrap(node.children, &model, 1, &n);
+		if(aga_script_err("aga_conftree_wrap", result)) return 0;
 
 		aga_free(n->data.string);
 		n->data.string = aga_strdup(obj->modelpath);
 	}
 
 	{
-		FILE* outp = fopen(path, "wb+");
+		FILE* outp = fopen(path, "w");
 		if(!outp) {
 			aga_script_err("fopen", aga_errno_path(__FILE__, "fopen", path));
 			return 0;
@@ -172,7 +172,7 @@ static struct py_object* agan_dumpobj(
 		if(aga_script_err("aga_dumptree", result)) return 0;
 
 		if(fclose(outp) == EOF) {
-			aga_script_err("fopen", aga_errno(__FILE__, "fclose"));
+			aga_script_err("fclose", aga_errno(__FILE__, "fclose"));
 			return 0;
 		}
 	}
@@ -243,8 +243,8 @@ static struct py_object* agan_setobjmdl(
 	if(aga_script_err("agan_getobjconf", result)) return 0;
 
 	/* TODO: We really need to work out this whole root/non-root fiasco. */
-	result = aga_conftree_raw(root.children, &model, 1, &node);
-	if(aga_script_err("aga_conftree_raw", result)) return 0;
+	result = aga_conftree_wrap(root.children, &model, 1, &node);
+	if(aga_script_err("aga_conftree_wrap", result)) return 0;
 
 	/*
 	 * TODO: We don't validate that the conf node is the correct type here nor
@@ -270,12 +270,7 @@ enum aga_result agan_ed_register(struct py_env* env) {
 
 	struct py_object* ed;
 
-	/*
-	 * TODO: Make a better distinction between debug/non-debug/distribution --
-	 * 		 This should also extend to profiler presence and noverify aswell
-	 * 		 Once this is enacted.
-	 */
-#ifdef _DEBUG
+#ifdef AGA_DEVBUILD
 	/*
 	 * User is not meant to access `ed' directly as a module -- but as an attr
 	 * of `agan'.

@@ -9,49 +9,371 @@
 #include <agautil.h>
 
 #define AGA_WANT_UNIX
-
 #include <agastd.h>
 
-enum aga_result aga_fplen(void* fp, aga_size_t* size) {
-	if(!fp) return AGA_RESULT_BAD_PARAM;
-	if(!size) return AGA_RESULT_BAD_PARAM;
+#define AGA_WANT_WINDOWS_H
+#include <agaw32.h>
 
-#if defined(AGA_HAVE_SYS_STAT) && defined(AGA_HAVE_SYS_TYPES)
-	{
-		struct stat st;
-		int fd;
-		if((fd = fileno(fp)) == -1) return aga_errno(__FILE__, "fileno");
-		if(fstat(fd, &st) == -1) return aga_errno(__FILE__, "fstat");
-		*size = st.st_size;
+/* TODO: Implement BSD-y `<sys/dir.h>' `direct' interface  */
+enum aga_result aga_iterate_dir(
+		const char* path, aga_iterfn_t fn, aga_bool_t recurse, void* pass,
+		aga_bool_t keep_going) {
+
+#ifdef AGA_HAVE_DIRENT
+	enum aga_result result;
+	enum aga_result held_result = AGA_RESULT_OK;
+
+	DIR* d;
+	struct dirent* ent;
+	union aga_fileattr attr;
+
+	if(!(d = opendir(path))) return aga_errno_path(__FILE__, "opendir", path);
+
+	/* TODO: Leaky EH. */
+	while((ent = readdir(d))) {
+		aga_fixed_buf_t buf = { 0 };
+
+		if(ent->d_name[0] == '.') continue;
+
+		if(sprintf(buf, "%s/%s", path, ent->d_name) < 0) {
+			result = aga_errno(__FILE__, "sprintf");
+			if(keep_going) {
+				held_result = result;
+				continue;
+			}
+			else return result;
+		}
+
+		if((result = aga_fileattr_path(buf, AGA_FILE_TYPE, &attr))) {
+			if(keep_going) {
+				aga_soft(__FILE__, "aga_fileattr_path", result);
+				held_result = result;
+				continue;
+			}
+			else return result;
+		}
+
+		if(attr.type == AGA_FILE_DIRECTORY) {
+			if(recurse) {
+				result = aga_iterate_dir(buf, fn, recurse, pass, keep_going);
+				if(result) {
+					if(keep_going) {
+						aga_soft(__FILE__, "aga_iterate_dir", result);
+						held_result = result;
+						continue;
+					}
+					else return result;
+				}
+			}
+			else continue;
+		}
+		else if((result = fn(buf, pass))) {
+			if(keep_going) {
+				aga_soft(__FILE__, "aga_iterate_dir::<callback>", result);
+				held_result = result;
+				continue;
+			}
+			else return result;
+		}
 	}
+
+	if(closedir(d) == -1) return aga_errno(__FILE__, "closedir");
+
+	return held_result;
 #else
-	{
-		long off;
-		long tell;
-
-		if((off = ftell(fp)) == -1) return aga_errno(__FILE__, "ftell");
-
-		if(fseek(fp, 0, SEEK_END) == -1) {
-			return aga_errno(__FILE__, "fseek");
-		}
-		if((tell = ftell(fp)) == -1) return aga_errno(__FILE__, "ftell");
-		*size = (aga_size_t) tell;
-
-		if(fseek(fp, off, SEEK_SET) == -1) {
-			return aga_errno(__FILE__, "fseek");
-		}
-	}
+	return AGA_RESULT_NOT_IMPLEMENTED;
 #endif
+}
+
+#ifdef AGA_DEVBUILD
+
+enum aga_result aga_copyfile_path(const char* to, const char* from) {
+	enum aga_result result;
+
+# ifdef AGA_HAVE_COPYFILE
+	/* OSX. */
+	/* TODO: copyfile */
+# endif
+
+	/* TODO: Leaky error states. */
+
+	void* tof;
+	void* fromf;
+
+	if(!(tof = fopen(to, "wb"))) return aga_errno_path(__FILE__, "fopen", to);
+	if(!(fromf = fopen(from, "rb"))) {
+		return aga_errno_path(__FILE__, "fopen", from);
+	}
+
+	if((result = aga_copyfile(tof, fromf, AGA_COPY_ALL))) return result;
+
+	if(fclose(tof) == EOF) return aga_errno(__FILE__, "fclose");
+	if(fclose(fromf) == EOF) return aga_errno(__FILE__, "fclose");
 
 	return AGA_RESULT_OK;
 }
 
+enum aga_result aga_copyfile(void* to, void* from, aga_size_t len) {
+	if(!to) return AGA_RESULT_BAD_PARAM;
+	if(!from) return AGA_RESULT_BAD_PARAM;
+
+	if(!len) return AGA_RESULT_OK;
+
+	/* TODO: Use `uname' to detect runtime capabilities. */
+# ifdef __linux__
+#  if 0 && __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 5 && \
+		LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+
+#   define AGA_COPYFILE_DONE
+	/*
+	 * `splice' here would not work prior to 2.6.30 as neither operand is a
+	 * Pipe.
+	 */
+	/* TODO: splice */
+#  elif 0 && defined(AGA_HAVE_SYS_SENDFILE) && \
+		(LINUX_VERSION_CODE <= KERNEL_VERSION(2, 4, 0) || \
+		LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 33))
+
+#   define AGA_COPYFILE_DONE
+	/*
+	 * `sendfile' from Linux 2.4 to 2.6.33 requires that target be a socket.
+	 */
+	/* TODO: sendfile */
+#  endif
+# endif
+
+# if 0 && !defined(AGA_COPYFILE_DONE) && \
+		(__FreeBSD__ >= 13 || (__GLIBC__ >= 2 && __GLIBC_MINOR__ >= 27))
+
+#  define AGA_COPYFILE_DONE
+	/* TODO: copy_file_range */
+# endif
+
+# if 0 && !defined(AGA_COPYFILE_DONE) && defined(AGA_HAVE_COPYFILE)
+	/* OSX. */
+	/* TODO: fcopyfile */
+# endif
+
+# if 0 && !defined(AGA_COPYFILE_DONE) && defined(_WIN32)
+	/* TODO: CopyFile */
+# endif
+
+# ifndef AGA_COPYFILE_DONE
+	/* Generic impl. */
+
+	{
+		aga_fixed_buf_t buf = { 0 };
+
+		enum aga_result result;
+		aga_size_t total = 0;
+		aga_size_t sz;
+
+		/*
+		 * Lets us avoid an `fplen' in the caller and do less branching here.
+		 */
+		if(len == AGA_COPY_ALL) {
+			while((sz = fread(buf, 1, sizeof(buf) - 1, from))) {
+				if(fwrite(buf, 1, sz, to) < sz) {
+					return aga_errno(__FILE__, "fwrite");
+				}
+			}
+
+			if(ferror(from)) return aga_errno(__FILE__, "fread");
+
+			return AGA_RESULT_OK;
+		}
+
+		while(AGA_TRUE) {
+			aga_size_t rem = len - total;
+			aga_size_t req = rem > sizeof(buf) - 1 ? sizeof(buf) - 1 : rem;
+
+			if((result = aga_fread(buf, req, from))) return result;
+			if(fwrite(buf, 1, req, to) < req) {
+				return aga_errno(__FILE__, "fwrite");
+			}
+
+			if(req == rem) break;
+			total += req;
+		}
+
+		return AGA_RESULT_OK;
+	}
+# endif
+}
+
+#endif
+
+#if defined(AGA_HAVE_SYS_STAT) && defined(AGA_HAVE_SYS_TYPES)
+# define AGA_HAVE_STAT
+#endif
+
+#ifdef _WIN32
+# define AGA_HAVE_STAT
+# define stat _stat
+# define fstat _fstat
+#endif
+
+#ifdef AGA_HAVE_STAT
+static enum aga_result aga_fileattr_select_stat(
+		struct stat* st, enum aga_fileattr_req attr, union aga_fileattr* out) {
+
+	switch(attr) {
+		default: return AGA_RESULT_BAD_PARAM;
+
+		case AGA_FILE_MODIFIED: {
+			out->modified = st->st_mtime;
+			break;
+		}
+
+		case AGA_FILE_LENGTH: {
+			out->length = st->st_size;
+			break;
+		}
+
+		case AGA_FILE_TYPE: {
+			if(S_ISDIR(st->st_mode)) out->type = AGA_FILE_DIRECTORY;
+			else out->type = AGA_FILE_REGULAR;
+			break;
+		}
+	}
+
+	return AGA_RESULT_OK;
+}
+#else
+static enum aga_result aga_fileattr_type(
+		const char* path, union aga_file_attr* out) {
+
+# ifdef EISDIR
+	/* Try and fall back to a solution using `fopen'. */
+	FILE* f;
+
+	if(!(f = fopen(path, "r"))) {
+		if(errno == EISDIR) *isdir = AGA_TRUE;
+		else return aga_errno_path(__FILE__, "fopen", path);
+	}
+	else *isdir = AGA_FALSE;
+
+	if(fclose(f) == EOF) return aga_errno_path(__FILE__, "fclose", path);
+
+	return AGA_RESULT_OK;
+# else
+	return AGA_ERROR_NOT_IMPLEMENTED;
+# endif
+}
+
+enum aga_result aga_fileattr_length(void* fp, aga_size_t* size) {
+	long off;
+	long tell;
+
+	if((off = ftell(fp)) == -1) return aga_errno(__FILE__, "ftell");
+
+	if(fseek(fp, 0, SEEK_END) == -1) {
+		return aga_errno(__FILE__, "fseek");
+	}
+	if((tell = ftell(fp)) == -1) return aga_errno(__FILE__, "ftell");
+	*size = (aga_size_t) tell;
+
+	if(fseek(fp, off, SEEK_SET) == -1) {
+		return aga_errno(__FILE__, "fseek");
+	}
+
+	return AGA_RESULT_OK;
+}
+
+static enum aga_result aga_fileattr_select(
+		void* fp, enum aga_fileattr_req attr, union aga_fileattr* out) {
+
+	switch(attr) {
+		default: return AGA_RESULT_BAD_PARAM;
+
+		case AGA_FILE_MODIFIED: return AGA_RESULT_NOT_IMPLEMENTED;
+
+		case AGA_FILE_LENGTH: return aga_fileattr_length(fp, &out->length);
+
+		/* If it's a file handle, it's a regular file. */
+		case AGA_FILE_TYPE: {
+			out->type = AGA_REGULAR;
+			break;
+		}
+	}
+
+	return AGA_RESULT_OK;
+}
+#endif
+
+enum aga_result aga_fileattr(
+		void* fp, enum aga_fileattr_req attr, union aga_fileattr* out) {
+
+	if(!fp) return AGA_RESULT_BAD_PARAM;
+	if(!attr) return AGA_RESULT_BAD_PARAM;
+	if(!out) return AGA_RESULT_BAD_PARAM;
+
+#ifdef AGA_HAVE_STAT
+	{
+		struct stat st;
+		int fd;
+
+		if((fd = fileno(fp)) == -1) return aga_errno(__FILE__, "fileno");
+		if(fstat(fd, &st) == -1) return aga_errno(__FILE__, "fstat");
+
+		return aga_fileattr_select_stat(&st, attr, out);
+	}
+#else
+	return aga_fileattr_select(fp, attr, out);
+#endif
+}
+
+enum aga_result aga_fileattr_path(
+		const char* path, enum aga_fileattr_req attr,
+		union aga_fileattr* out) {
+
+	if(!path) return AGA_RESULT_BAD_PARAM;
+	if(!out) return AGA_RESULT_BAD_PARAM;
+
+#ifdef AGA_HAVE_STAT
+	{
+		struct stat st;
+
+		if(stat(path, &st) == -1) {
+			return aga_errno_path(__FILE__, "stat", path);
+		}
+
+		return aga_fileattr_select_stat(&st, attr, out);
+	}
+#else
+	if(attr == AGA_FILE_TYPE) return aga_fileattr_type(path, out);
+
+	{
+		enum aga_result result;
+
+		void* fp;
+
+		if(!(fp = fopen(path, "rb"))) {
+			return aga_errno_path(__FILE__, "fopen", path);
+		}
+
+		if((result = aga_fileattr_select(fp, attr, out))) return result;
+
+		if(fclose(fp) == EOF) return aga_errno(__FILE__, "fclose");
+
+		return AGA_RESULT_OK;
+	}
+#endif
+}
+
 enum aga_result aga_fread(void* data, aga_size_t size, void* fp) {
+	enum aga_result result;
+
 	if(!data) return AGA_RESULT_BAD_PARAM;
 	if(!fp) return AGA_RESULT_BAD_PARAM;
 
 	if(fread(data, 1, size, fp) != size) {
-		if(ferror(fp)) return aga_errno(__FILE__, "fread");
+		if(ferror(fp)) result = aga_errno(__FILE__, "fread");
+		else result = AGA_RESULT_EOF;
+
+		clearerr(fp);
+
+		return result;
 	}
 
 	return AGA_RESULT_OK;
@@ -97,9 +419,6 @@ enum aga_result aga_killfmap(void* ptr, aga_size_t size) {
 	return AGA_RESULT_OK;
 }
 # elif defined(AGA_WINMAP)
-#  define AGA_WANT_WINDOWS_H
-#  include <agaw32.h>
-
 enum aga_result aga_mkmapfd(void* fp, struct aga_mapfd* fd) {
 	int fn;
 	void* hnd;

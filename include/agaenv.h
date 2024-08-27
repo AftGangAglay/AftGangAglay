@@ -37,38 +37,51 @@
 # define AGA_UNREACHABLE
 #endif
 
-#ifndef AGA_NO_STD
-# ifdef __has_include
-#  if __has_include(<unistd.h>)
-#   define AGA_HAVE_UNISTD
-#  endif
-#  if __has_include(<getopt.h>)
-#   define AGA_HAVE_GETOPT
-#  endif
-#  if __has_include(<poll.h>)
-#   define AGA_HAVE_POLL
-#  endif
-#  if __has_include(<sys/mman.h>)
-#   define AGA_HAVE_SYS_MMAN
-#  endif
-#  if __has_include(<sys/wait.h>)
-#   define AGA_HAVE_SYS_WAIT
-#  endif
-#  if __has_include(<sys/stat.h>)
-#   define AGA_HAVE_SYS_STAT
-#  endif
-#  if __has_include(<sys/types.h>)
-#   define AGA_HAVE_SYS_TYPES
-#  endif
-#  if __has_include(<fcntl.h>)
-#   define AGA_HAVE_FCNTL
-#  endif
-#  if __has_include(<sys/ioctl.h>)
-#   define AGA_HAVE_SYS_IOCTL
-#  endif
-#  if __has_include(<sys/soundcard.h>)
-#   define AGA_HAVE_SYS_SOUNDCARD
-#  endif
+#ifdef __has_include
+# if __has_include(<unistd.h>)
+#  define AGA_HAVE_UNISTD
+# endif
+# if __has_include(<getopt.h>)
+#  define AGA_HAVE_GETOPT
+# endif
+# if __has_include(<poll.h>)
+#  define AGA_HAVE_POLL
+# endif
+# if __has_include(<sys/mman.h>)
+#  define AGA_HAVE_SYS_MMAN
+# endif
+# if __has_include(<sys/wait.h>)
+#  define AGA_HAVE_SYS_WAIT
+# endif
+# if __has_include(<sys/stat.h>)
+#  define AGA_HAVE_SYS_STAT
+# endif
+# if __has_include(<sys/types.h>)
+#  define AGA_HAVE_SYS_TYPES
+# endif
+# if __has_include(<fcntl.h>)
+#  define AGA_HAVE_FCNTL
+# endif
+# if __has_include(<sys/ioctl.h>)
+#  define AGA_HAVE_SYS_IOCTL
+# endif
+# if __has_include(<sys/soundcard.h>)
+#  define AGA_HAVE_SYS_SOUNDCARD
+# endif
+# if __has_include(<sys/param.h>)
+#  define AGA_HAVE_SYS_PARAM
+# endif
+# if __has_include(<sys/sendfile.h>)
+#  define AGA_HAVE_SYS_SENDFILE
+# endif
+# if __has_include(<copyfile.h>)
+#  define AGA_HAVE_COPYFILE
+# endif
+# if __has_include(<linux/version.h>)
+#  define AGA_HAVE_LINUX_VERSION
+# endif
+# if __has_include(<dirent.h>)
+#  define AGA_HAVE_DIRENT
 # endif
 #endif
 

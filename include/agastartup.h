@@ -13,6 +13,9 @@
 struct aga_respack;
 
 struct aga_opts {
+	aga_bool_t compile;
+	const char* build_file;
+
 	const char* config_file;
 	const char* display;
 	const char* chdir;

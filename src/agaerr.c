@@ -15,9 +15,13 @@ const char* aga_result_name(enum aga_result e) {
 		case AGA_RESULT_OK: return "none";
 
 		case AGA_RESULT_ERROR: return "unknown";
+		case AGA_RESULT_EOF: return "end of file";
 		case AGA_RESULT_BAD_PARAM: return "bad parameter";
 		case AGA_RESULT_BAD_OP: return "bad operation";
 		case AGA_RESULT_OOM: return "out of memory";
+		case AGA_RESULT_NOT_IMPLEMENTED: return "not implemented";
+		case AGA_RESULT_MISSING_KEY: return "missing key";
+		case AGA_RESULT_BAD_TYPE: return "bad type";
 	}
 }
 
@@ -37,22 +41,24 @@ AGA_NORETURN void aga_abort(void) {
 #endif
 
 #ifdef _DEBUG
-# ifdef AGA_NO_STD
-#  ifdef _MSC_VER
+# if !defined(AGA_ABORT_DONE) && defined(_MSC_VER)
+#  define AGA_ABORT_DONE
 	__debugbreak();
-#  elif defined(__has_builtin)
-#   if __has_builtin(__builtin_trap)
+# endif
+
+# if !defined(AGA_ABORT_DONE) && defined(__has_builtin)
+#  if __has_builtin(__builtin_trap)
+#   define AGA_ABORT_DONE
 	__builtin_trap();
-#   endif
 #  endif
-# else
+# endif
+
+# if !defined(AGA_ABORT_DONE)
 	abort();
 # endif
 #else
 	exit(EXIT_FAILURE);
 #endif
-
-	while(1) continue; /* Worst case scenario, we just hang. */
 }
 
 void aga_check(const char* loc, const char* proc, enum aga_result e) {
@@ -74,18 +80,10 @@ enum aga_result aga_errno_path(
 		const char* loc, const char* proc, const char* path) {
 
 	if(loc) {
-#ifdef AGA_NO_STD
-		if(path) aga_log(loc, "err: %s: unknown error `%s'", proc, path);
-		else aga_log(loc, "err: %s: unknown error", proc);
-#else
 		if(path) aga_log(loc, "err: %s: %s `%s'", proc, strerror(errno), path);
 		else aga_log(loc, "err: %s: %s", proc, strerror(errno));
-#endif
 	}
 
-#ifdef AGA_NO_STD
-	return AGA_RESULT_ERROR;
-#else
 	switch(errno) {
 		default: return AGA_RESULT_ERROR;
 		case 0: return AGA_RESULT_OK;
@@ -103,5 +101,4 @@ enum aga_result aga_errno_path(
 		case EOPNOTSUPP: return AGA_RESULT_BAD_OP;
 # endif
 	}
-#endif
 }

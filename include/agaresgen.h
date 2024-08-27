@@ -8,9 +8,8 @@
 
 #include <agaresult.h>
 
-enum aga_result aga_resgen_img(const char*);
-enum aga_result aga_resgen_model(const char*);
-enum aga_result aga_resgen_pack(const char*);
-enum aga_result aga_resgen_snd(const char*);
+struct aga_opts;
+
+enum aga_result aga_build(struct aga_opts*);
 
 #endif

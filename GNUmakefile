@@ -31,6 +31,10 @@ else
 	SET_CFLAGS = -O -DNDEBUG
 endif
 
+ifdef DEVBUILD
+	SET_CFLAGS += -DAGA_DEVBUILD
+endif
+
 ifdef MAINTAINER
 	SET_CFLAGS += -ansi -pedantic -pedantic-errors -Wall -Wextra -Werror
 endif

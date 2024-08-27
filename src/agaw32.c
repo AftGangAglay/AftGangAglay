@@ -51,8 +51,8 @@ enum aga_result aga_win32_error_path(
 		buf[written - 1] = 0;
 		buf[written - 2] = 0;
 
-		if(path) { aga_log(loc, "err: %s: %s `%s'", proc, buf, path); }
-		else { aga_log(loc, "err: %s: %s", proc, buf); }
+		if(path) aga_log(loc, "err: %s: %s `%s'", proc, buf, path);
+		else aga_log(loc, "err: %s: %s", proc, buf);
 
 		if(LocalFree(buf)) {
 			aga_log(__FILE__, "err: LocalFree failed");
@@ -71,7 +71,7 @@ void aga_setw32log(void) {
 #ifdef _DEBUG
 	DWORD handle = STD_ERROR_HANDLE;
 #else
-	DWORD handle = STD_INPUT_HANDLE;
+	DWORD handle = STD_OUTPUT_HANDLE;
 #endif
 
 	HANDLE con = GetStdHandle(handle);

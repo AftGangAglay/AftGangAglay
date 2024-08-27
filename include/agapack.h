@@ -10,7 +10,15 @@
 
 #include <agaresult.h>
 
+#define AGA_PACK_MAGIC ((aga_uint32_t) 0xA6A)
+
 struct aga_respack;
+
+struct aga_pack_header {
+	aga_uint32_t size;
+	aga_uint32_t magic;
+};
+
 struct aga_res {
 	aga_size_t refcount;
 	aga_size_t offset; /* Offset into pack data fields, not `data' member. */
@@ -40,8 +48,9 @@ struct aga_respack {
 };
 
 /*
- * NOTE: This is only for situations where we can't get the context through
- *		 Non-global data flow (i.e. filesystem intercepts).
+ * TODO: This is only for situations where we can't get the context through
+ *		 Non-global data flow (i.e. filesystem intercepts). Once we have a
+ *		 More congruent state model for Python etc. we can
  */
 extern struct aga_respack* aga_global_pack;
 

@@ -15,21 +15,15 @@
 # define AGA_LOG_DEFAULT_STREAM (stdout)
 #endif
 
-#ifdef AGA_NO_STD
-# define AGA_ISTTY(s) (AGA_FALSE)
-#else
-# define AGA_ISTTY(s) ((s) == stdout || (s) == stderr)
-#endif
+#define AGA_ISTTY(s) ((s) == stdout || (s) == stderr)
 
 struct aga_logctx aga_logctx;
 
-#ifndef AGA_NO_STD
 static void aga_onabrt(int signum) {
 	(void) signum;
 
 	aga_killlog();
 }
-#endif
 
 /* TODO: MSVC version of this destructor? */
 #ifdef __has_attribute
@@ -46,11 +40,7 @@ void aga_ondestr(void) {
 }
 
 static void aga_perror(const char* proc) {
-#ifdef AGA_NO_STD
-	(void) proc;
-#else
 	perror(proc);
-#endif
 }
 
 void aga_mklog(const char** targets, aga_size_t len) {
@@ -59,9 +49,7 @@ void aga_mklog(const char** targets, aga_size_t len) {
 	aga_logctx.have_ansi = AGA_TRUE;
 	aga_logctx.len = len;
 
-#ifndef AGA_NO_STD
 	if(setvbuf(AGA_LOG_DEFAULT_STREAM, 0, _IONBF, 0)) aga_perror("setvbuf");
-#endif
 
 	if(!(aga_logctx.targets = aga_malloc(len * sizeof(FILE*)))) {
 		static FILE* so[1];
@@ -73,22 +61,20 @@ void aga_mklog(const char** targets, aga_size_t len) {
 	else {
 		for(i = 0; i < len; ++i) {
 			if(!targets[i]) { aga_logctx.targets[i] = AGA_LOG_DEFAULT_STREAM; }
-			else if(!(aga_logctx.targets[i] = fopen(targets[i], "w+"))) {
+			else if(!(aga_logctx.targets[i] = fopen(targets[i], "w"))) {
 				aga_perror("fopen");
 			}
 		}
 	}
 
-	if(!!aga_getenv("AGA_FORCEANSI")) aga_logctx.have_ansi = 1;
+	if(aga_getenv("AGA_FORCEANSI")) aga_logctx.have_ansi = AGA_TRUE;
 #ifdef _WIN32
 	else aga_setw32log();
 #endif
 
 	/* TODO: Scripttrace on fatal signal? */
 
-#ifndef AGA_NO_STD
 	signal(SIGABRT, aga_onabrt);
-#endif
 }
 
 void aga_killlog(void) {
@@ -145,11 +131,11 @@ void aga_log(const char* loc, const char* fmt, ...) {
 
 	aga_size_t i;
 
-	va_list l;
+	va_list ap;
 	enum aga_logsev sev = AGA_NORM;
-	va_start(l, fmt);
+	va_start(ap, fmt);
 
-	if(vsprintf(buf, fmt, l) < 0) aga_perror("vsprintf");
+	if(vsprintf(buf, fmt, ap) < 0) aga_perror("vsprintf");
 
 	if(aga_strneql(fmt, "warn", 4)) sev = AGA_WARN;
 	if(aga_strneql(fmt, "err", 3)) sev = AGA_ERR;
@@ -163,5 +149,5 @@ void aga_log(const char* loc, const char* fmt, ...) {
 		if(putc('\n', s) == EOF) aga_perror("putc");
 	}
 
-	va_end(l);
+	va_end(ap);
 }

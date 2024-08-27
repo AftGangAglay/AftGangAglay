@@ -28,53 +28,66 @@
 # pragma warning(disable: 4668) /* Symbol not defined as macro. */
 #endif
 
-#ifndef AGA_NO_STD
-# include <stdio.h>
-# include <stdarg.h>
-# include <limits.h>
-# include <stdlib.h>
-# include <string.h>
-# include <time.h>
-# include <ctype.h>
-# include <errno.h>
-# include <signal.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <ctype.h>
+#include <errno.h>
+#include <signal.h>
 
-# ifdef AGA_WANT_UNIX
-#  undef AGA_WANT_UNIX
-#  ifdef AGA_HAVE_UNISTD
-#   include <unistd.h>
-#  endif
-#  ifdef AGA_HAVE_GETOPT
-#   include <getopt.h>
-#  endif
-#  ifdef AGA_HAVE_POLL
-#   include <poll.h>
-#  endif
-#  ifdef AGA_HAVE_SYS_MMAN
-#   include <sys/mman.h>
-#  endif
-#  ifdef AGA_HAVE_SYS_STAT
-#   include <sys/stat.h>
-#  endif
-#  ifdef AGA_HAVE_SYS_TYPES
-#   include <sys/types.h>
-#  endif
-#  ifdef AGA_HAVE_FCNTL
-#   include <fcntl.h>
-#  endif
-#  ifdef AGA_HAVE_SYS_WAIT
-#   include <sys/wait.h>
-#  endif
-#  ifdef AGA_HAVE_SYS_IOCTL
-#   include <sys/ioctl.h>
-#  endif
-#  ifdef AGA_HAVE_SYS_SOUNDCARD
-#   include <sys/soundcard.h>
-#  endif
-#  ifdef _WIN32
-#   include <io.h>
-#   include <direct.h>
-#  endif
+#ifdef AGA_WANT_UNIX
+# undef AGA_WANT_UNIX
+# ifdef AGA_HAVE_UNISTD
+#  include <unistd.h>
+# endif
+# ifdef AGA_HAVE_GETOPT
+#  include <getopt.h>
+# endif
+# ifdef AGA_HAVE_POLL
+#  include <poll.h>
+# endif
+# ifdef AGA_HAVE_SYS_MMAN
+#  include <sys/mman.h>
+# endif
+# ifdef AGA_HAVE_SYS_STAT
+#  include <sys/stat.h>
+# endif
+# ifdef AGA_HAVE_SYS_TYPES
+#  include <sys/types.h>
+# endif
+# ifdef AGA_HAVE_FCNTL
+#  include <fcntl.h>
+# endif
+# ifdef AGA_HAVE_SYS_WAIT
+#  include <sys/wait.h>
+# endif
+# ifdef AGA_HAVE_SYS_IOCTL
+#  include <sys/ioctl.h>
+# endif
+# ifdef AGA_HAVE_SYS_SOUNDCARD
+#  include <sys/soundcard.h>
+# endif
+# ifdef AGA_HAVE_SYS_PARAM
+#  include <sys/param.h>
+# endif
+# ifdef AGA_HAVE_SYS_SENDFILE
+#  include <sys/sendfile.h>
+# endif
+# ifdef AGA_HAVE_COPYFILE
+#  include <copyfile.h>
+# endif
+# ifdef AGA_HAVE_LINUX_VERSION
+#  include <linux/version.h>
+# endif
+# ifdef AGA_HAVE_DIRENT
+#  include <dirent.h>
+# endif
+# ifdef _WIN32
+#  include <io.h>
+#  include <direct.h>
 # endif
 #endif
 

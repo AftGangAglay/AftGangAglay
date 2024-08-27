@@ -240,9 +240,9 @@ struct py_object* agan_scriptconf(
 		names[i] = py_string_get(op);
 	}
 
-	result = aga_conftree_raw(root ? node->children : node, names, len, &out);
+	result = aga_conftree_wrap(root ? node->children : node, names, len, &out);
 	free(names);
-	if(aga_script_err("aga_conftree_raw", result)) return 0;
+	if(result) return py_object_incref(PY_NONE);
 
 	str = out->data.string ? out->data.string : "";
 	switch(out->type) {

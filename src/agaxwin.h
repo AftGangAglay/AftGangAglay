@@ -75,6 +75,7 @@ enum aga_result aga_mkwinenv(struct aga_winenv* env, const char* display) {
 
 	AGAX_CHK(XSetErrorHandler, (aga_xerr_handler));
 
+	env->captured = AGA_FALSE;
 	env->dpy = AGAX_CHK(XOpenDisplay, (display));
 	if(!env->dpy) return AGA_RESULT_ERROR;
 
@@ -284,7 +285,7 @@ enum aga_result aga_glctx(struct aga_winenv* env, struct aga_win* win) {
 			return AGA_RESULT_BAD_OP;
 		}
 
-		aga_log(__FILE__, "Trying font pattern `%s'", names[current]);
+		aga_log(__FILE__, "Trying font pattern `%s'...", names[current]);
 		fontname = AGAX_CHK(XListFonts, (env->dpy, names[current], 1, &nfonts));
 
 		if(nfonts) {

@@ -17,13 +17,6 @@
  * 		 System.
  */
 
-#define AGA_PACK_MAGIC ((aga_uint32_t) 0xA6A)
-
-struct aga_pack_header {
-	aga_uint32_t size;
-	aga_uint32_t magic;
-};
-
 struct aga_respack* aga_global_pack = 0;
 
 enum aga_result aga_searchres(
@@ -51,6 +44,8 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 	struct aga_pack_header hdr;
 	aga_bool_t c = AGA_FALSE;
 
+	union aga_fileattr attr;
+
 	if(!path) return AGA_RESULT_BAD_PARAM;
 	if(!pack) return AGA_RESULT_BAD_PARAM;
 
@@ -59,6 +54,8 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 	pack->fp = 0;
 	pack->db = 0;
 	pack->len = 0;
+
+	aga_memset(&pack->root, 0, sizeof(struct aga_conf_node));
 
 #ifdef _DEBUG
 	pack->outstanding_refs = 0;
@@ -70,8 +67,9 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 		return aga_errno_path(__FILE__, "fopen", path);
 	}
 
-	result = aga_fplen(pack->fp, &pack->size);
+	result = aga_fileattr(pack->fp, AGA_FILE_LENGTH, &attr);
 	if(result) goto cleanup;
+	pack->size = attr.length;
 
 	result = aga_fread(&hdr, sizeof(hdr), pack->fp);
 	if(result) goto cleanup;
@@ -159,6 +157,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 		if(pack->fp && fclose(pack->fp) == EOF) {
 			return aga_errno(__FILE__, "fclose");
 		}
+		pack->fp = 0;
 
 		if(c) {
 			enum aga_result res2 = aga_killconf(&pack->root);
@@ -185,7 +184,9 @@ enum aga_result aga_killrespack(struct aga_respack* pack) {
 #endif
 
 	aga_free(pack->db);
-	if(fclose(pack->fp) == EOF) return aga_errno(__FILE__, "fclose");
+	if(pack->fp && fclose(pack->fp) == EOF) {
+		return aga_errno(__FILE__, "fclose");
+	}
 
 	return aga_killconf(&pack->root);
 }
@@ -221,7 +222,10 @@ enum aga_result aga_mkres(
 	if(!res) return AGA_RESULT_BAD_PARAM;
 
 	result = aga_searchres(pack, path, res);
-	if(result) return result;
+	if(result) {
+		aga_log(__FILE__, "err: Failed to find resource `%s'", path);
+		return result;
+	}
 
 	if(!(*res)->data) {
 		result = aga_resseek(*res, 0);

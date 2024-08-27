@@ -129,14 +129,14 @@ enum aga_result aga_puttext(float x, float y, const char* text) {
 
 enum aga_result aga_puttextfmt(float x, float y, const char* fmt, ...) {
 	aga_fixed_buf_t buf = { 0 };
-	va_list l;
+	va_list ap;
 
-	va_start(l, fmt);
-	if(vsprintf(buf, fmt, l) < 0) {
-		va_end(l);
+	va_start(ap, fmt);
+	if(vsprintf(buf, fmt, ap) < 0) {
+		va_end(ap);
 		return aga_errno(__FILE__, "vsprintf");
 	}
-	va_end(l);
+	va_end(ap);
 
 	return aga_puttext(x, y, buf);
 }
@@ -162,31 +162,28 @@ enum aga_result aga_flush(void) {
 	return aga_gl_error(__FILE__, "glFlush");
 }
 
+static enum aga_result aga_gl_result(aga_uint_t err) {
+	switch(err) {
+		default: return AGA_RESULT_ERROR;
+		case GL_INVALID_ENUM: return AGA_RESULT_BAD_TYPE;
+		case GL_INVALID_VALUE: return AGA_RESULT_BAD_PARAM;
+		case GL_INVALID_OPERATION: return AGA_RESULT_BAD_OP;
+		case GL_OUT_OF_MEMORY: return AGA_RESULT_OOM;
+		case GL_STACK_UNDERFLOW: return AGA_RESULT_OOM;
+		case GL_STACK_OVERFLOW: return AGA_RESULT_OOM;
+	}
+}
+
 enum aga_result aga_gl_error(const char* loc, const char* proc) {
 	enum aga_result err = AGA_RESULT_OK;
 
 	unsigned res;
 
 	while((res = glGetError())) {
-		switch(res) {
-			default: err = AGA_RESULT_ERROR;
-				break;
-			case GL_INVALID_ENUM: err = AGA_RESULT_BAD_PARAM;
-				break;
-			case GL_INVALID_VALUE: err = AGA_RESULT_BAD_PARAM;
-				break;
-			case GL_INVALID_OPERATION: err = AGA_RESULT_BAD_OP;
-				break;
-			case GL_OUT_OF_MEMORY: err = AGA_RESULT_OOM;
-				break;
-			case GL_STACK_UNDERFLOW: err = AGA_RESULT_OOM;
-				break;
-			case GL_STACK_OVERFLOW: err = AGA_RESULT_OOM;
-				break;
-		}
-
+		err = aga_gl_result(res);
 		if(loc) { /* Null `loc' acts to clear the GL error state. */
 			const char* str = (const char*) gluErrorString(res);
+			if(!str) str = "unknown error";
 			aga_log(loc, "err: %s: %s", proc, str);
 		}
 	}

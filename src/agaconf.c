@@ -125,25 +125,19 @@ void aga_sgml_start_element(
 	switch(element_number) {
 		default: {
 			aga_log(
-					__FILE__, "warn: SGML_new: unknown element %i",
-					element_number);
+					__FILE__, "warn: SGML_new: unknown element %i in `%s'",
+					element_number, aga_conf_debug_file);
 			return;
 		}
 		case AGA_NODE_ITEM: {
-			if(!attribute_present[AGA_ITEM_NAME]) {
-				aga_log(
-						__FILE__,
-						"warn: <item> element without name attrib `%s'",
-						aga_conf_debug_file);
-			}
+			if(!attribute_present[AGA_ITEM_NAME]) node->name = 0;
 			else {
 				const char* value = attribute_value[AGA_ITEM_NAME];
-				aga_size_t len = strlen(value);
-				if(!(node->name = aga_malloc(len + 1))) {
-					aga_errno(__FILE__, "aga_malloc");
+				if(!(node->name = aga_strdup(value))) {
+					/* TODO: Bad -- ignored OOM! */
+					aga_errno(__FILE__, "aga_strdup");
 					return;
 				}
-				memcpy(node->name, value, len + 1);
 			}
 
 			if(!attribute_present[AGA_ITEM_TYPE]) node->type = AGA_NONE;
@@ -221,7 +215,7 @@ static void aga_sgml_put_entity(HTStructured* me, int n) {
 	(void) n;
 }
 
-void outofmem(const char* file, const char* func) {
+void HTOOM(const char* file, const char* func) {
 	aga_log(file, "%s: out of memory", func);
 	aga_abort();
 }
@@ -231,6 +225,7 @@ enum aga_result aga_mkconf(
 
 	enum aga_result result;
 
+	/* TODO: Introduce shorthand `<str>' etc. tags and `bool' type. */
 	static HTStructuredClass class = {
 			"",
 
@@ -321,6 +316,8 @@ aga_bool_t aga_confvar(
 		const char* name, struct aga_conf_node* node, enum aga_conf_type type,
 		void* value) {
 
+	if(!name || !node || !value) return AGA_FALSE;
+
 	if(aga_streql(node->name, name)) {
 		if(node->type != type) {
 			aga_log(__FILE__, "warn: wrong type for field `%s'", name);
@@ -366,6 +363,9 @@ enum aga_result aga_conftree_raw(
 
 	for(i = 0; i < root->len; ++i) {
 		struct aga_conf_node* node = &root->children[i];
+
+		if(!node || !node->name) continue;
+
 		if(aga_streql(*names, node->name)) {
 			enum aga_result result = aga_conftree_raw(
 					node, names + 1, count - 1, out);
@@ -373,7 +373,18 @@ enum aga_result aga_conftree_raw(
 		}
 	}
 
-	return AGA_RESULT_ERROR;
+	return AGA_RESULT_MISSING_KEY;
+}
+
+static void aga_conftree_debug_name(
+		const char** names, aga_size_t count, aga_fixed_buf_t* buf) {
+
+	aga_size_t i;
+
+	for(i = 0; i < count; ++i) {
+		strcat(*buf, names[i]);
+		if(i < count - 1) strcat(*buf, "/");
+	}
 }
 
 enum aga_result aga_conftree(
@@ -387,11 +398,26 @@ enum aga_result aga_conftree(
 	if(!names) return AGA_RESULT_BAD_PARAM;
 	if(!value) return AGA_RESULT_BAD_PARAM;
 
-	result = aga_conftree_raw(root, names, count, &node);
+	result = aga_conftree_wrap(root, names, count, &node);
 	if(result) return result;
 
-	if(aga_confvar(node->name, node, type, value)) { return AGA_RESULT_OK; }
-	else { return AGA_RESULT_ERROR; }
+	if(aga_confvar(node->name, node, type, value)) return AGA_RESULT_OK;
+	else return AGA_RESULT_BAD_TYPE;
+}
+
+enum aga_result aga_conftree_wrap(
+		struct aga_conf_node* root, const char** names, aga_size_t count,
+		struct aga_conf_node** out) {
+
+	enum aga_result result = aga_conftree_raw(root, names, count, out);
+	if(result) {
+		aga_fixed_buf_t buf = { 0 };
+		aga_conftree_debug_name(names, count, &buf);
+
+		aga_log(__FILE__, "err: Key `%s' not found in conf tree", buf);
+	}
+
+	return result;
 }
 
 static enum aga_result aga_dumpf(void* fp, const char* fmt, ...) {
@@ -407,13 +433,10 @@ static enum aga_result aga_dumpf(void* fp, const char* fmt, ...) {
 	return AGA_RESULT_OK;
 }
 
-/*
- * TODO: Make a no-write mode to avoid importability to immutable storage
- * 		 Systems/"Edit builds". (?)
- */
 static enum aga_result aga_dumptree_int(
 		struct aga_conf_node* node, void* fp, aga_size_t depth) {
 
+#ifdef AGA_DEVBUILD
 	enum aga_result result;
 	aga_size_t i;
 
@@ -455,6 +478,13 @@ static enum aga_result aga_dumptree_int(
 	}
 
 	return AGA_RESULT_OK;
+#else
+	aga_log(
+			__FILE__,
+			"err: Serialising conf trees is only supported in dev builds");
+
+	return AGA_RESULT_BAD_OP;
+#endif
 }
 
 /*

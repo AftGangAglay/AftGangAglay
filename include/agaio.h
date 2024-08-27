@@ -30,7 +30,46 @@
 # define AGA_HAVE_SPAWN
 #endif
 
-enum aga_result aga_fplen(void*, aga_size_t*);
+#define AGA_COPY_ALL ((aga_size_t) -1)
+
+enum aga_fileattr_req {
+	AGA_FILE_MODIFIED,
+	AGA_FILE_LENGTH,
+	AGA_FILE_TYPE
+};
+
+enum aga_file_type {
+	AGA_FILE_REGULAR,
+	AGA_FILE_DIRECTORY
+};
+
+union aga_fileattr {
+	aga_slong_t modified;
+	aga_size_t length;
+	enum aga_file_type type;
+};
+
+typedef enum aga_result (*aga_iterfn_t)(const char*, void*);
+
+/* TODO: Remove most of these ops in non-devbuilds -- move to separate file. */
+
+enum aga_result aga_iterate_dir(
+		const char*, aga_iterfn_t, aga_bool_t, void*, aga_bool_t);
+
+#ifdef AGA_DEVBUILD
+enum aga_result aga_copyfile_path(const char*, const char*);
+/*
+ * Respects initial stream positions.
+ * `len == AGA_COPY_ALL' results in a copy until EOF.
+ */
+enum aga_result aga_copyfile(void*, void*, aga_size_t);
+#endif
+
+enum aga_result aga_fileattr(
+		void*, enum aga_fileattr_req, union aga_fileattr*);
+
+enum aga_result aga_fileattr_path(
+		const char*, enum aga_fileattr_req, union aga_fileattr*);
 
 enum aga_result aga_fread(void*, aga_size_t, void*);
 

@@ -18,15 +18,19 @@
 # include <agalog.h>
 # include <agaerr.h>
 
+#define AGA_SND_TIMEOUT (1)
+
 enum aga_result aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 	aga_bool_t busy_msg = AGA_FALSE;
 	unsigned value;
+	time_t start;
 
 	if(!snddev) return AGA_RESULT_BAD_PARAM;
 	if(!dev) return AGA_RESULT_BAD_PARAM;
 
 	memset(snddev->buf, 0, sizeof(snddev->buf));
 
+	start = time(0);
 	do {
 		if((snddev->fd = open(dev, O_WRONLY | O_NONBLOCK)) == -1) {
 			if(errno != EBUSY) {
@@ -36,6 +40,11 @@ enum aga_result aga_mksnddev(const char* dev, struct aga_snddev* snddev) {
 				aga_log(__FILE__, "Sound device `%s' busy. Waiting...", dev);
 				busy_msg = AGA_TRUE;
 				errno = EBUSY;
+			}
+
+			if((time(0) - start) >= AGA_SND_TIMEOUT) {
+				aga_log(__FILE__, "Sound device `%s' timed out", dev);
+				return AGA_RESULT_ERROR;
 			}
 		}
 		else break;

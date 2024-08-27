@@ -50,6 +50,11 @@ enum aga_result aga_conftree_raw(
 		struct aga_conf_node*, const char**, aga_size_t,
 		struct aga_conf_node**);
 
+/* Just wraps `aga_conftree_raw' with verbose EH. */
+enum aga_result aga_conftree_wrap(
+		struct aga_conf_node*, const char**, aga_size_t,
+		struct aga_conf_node**);
+
 enum aga_result aga_conftree(
 		struct aga_conf_node*, const char**, aga_size_t, void*,
 		enum aga_conf_type);

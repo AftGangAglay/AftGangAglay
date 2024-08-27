@@ -18,6 +18,7 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	if(!opts) return AGA_RESULT_BAD_PARAM;
 	if(!argv) return AGA_RESULT_BAD_PARAM;
 
+	opts->compile = AGA_FALSE;
 	opts->config_file = "aga.sgml";
 	opts->display = aga_getenv("DISPLAY");
 	opts->chdir = ".";
@@ -25,6 +26,7 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 	opts->startup_script = "script/main.py";
 	opts->python_path = "script";
 	opts->respack = "agapack.raw";
+	opts->build_file = "agabuild.sgml";
 	opts->width = 640;
 	opts->height = 480;
 	opts->fov = 90.0f;
@@ -36,24 +38,38 @@ enum aga_result aga_setopts(struct aga_opts* opts, int argc, char** argv) {
 
 #ifdef AGA_HAVE_GETOPT
 	{
-		static const char help[] =
-			"warn: usage: %s [-f respack] [-A dsp] [-D display] [-C dir] [-v]";
+		static const char helpmsg[] =
+			"warn: usage:\n"
+			"\t%s [-f respack] [-A dsp] [-D display] [-C dir] [-v] [-h]\n"
+			"\t%s -c [-f buildfile] [-C dir] [-v] [-h]";
 		int o;
-		while((o = getopt(argc, argv, "f:s:A:D:C:v")) != -1) {
+		while((o = getopt(argc, argv, "hcf:s:A:D:C:v")) != -1) {
 			switch(o) {
-				default: {
-					aga_log(__FILE__, help, argv[0]);
+				default:; help: {
+					aga_log(__FILE__, helpmsg, argv[0], argv[0]);
 					goto break2;
 				}
+				case 'c': {
+					if(optind != 2) goto help;
+
+					opts->compile = AGA_TRUE;
+					break;
+				}
 				case 'f': {
-					opts->respack = optarg;
+					if(opts->compile) opts->build_file = optarg;
+					else opts->respack = optarg;
+
 					break;
 				}
 				case 'A': {
+					if(opts->compile) goto help;
+
 					opts->audio_dev = optarg;
 					break;
 				}
 				case 'D': {
+					if(opts->compile) goto help;
+
 					opts->display = optarg;
 					break;
 				}

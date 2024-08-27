@@ -212,7 +212,10 @@ static aga_bool_t agan_mkobj_model(
 			}
 
 			result = aga_searchres(pack, path, &res);
-			if(aga_script_err("aga_mkres", result)) return AGA_TRUE;
+			if(aga_script_err("aga_searchres", result)) {
+				aga_log(__FILE__, "err: Failed to find resource `%s'", path);
+				return AGA_TRUE;
+			}
 
 			agan_mkobj_extent(obj, res->conf);
 
@@ -279,7 +282,7 @@ static aga_bool_t agan_mkobj_light(
 
 	double v;
 
-	if(aga_conftree_raw(node, &light, 1, &node)) return AGA_FALSE;
+	if(aga_conftree_wrap(node, &light, 1, &node)) return AGA_FALSE;
 
 	if(!(obj->light_data = calloc(1, sizeof(struct agan_lightdata)))) {
 		return AGA_TRUE;
@@ -502,7 +505,7 @@ struct py_object* agan_mkobj(
 		py_object_decref(retval);
 
 		return 0;
-	};
+	}
 }
 
 struct py_object* agan_killobj(
@@ -731,14 +734,13 @@ struct py_object* agan_objconf(
 	if(aga_script_err("agan_getobjconf", result)) return 0;
 
 	retval = agan_scriptconf(&conf, AGA_TRUE, l);
-	if(!retval) return 0;
 
 	result = aga_killconf(&conf);
 	if(aga_script_err("aga_killconf", result)) return 0;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_OBJCONF);
 
-	return retval;
+	return retval ? retval : py_object_incref(PY_NONE);
 }
 
 static aga_bool_t agan_putobj_light(struct agan_lightdata* data) {

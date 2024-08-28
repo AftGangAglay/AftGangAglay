@@ -7,11 +7,11 @@
 *.dll
 *.exe
 
+src/aga/aga
+
 *.ilk
 *.pdb
 Tools.ini
-
-src/aga
 
 res/*.res
 

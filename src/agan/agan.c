@@ -4,18 +4,18 @@
  */
 
 #include <agan/agan.h>
-#include <agan/aganobj.h>
-#include <agan/aganio.h>
-#include <agan/agandraw.h>
-#include <agan/aganmisc.h>
-#include <agan/aganmath.h>
-#include <agan/aganed.h>
+#include <agan/object.h>
+#include <agan/io.h>
+#include <agan/draw.h>
+#include <agan/utility.h>
+#include <agan/math.h>
+#include <agan/editor.h>
 
-#include <agaerr.h>
-#include <agascripthelp.h>
-#include <agadraw.h>
-#include <agaconf.h>
-#include <agagl.h>
+#include <aga/error.h>
+#include <aga/draw.h>
+#include <aga/config.h>
+#include <aga/gl.h>
+#include <aga/script.h>
 
 /*
  * TODO: Switch to unchecked List/Tuple/String accesses for release/noverify
@@ -120,7 +120,7 @@ aga_bool_t aga_script_err(const char* proc, enum aga_result err) {
 	if(!err) return AGA_FALSE;
 
 	if(sprintf(buf, "%s: %s", proc, aga_result_name(err)) < 0) {
-		aga_errno(__FILE__, "sprintf");
+		aga_error_system(__FILE__, "sprintf");
 		return AGA_TRUE;
 	}
 	py_error_set_string(py_runtime_error, buf);
@@ -129,7 +129,7 @@ aga_bool_t aga_script_err(const char* proc, enum aga_result err) {
 }
 
 aga_bool_t aga_script_gl_err(const char* proc) {
-	return aga_script_err(proc, aga_gl_error(__FILE__, proc));
+	return aga_script_err(proc, aga_error_gl(__FILE__, proc));
 }
 
 /* TODO: Generalised lookup helper since we no longer do nativeptr? */
@@ -152,7 +152,7 @@ void* aga_getscriptptr(const char* key) {
 		return 0;
 	}
 
-	return aga_script_getptr(ptr);
+	return aga_script_pointer_get(ptr);
 }
 
 aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv) {
@@ -216,12 +216,12 @@ aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv) {
 }
 
 struct py_object* agan_scriptconf(
-		struct aga_conf_node* node, aga_bool_t root, struct py_object* list) {
+		struct aga_config_node* node, aga_bool_t root, struct py_object* list) {
 
 	enum aga_result result;
 
 	const char* str;
-	struct aga_conf_node* out;
+	struct aga_config_node* out;
 	const char** names;
 	aga_size_t i, len = py_varobject_size(list);
 	struct py_object* retval;
@@ -240,7 +240,8 @@ struct py_object* agan_scriptconf(
 		names[i] = py_string_get(op);
 	}
 
-	result = aga_conftree_wrap(root ? node->children : node, names, len, &out);
+	result = aga_config_lookup_check(
+			root ? node->children : node, names, len, &out);
 	free(names);
 	if(result) return py_object_incref(PY_NONE);
 

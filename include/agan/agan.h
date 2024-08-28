@@ -6,12 +6,12 @@
 #ifndef AGAN_H
 #define AGAN_H
 
-#include <agaresult.h>
-#include <agapyinc.h>
+#include <aga/result.h>
+#include <aga/python.h>
 
 struct py_env;
 
-struct aga_conf_node;
+struct aga_config_node;
 
 extern struct py_object* agan_dict;
 extern const char* agan_trans_components[3];
@@ -36,6 +36,29 @@ void* aga_getscriptptr(const char*);
 aga_bool_t agan_settransmat(struct py_object*, aga_bool_t);
 
 struct py_object* agan_scriptconf(
-		struct aga_conf_node*, aga_bool_t, struct py_object*);
+		struct aga_config_node*, aga_bool_t, struct py_object*);
+
+aga_bool_t aga_arg_list(const struct py_object*, enum py_type);
+aga_bool_t aga_vararg_list(const struct py_object*, enum py_type, aga_size_t);
+aga_bool_t aga_vararg_list_typed(
+		const struct py_object*, enum py_type, aga_size_t, enum py_type);
+
+/*
+ * NOTE: This assumes you have already verified the argument list is a valid
+ * 		 Tuple object with `aga_arg_list'.
+ */
+aga_bool_t aga_arg(
+		struct py_object**, struct py_object*, aga_size_t, enum py_type);
+
+aga_bool_t aga_vararg(
+		struct py_object**, struct py_object*, aga_size_t, enum py_type,
+		aga_size_t);
+
+aga_bool_t aga_vararg_typed(
+		struct py_object**, struct py_object*, aga_size_t, enum py_type,
+		aga_size_t, enum py_type);
+
+/* Just returns 0. */
+void* aga_arg_error(const char*, const char*);
 
 #endif

@@ -26,7 +26,7 @@ CCLD = $(CC) -o $@ $^
 WL =
 
 ifdef DEBUG
-	SET_CFLAGS = -g -D_DEBUG
+	SET_CFLAGS = -g
 else
 	SET_CFLAGS = -O -DNDEBUG
 endif

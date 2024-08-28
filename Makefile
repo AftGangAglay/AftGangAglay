@@ -22,7 +22,7 @@ WL = /link
 SET_CFLAGS = /Zc:wchar_t
 
 !ifdef DEBUG
-SET_CFLAGS = $(SET_CFLAGS) /Od /Zi /D_DEBUG /MTd
+SET_CFLAGS = $(SET_CFLAGS) /Od /Zi /MTd
 !else
 SET_CFLAGS = $(SET_CFLAGS) /O2 /DNDEBUG /MT
 !endif

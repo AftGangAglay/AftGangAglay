@@ -389,7 +389,7 @@ static void aga_conftree_debug_name(
 
 enum aga_result aga_conftree(
 		struct aga_conf_node* root, const char** names, aga_size_t count,
-		void* value, enum aga_conf_type type) {
+		void* value, enum aga_conf_type type, aga_bool_t err) {
 
 	enum aga_result result;
 	struct aga_conf_node* node;
@@ -398,7 +398,8 @@ enum aga_result aga_conftree(
 	if(!names) return AGA_RESULT_BAD_PARAM;
 	if(!value) return AGA_RESULT_BAD_PARAM;
 
-	result = aga_conftree_wrap(root, names, count, &node);
+	if(err) result = aga_conftree_wrap(root, names, count, &node);
+	else result = aga_conftree_raw(root, names, count, &node);
 	if(result) return result;
 
 	if(aga_confvar(node->name, node, type, value)) return AGA_RESULT_OK;

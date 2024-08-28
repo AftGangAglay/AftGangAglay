@@ -129,46 +129,48 @@ enum aga_result aga_setconf(struct aga_opts* opts, struct aga_respack* pack) {
 	if(result) return result;
 
 	result = aga_conftree(
-			opts->config.children, enabled, AGA_LEN(enabled), &v, AGA_INTEGER);
+			opts->config.children, enabled, AGA_LEN(enabled), &v, AGA_INTEGER,
+			AGA_TRUE);
 	aga_soft(__FILE__, "aga_conftree", result);
 	if(!result) opts->audio_enabled = !!v;
 
 	result = aga_conftree(
 			opts->config.children, version, AGA_LEN(version), &opts->version,
-			AGA_STRING);
+			AGA_STRING, AGA_TRUE);
 	aga_soft(__FILE__, "aga_conftree", result);
 
 	if(!opts->audio_dev) {
 		result = aga_conftree(
 				opts->config.children, device, AGA_LEN(device),
-				&opts->audio_dev, AGA_STRING);
+				&opts->audio_dev, AGA_STRING, AGA_TRUE);
 		aga_soft(__FILE__, "aga_conftree", result);
 	}
 
 	result = aga_conftree(
 			opts->config.children, startup, AGA_LEN(startup),
-			&opts->startup_script, AGA_STRING);
+			&opts->startup_script, AGA_STRING, AGA_TRUE);
 	aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
 			opts->config.children, path, AGA_LEN(path), &opts->python_path,
-			AGA_STRING);
+			AGA_STRING, AGA_TRUE);
 	aga_soft(__FILE__, "aga_conftree", result);
 
 	result = aga_conftree(
 			opts->config.children, width, AGA_LEN(width), &v,
-			AGA_INTEGER);
+			AGA_INTEGER, AGA_TRUE);
 	aga_soft(__FILE__, "aga_conftree", result);
 	if(!result) opts->width = v;
 
 	result = aga_conftree(
 			opts->config.children, height, AGA_LEN(height), &v,
-			AGA_INTEGER);
+			AGA_INTEGER, AGA_TRUE);
 	aga_soft(__FILE__, "aga_conftree", result);
 	if(!result) opts->height = v;
 
 	result = aga_conftree(
-			opts->config.children, fov, AGA_LEN(fov), &fv, AGA_FLOAT);
+			opts->config.children, fov, AGA_LEN(fov), &fv, AGA_FLOAT,
+			AGA_TRUE);
 	aga_soft(__FILE__, "aga_conftree", result);
 	if(!result) opts->fov = (float) fv;
 
@@ -204,7 +206,8 @@ enum aga_result aga_prerun_hook(struct aga_opts* opts) {
 	args[0] = program;
 
 	result = aga_conftree(
-			opts->config.children, hook, AGA_LEN(hook), &args[2], AGA_STRING);
+			opts->config.children, hook, AGA_LEN(hook), &args[2], AGA_STRING,
+			AGA_TRUE);
 	if(result) return result;
 
 	aga_log(__FILE__, "Executing project pre-run hook `%s'", args[2]);

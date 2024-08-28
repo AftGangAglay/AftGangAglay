@@ -62,7 +62,8 @@ static aga_bool_t agan_mkobj_trans(
 			path[1] = agan_xyz[j];
 
 			result = aga_conftree(
-					conf->children, path, AGA_LEN(path), &f, AGA_FLOAT);
+					conf->children, path, AGA_LEN(path), &f, AGA_FLOAT,
+					AGA_FALSE);
 			if(result) f = 0.0f;
 
 			if(!(o = py_float_new(f))) {
@@ -90,12 +91,12 @@ static void agan_mkobj_extent(
 	for(i = 0; i < 3; ++i) {
 		double v;
 
-		if(aga_conftree(conf, &min_attr[i], 1, &v, AGA_FLOAT)) {
+		if(aga_conftree(conf, &min_attr[i], 1, &v, AGA_FLOAT, AGA_FALSE)) {
 			(*min)[i] = 0.0f;
 		}
 		else (*min)[i] = (float) v;
 
-		if(aga_conftree(conf, &max_attr[i], 1, &v, AGA_FLOAT)) {
+		if(aga_conftree(conf, &max_attr[i], 1, &v, AGA_FLOAT, AGA_FALSE)) {
 			(*max)[i] = 0.0f;
 		}
 		else (*max)[i] = (float) v;
@@ -130,11 +131,16 @@ static aga_bool_t agan_mkobj_model(
 	{
 		aga_slong_t f;
 
-		if(aga_conftree(conf->children, &filter, 1, &f, AGA_INTEGER)) f = 1;
+		result = aga_conftree(
+				conf->children, &filter, 1, &f, AGA_INTEGER, AGA_FALSE);
+		if(result) f = 1;
 
 		f = f ? GL_LINEAR : GL_NEAREST;
 
-		if(aga_conftree(conf->children, &texture, 1, &path, AGA_STRING)) {
+		result = aga_conftree(
+				conf->children, &texture, 1, &path, AGA_STRING, AGA_FALSE);
+		if(result) {
+			/* TODO: Does this handle this case gracefully. */
 			aga_log(
 					__FILE__, "warn: Object `%s' is missing a texture entry",
 					objpath);
@@ -162,18 +168,18 @@ static aga_bool_t agan_mkobj_model(
 			if(aga_script_err("aga_releaseres", result)) return AGA_TRUE;
 
 			result = aga_conftree(
-					res->conf, &width, 1, &w, AGA_INTEGER);
+					res->conf, &width, 1, &w, AGA_INTEGER, AGA_FALSE);
 			if(result) {
 				/* TODO: Defaultable conf values as part of the API. */
 				aga_log(__FILE__, "warn: Texture `%s' is missing dimensions");
-				w = 1;
+				w = 0;
+				h = 0;
 			}
-
-			h = (int) (res->size / (aga_size_t) (4 * w));
+			else h = (int) (res->size / (aga_size_t) (4 * w));
 
 			/* TODO: Mipmapping/detail levels. */
 			glTexImage2D(
-					GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA,
+					GL_TEXTURE_2D, 0, GL_RGBA, (int) w, (int) h, 0, GL_RGBA,
 					GL_UNSIGNED_BYTE, res->data);
 			/*
 			 * TODO: Script land can probably handle lots of GL errors like
@@ -191,7 +197,8 @@ static aga_bool_t agan_mkobj_model(
 			if(aga_script_gl_err("glTexParameteri")) return AGA_TRUE;
 		}
 
-		result = aga_conftree(conf->children, &model, 1, &path, AGA_STRING);
+		result = aga_conftree(
+				conf->children, &model, 1, &path, AGA_STRING, AGA_FALSE);
 		if(result) {
 			aga_log(
 					__FILE__, "warn: Object `%s' is missing a model entry",
@@ -219,7 +226,8 @@ static aga_bool_t agan_mkobj_model(
 
 			agan_mkobj_extent(obj, res->conf);
 
-			result = aga_conftree(res->conf, &version, 1, &ver, AGA_INTEGER);
+			result = aga_conftree(
+					res->conf, &version, 1, &ver, AGA_INTEGER, AGA_FALSE);
 			if(result) ver = 1;
 
 			result = aga_resseek(res, &fp);
@@ -282,7 +290,7 @@ static aga_bool_t agan_mkobj_light(
 
 	double v;
 
-	if(aga_conftree_wrap(node, &light, 1, &node)) return AGA_FALSE;
+	if(aga_conftree_raw(node, &light, 1, &node)) return AGA_FALSE;
 
 	if(!(obj->light_data = calloc(1, sizeof(struct agan_lightdata)))) {
 		return AGA_TRUE;
@@ -318,7 +326,7 @@ static aga_bool_t agan_mkobj_light(
 				const char* comp = agan_xyz[j];
 				float (*dir)[3] = &data->direction;
 
-				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT)) {
+				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT, AGA_FALSE)) {
 					(*dir)[j] = 0.0f;
 				}
 				else (*dir)[j] = (float) v;
@@ -331,7 +339,7 @@ static aga_bool_t agan_mkobj_light(
 			for(j = 0; j < 3; ++j) {
 				const char* comp = agan_rgb[j];
 
-				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT)) {
+				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT, AGA_FALSE)) {
 					(*col)[j] = 1.0f;
 				}
 				else (*col)[j] = (float) v;
@@ -345,7 +353,7 @@ static aga_bool_t agan_mkobj_light(
 			for(j = 0; j < 3; ++j) {
 				const char* comp = agan_rgb[j];
 
-				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT)) {
+				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT, AGA_FALSE)) {
 					(*col)[j] = 1.0f;
 				}
 				else (*col)[j] = (float) v;
@@ -359,7 +367,7 @@ static aga_bool_t agan_mkobj_light(
 			for(j = 0; j < 3; ++j) {
 				const char* comp = agan_rgb[j];
 
-				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT)) {
+				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT, AGA_FALSE)) {
 					(*col)[j] = 1.0f;
 				}
 				else (*col)[j] = (float) v;
@@ -376,7 +384,7 @@ static aga_bool_t agan_mkobj_light(
 			for(j = 0; j < AGA_LEN(at); ++j) {
 				const char* comp = atten[j];
 
-				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT)) {
+				if(aga_conftree(child, &comp, 1, &v, AGA_FLOAT, AGA_FALSE)) {
 					*at[j] = 0.0f;
 				}
 				else *at[j] = (float) v;

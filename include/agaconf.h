@@ -57,7 +57,7 @@ enum aga_result aga_conftree_wrap(
 
 enum aga_result aga_conftree(
 		struct aga_conf_node*, const char**, aga_size_t, void*,
-		enum aga_conf_type);
+		enum aga_conf_type, aga_bool_t);
 
 enum aga_result aga_dumptree(struct aga_conf_node*, void*);
 

@@ -58,7 +58,8 @@ static enum aga_result aga_openout(struct aga_conf_node* root, void** fp) {
 	enum aga_result result;
 	const char* path;
 
-	result = aga_conftree(root->children, &output, 1, &path, AGA_STRING);
+	result = aga_conftree(
+			root->children, &output, 1, &path, AGA_STRING, AGA_FALSE);
 	if(result) {
 		aga_log(
 				__FILE__,

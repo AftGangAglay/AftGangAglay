@@ -108,7 +108,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 		res->conf = node;
 		res->pack = pack;
 
-		result = aga_conftree(node, &off, 1, &offset, AGA_INTEGER);
+		result = aga_conftree(node, &off, 1, &offset, AGA_INTEGER, AGA_FALSE);
 		if(result) {
 			aga_soft(__FILE__, "aga_conftree", result);
 			aga_log(
@@ -127,7 +127,7 @@ enum aga_result aga_mkrespack(const char* path, struct aga_respack* pack) {
 			goto cleanup;
 		}
 
-		result = aga_conftree(node, &sz, 1, &size, AGA_INTEGER);
+		result = aga_conftree(node, &sz, 1, &size, AGA_INTEGER, AGA_FALSE);
 		if(result) {
 			aga_soft(__FILE__, "aga_conftree", result);
 			aga_log(

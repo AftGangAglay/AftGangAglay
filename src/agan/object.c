@@ -189,10 +189,10 @@ static aga_bool_t agan_mkobj_model(
 			 */
 			if(aga_script_gl_err("glTexImage2D")) return AGA_TRUE;
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, f);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (int) f);
 			if(aga_script_gl_err("glTexParameteri")) return AGA_TRUE;
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, f);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (int) f);
 			if(aga_script_gl_err("glTexParameteri")) return AGA_TRUE;
 		}
 

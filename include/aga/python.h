@@ -17,6 +17,7 @@
 #include <python/import.h>
 #include <python/parsetok.h>
 #include <python/pgen.h>
+#include <python/evalops.h>
 
 #include <python/module/builtin.h>
 #include <python/module/math.h>

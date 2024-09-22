@@ -84,7 +84,7 @@ enum aga_result aga_error_system_path(
 		case EACCES: return AGA_RESULT_BAD_OP;
 # endif
 # ifdef EOPNOTSUPP
-		case EOPNOTSUPP: return AGA_RESULT_BAD_OP;
+		case EOPNOTSUPP: return AGA_RESULT_NOT_IMPLEMENTED;
 # endif
 	}
 }

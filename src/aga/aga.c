@@ -301,7 +301,7 @@ int main(int argc, char** argv) {
 						aga_put_profile(d++, 4, APRO_CEVAL_CODE_EVAL_RISING);
 						aga_put_profile(d++, 4, APRO_CEVAL_CODE_EVAL);
 						aga_put_profile(d++, 4, APRO_CEVAL_CODE_EVAL_FALLING);
-				aga_put_profile(d++, 1, APRO_RES_SWEEP);
+				aga_put_profile(d, 1, APRO_RES_SWEEP);
 
 			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_GETKEY);
 			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_GETMOTION);
@@ -323,12 +323,12 @@ int main(int argc, char** argv) {
 			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_OBJCONF);
 			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_BITAND);
 			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_BITSHL);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_RANDNORM);
+			aga_put_profile(x, 12, APRO_SCRIPTGLUE_RANDNORM);
 
 			aga_put_profile(n++, 20, APRO_PUTOBJ_RISING);
 			aga_put_profile(n++, 20, APRO_PUTOBJ_LIGHT);
 			aga_put_profile(n++, 20, APRO_PUTOBJ_CALL);
-			aga_put_profile(n++, 20, APRO_PUTOBJ_FALLING);
+			aga_put_profile(n, 20, APRO_PUTOBJ_FALLING);
 		}
 		/* @formatter:on */
 #endif

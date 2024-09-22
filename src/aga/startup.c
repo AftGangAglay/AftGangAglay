@@ -31,6 +31,7 @@ enum aga_result aga_settings_new(
 	opts->build_file = "agabuild.sgml";
 	opts->width = 640;
 	opts->height = 480;
+	opts->mipmap_default = AGA_FALSE;
 	opts->fov = 90.0f;
 	opts->audio_enabled = AGA_TRUE;
 	opts->version = AGA_VERSION;
@@ -119,6 +120,7 @@ enum aga_result aga_settings_parse_config(
 	static const char* version[] = { "General", "Version" };
 	static const char* width[] = { "Display", "Width" };
 	static const char* height[] = { "Display", "Height" };
+	static const char* mipmap[] = { "Graphics", "MipmapDefault" };
 	static const char* fov[] = { "Display", "FOV" };
 
 	if(!opts) return AGA_RESULT_BAD_PARAM;
@@ -171,6 +173,12 @@ enum aga_result aga_settings_parse_config(
 			AGA_INTEGER, AGA_TRUE);
 	aga_error_check_soft(__FILE__, "aga_config_lookup", result);
 	if(!result) opts->height = v;
+
+	result = aga_config_lookup(
+			opts->config.children, mipmap, AGA_LEN(mipmap), &v,
+			AGA_INTEGER, AGA_TRUE);
+	aga_error_check_soft(__FILE__, "aga_config_lookup", result);
+	if(!result) opts->mipmap_default = !!v;
 
 	result = aga_config_lookup(
 			opts->config.children, fov, AGA_LEN(fov), &fv, AGA_FLOAT,

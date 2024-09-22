@@ -54,6 +54,10 @@ struct py_object* agan_getkey(
 	return py_object_incref(b ? PY_TRUE : PY_FALSE);
 }
 
+/*
+ * TODO: Implement `gluUnProject' mechanism for finding mouse motion relative
+ * 		 To the scene.
+ */
 struct py_object* agan_getmotion(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 

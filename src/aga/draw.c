@@ -15,7 +15,7 @@
 #include <aga/error.h>
 #include <aga/gl.h>
 
-static enum aga_draw_flags aga_global_drawflags = 0;
+static enum aga_draw_flags aga_global_draw_flags = 0;
 
 enum aga_result aga_draw_set(enum aga_draw_flags flags) {
 	static const char* name[] = { "glDisable", "glEnable" };
@@ -56,13 +56,13 @@ enum aga_result aga_draw_set(enum aga_draw_flags flags) {
 		if((result = aga_error_gl(__FILE__, name[x]))) return result;
 	}
 
-	aga_global_drawflags = flags;
+	aga_global_draw_flags = flags;
 
 	return AGA_RESULT_OK;
 }
 
 enum aga_draw_flags aga_draw_get(void) {
-	return aga_global_drawflags;
+	return aga_global_draw_flags;
 }
 
 enum aga_result aga_draw_push(void) {

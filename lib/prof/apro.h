@@ -12,7 +12,11 @@
  * Matter that it's designed this way.
  */
 
-/* TODO: Add the new scriptland procs here. */
+/*
+ * TODO: This was rather poorly thought out and we should create a more
+ * 		 Bespoke benchmarking system -- GL timing with pipeline usage
+ * 		 Statistics, script timing.
+ */
 enum apro_section {
 	APRO_PRESWAP, /* All operations before buffer swapping. */
 

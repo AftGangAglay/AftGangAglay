@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
 
 	enum aga_draw_flags draw_flags = AGA_DRAW_BACKFACE | AGA_DRAW_FOG |
 								   AGA_DRAW_TEXTURE | AGA_DRAW_LIGHTING |
-								   AGA_DRAW_DEPTH;
+								   AGA_DRAW_DEPTH | AGA_DRAW_FLAT;
 
 	aga_bool_t die = AGA_FALSE;
 

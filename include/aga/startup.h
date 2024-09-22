@@ -31,6 +31,8 @@ struct aga_settings {
 	aga_size_t width;
 	aga_size_t height;
 
+	aga_bool_t mipmap_default;
+
 	float fov;
 
 	aga_bool_t verbose;

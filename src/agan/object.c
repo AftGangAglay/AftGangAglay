@@ -8,6 +8,7 @@
 
 #include <aga/gl.h>
 #include <aga/utility.h>
+#include <aga/startup.h>
 #include <aga/log.h>
 #include <aga/draw.h>
 #include <aga/script.h>
@@ -102,6 +103,10 @@ static void agan_mkobj_extent(
 	}
 }
 
+/*
+ * TODO: Object models should be able to specify a billboard texture for auto
+ * 		 LOD -- especially when we have our zoning/distance culling system.
+ */
 static aga_bool_t agan_mkobj_model(
 		struct agan_object* obj, struct aga_config_node* conf,
 		struct aga_resource_pack* pack, const char* objpath) {
@@ -109,6 +114,9 @@ static aga_bool_t agan_mkobj_model(
 	static const char* model = "Model";
 	static const char* texture = "Texture";
 	static const char* filter = "Filter";
+	static const char* mipmap = "Mipmap";
+
+	struct aga_settings* settings;
 
 	enum aga_result result;
 
@@ -116,7 +124,9 @@ static aga_bool_t agan_mkobj_model(
 	unsigned mode = GL_COMPILE;
 	const char* path;
 
-	/* TODO: Delete lists in error conds. */
+	if(!(settings = aga_getscriptptr(AGA_SCRIPT_SETTINGS))) return 0;
+
+	/* TODO: Delete lists in error conditions. */
 	obj->drawlist = glGenLists(1);
 	if(aga_script_gl_err("glGenLists")) return 0;
 
@@ -124,17 +134,33 @@ static aga_bool_t agan_mkobj_model(
 	mode = GL_COMPILE_AND_EXECUTE;
 #endif
 
+	/*
+	 * TODO: We could batch chunks of static scene geometry together into one
+	 * 		 Large list during scene build once we have a more cohesive system
+	 * 		 In-place.
+	 */
+	/*
+	 * TODO: Advice appears to be to keep a list per-model rather than
+	 * 		 Per-object and to retexture/material as necessary for instances.
+	 * 		 We can probably balance this between instanced and non-instanced
+	 * 		 Draw.
+	 */
 	glNewList(obj->drawlist, mode);
 	if(aga_script_gl_err("glNewList")) return 0;
 
 	{
-		aga_slong_t f;
+		aga_bool_t do_mips, tex_filter;
+		aga_slong_t v;
 
 		result = aga_config_lookup(
-				conf->children, &filter, 1, &f, AGA_INTEGER, AGA_FALSE);
-		if(result) f = 1;
+				conf->children, &filter, 1, &v, AGA_INTEGER, AGA_FALSE);
+		if(result) v = 1;
+		tex_filter = !!v;
 
-		f = f ? GL_LINEAR : GL_NEAREST;
+		result = aga_config_lookup(
+				conf->children, &mipmap, 1, &v, AGA_INTEGER, AGA_FALSE);
+		if(result) v = settings->mipmap_default;
+		do_mips = !!v;
 
 		result = aga_config_lookup(
 				conf->children, &texture, 1, &path, AGA_STRING, AGA_FALSE);
@@ -169,31 +195,60 @@ static aga_bool_t agan_mkobj_model(
 			result = aga_config_lookup(
 					res->conf, &width, 1, &w, AGA_INTEGER, AGA_FALSE);
 			if(result) {
-				/* TODO: Defaultable conf values as part of the API. */
+				/* TODO: Default conf values as part of the API. */
 				aga_log(__FILE__, "warn: Texture `%s' is missing dimensions");
 				w = 0;
 				h = 0;
 			}
 			else h = (int) (res->size / (aga_size_t) (4 * w));
 
-			/* TODO: Mipmapping/detail levels. */
-			glTexImage2D(
-					GL_TEXTURE_2D, 0, GL_RGBA, (int) w, (int) h, 0, GL_RGBA,
-					GL_UNSIGNED_BYTE, res->data);
 			/*
-			 * TODO: Script land can probably handle lots of GL errors like
-			 * 		 This relatively gracefully (i.e. allow the user code to go
-			 * 		 Further without needing try-catch hell).
-			 * 		 Especially in functions like this which aren't supposed to
-			 * 		 Be run every frame.
+			 * TODO: Non-alpha textures for more effective use of GPU memory
+			 * 		 And turning off transparency auto-disables alpha channel.
+			 * 		 `glPolygonStipple' can be used for fake transparency.
 			 */
-			if(aga_script_gl_err("glTexImage2D")) return AGA_TRUE;
+			if(do_mips) {
+				/*
+				 * TODO: Send textures to server as bitmaps and reuse instead
+				 * 		 Of uploading from data parameter directly.
+				 */
+				gluBuild2DMipmaps(
+						GL_TEXTURE_2D, 4, (int) w, (int) h, GL_RGBA,
+						GL_UNSIGNED_BYTE, res->data);
+				/*
+				 * TODO: Script land can probably handle lots of GL errors like
+				 * 		 This relatively gracefully (i.e. allow the user code
+				 * 		 To go further without needing try-catch hell).
+				 * 		 Especially in functions like this which aren't
+				 * 		 Supposed to be run every frame.
+				 */
+				if(aga_script_gl_err("gluBuild2DMipmaps")) return AGA_TRUE;
+			}
+			else {
+				glTexImage2D(
+						GL_TEXTURE_2D, 0, 4, (int) w, (int) h, 0, GL_RGBA,
+						GL_UNSIGNED_BYTE, res->data);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (int) f);
-			if(aga_script_gl_err("glTexParameteri")) return AGA_TRUE;
+				if(aga_script_gl_err("glTexImage2D")) return AGA_TRUE;
+			}
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (int) f);
-			if(aga_script_gl_err("glTexParameteri")) return AGA_TRUE;
+			{
+				int mag = tex_filter ? GL_LINEAR : GL_NEAREST;
+				int min;
+
+				if(do_mips) {
+					min = tex_filter ?
+							GL_LINEAR_MIPMAP_LINEAR :
+							GL_NEAREST_MIPMAP_NEAREST;
+				}
+				else min = mag;
+
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
+				if(aga_script_gl_err("glTexParameteri")) return AGA_TRUE;
+
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+				if(aga_script_gl_err("glTexParameteri")) return AGA_TRUE;
+			}
 		}
 
 		result = aga_config_lookup(

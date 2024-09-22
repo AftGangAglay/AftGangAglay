@@ -6,7 +6,7 @@
 #include <aga/midi.h>
 
 #ifdef _WIN32
-# include "agawmidi.h"
+# include "win32midi.h"
 #else
 /* TODO: Other MIDI! */
 #endif

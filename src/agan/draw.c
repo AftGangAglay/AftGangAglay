@@ -28,6 +28,7 @@ enum aga_result agan_draw_register(struct py_env* env) {
 	if((result = aga_insertint("LIGHTING", AGA_DRAW_LIGHTING))) return result;
 	if((result = aga_insertint("DEPTH", AGA_DRAW_DEPTH))) return result;
 	if((result = aga_insertint("SHADEFLAT", AGA_DRAW_FLAT))) return result;
+	if((result = aga_insertint("FIDELITY", AGA_DRAW_FIDELITY))) return result;
 
 	if((result = aga_insertint("FRONT", AGAN_SURFACE_FRONT))) return result;
 	if((result = aga_insertint("BACK", AGAN_SURFACE_BACK))) return result;
@@ -381,6 +382,7 @@ struct py_object* agan_getflag(
 	return py_int_new(aga_draw_get());
 }
 
+/* TODO: Line stippling. */
 struct py_object* agan_line3d(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 

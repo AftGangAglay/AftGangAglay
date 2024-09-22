@@ -26,8 +26,20 @@
 static const PIXELFORMATDESCRIPTOR pixel_format = {
 		sizeof(PIXELFORMATDESCRIPTOR), 1,
 		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-		PFD_TYPE_RGBA, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 0, 0,
-		PFD_MAIN_PLANE, 0, 0, 0, 0 };
+/*
+ * TODO: Broader palletization support -- user-specified palletes etc.
+ * 		 See
+ * 		 https://learn.microsoft.com/en-us/windows/win32/opengl/color-index-mode-and-windows-palette-management.
+ */
+#ifdef AGA_PALLETIZE
+		PFD_TYPE_COLORINDEX,
+#else
+		PFD_TYPE_RGBA,
+#endif
+		24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32, 0, 0,
+		PFD_MAIN_PLANE,
+		0, 0, 0, 0
+};
 
 #define AGA_WINPROC_PACK_MAGIC (0x547123AA)
 

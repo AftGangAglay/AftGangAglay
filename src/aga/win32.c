@@ -5,6 +5,7 @@
 
 #include <aga/log.h>
 #include <aga/std.h>
+#include <aga/error.h>
 
 #ifdef _WIN32
 # define AGA_WANT_WINDOWS_H

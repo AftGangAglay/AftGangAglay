@@ -554,7 +554,7 @@ enum aga_result aga_process_spawn(
 
 # define AGA_WANT_WINDOWS_H
 
-# include <aga/w32.h>
+# include <aga/win32.h>
 
 enum aga_result aga_process_spawn(
 		const char* program, char** argv, const char* wd) {

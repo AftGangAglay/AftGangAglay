@@ -7,6 +7,7 @@
 #define AGA_DRAW_H
 
 #include <aga/result.h>
+#include <aga/environment.h>
 
 enum aga_draw_flags {
 	AGA_DRAW_NONE = 0,
@@ -16,7 +17,8 @@ enum aga_draw_flags {
 	AGA_DRAW_TEXTURE = 1 << 3,
 	AGA_DRAW_LIGHTING = 1 << 4,
 	AGA_DRAW_DEPTH = 1 << 5,
-	AGA_DRAW_FLAT = 1 << 6
+	AGA_DRAW_FLAT = 1 << 6,
+	AGA_DRAW_FIDELITY = 1 << 7
 };
 
 enum aga_result aga_draw_set(enum aga_draw_flags);
@@ -24,5 +26,7 @@ enum aga_draw_flags aga_draw_get(void);
 
 enum aga_result aga_draw_push(void);
 enum aga_result aga_draw_pop(void);
+
+enum aga_result aga_draw_fidelity(aga_bool_t);
 
 #endif

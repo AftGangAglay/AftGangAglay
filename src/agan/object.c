@@ -652,6 +652,10 @@ struct py_object* agan_inobj(
 		}
 	}
 
+	/*
+	 * TODO: `glPolygonMode' can provide wireframes if we want a model
+	 * 		 Wireframe rather than a box outline.
+	 */
 	if(py_int_get(dbgp)) {
 		enum aga_draw_flags fl = aga_draw_get();
 

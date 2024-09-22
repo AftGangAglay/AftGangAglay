@@ -3,6 +3,11 @@
  * Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
+/*
+ * There are some interesting techniques here and in parents:
+ * https://www.opengl.org/archives/resources/code/samples/advanced/advanced97/notes/node60.html.
+ */
+
 #include <aga/draw.h>
 #include <aga/window.h>
 #include <aga/log.h>
@@ -39,6 +44,9 @@ enum aga_result aga_draw_set(enum aga_draw_flags flags) {
 
 	glShadeModel((flags & AGA_DRAW_FLAT) ? GL_FLAT : GL_SMOOTH);
 	if((result = aga_error_gl(__FILE__, "glShadeModel"))) return result;
+
+	result = aga_draw_fidelity(!!(flags & AGA_DRAW_FIDELITY));
+	if(result) return result;
 
 	flags &= ~AGA_DRAW_FLAT;
 
@@ -99,6 +107,26 @@ enum aga_result aga_draw_pop(void) {
 
 	glPopMatrix();
 	if((result = aga_error_gl(__FILE__, "glPushMatrix"))) return result;
+
+	return AGA_RESULT_OK;
+}
+
+enum aga_result aga_draw_fidelity(aga_bool_t hq) {
+	static const unsigned targets[] = {
+			GL_PERSPECTIVE_CORRECTION_HINT,
+			GL_POINT_SMOOTH_HINT,
+			GL_LINE_SMOOTH_HINT,
+			GL_POLYGON_SMOOTH_HINT,
+			GL_FOG_HINT
+	};
+
+	enum aga_result result;
+	aga_size_t i;
+
+	for(i = 0; i < AGA_LEN(targets); ++i) {
+		glHint(targets[i], hq ? GL_NICEST : GL_FASTEST);
+		if((result = aga_error_gl(__FILE__, "glHint"))) return result;
+	}
 
 	return AGA_RESULT_OK;
 }

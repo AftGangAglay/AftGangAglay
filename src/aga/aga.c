@@ -84,7 +84,9 @@ int main(int argc, char** argv) {
 	const char* gl_version;
 
 #ifndef NDEBUG
+	/* TODO: CLI opt for this. */
 	aga_bool_t do_prof = !!aga_getenv("AGA_DOPROF");
+	struct aga_window prof_win = { 0 };
 #endif
 
 	const char* logfiles[] = { 0 /* auto stdout */, "aga.log" };
@@ -95,12 +97,13 @@ int main(int argc, char** argv) {
 	result = aga_settings_new(&opts, argc, argv);
 	aga_error_check_soft(__FILE__, "aga_settings_new", result);
 
-	/* TODO: Dev mode only. */
+#ifdef AGA_DEVBUILD
 	if(opts.compile) {
 		aga_error_check_soft(__FILE__, "aga_build", aga_build(&opts));
 		aga_log(__FILE__, "Bye-bye!");
 		return 0;
 	}
+#endif
 
 	result = aga_resource_pack_new(opts.respack, &pack);
 	aga_error_check_soft(__FILE__, "aga_resource_pack_new", result);
@@ -116,8 +119,18 @@ int main(int argc, char** argv) {
 	result = aga_keymap_new(&keymap, &env);
 	aga_error_check(__FILE__, "aga_keymap_new", result);
 
+#ifndef NDEBUG
+	if(do_prof) {
+		result = aga_window_new(
+				640, 480, "Profile", &env, &prof_win, AGA_TRUE, argc, argv);
+		aga_error_check_soft(__FILE__, "aga_window_new", result);
+		if(result) do_prof = AGA_FALSE;
+	}
+#endif
+
 	result = aga_window_new(
-			opts.width, opts.height, &env, &win, AGA_TRUE, argc, argv);
+			opts.width, opts.height, opts.title,
+			&env, &win, AGA_TRUE, argc, argv);
 	aga_error_check(__FILE__, "aga_window_new", result);
 
 	result = aga_renderer_string(&gl_version);
@@ -237,6 +250,9 @@ int main(int argc, char** argv) {
 	aga_error_check_soft(__FILE__, "aga_script_engine_set_pointer", result);
 
 	while(!die) {
+		result = aga_window_select(&win);
+		aga_error_check_soft(__FILE__, "aga_window_select", result);
+
 		apro_stamp_start(APRO_PRESWAP);
 		{
 			apro_stamp_start(APRO_POLL);
@@ -293,9 +309,17 @@ int main(int argc, char** argv) {
 #ifndef NDEBUG
 		/* @formatter:off */
 		if(do_prof) {
+			static const float clear[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
 			unsigned d = 0;
 			unsigned x = 0;
 			unsigned n = 0;
+
+			result = aga_window_select(&prof_win);
+			aga_error_check_soft(__FILE__, "aga_window_select", result);
+
+			result = aga_render_clear(clear);
+			aga_error_check_soft(__FILE__, "aga_render_clear", result);
 
 			aga_put_profile(d++, 0, APRO_PRESWAP);
 				aga_put_profile(d++, 1, APRO_POLL);
@@ -333,6 +357,9 @@ int main(int argc, char** argv) {
 			aga_put_profile(n++, 20, APRO_PUTOBJ_LIGHT);
 			aga_put_profile(n++, 20, APRO_PUTOBJ_CALL);
 			aga_put_profile(n, 20, APRO_PUTOBJ_FALLING);
+
+			result = aga_window_swap(&env, &prof_win);
+			aga_error_check_soft(__FILE__, "aga_window_swap", result);
 		}
 		/* @formatter:on */
 #endif

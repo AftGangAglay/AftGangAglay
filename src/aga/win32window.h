@@ -298,8 +298,9 @@ static enum aga_result aga_window_set_wgl(
 }
 
 enum aga_result aga_window_new(
-		aga_size_t width, aga_size_t height, struct aga_window_device* env,
-		struct aga_window* win, aga_bool_t do_wgl, int argc, char** argv) {
+		aga_size_t width, aga_size_t height, const char* title,
+		struct aga_window_device* env, struct aga_window* win,
+		aga_bool_t do_wgl, int argc, char** argv) {
 
 	static const long mask = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
 
@@ -319,7 +320,7 @@ enum aga_result aga_window_new(
 
 	/* TODO: Leaky error states. */
 	win->hwnd = CreateWindow(
-            AGA_CLASS_NAME, "Aft Gang Aglay", mask,
+            AGA_CLASS_NAME, title, mask,
             CW_USEDEFAULT, CW_USEDEFAULT, (int) width, (int) height,
             0, 0, env->module, 0);
     if(!win->hwnd) return aga_win32_error(__FILE__, "CreateWindow");
@@ -339,13 +340,20 @@ enum aga_result aga_window_new(
 		return aga_win32_error(__FILE__, "SetPixelFormat");
 	}
 
-	result = aga_window_set_wgl(env, win, dc);
-	if(result) return result;
+	if(do_wgl) {
+		result = aga_window_set_wgl(env, win, dc);
+		if(result) return result;
+	}
+	else win->wgl = 0;
 
 	if(!ReleaseDC(win->hwnd, dc)) {
 		return aga_win32_error(__FILE__, "ReleaseDC");
 	}
 
+	/*
+	 * TODO: This isn't really era appropriate -- probably need to replicate
+	 * 		 The X API.
+	 */
 	mouse.hwndTarget = win->hwnd;
 	if(!RegisterRawInputDevices(&mouse, 1, sizeof(mouse))) {
 		return aga_win32_error(__FILE__, "RegisterRawInputDevices");
@@ -378,6 +386,26 @@ enum aga_result aga_window_delete(
     }
 
     return AGA_RESULT_OK;
+}
+
+enum aga_result aga_window_select(struct aga_window* win) {
+	void* dc;
+
+	if(!win) return AGA_RESULT_BAD_PARAM;
+
+	if(!(dc = GetDC((void*) win->hwnd))) {
+		return aga_win32_error(__FILE__, "GetDC");
+	}
+
+	if(!wglMakeCurrent(dc, win->wgl)) {
+		return aga_win32_error(__FILE__, "wglMakeCurrent");
+	}
+
+	if(!ReleaseDC(win->hwnd, dc)) {
+		return aga_win32_error(__FILE__, "ReleaseDC");
+	}
+
+	return AGA_RESULT_OK;
 }
 
 enum aga_result aga_keymap_lookup(

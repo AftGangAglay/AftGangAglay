@@ -32,6 +32,7 @@ enum aga_result aga_midi_device_delete(struct aga_midi_device*);
 
 enum aga_result aga_midi_new(
 		struct aga_midi_device*, struct aga_midi*, void*, aga_size_t);
+
 enum aga_result aga_midi_delete(struct aga_midi_device*, struct aga_midi*);
 
 enum aga_result aga_midi_play(struct aga_midi_device*, struct aga_midi*);

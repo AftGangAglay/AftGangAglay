@@ -21,6 +21,6 @@
 	} while(0)
 
 #define AGA_DEPRECATED(curr, alt) \
-	AGA_DEPRECATED_IMPL(#curr " is deprecated in favor of " #alt)
+	AGA_DEPRECATED_IMPL(curr " is deprecated in favor of " alt)
 
 #endif

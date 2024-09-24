@@ -10,18 +10,6 @@
 
 #include <aga/result.h>
 
-#if defined(AGA_HAVE_SYS_MMAN)
-/* TODO: *nix-y file mapping.
-# define AGA_NIXMAP
-# define AGA_HAVE_MAP
- */
-#elif defined(_WIN32)
-/* TODO: Windows file mapping.
-# define AGA_WINMAP
-# define AGA_HAVE_MAP
- */
-#endif
-
 #if defined(AGA_HAVE_SYS_WAIT) && defined(AGA_HAVE_UNISTD)
 # define AGA_NIXSPAWN
 # define AGA_HAVE_SPAWN
@@ -74,26 +62,6 @@ enum aga_result aga_file_attribute(
 enum aga_result aga_file_read(void*, aga_size_t, void*);
 
 enum aga_result aga_file_print_characters(int, aga_size_t, void*);
-
-#ifdef AGA_HAVE_MAP
-# ifdef AGA_NIXMAP
-struct aga_mapfd {
-	void* fp;
-};
-# elif defined(AGA_WINMAP)
-struct aga_mapfd {
-	void* mapping;
-};
-# endif
-
-enum aga_result aga_mkmapfd(void* fp, struct aga_mapfd* fd);
-enum aga_result aga_killmapfd(struct aga_mapfd* fd);
-
-/* Make a read-only mapping of a region of a file. */
-enum aga_result aga_mkfmap(
-		struct aga_mapfd* fd, aga_size_t off, aga_size_t size, void** ptr);
-enum aga_result aga_killfmap(void* ptr, aga_size_t size);
-#endif
 
 #ifdef AGA_HAVE_SPAWN
 enum aga_result aga_process_spawn(const char*, char**, const char*);

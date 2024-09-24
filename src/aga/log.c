@@ -9,13 +9,8 @@
 #include <aga/std.h>
 #include <aga/win32.h>
 
-#ifndef NDEBUG
-# define AGA_LOG_DEFAULT_STREAM (stderr)
-#else
-# define AGA_LOG_DEFAULT_STREAM (stdout)
-#endif
-
-#define AGA_ISTTY(s) ((s) == stdout || (s) == stderr)
+#define AGA_LOG_DEFAULT_STREAM (stdout)
+#define AGA_ISTTY(s) ((s) == AGA_LOG_DEFAULT_STREAM)
 
 struct aga_log_context aga_log_context;
 

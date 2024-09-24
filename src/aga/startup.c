@@ -9,6 +9,7 @@
 #include <aga/error.h>
 #include <aga/utility.h>
 #include <aga/io.h>
+#include <aga/diagnostic.h>
 
 #define AGA_WANT_UNIX
 
@@ -20,7 +21,10 @@ enum aga_result aga_settings_new(
 	if(!opts) return AGA_RESULT_BAD_PARAM;
 	if(!argv) return AGA_RESULT_BAD_PARAM;
 
+#ifdef AGA_DEVBUILD
 	opts->compile = AGA_FALSE;
+	opts->build_file = "agabuild.sgml";
+#endif
 	opts->config_file = "aga.sgml";
 	opts->display = aga_getenv("DISPLAY");
 	opts->chdir = ".";
@@ -28,9 +32,9 @@ enum aga_result aga_settings_new(
 	opts->startup_script = "script/main.py";
 	opts->python_path = "script";
 	opts->respack = "agapack.raw";
-	opts->build_file = "agabuild.sgml";
 	opts->width = 640;
 	opts->height = 480;
+	opts->title = "Aft Gang Aglay";
 	opts->mipmap_default = AGA_FALSE;
 	opts->fov = 90.0f;
 	opts->audio_enabled = AGA_TRUE;
@@ -43,8 +47,12 @@ enum aga_result aga_settings_new(
 	{
 		static const char helpmsg[] =
 			"warn: usage:\n"
-			"\t%s [-f respack] [-A dsp] [-D display] [-C dir] [-v] [-h]\n"
-			"\t%s -c [-f buildfile] [-C dir] [-v] [-h]";
+			"\t%s [-f respack] [-A dsp] [-D display] [-C dir] [-v] [-h]"
+#ifdef AGA_DEVBUILD
+			"\n\t%s -c [-f buildfile] [-C dir] [-v] [-h]"
+#endif
+		;
+
 		int o;
 		while((o = getopt(argc, argv, "hcf:s:A:D:C:v")) != -1) {
 			switch(o) {
@@ -52,26 +60,35 @@ enum aga_result aga_settings_new(
 					aga_log(__FILE__, helpmsg, argv[0], argv[0]);
 					goto break2;
 				}
+#ifdef AGA_DEVBUILD
 				case 'c': {
 					if(optind != 2) goto help;
 
 					opts->compile = AGA_TRUE;
 					break;
 				}
+#endif
 				case 'f': {
+#ifdef AGA_DEVBUILD
 					if(opts->compile) opts->build_file = optarg;
-					else opts->respack = optarg;
+					else
+#endif
+					opts->respack = optarg;
 
 					break;
 				}
 				case 'A': {
+#ifdef AGA_DEVBUILD
 					if(opts->compile) goto help;
+#endif
 
 					opts->audio_dev = optarg;
 					break;
 				}
 				case 'D': {
+#ifdef AGA_DEVBUILD
 					if(opts->compile) goto help;
+#endif
 
 					opts->display = optarg;
 					break;
@@ -118,6 +135,7 @@ enum aga_result aga_settings_parse_config(
 	static const char* startup[] = { "Script", "Startup" };
 	static const char* path[] = { "Script", "Path" };
 	static const char* version[] = { "General", "Version" };
+	static const char* title[] = { "General", "Title" };
 	static const char* width[] = { "Display", "Width" };
 	static const char* height[] = { "Display", "Height" };
 	static const char* mipmap[] = { "Graphics", "MipmapDefault" };
@@ -142,6 +160,11 @@ enum aga_result aga_settings_parse_config(
 
 	result = aga_config_lookup(
 			opts->config.children, version, AGA_LEN(version), &opts->version,
+			AGA_STRING, AGA_TRUE);
+	aga_error_check_soft(__FILE__, "aga_config_lookup", result);
+
+	result = aga_config_lookup(
+			opts->config.children, title, AGA_LEN(title), &opts->title,
 			AGA_STRING, AGA_TRUE);
 	aga_error_check_soft(__FILE__, "aga_config_lookup", result);
 
@@ -198,6 +221,8 @@ enum aga_result aga_prerun_hook(struct aga_settings* opts) {
 	char* program = aga_getenv("SHELL");
 	char* args[] = { 0 /* shell */, 0 /* -c */, 0 /* exec */, 0 };
 	char* project_path;
+
+	AGA_DEPRECATED("Development/PreHook", "agabuild.sgml");
 
 # ifndef AGA_DEVBUILD
 	aga_log(__FILE__, "warn: Executing pre-run hook in non-debug build");

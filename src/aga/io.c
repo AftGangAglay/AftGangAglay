@@ -356,7 +356,8 @@ enum aga_result aga_file_attribute_path(
 }
 
 enum aga_result aga_file_attribute(
-		void* fp, enum aga_file_attribute_type attr, union aga_file_attribute* out) {
+		void* fp, enum aga_file_attribute_type attr,
+		union aga_file_attribute* out) {
 
 	if(!fp) return AGA_RESULT_BAD_PARAM;
 	if(!attr) return AGA_RESULT_BAD_PARAM;
@@ -367,7 +368,10 @@ enum aga_result aga_file_attribute(
 		struct stat st;
 		int fd;
 
-		if((fd = fileno(fp)) == -1) return aga_error_system(__FILE__, "fileno");
+		if((fd = fileno(fp)) == -1) {
+			return aga_error_system(__FILE__, "fileno");
+		}
+
 		if(fstat(fd, &st) == -1) return aga_error_system(__FILE__, "fstat");
 
 		return aga_file_attribute_select_stat(&st, attr, out);
@@ -404,101 +408,6 @@ enum aga_result aga_file_print_characters(int c, aga_size_t n, void* fp) {
 
 	return AGA_RESULT_OK;
 }
-
-#ifdef AGA_HAVE_MAP
-# ifdef AGA_NIXMAP
-enum aga_result aga_mkmapfd(void* fp, struct aga_mapfd* fd) {
-	if(!fd) return AGA_RESULT_BAD_PARAM;
-	if(!fp) return AGA_RESULT_BAD_PARAM;
-
-	return AGA_RESULT_OK;
-}
-
-enum aga_result aga_killmapfd(struct aga_mapfd* fd) {
-	if(!fd) return AGA_RESULT_BAD_PARAM;
-
-	return AGA_RESULT_OK;
-}
-
-enum aga_result aga_mkfmap(
-		struct aga_mapfd* fd, aga_size_t off, aga_size_t size, void** ptr) {
-
-	if(!fd) return AGA_RESULT_BAD_PARAM;
-	if(!ptr) return AGA_RESULT_BAD_PARAM;
-
-	return AGA_RESULT_OK;
-}
-
-enum aga_result aga_killfmap(void* ptr, aga_size_t size) {
-	if(!ptr) return AGA_RESULT_BAD_PARAM;
-
-	return AGA_RESULT_OK;
-}
-# elif defined(AGA_WINMAP)
-enum aga_result aga_mkmapfd(void* fp, struct aga_mapfd* fd) {
-	int fn;
-	void* hnd;
-	aga_size_t size;
-	SECURITY_ATTRIBUTES attrib = { sizeof(attrib), 0, FALSE };
-
-	if(!fd) return AGA_RESULT_BAD_PARAM;
-	if(!fp) return AGA_RESULT_BAD_PARAM;
-
-	if((fn = fileno(fp)) == -1) return aga_error_system(__FILE__, "fileno");
-	if((hnd = (void*) _get_osfhandle(fn)) == INVALID_HANDLE_VALUE) {
-		return aga_error_system(__FILE__, "_get_osfhandle");
-	}
-
-	AGA_CHK(aga_fplen(fp, &size));
-	AGA_VERIFY(size != 0, AGA_RESULT_BAD_PARAM);
-
-	fd->mapping = CreateFileMapping(hnd, &attrib, PAGE_READONLY, 0, 0, 0);
-	if(!fd->mapping) return aga_win32_error(__FILE__, "CreateFileMapping");
-
-	return AGA_RESULT_OK;
-}
-
-enum aga_result aga_killmapfd(struct aga_mapfd* fd) {
-	if(!fd) return AGA_RESULT_BAD_PARAM;
-
-	if(!CloseHandle(fd->mapping)) {
-		return aga_win32_error(__FILE__, "CloseHandle");
-	}
-
-	return AGA_RESULT_OK;
-}
-
-enum aga_result aga_mkfmap(
-		struct aga_mapfd* fd, aga_size_t off, aga_size_t size, void** ptr) {
-
-	DWORD* p = (DWORD*) &off;
-
-	if(!fd) return AGA_RESULT_BAD_PARAM;
-	if(!ptr) return AGA_RESULT_BAD_PARAM;
-
-	/*
-	 * TODO: File offset needs to be a multiple of allocation granularity.
-	 * 		 This needs a bit more engineering on our part to avoid making
-	 * 		 A load of gaps in the respack to satisfy this. We'll probably need
-	 * 		 A registry of close addresses or get the caller to bookkeep re:
-	 * 		 The offset from the returned base mapping address. We'll have to
-	 * 		 See if Windows is okay with overlapping mappings under such a
-	 * 		 System as we ideally want each resource entry to be able to hold
-	 * 		 Its own mapping.
-	 */
-	*ptr = MapViewOfFile(fd->mapping, FILE_MAP_READ, p[0], p[1], size);
-	if(!*ptr) return aga_win32_error(__FILE__, "MapViewOfFile");
-
-	return AGA_RESULT_OK;
-}
-
-enum aga_result aga_killfmap(void* ptr, aga_size_t size) {
-	if(!ptr) return AGA_RESULT_BAD_PARAM;
-
-	return AGA_RESULT_OK;
-}
-# endif
-#endif
 
 #ifdef AGA_HAVE_SPAWN
 # ifdef AGA_NIXSPAWN

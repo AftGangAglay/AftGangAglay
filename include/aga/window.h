@@ -6,6 +6,10 @@
 #ifndef AGA_WINDOW_H
 #define AGA_WINDOW_H
 
+/*
+ * TODO: Apple System 8.1 appears to be the earliest macOS to support OpenGL.
+ */
+
 #define AGA_FONT_LIST_BASE (1000)
 
 #include <aga/environment.h>
@@ -63,11 +67,14 @@ enum aga_result aga_keymap_delete(struct aga_keymap*);
 enum aga_result aga_keymap_lookup(struct aga_keymap*, unsigned, aga_bool_t*);
 
 enum aga_result aga_window_new(
-		aga_size_t, aga_size_t, struct aga_window_device*, struct aga_window*,
+		aga_size_t, aga_size_t, const char*,
+		struct aga_window_device*, struct aga_window*,
         aga_bool_t, int, char**);
 
 enum aga_result aga_window_delete(
 		struct aga_window_device*, struct aga_window*);
+
+enum aga_result aga_window_select(struct aga_window*);
 
 /*
  * NOTE: Cursor capture is a somewhat importable concept. As it stands, we

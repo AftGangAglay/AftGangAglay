@@ -12,8 +12,12 @@
 struct aga_resource_pack;
 
 struct aga_settings {
+#ifdef AGA_DEVBUILD
 	aga_bool_t compile;
 	const char* build_file;
+#endif
+
+	const char* title;
 
 	const char* config_file;
 	const char* display;

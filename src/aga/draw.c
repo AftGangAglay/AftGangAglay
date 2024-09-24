@@ -136,13 +136,13 @@ enum aga_result aga_renderer_string(const char** out) {
 	const char* vendor;
 	const char* renderer;
 
-	if(!(version = glGetString(GL_VERSION))) {
+	if(!(version = (const char*) glGetString(GL_VERSION))) {
 		return aga_error_gl(__FILE__, "glGetString");
 	}
-	if(!(vendor = glGetString(GL_VENDOR))) {
+	if(!(vendor = (const char*) glGetString(GL_VENDOR))) {
 		return aga_error_gl(__FILE__, "glGetString");
 	}
-	if(!(renderer = glGetString(GL_RENDERER))) {
+	if(!(renderer = (const char*) glGetString(GL_RENDERER))) {
 		return aga_error_gl(__FILE__, "glGetString");
 	}
 

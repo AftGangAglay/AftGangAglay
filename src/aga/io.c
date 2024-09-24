@@ -452,8 +452,8 @@ enum aga_result aga_mkmapfd(void* fp, struct aga_mapfd* fd) {
 	AGA_CHK(aga_fplen(fp, &size));
 	AGA_VERIFY(size != 0, AGA_RESULT_BAD_PARAM);
 
-	fd->mapping = CreateFileMappingA(hnd, &attrib, PAGE_READONLY, 0, 0, 0);
-	if(!fd->mapping) return aga_win32_error(__FILE__, "CreateFileMappingA");
+	fd->mapping = CreateFileMapping(hnd, &attrib, PAGE_READONLY, 0, 0, 0);
+	if(!fd->mapping) return aga_win32_error(__FILE__, "CreateFileMapping");
 
 	return AGA_RESULT_OK;
 }
@@ -582,9 +582,9 @@ enum aga_result aga_process_spawn(
 
 	if(cli) cli[len] = 0;
 
-	if(!CreateProcessA(0, cli, 0, 0, FALSE, 0, 0, wd, &startup, &info)) {
+	if(!CreateProcess(0, cli, 0, 0, FALSE, 0, 0, wd, &startup, &info)) {
 		aga_free(cli);
-		return aga_win32_error(__FILE__, "CreateProcessA");
+		return aga_win32_error(__FILE__, "CreateProcess");
 	}
 
 	aga_free(cli);

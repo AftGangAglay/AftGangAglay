@@ -81,6 +81,8 @@ int main(int argc, char** argv) {
 
 	aga_bool_t die = AGA_FALSE;
 
+	const char* gl_version;
+
 #ifndef NDEBUG
 	aga_bool_t do_prof = !!aga_getenv("AGA_DOPROF");
 #endif
@@ -114,13 +116,15 @@ int main(int argc, char** argv) {
 	result = aga_keymap_new(&keymap, &env);
 	aga_error_check(__FILE__, "aga_keymap_new", result);
 
-	result = aga_window_new(opts.width, opts.height, &env, &win, argc, argv);
+	result = aga_window_new(
+			opts.width, opts.height, &env, &win, AGA_TRUE, argc, argv);
 	aga_error_check(__FILE__, "aga_window_new", result);
 
-	result = aga_window_device_glx_new(&env, &win);
-	aga_error_check(__FILE__, "aga_window_device_glx_new", result);
-
-	aga_log(__FILE__, "Acquired GL context");
+	result = aga_renderer_string(&gl_version);
+	aga_error_check_soft(__FILE__, "aga_renderer_string", result);
+	aga_log(
+			__FILE__, "Acquired GL context: %s",
+			gl_version ? gl_version : "<error>");
 
 	aga_error_check(__FILE__, "aga_draw_set", aga_draw_set(draw_flags));
 

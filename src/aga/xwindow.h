@@ -3,8 +3,8 @@
  * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#ifndef AGA_X_WIN_H
-#define AGA_X_WIN_H
+#ifndef AGA_X_WINDOW_H
+#define AGA_X_WINDOW_H
 
 #include <aga/gl.h>
 #include <aga/log.h>

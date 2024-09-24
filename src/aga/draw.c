@@ -48,8 +48,6 @@ enum aga_result aga_draw_set(enum aga_draw_flags flags) {
 	result = aga_draw_fidelity(!!(flags & AGA_DRAW_FIDELITY));
 	if(result) return result;
 
-	flags &= ~AGA_DRAW_FLAT;
-
 	for(i = 0; i < AGA_LEN(flag); ++i) {
 		aga_bool_t x = !!(flags & flag[i].flag);
 		func[x](flag[i].cap);
@@ -127,6 +125,32 @@ enum aga_result aga_draw_fidelity(aga_bool_t hq) {
 		glHint(targets[i], hq ? GL_NICEST : GL_FASTEST);
 		if((result = aga_error_gl(__FILE__, "glHint"))) return result;
 	}
+
+	return AGA_RESULT_OK;
+}
+
+enum aga_result aga_renderer_string(const char** out) {
+	static aga_fixed_buf_t buf = { 0 };
+
+	const char* version;
+	const char* vendor;
+	const char* renderer;
+
+	if(!(version = glGetString(GL_VERSION))) {
+		return aga_error_gl(__FILE__, "glGetString");
+	}
+	if(!(vendor = glGetString(GL_VENDOR))) {
+		return aga_error_gl(__FILE__, "glGetString");
+	}
+	if(!(renderer = glGetString(GL_RENDERER))) {
+		return aga_error_gl(__FILE__, "glGetString");
+	}
+
+	if(sprintf(buf, "%s %s %s", version, vendor, renderer) < 0) {
+		return aga_error_system(__FILE__, "sprintf");
+	}
+
+	*out = buf;
 
 	return AGA_RESULT_OK;
 }

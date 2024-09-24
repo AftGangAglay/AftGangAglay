@@ -3,13 +3,14 @@
  * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
-#ifndef AGA_W_WIN_H
-#define AGA_W_WIN_H
+#ifndef AGA_WIN32_WINDOW_H
+#define AGA_WIN32_WINDOW_H
 
 /*
  * NOTE: Everything in here is from the future! Microsoft only started
  * 		 Supporting OpenGL in 1997-ish. Unfortunately shipping without Windows
- * 		 Support would be a bit of a death sentence so here we are.
+ * 		 Support would be a bit of a death sentence so here we are. Apparently
+ * 		 NT3.5 had GL support so we may need to look at that.
  */
 
 #include <aga/error.h>
@@ -66,10 +67,10 @@ static LRESULT CALLBACK aga_winproc(
 	if(msg == WM_NCCREATE) return TRUE;
 
 	SetLastError(0);
-	if(!(pack = (void*) GetWindowLongPtrA(wnd, GWLP_USERDATA))) {
+	if(!(pack = (void*) GetWindowLongPtr(wnd, GWLP_USERDATA))) {
 		/* TODO: We might be able to get out of this. */
 		if(GetLastError()) {
-			aga_win32_error(__FILE__, "GetWindowLongPtrA");
+			aga_win32_error(__FILE__, "GetWindowLongPtr");
 			aga_error_abort();
 		}
 
@@ -81,7 +82,7 @@ static LRESULT CALLBACK aga_winproc(
 	switch(msg) {
 		default: {
 			default_msg:;
-			return DefWindowProcA(wnd, msg, w_param, l_param);
+			return DefWindowProc(wnd, msg, w_param, l_param);
 		}
 
 		case WM_KEYUP: {
@@ -169,9 +170,6 @@ static LRESULT CALLBACK aga_winproc(
 		}
 
 		case WM_CLOSE: {
-			if(!ReleaseDC(wnd, GetDC(wnd))) {
-				(void) aga_win32_error(__FILE__, "ReleaseDC");
-			}
 			if(!DestroyWindow(wnd)) {
 				(void) aga_win32_error(__FILE__, "DestroyWindow");
 			}
@@ -198,19 +196,19 @@ enum aga_result aga_window_device_new(
 	env->captured = AGA_FALSE;
 	env->visible = AGA_TRUE;
 
-	if(!(env->module = GetModuleHandleA(0))) {
-		return aga_win32_error(__FILE__, "GetModuleHandleA");
+	if(!(env->module = GetModuleHandle(0))) {
+		return aga_win32_error(__FILE__, "GetModuleHandle");
 	}
 
 	/* TODO: Re-enable icon. */
 	/*
-	if(!(icon = LoadIconA(env->module, MAKEINTRESOURCEA(AGA_ICON_RESOURCE)))) {
-		(void) aga_win32_error(__FILE__, "LoadIconA");
+	if(!(icon = LoadIcon(env->module, MAKEINTRESOURCE(AGA_ICON_RESOURCE)))) {
+		(void) aga_win32_error(__FILE__, "LoadIcon");
 	}
 	 */
 
-	if(!(env->cursor = LoadCursorA(0, IDC_ARROW))) {
-		(void) aga_win32_error(__FILE__, "LoadIconA");
+	if(!(env->cursor = LoadCursor(0, IDC_ARROW))) {
+		(void) aga_win32_error(__FILE__, "LoadIcon");
 	}
 
 	class.style = CS_GLOBALCLASS;
@@ -224,8 +222,8 @@ enum aga_result aga_window_device_new(
 	class.lpszMenuName = 0;
 	class.lpszClassName = AGA_CLASS_NAME;
 
-	if(!(env->class = RegisterClassA(&class))) {
-		return aga_win32_error(__FILE__, "RegisterClassA");
+	if(!(env->class = RegisterClass(&class))) {
+		return aga_win32_error(__FILE__, "RegisterClass");
 	}
 
 	return AGA_RESULT_OK;
@@ -234,12 +232,8 @@ enum aga_result aga_window_device_new(
 enum aga_result aga_window_device_delete(struct aga_window_device* env) {
 	if(!env) return AGA_RESULT_BAD_PARAM;
 
-	if(env->wgl && !wglDeleteContext(env->wgl)) {
-		return aga_win32_error(__FILE__, "wglDeleteContext");
-	}
-
-	if(!UnregisterClassA(AGA_CLASS_NAME, 0)) {
-		return aga_win32_error(__FILE__, "UnregisterClassA");
+	if(!UnregisterClass(AGA_CLASS_NAME, 0)) {
+		return aga_win32_error(__FILE__, "UnregisterClass");
 	}
 
 	return AGA_RESULT_OK;
@@ -266,14 +260,56 @@ enum aga_result aga_keymap_delete(struct aga_keymap* keymap) {
 	return AGA_RESULT_OK;
 }
 
+static enum aga_result aga_window_set_wgl(
+		struct aga_window_device* env, struct aga_window* win, void* dc) {
+
+	HGDIOBJ font;
+
+	if(!env) return AGA_RESULT_BAD_PARAM;
+	if(!win) return AGA_RESULT_BAD_PARAM;
+
+	if(!(win->wgl = wglCreateContext(dc))) {
+		return aga_win32_error(__FILE__, "wglCreateContext");
+	}
+
+	if(!wglMakeCurrent(dc, win->wgl)) {
+		return aga_win32_error(__FILE__, "wglMakeCurrent");
+	}
+
+	/*
+	 * TODO: This can be shared via. `wglShareLists' between all window wgl
+	 * contexts.
+	 */
+	{
+		if(!(font = GetStockObject(SYSTEM_FONT))) {
+			return aga_win32_error(__FILE__, "GetStockObject");
+		}
+
+		if(!SelectObject(dc, font)) {
+			return aga_win32_error(__FILE__, "SelectObject");
+		}
+
+		if(!wglUseFontBitmaps(dc, 0, 256, AGA_FONT_LIST_BASE)) {
+			return aga_win32_error(__FILE__, "wglUseFontBitmaps");
+		}
+	}
+
+	return AGA_RESULT_OK;
+}
+
 enum aga_result aga_window_new(
 		aga_size_t width, aga_size_t height, struct aga_window_device* env,
-		struct aga_window* win, int argc, char** argv) {
+		struct aga_window* win, aga_bool_t do_wgl, int argc, char** argv) {
 
-	int ind;
-	long mask = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
+	static const long mask = WS_VISIBLE | WS_OVERLAPPEDWINDOW;
+
+	enum aga_result result;
+
 	RAWINPUTDEVICE mouse = {
 			HID_USAGE_PAGE_GENERIC, HID_USAGE_GENERIC_MOUSE, 0, 0 };
+
+	int ind;
+    void* dc;
 
 	(void) argc;
 	(void) argv;
@@ -281,23 +317,33 @@ enum aga_result aga_window_new(
 	if(!env) return AGA_RESULT_BAD_PARAM;
 	if(!win) return AGA_RESULT_BAD_PARAM;
 
-	win->hwnd = CreateWindowA(AGA_CLASS_NAME, "Aft Gang Aglay", mask,
-							  CW_USEDEFAULT, CW_USEDEFAULT, (int) width,
-							  (int) height, 0, 0, env->module, 0);
-	if(!win->hwnd) return aga_win32_error(__FILE__, "CreateWindowA");
-	if(!ShowWindow((void*) win->hwnd, SW_SHOWNORMAL)) {
+	/* TODO: Leaky error states. */
+	win->hwnd = CreateWindow(
+            AGA_CLASS_NAME, "Aft Gang Aglay", mask,
+            CW_USEDEFAULT, CW_USEDEFAULT, (int) width, (int) height,
+            0, 0, env->module, 0);
+    if(!win->hwnd) return aga_win32_error(__FILE__, "CreateWindow");
+
+    if(!ShowWindow((void*) win->hwnd, SW_SHOWNORMAL)) {
 		return aga_win32_error(__FILE__, "ShowWindow");
 	}
 
-	if(!(win->dc = GetDC((void*) win->hwnd))) {
+	if(!(dc = GetDC((void*) win->hwnd))) {
 		return aga_win32_error(__FILE__, "GetDC");
 	}
 
-	if(!(ind = ChoosePixelFormat(win->dc, &pixel_format))) {
+	if(!(ind = ChoosePixelFormat(dc, &pixel_format))) {
 		return aga_win32_error(__FILE__, "ChoosePixelFormat");
 	}
-	if(!SetPixelFormat(win->dc, ind, &pixel_format)) {
+	if(!SetPixelFormat(dc, ind, &pixel_format)) {
 		return aga_win32_error(__FILE__, "SetPixelFormat");
+	}
+
+	result = aga_window_set_wgl(env, win, dc);
+	if(result) return result;
+
+	if(!ReleaseDC(win->hwnd, dc)) {
+		return aga_win32_error(__FILE__, "ReleaseDC");
 	}
 
 	mouse.hwndTarget = win->hwnd;
@@ -327,7 +373,11 @@ enum aga_result aga_window_delete(
 	if(!env) return AGA_RESULT_BAD_PARAM;
 	if(!win) return AGA_RESULT_BAD_PARAM;
 
-	return AGA_RESULT_OK;
+    if(win->wgl && !wglDeleteContext(win->wgl)) {
+        return aga_win32_error(__FILE__, "wglDeleteContext");
+    }
+
+    return AGA_RESULT_OK;
 }
 
 enum aga_result aga_keymap_lookup(
@@ -341,37 +391,6 @@ enum aga_result aga_keymap_lookup(
 	if(sym > AGAW_KEYMAX) return AGA_RESULT_BAD_OP;
 
 	*state = keymap->states[sym];
-
-	return AGA_RESULT_OK;
-}
-
-enum aga_result aga_window_device_glx_new(
-		struct aga_window_device* env, struct aga_window* win) {
-
-	HGDIOBJ font;
-
-	if(!env) return AGA_RESULT_BAD_PARAM;
-	if(!win) return AGA_RESULT_BAD_PARAM;
-
-	if(!(env->wgl = wglCreateContext(win->dc))) {
-		return aga_win32_error(__FILE__, "wglCreateContext");
-	}
-
-	if(!wglMakeCurrent(win->dc, env->wgl)) {
-		return aga_win32_error(__FILE__, "wglMakeCurrent");
-	}
-
-	if(!(font = GetStockObject(SYSTEM_FONT))) {
-		return aga_win32_error(__FILE__, "GetStockObject");
-	}
-
-	if(!SelectObject(win->dc, font)) {
-		return aga_win32_error(__FILE__, "SelectObject");
-	}
-
-	if(!wglUseFontBitmaps(win->dc, 0, 256, AGA_FONT_LIST_BASE)) {
-		return aga_win32_error(__FILE__, "wglUseFontBitmaps");
-	}
 
 	return AGA_RESULT_OK;
 }
@@ -437,11 +456,21 @@ enum aga_result aga_window_set_cursor(
 enum aga_result aga_window_swap(
 		struct aga_window_device* env, struct aga_window* win) {
 
+	void* dc;
+
 	if(!env) return AGA_RESULT_BAD_PARAM;
 	if(!win) return AGA_RESULT_BAD_PARAM;
 
-	if(!SwapBuffers(win->dc)) {
+	if(!(dc = GetDC((void*) win->hwnd))) {
+		return aga_win32_error(__FILE__, "GetDC");
+	}
+
+	if(!SwapBuffers(dc)) {
 		return aga_win32_error(__FILE__, "SwapBuffers");
+	}
+
+	if(!ReleaseDC(win->hwnd, dc)) {
+		return aga_win32_error(__FILE__, "ReleaseDC");
 	}
 
 	return AGA_RESULT_OK;
@@ -485,12 +514,12 @@ enum aga_result aga_window_device_poll(
 	SetCursor(env->visible ? env->cursor : 0);
 
 	SetLastError(0);
-	SetWindowLongPtrA(win->hwnd, GWLP_USERDATA, (LONG_PTR) &pack);
-	if(GetLastError()) return aga_win32_error(__FILE__, "SetWindowLongPtrA");
+	SetWindowLongPtr(win->hwnd, GWLP_USERDATA, (LONG_PTR) &pack);
+	if(GetLastError()) return aga_win32_error(__FILE__, "SetWindowLongPtr");
 
-	while(PeekMessageA(&msg, 0, 0, 0, PM_REMOVE)) {
+	while(PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
 		TranslateMessage(&msg);
-		DispatchMessageA(&msg);
+		DispatchMessage(&msg);
 	}
 
 	return AGA_RESULT_OK;
@@ -508,8 +537,8 @@ enum aga_result aga_dialog(
 	if(!title) return AGA_RESULT_BAD_PARAM;
 	if(!response) return AGA_RESULT_BAD_PARAM;
 
-	if(!(res = MessageBoxA(0, message, title, flags))) {
-		return aga_win32_error(__FILE__, "MessageBoxA");
+	if(!(res = MessageBox(0, message, title, flags))) {
+		return aga_win32_error(__FILE__, "MessageBox");
 	}
 
 	*response = (res == IDYES);
@@ -554,7 +583,7 @@ enum aga_result aga_dialog_file(char** result) {
 	openfile.lpstrInitialDir = ".";
 	openfile.Flags = OFN_FILEMUSTEXIST;
 
-	if(!GetOpenFileNameA(&openfile)) {
+	if(!GetOpenFileName(&openfile)) {
 		aga_free(*result);
 		return aga_windiagerr(CommDlgExtendedError());
 	}
@@ -567,11 +596,11 @@ enum aga_result aga_shell_open(const char* uri) {
 
 	if(!uri) return AGA_RESULT_BAD_PARAM;
 
-	if((INT_PTR) ShellExecuteA(0, 0, uri, 0, 0, flags) > 32) {
+	if((INT_PTR) ShellExecute(0, 0, uri, 0, 0, flags) > 32) {
 		return AGA_RESULT_OK;
 	}
 
-	return aga_win32_error_path(__FILE__, "ShellExecuteA", uri);
+	return aga_win32_error_path(__FILE__, "ShellExecute", uri);
 }
 
 #endif

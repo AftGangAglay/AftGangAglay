@@ -108,8 +108,8 @@ static enum aga_result aga_gl_result(aga_uint_t err) {
 enum aga_result aga_win32_error_path(
 		const char* loc, const char* proc, const char* path) {
 
-	DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-				  FORMAT_MESSAGE_IGNORE_INSERTS;
+	static const DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER |
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
 	DWORD err;
 	DWORD written;
 	LPSTR buf;
@@ -117,8 +117,8 @@ enum aga_result aga_win32_error_path(
 	if(loc) {
 		if(!(err = GetLastError())) return AGA_RESULT_OK;
 
-		if(!(written = FormatMessageA(flags, 0, err, 0, (LPSTR) &buf, 0, 0))) {
-			aga_log(__FILE__, "err: FormatMessageA failed");
+		if(!(written = FormatMessage(flags, 0, err, 0, (LPSTR) &buf, 0, 0))) {
+			aga_log(__FILE__, "err: FormatMessage failed");
 			return AGA_RESULT_ERROR;
 		}
 

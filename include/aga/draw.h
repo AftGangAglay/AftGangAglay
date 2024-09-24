@@ -29,4 +29,7 @@ enum aga_result aga_draw_pop(void);
 
 enum aga_result aga_draw_fidelity(aga_bool_t);
 
+/* NOTE: Outputs pointer to static string storage. */
+enum aga_result aga_renderer_string(const char**);
+
 #endif

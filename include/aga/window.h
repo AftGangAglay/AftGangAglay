@@ -12,47 +12,16 @@
 #include <aga/result.h>
 
 #ifdef _WIN32
-struct aga_window {
-	void* hwnd;
-	void* dc;
-	aga_size_t width, height;
-
-	int client_off_x, client_off_y;
-};
-
-struct aga_keymap {
-	aga_bool_t* states;
-};
-
-struct aga_window_device {
-	void* module;
-	void* wgl;
-	void* cursor;
-	int class;
-	aga_bool_t visible, captured;
-};
+# include <aga/sys/win32/windowdata.h>
 #else
-struct aga_window {
-	aga_size_t width, height;
-	aga_ulong_t window;
-	aga_ulong_t blank_cursor, arrow_cursor;
-};
-
-struct aga_keymap {
-	aga_bool_t* states;
-};
-
-struct aga_window_device {
-	void* display;
-	void* glx;
-	aga_ulong_t wm_delete;
-	int display_fd;
-	int screen;
-	aga_bool_t double_buffered;
-	aga_bool_t captured;
-};
+# include <aga/sys/x/windowdata.h>
 #endif
 
+struct aga_keymap {
+    aga_bool_t* states;
+};
+
+/* TODO: Use this for keystrokes and button presses. */
 enum aga_button_state {
 	AGA_BUTTON_UP,
 	AGA_BUTTON_DOWN,
@@ -78,12 +47,11 @@ struct aga_pointer {
 
 /*
  * NOTE: Glyphs are generated as display lists corresponding to the ASCII value
- * 		 Of each printable character (i.e. `glCallList('a')')
+ * 		 Of each printable character (i.e. `glCallList('a')') with the list
+ * 		 Base `AGA_FONT_LIST_BASE'.
  */
 enum aga_result aga_window_device_new(struct aga_window_device*, const char*);
 enum aga_result aga_window_device_delete(struct aga_window_device*);
-enum aga_result aga_window_device_glx_new(
-		struct aga_window_device*, struct aga_window*);
 
 enum aga_result aga_window_device_poll(
 		struct aga_window_device*, struct aga_keymap*, struct aga_window*,
@@ -96,17 +64,16 @@ enum aga_result aga_keymap_lookup(struct aga_keymap*, unsigned, aga_bool_t*);
 
 enum aga_result aga_window_new(
 		aga_size_t, aga_size_t, struct aga_window_device*, struct aga_window*,
-		int, char**);
+        aga_bool_t, int, char**);
 
 enum aga_result aga_window_delete(
 		struct aga_window_device*, struct aga_window*);
-
 
 /*
  * NOTE: Cursor capture is a somewhat importable concept. As it stands, we
  * 		 Consider the cursor to be captured if mouse deltas continue to be
  * 		 Recorded as the mouse moves indefinitely in one direction and the
- * 		 Cursor does not move outside the Window bounds - i.e. sliding the
+ * 		 Cursor does not move outside the window bounds - i.e. sliding the
  * 		 Mouse to the left across your entire desk would continue to report
  * 		 (-1, 0) and would not hover any other Windows to the left of `win'.
  */

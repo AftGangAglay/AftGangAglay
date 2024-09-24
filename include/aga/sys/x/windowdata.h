@@ -7,18 +7,23 @@
 
 struct aga_window {
 	aga_size_t width, height;
+
 	aga_ulong_t window;
+	void* glx;
+
+	aga_bool_t double_buffered;
+
 	aga_ulong_t blank_cursor, arrow_cursor;
 };
 
 struct aga_window_device {
-	void* display;
-	void* glx;
-	aga_ulong_t wm_delete;
-	int display_fd;
 	int screen;
-	aga_bool_t double_buffered;
-	aga_bool_t captured;
+	void* display;
+	int display_fd;
+
+	aga_ulong_t wm_protocols, wm_delete;
+
+	struct aga_window* capture;
 };
 
 #endif

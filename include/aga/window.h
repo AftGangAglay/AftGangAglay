@@ -58,8 +58,8 @@ enum aga_result aga_window_device_new(struct aga_window_device*, const char*);
 enum aga_result aga_window_device_delete(struct aga_window_device*);
 
 enum aga_result aga_window_device_poll(
-		struct aga_window_device*, struct aga_keymap*, struct aga_window*,
-		struct aga_pointer*, aga_bool_t*, struct aga_buttons*);
+		struct aga_window_device*, struct aga_keymap*, struct aga_pointer*,
+		aga_bool_t*, struct aga_buttons*);
 
 enum aga_result aga_keymap_new(struct aga_keymap*, struct aga_window_device*);
 enum aga_result aga_keymap_delete(struct aga_keymap*);
@@ -74,7 +74,8 @@ enum aga_result aga_window_new(
 enum aga_result aga_window_delete(
 		struct aga_window_device*, struct aga_window*);
 
-enum aga_result aga_window_select(struct aga_window*);
+enum aga_result aga_window_select(
+		struct aga_window_device*, struct aga_window*);
 
 /*
  * NOTE: Cursor capture is a somewhat importable concept. As it stands, we

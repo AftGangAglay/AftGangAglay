@@ -12,6 +12,11 @@
 #include <aga/script.h>
 
 /*
+ * TODO: Allow inplace use of UNIX `compress'/`uncompress' utilities on pack
+ * 		 In distribution.
+ */
+
+/*
  * TODO: Allow pack input as a "raw" argument and make space for a shebang so
  * 		 Packs can be executed directly by the shell if we're installed on the
  * 		 System.

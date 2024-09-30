@@ -44,15 +44,13 @@ enum aga_result agan_misc_register(struct py_env* env) {
 struct py_object* agan_getconf(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
-	struct aga_settings* opts;
+	struct aga_settings* opts = AGA_GET_USERDATA(env)->opts;
 	struct py_object* v;
 
 	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_GETCONF);
-
-	if(!(opts = aga_getscriptptr(AGA_SCRIPT_SETTINGS))) return 0;
 
 	/* getconf(list[...]) */
 	if(!aga_arg_list(args, PY_TYPE_LIST)) {
@@ -134,7 +132,7 @@ struct py_object* agan_log(
 struct py_object* agan_die(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
-	aga_bool_t* die;
+	aga_bool_t* die = AGA_GET_USERDATA(env)->die;
 
 	(void) env;
 	(void) self;
@@ -143,10 +141,20 @@ struct py_object* agan_die(
 
 	if(args) return aga_arg_error("die", "none");
 
-	if(!(die = aga_getscriptptr(AGA_SCRIPT_DIE))) return 0;
 	*die = AGA_TRUE;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_DIE);
 
 	return py_object_incref(PY_NONE);
+}
+
+struct py_object* agan_dt(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
+	(void) env;
+	(void) self;
+
+	if(args) return aga_arg_error("dt", "none");
+
+	return py_int_new(*AGA_GET_USERDATA(env)->dt);
 }

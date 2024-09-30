@@ -58,6 +58,10 @@ static void aga_setbuttondown(struct aga_buttons* b, enum aga_button t) {
 	*v = ((*v == AGA_BUTTON_UP) ? AGA_BUTTON_CLICK : AGA_BUTTON_DOWN);
 }
 
+/*
+ * TODO: Attach winpack to all windows so poll can be window-independent?
+ * 		 Current setup does not handle multiwindow well -- especially teardown.
+ */
 static LRESULT CALLBACK aga_winproc(
 		HWND wnd, UINT msg, WPARAM w_param, LPARAM l_param) {
 
@@ -170,9 +174,6 @@ static LRESULT CALLBACK aga_winproc(
 		}
 
 		case WM_CLOSE: {
-			if(!DestroyWindow(wnd)) {
-				(void) aga_win32_error(__FILE__, "DestroyWindow");
-			}
 			*pack->die = AGA_TRUE;
 			return 0;
 		}
@@ -384,6 +385,10 @@ enum aga_result aga_window_delete(
     if(win->wgl && !wglDeleteContext(win->wgl)) {
         return aga_win32_error(__FILE__, "wglDeleteContext");
     }
+
+	if(DestroyWindow(win->hwnd)) {
+		return aga_win32_error(__FILE__, "DestroyWindow");
+	}
 
     return AGA_RESULT_OK;
 }

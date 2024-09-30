@@ -48,14 +48,12 @@ struct py_object* agan_setcam(
 	aga_bool_t b;
 	double ar;
 
-	struct aga_settings* opts;
+	struct aga_settings* opts = AGA_GET_USERDATA(env)->opts;
 
 	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_SETCAM);
-
-	if(!(opts = aga_getscriptptr(AGA_SCRIPT_SETTINGS))) return 0;
 
 	/* setcam(dict, int) */
 	if(!aga_vararg_list(args, PY_TYPE_TUPLE, 2) ||
@@ -97,6 +95,8 @@ struct py_object* agan_setcam(
 struct py_object* agan_text(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
+	static const float color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+
 	const char* text;
 	struct py_object* str;
 	struct py_object* t;
@@ -123,7 +123,8 @@ struct py_object* agan_text(
 	x = (float) py_float_get(py_list_get(t, 0));
 	y = (float) py_float_get(py_list_get(t, 1));
 
-	if(aga_script_err("aga_render_text", aga_render_text(x, y, text))) {
+	/* TODO: Color. */
+	if(aga_script_err("aga_render_text", aga_render_text(x, y, color, text))) {
 		return 0;
 	}
 
@@ -203,7 +204,7 @@ struct py_object* agan_clear(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	aga_size_t i;
-	float col[4];
+	float color[4];
 
 	(void) env;
 	(void) self;
@@ -215,11 +216,11 @@ struct py_object* agan_clear(
 		return aga_arg_error("clear", "float[4]");
 	}
 
-	for(i = 0; i < AGA_LEN(col); ++i) {
-		col[i] = (float) py_float_get(py_list_get(args, i));
+	for(i = 0; i < AGA_LEN(color); ++i) {
+		color[i] = (float) py_float_get(py_list_get(args, i));
 	}
 
-	if(aga_script_err("aga_render_clear", aga_render_clear(col))) return 0;
+	if(aga_script_err("aga_render_clear", aga_render_clear(color))) return 0;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_CLEAR);
 
@@ -298,14 +299,12 @@ struct py_object* agan_getpix(
 	/* TODO: Gracefully handle single vs. double buffered envs. */
 	enum agan_surface surface = AGAN_SURFACE_BACK;
 
-	struct aga_window* win;
+	struct aga_window* win = AGA_GET_USERDATA(env)->window;
 
 	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_GETPIX);
-
-	if(!(win = aga_getscriptptr(AGA_SCRIPT_WINDOW))) return 0;
 
 	list = args;
 

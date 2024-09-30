@@ -97,4 +97,11 @@ void apro_clear(void);
 
 const char* apro_section_name(enum apro_section);
 
+struct apro_section_look {
+	float color[4];
+	float width;
+};
+
+struct apro_section_look apro_section_look(enum apro_section);
+
 #endif

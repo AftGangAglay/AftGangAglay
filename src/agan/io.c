@@ -34,14 +34,12 @@ struct py_object* agan_getkey(
 
 	enum aga_result result;
 	aga_bool_t b;
-	struct aga_keymap* keymap;
+	struct aga_keymap* keymap = AGA_GET_USERDATA(env)->keymap;
 
 	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_GETKEY);
-
-	if(!(keymap = aga_getscriptptr(AGA_SCRIPT_KEYMAP))) return 0;
 
 	/* getkey(int) */
 	if(!aga_arg_list(args, PY_TYPE_INT)) return aga_arg_error("getkey", "int");
@@ -63,7 +61,7 @@ struct py_object* agan_getmotion(
 
 	struct py_object* retval;
 	struct py_object* o;
-	struct aga_pointer* pointer;
+	struct aga_pointer* pointer = AGA_GET_USERDATA(env)->pointer;
 
 	(void) env;
 	(void) self;
@@ -71,8 +69,6 @@ struct py_object* agan_getmotion(
 	apro_stamp_start(APRO_SCRIPTGLUE_GETMOTION);
 
 	if(args) return aga_arg_error("getmotion", "none");
-
-	if(!(pointer = aga_getscriptptr(AGA_SCRIPT_POINTER))) return 0;
 
 	if(!(retval = py_list_new(2))) return py_error_set_nomem();
 
@@ -96,15 +92,14 @@ struct py_object* agan_setcursor(
 	struct py_object* c;
 
 	struct aga_window_device* window_device;
-	struct aga_window* win;
+	struct aga_window* win = AGA_GET_USERDATA(env)->window;
 
 	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_SETCURSOR);
 
-	if(!(window_device = aga_getscriptptr(AGA_SCRIPT_WINDOW_DEVICE))) return 0;
-	if(!(win = aga_getscriptptr(AGA_SCRIPT_WINDOW))) return 0;
+	window_device = AGA_GET_USERDATA(env)->window_device;
 
 	/* setcursor(int, int) */
 	if(!aga_vararg_list(args, PY_TYPE_TUPLE, 2) ||
@@ -131,7 +126,7 @@ struct py_object* agan_getbuttons(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	struct py_object* retval;
-	struct aga_buttons* buttons;
+	struct aga_buttons* buttons = AGA_GET_USERDATA(env)->buttons;
 	unsigned i;
 
 	(void) env;
@@ -140,8 +135,6 @@ struct py_object* agan_getbuttons(
 	apro_stamp_start(APRO_SCRIPTGLUE_GETBUTTONS);
 
 	if(args) return aga_arg_error("getbuttons", "none");
-
-	if(!(buttons = aga_getscriptptr(AGA_SCRIPT_BUTTONS))) return 0;
 
 	if(!(retval = py_list_new(AGA_BUTTON_MAX))) return py_error_set_nomem();
 
@@ -163,12 +156,10 @@ struct py_object* agan_getpos(
 	struct py_object* retval;
 	struct py_object* v;
 
-	struct aga_pointer* pointer;
+	struct aga_pointer* pointer = AGA_GET_USERDATA(env)->pointer;
 
 	(void) env;
 	(void) self;
-
-	if(!(pointer = aga_getscriptptr(AGA_SCRIPT_POINTER))) return 0;
 
 	if(args) return aga_arg_error("getpos", "none");
 

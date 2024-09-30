@@ -133,7 +133,7 @@ static enum aga_result aga_compilescript(
 
 enum aga_result aga_script_engine_new(
 		struct aga_script_engine* eng, const char* script,
-		struct aga_resource_pack* pack, const char* pypath) {
+		struct aga_resource_pack* pack, const char* pypath, void* user) {
 
 	enum aga_result result;
 	enum py_result pyres;
@@ -143,6 +143,8 @@ enum aga_result aga_script_engine_new(
 
 	eng->py = aga_calloc(1, sizeof(struct py));
 	if(!eng->py) return AGA_RESULT_OOM;
+
+	eng->py->user = user;
 
 	eng->env = aga_calloc(1, sizeof(struct py_env));
 	if(!eng->env) return AGA_RESULT_OOM;
@@ -161,9 +163,6 @@ enum aga_result aga_script_engine_new(
 	if(pyres != PY_RESULT_OK) return aga_pyresult(pyres);
 
 	result = aga_mkmod(eng->env, (void**) &eng->agan);
-	if(result) return result;
-
-	result = aga_script_engine_set_pointer(eng, AGA_SCRIPT_RESOURCE_PACK, pack);
 	if(result) return result;
 
 	result = aga_compilescript(

@@ -45,12 +45,10 @@ static struct py_object* agan_killpack(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	enum aga_result result;
-	struct aga_resource_pack* pack;
+	struct aga_resource_pack* pack = AGA_GET_USERDATA(env)->resource_pack;
 
 	(void) env;
 	(void) self;
-
-	if(!(pack = aga_getscriptptr(AGA_SCRIPT_RESOURCE_PACK))) return 0;
 
 	if(args) return aga_arg_error("killpack", "none");
 
@@ -64,14 +62,11 @@ static struct py_object* agan_mkpack(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	enum aga_result result;
-	struct aga_resource_pack* pack;
-	struct aga_settings* opts;
+	struct aga_resource_pack* pack = AGA_GET_USERDATA(env)->resource_pack;
+	struct aga_settings* opts = AGA_GET_USERDATA(env)->opts;
 
 	(void) env;
 	(void) self;
-
-	if(!(pack = aga_getscriptptr(AGA_SCRIPT_RESOURCE_PACK))) return 0;
-	if(!(opts = aga_getscriptptr(AGA_SCRIPT_SETTINGS))) return 0;
 
 	if(args) return aga_arg_error("mkpack", "none");
 

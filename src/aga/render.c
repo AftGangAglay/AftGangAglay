@@ -11,15 +11,16 @@
 #include <aga/std.h>
 #include <aga/error.h>
 
-enum aga_result aga_render_text(float x, float y, const char* text) {
+enum aga_result aga_render_text(
+		float x, float y, const float* color, const char* text) {
+
 	enum aga_result result;
 	enum aga_draw_flags fl = aga_draw_get();
 
 	if((result = aga_draw_push())) return result;
 	if((result = aga_draw_set(AGA_DRAW_NONE))) return result;
 
-	/* TODO: Proper text parameters. */
-	glColor3f(1.0f, 1.0f, 1.0f);
+	glColor4fv(color);
 
 	glRasterPos2f(x, y);
 	if((result = aga_error_gl(__FILE__, "glRasterPos2f"))) return result;
@@ -31,13 +32,13 @@ enum aga_result aga_render_text(float x, float y, const char* text) {
 	if((result = aga_error_gl(__FILE__, "glCallLists"))) return result;
 
 	if((result = aga_draw_pop())) return result;
-
 	return aga_draw_set(fl);
 }
 
 enum aga_result aga_render_text_format(
-		float x, float y, const char* fmt, ...) {
+		float x, float y, const float* color, const char* fmt, ...) {
 
+	/* TODO: Review usages -- most of these should probably be static. */
 	aga_fixed_buf_t buf = { 0 };
 	va_list ap;
 
@@ -48,21 +49,46 @@ enum aga_result aga_render_text_format(
 	}
 	va_end(ap);
 
-	return aga_render_text(x, y, buf);
+	return aga_render_text(x, y, color, buf);
 }
 
-enum aga_result aga_render_clear(const float* col) {
+enum aga_result aga_render_line_graph(
+		const float* heights, aga_size_t count, float width,
+		const float* color) {
+
 	enum aga_result result;
 
-	if(!col) return AGA_RESULT_BAD_PARAM;
+	aga_size_t i;
+	enum aga_draw_flags fl = aga_draw_get();
 
-	glClearColor(col[0], col[1], col[2], col[3]);
-	result = aga_error_gl(__FILE__, "glClearColor");
-	if(result) return result;
+	float dx = 1.0f / (float) (count - 1);
+
+	if((result = aga_draw_push())) return result;
+	if((result = aga_draw_set(AGA_DRAW_NONE))) return result;
+
+	glLineWidth(width);
+	if((result = aga_error_gl(__FILE__, "glLineWidth"))) return result;
+
+	glBegin(GL_LINE_STRIP);
+		glColor4fv(color);
+		for(i = 0; i < count; ++i) glVertex2f(i * dx, 1.0f - heights[i]);
+	glEnd();
+	if((result = aga_error_gl(__FILE__, "glEnd"))) return result;
+
+	if((result = aga_draw_pop())) return result;
+	return aga_draw_set(fl);
+}
+
+enum aga_result aga_render_clear(const float* color) {
+	enum aga_result result;
+
+	if(!color) return AGA_RESULT_BAD_PARAM;
+
+	glClearColor(color[0], color[1], color[2], color[3]);
+	if((result = aga_error_gl(__FILE__, "glClearColor"))) return result;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	result = aga_error_gl(__FILE__, "glClear");
-	if(result) return result;
+	if((result = aga_error_gl(__FILE__, "glClear"))) return result;
 
 	return AGA_RESULT_OK;
 }

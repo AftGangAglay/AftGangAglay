@@ -9,6 +9,8 @@
 #include <aga/result.h>
 #include <aga/python.h>
 
+#define AGA_GET_USERDATA(env) ((struct aga_script_userdata*) env->py->user)
+
 struct py_env;
 
 struct aga_config_node;
@@ -30,8 +32,6 @@ enum aga_result aga_mkmod(struct py_env*, void**);
 aga_bool_t aga_script_err(const char*, enum aga_result);
 
 aga_bool_t aga_script_gl_err(const char*);
-
-void* aga_getscriptptr(const char*);
 
 aga_bool_t agan_settransmat(struct py_object*, aga_bool_t);
 

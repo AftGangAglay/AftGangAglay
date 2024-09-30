@@ -32,28 +32,62 @@ static enum aga_result aga_put_default(void) {
 
 	static const char str1[] = "No project loaded or no script files provided";
 	static const char str2[] = "Did you forget `-f' or `-C'?";
-	static const float col[] = { 0.6f, 0.3f, 0.8f, 1.0f };
+	static const float text_color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	static const float color[] = { 0.6f, 0.3f, 0.8f, 1.0f };
 
-	if((result = aga_render_clear(col))) return result;
+	if((result = aga_render_clear(color))) return result;
 
-	result = aga_render_text_format(0.05f, 0.1f, str1);
+	result = aga_render_text_format(0.05f, 0.1f, text_color, str1);
 	if(result) return result;
 
-	return aga_render_text_format(0.05f, 0.2f, str2);
+	return aga_render_text_format(0.05f, 0.2f, text_color, str2);
 }
 
-#ifndef NDEBUG
-
+/* TODO: Controls to select+compare certain stats by themselves/highlighted. */
 static void aga_put_profile(unsigned y, unsigned x, enum apro_section s) {
+	enum aga_result result;
 	aga_ulong_t us = apro_stamp_us(s);
-	float tx = 0.01f + (0.035f * (float) x);
-	float ty = 0.05f + (0.035f * (float) y);
-	enum aga_result result = aga_render_text_format(
-			tx, ty, "%s: %llu", apro_section_name(s), us);
-	aga_error_check_soft(__FILE__, "aga_render_text_format", result);
-}
+	struct apro_section_look look = apro_section_look(s);
 
-#endif
+	/* Graph. */
+	{
+#define AGA_GRAPH_SEGMENTS (10)
+		static const aga_size_t segments = AGA_GRAPH_SEGMENTS;
+
+		static aga_ulong_t max = 5000; /* TODO: Controllable. */
+		static aga_ulong_t (histories[APRO_MAX])[AGA_GRAPH_SEGMENTS] = { 0 };
+
+		aga_size_t i;
+		aga_ulong_t (*history)[AGA_GRAPH_SEGMENTS] = &histories[s];
+		float heights[AGA_GRAPH_SEGMENTS];
+
+		/* if(us > max) max = us; */
+
+		for(i = 0; i < segments; ++i) {
+			(*history)[i] = (*history)[i + 1];
+			heights[i] = (float) ((double) (*history)[i] / (double) max);
+		}
+		(*history)[segments - 1] = us;
+		heights[segments - 1] = (float) ((double) us / (double) max);
+
+		result = aga_render_line_graph(
+				heights, segments, look.width, look.color);
+		aga_error_check_soft(__FILE__, "aga_render_line_graph", result);
+	}
+
+	/* Textual Overlay. */
+	{
+		float tx, ty;
+
+		tx = 0.01f + (0.035f * (float) x);
+		ty = 0.05f + (0.035f * (float) y);
+
+		result = aga_render_text_format(
+				tx, ty, look.color, "%s: %llu", apro_section_name(s), us);
+
+		aga_error_check_soft(__FILE__, "aga_render_text_format", result);
+	}
+}
 
 int main(int argc, char** argv) {
 	enum aga_result result;
@@ -80,17 +114,31 @@ int main(int argc, char** argv) {
 								   AGA_DRAW_DEPTH | AGA_DRAW_FLAT;
 
 	aga_bool_t die = AGA_FALSE;
+	aga_ulong_t dt = 0;
 
 	const char* gl_version;
 
-#ifndef NDEBUG
+#ifdef AGA_DEVBUILD
 	/* TODO: CLI opt for this. */
 	aga_bool_t do_prof = !!aga_getenv("AGA_DOPROF");
 	struct aga_window prof_win = { 0 };
 #endif
 
+	struct aga_script_userdata userdata;
+
 	const char* logfiles[] = { 0 /* auto stdout */, "aga.log" };
 	aga_log_new(logfiles, AGA_LEN(logfiles));
+
+	userdata.keymap = &keymap;
+	userdata.pointer = &pointer;
+	userdata.opts = &opts;
+	userdata.sound_device = &snd;
+	userdata.die = &die;
+	userdata.window_device = &env;
+	userdata.window = &win;
+	userdata.resource_pack = &pack;
+	userdata.buttons = &buttons;
+	userdata.dt = &dt;
 
 	aga_log(__FILE__, "Breathing in the chemicals...");
 
@@ -119,7 +167,7 @@ int main(int argc, char** argv) {
 	result = aga_keymap_new(&keymap, &env);
 	aga_error_check(__FILE__, "aga_keymap_new", result);
 
-#ifndef NDEBUG
+#ifdef AGA_DEVBUILD
 	if(do_prof) {
 		result = aga_window_new(
 				640, 480, "Profile", &env, &prof_win, AGA_TRUE, argc, argv);
@@ -184,53 +232,10 @@ int main(int argc, char** argv) {
 	aga_log(__FILE__, "Starting up the script engine...");
 
 	result = aga_script_engine_new(
-			&script_engine, opts.startup_script, &pack, opts.python_path);
+			&script_engine, opts.startup_script, &pack, opts.python_path,
+			&userdata);
 	aga_error_check_soft(__FILE__, "aga_script_engine_new", result);
 	if(!result) {
-		result = aga_script_engine_set_pointer(
-				&script_engine, AGA_SCRIPT_KEYMAP, &keymap);
-		aga_error_check_soft(
-				__FILE__, "aga_script_engine_set_pointer", result);
-
-		result = aga_script_engine_set_pointer(
-				&script_engine, AGA_SCRIPT_POINTER, &pointer);
-		aga_error_check_soft(
-				__FILE__, "aga_script_engine_set_pointer", result);
-
-		result = aga_script_engine_set_pointer(
-				&script_engine, AGA_SCRIPT_SETTINGS, &opts);
-		aga_error_check_soft(
-				__FILE__, "aga_script_engine_set_pointer", result);
-
-		result = aga_script_engine_set_pointer(
-				&script_engine, AGA_SCRIPT_SOUND_DEVICE, &snd);
-		aga_error_check_soft(
-				__FILE__, "aga_script_engine_set_pointer", result);
-
-		result = aga_script_engine_set_pointer(
-				&script_engine, AGA_SCRIPT_DIE, &die);
-		aga_error_check_soft(
-				__FILE__, "aga_script_engine_set_pointer", result);
-
-		result = aga_script_engine_set_pointer(
-				&script_engine, AGA_SCRIPT_WINDOW_DEVICE, &env);
-		aga_error_check_soft(
-				__FILE__, "aga_script_engine_set_pointer", result);
-
-		result = aga_script_engine_set_pointer(
-				&script_engine, AGA_SCRIPT_WINDOW, &win);
-		aga_error_check_soft(
-				__FILE__, "aga_script_engine_set_pointer", result);
-
-		result = aga_script_engine_set_pointer(
-				&script_engine, AGA_SCRIPT_BUTTONS, &buttons);
-		aga_error_check_soft(
-				__FILE__, "aga_script_engine_set_pointer", result);
-
-		/* NOTE: Pack gets set during script engine init. */
-		/* AGA_SCRIPT_RESOURCE_PACK, &pack */
-
-		aga_log(__FILE__, "Hello, script engine!");
 		aga_log(__FILE__, "Instantiating game instance...");
 
 		result = aga_script_engine_lookup(&script_engine, &class, "game");
@@ -245,9 +250,6 @@ int main(int argc, char** argv) {
 	}
 
 	aga_log(__FILE__, "Done!");
-
-	result = aga_script_engine_set_pointer(&script_engine, "dt", 0);
-	aga_error_check_soft(__FILE__, "aga_script_engine_set_pointer", result);
 
 	while(!die) {
 		result = aga_window_select(&win);
@@ -292,24 +294,12 @@ int main(int argc, char** argv) {
 		}
 		apro_stamp_end(APRO_PRESWAP);
 
-#ifdef _MSC_VER
-# pragma warning(push)
-# pragma warning(disable: 4305) /* Type cast truncates. */
-#endif
+		dt = apro_stamp_us(APRO_PRESWAP);
 
-		result = aga_script_engine_set_pointer(
-				&script_engine, "dt", (void*) apro_stamp_us(APRO_PRESWAP));
-		aga_error_check_soft(
-				__FILE__, "aga_script_engine_set_pointer", result);
-
-#ifdef _MSC_VER
-# pragma warning(pop)
-#endif
-
-#ifndef NDEBUG
+#ifdef AGA_DEVBUILD
 		/* @formatter:off */
 		if(do_prof) {
-			static const float clear[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+			static const float clear[] = { 0.4f, 0.4f, 0.4f, 1.0f };
 
 			unsigned d = 0;
 			unsigned x = 0;
@@ -401,8 +391,29 @@ int main(int argc, char** argv) {
 	result = aga_window_delete(&env, &win);
 	aga_error_check_soft(__FILE__, "aga_window_delete", result);
 
+#ifdef AGA_DEVBUILD
+	if(do_prof) {
+		result = aga_window_delete(&env, &prof_win);
+		aga_error_check_soft(__FILE__, "aga_window_delete", result);
+	}
+#endif
+
 	result = aga_keymap_delete(&keymap);
 	aga_error_check_soft(__FILE__, "aga_keymap_delete", result);
+
+	/*
+	 * NOTE: Windows needs to process final Window messages for `WM_DESTROY'
+	 * 		 Before teardown.
+	 */
+	/*
+	 * TODO: Currently broken under multiwindow -- need to explicitly poll a
+	 * 		 Window that hasn't been closed.
+	 */
+	/*
+	result = aga_window_device_poll(
+			&env, &keymap, &win, &pointer, &die, &buttons);
+	aga_error_check_soft(__FILE__, "aga_window_device_poll", result);
+	 */
 
 	result = aga_window_device_delete(&env);
 	aga_error_check_soft(__FILE__, "aga_window_device_delete", result);

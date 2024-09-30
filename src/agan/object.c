@@ -108,23 +108,22 @@ static void agan_mkobj_extent(
  * 		 LOD -- especially when we have our zoning/distance culling system.
  */
 static aga_bool_t agan_mkobj_model(
-		struct agan_object* obj, struct aga_config_node* conf,
-		struct aga_resource_pack* pack, const char* objpath) {
+		struct py_env* env, struct agan_object* obj,
+		struct aga_config_node* conf, struct aga_resource_pack* pack,
+		const char* objpath) {
 
 	static const char* model = "Model";
 	static const char* texture = "Texture";
 	static const char* filter = "Filter";
 	static const char* mipmap = "Mipmap";
 
-	struct aga_settings* settings;
+	struct aga_settings* settings = AGA_GET_USERDATA(env)->opts;
 
 	enum aga_result result;
 
 	struct aga_resource* res;
 	unsigned mode = GL_COMPILE;
 	const char* path;
-
-	if(!(settings = aga_getscriptptr(AGA_SCRIPT_SETTINGS))) return 0;
 
 	/* TODO: Delete lists in error conditions. */
 	obj->drawlist = glGenLists(1);
@@ -491,7 +490,7 @@ struct py_object* agan_mkobj(
 	aga_bool_t m = AGA_FALSE;
 
 	const char* path;
-	struct aga_resource_pack* pack;
+	struct aga_resource_pack* pack = AGA_GET_USERDATA(env)->resource_pack;
 
 	/*
 	 * TODO: This is horrible (but only exists until we have an object registry
@@ -503,8 +502,6 @@ struct py_object* agan_mkobj(
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_MKOBJ);
-
-	if(!(pack = aga_getscriptptr(AGA_SCRIPT_RESOURCE_PACK))) return 0;
 
 	if(!aga_arg_list(args, PY_TYPE_STRING)) {
 		return aga_arg_error("mkobj", "string");
@@ -539,7 +536,7 @@ struct py_object* agan_mkobj(
 	}
 
 	if(agan_mkobj_trans(obj, &conf)) goto cleanup;
-	if(agan_mkobj_model(obj, &conf, pack, path)) goto cleanup;
+	if(agan_mkobj_model(env, obj, &conf, pack, path)) goto cleanup;
 	if(agan_mkobj_light(obj, &conf)) goto cleanup;
 
 	m = AGA_TRUE;

@@ -86,7 +86,7 @@ enum aga_result aga_mkmod(struct py_env* env, void** dict) {
 			aga_(shadeflat), aga_(getpix), aga_(setflag),
 
 			/* Miscellaneous */
-			aga_(getconf), aga_(log), aga_(die),
+			aga_(getconf), aga_(log), aga_(die), aga_(dt),
 
 			/* Objects */
 			aga_(mkobj), aga_(inobj), aga_(putobj), aga_(killobj),
@@ -130,29 +130,6 @@ aga_bool_t aga_script_err(const char* proc, enum aga_result err) {
 
 aga_bool_t aga_script_gl_err(const char* proc) {
 	return aga_script_err(proc, aga_error_gl(__FILE__, proc));
-}
-
-/* TODO: Generalised lookup helper since we no longer do nativeptr? */
-void* aga_getscriptptr(const char* key) {
-	struct py_object* ptr;
-
-	if(!key) {
-		py_error_set_string(py_runtime_error, "unexpected null pointer");
-		return 0;
-	}
-
-	if(!(ptr = py_dict_lookup(agan_dict, key))) {
-		py_error_set_string(
-				py_runtime_error, "failed to resolve script pointer");
-		return 0;
-	}
-
-	if(ptr->type != PY_TYPE_INT) {
-		py_error_set_badarg();
-		return 0;
-	}
-
-	return aga_script_pointer_get(ptr);
 }
 
 aga_bool_t agan_settransmat(struct py_object* trans, aga_bool_t inv) {

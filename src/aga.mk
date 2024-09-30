@@ -39,8 +39,8 @@ $(AGA_OUT): $(AGA_OBJ)
 
 $(AGA)script.c: $(PYGRAM)
 
-$(AGA)win$(OBJ): $(AGA)xwindow.h
-$(AGA)win$(OBJ): $(AGA)win32window.h
+$(AGA)window$(OBJ): $(AGA)xwindow.h
+$(AGA)window$(OBJ): $(AGA)win32window.h
 
 $(AGA)midi$(OBJ): $(AGA)win32midi.h
 

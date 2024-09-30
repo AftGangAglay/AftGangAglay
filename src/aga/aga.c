@@ -252,7 +252,7 @@ int main(int argc, char** argv) {
 	aga_log(__FILE__, "Done!");
 
 	while(!die) {
-		result = aga_window_select(&win);
+		result = aga_window_select(&env, &win);
 		aga_error_check_soft(__FILE__, "aga_window_select", result);
 
 		apro_stamp_start(APRO_PRESWAP);
@@ -263,7 +263,7 @@ int main(int argc, char** argv) {
 				pointer.dy = 0;
 
 				result = aga_window_device_poll(
-						&env, &keymap, &win, &pointer, &die, &buttons);
+						&env, &keymap, &pointer, &die, &buttons);
 				aga_error_check_soft(
 						__FILE__, "aga_window_device_poll", result);
 			}
@@ -305,7 +305,7 @@ int main(int argc, char** argv) {
 			unsigned x = 0;
 			unsigned n = 0;
 
-			result = aga_window_select(&prof_win);
+			result = aga_window_select(&env, &prof_win);
 			aga_error_check_soft(__FILE__, "aga_window_select", result);
 
 			result = aga_render_clear(clear);

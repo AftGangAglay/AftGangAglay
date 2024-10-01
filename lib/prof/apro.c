@@ -90,12 +90,12 @@ const char* apro_section_name(enum apro_section section) {
 		default: return "";
 		case APRO_PRESWAP: return "PRESWAP";
 		case APRO_POLL: return "POLL";
-		case APRO_SCRIPT_UPDATE: return "SCRIPT_UPDATE";
-		case APRO_SCRIPT_INSTCALL_RISING: return "SCRIPT_INSTCALL_RISING";
-		case APRO_SCRIPT_INSTCALL_EXEC: return "SCRIPT_INSTCALL_EXEC";
-		case APRO_CEVAL_CODE_EVAL_RISING: return "CEVAL_CODE_EVAL_RISING";
-		case APRO_CEVAL_CODE_EVAL: return "CEVAL_CODE_EVAL";
-		case APRO_CEVAL_CODE_EVAL_FALLING: return "CEVAL_CODE_EVAL_FALLING";
+		case APRO_SCRIPT_UPDATE: return "UPDATE";
+		case APRO_SCRIPT_INSTCALL_RISING: return "INSTCALL_RISING";
+		case APRO_SCRIPT_INSTCALL_EXEC: return "INSTCALL_EXEC";
+		case APRO_CEVAL_CODE_EVAL_RISING: return "CEVAL_RISING";
+		case APRO_CEVAL_CODE_EVAL: return "CEVAL";
+		case APRO_CEVAL_CODE_EVAL_FALLING: return "CEVAL_FALLING";
 		case APRO_RES_SWEEP: return "RES_SWEEP";
 		case APRO_SCRIPTGLUE_GETKEY: return "AGAN_GETKEY";
 		case APRO_SCRIPTGLUE_GETMOTION: return "AGAN_GETMOTION";
@@ -130,52 +130,4 @@ const char* apro_section_name(enum apro_section section) {
 		case APRO_PUTOBJ_FALLING: return "PUTOBJ_FALLING";
 		case APRO_MAX: return "MAX";
 	}
-}
-
-struct apro_section_look apro_section_look(enum apro_section section) {
-	static const struct apro_section_look looks[] = {
-		{ { 1.0f, 0.0f, 0.0f, 1.0f }, 2.0f }, /* PRESWAP */
-		{ { 0.0f, 1.0f, 0.0f, 1.0f }, 1.0f }, /* POLL */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPT_UPDATE */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPT_INSTCALL_RISING */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPT_INSTCALL_EXEC */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* CEVAL_CODE_EVAL_RISING */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* CEVAL_CODE_EVAL */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* CEVAL_CODE_EVAL_FALLING */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* RES_SWEEP */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_GETKEY */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_GETMOTION */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_SETCURSOR */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_GETBUTTONS */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_SETCAM */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_TEXT */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_FOGPARAM */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_FOGCOL */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_CLEAR */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_MKTRANS */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_SHADEFLAT */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_GETPIX */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_SETFLAG */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_GETFLAG */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_GETCONF */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_LOG */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_DIE */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_MKOBJ */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_INOBJ */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_PUTOBJ */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_KILLOBJ */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_OBJTRANS */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_OBJCONF */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_BITAND */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_BITSHL */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_RANDNORM */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* SCRIPTGLUE_BITOR */
-		{ { 0.0f, 1.0f, 1.0f, 1.0f }, 0.5f }, /* PUTOBJ_RISING */
-		{ { 0.0f, 1.0f, 1.0f, 1.0f }, 0.5f }, /* PUTOBJ_LIGHT */
-		{ { 0.0f, 1.0f, 1.0f, 1.0f }, 0.5f }, /* PUTOBJ_CALL */
-		{ { 0.0f, 1.0f, 1.0f, 1.0f }, 0.5f }, /* PUTOBJ_FALLING */
-		{ { 1.0f, 1.0f, 1.0f, 1.0f }, 0.1f }, /* MAX */
-	};
-
-	return looks[section];
 }

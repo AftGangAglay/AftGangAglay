@@ -393,8 +393,12 @@ enum aga_result aga_window_delete(
     return AGA_RESULT_OK;
 }
 
-enum aga_result aga_window_select(struct aga_window* win) {
+enum aga_result aga_window_select(
+		struct aga_window_device* env, struct aga_window* win) {
+
 	void* dc;
+
+	(void) env;
 
 	if(!win) return AGA_RESULT_BAD_PARAM;
 

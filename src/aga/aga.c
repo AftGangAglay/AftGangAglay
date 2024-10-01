@@ -18,6 +18,7 @@
 #include <aga/startup.h>
 #include <aga/script.h>
 #include <aga/build.h>
+#include <aga/graph.h>
 
 #include <apro.h>
 
@@ -41,52 +42,6 @@ static enum aga_result aga_put_default(void) {
 	if(result) return result;
 
 	return aga_render_text_format(0.05f, 0.2f, text_color, str2);
-}
-
-/* TODO: Controls to select+compare certain stats by themselves/highlighted. */
-static void aga_put_profile(unsigned y, unsigned x, enum apro_section s) {
-	enum aga_result result;
-	aga_ulong_t us = apro_stamp_us(s);
-	struct apro_section_look look = apro_section_look(s);
-
-	/* Graph. */
-	{
-#define AGA_GRAPH_SEGMENTS (10)
-		static const aga_size_t segments = AGA_GRAPH_SEGMENTS;
-
-		static aga_ulong_t max = 5000; /* TODO: Controllable. */
-		static aga_ulong_t (histories[APRO_MAX])[AGA_GRAPH_SEGMENTS] = { 0 };
-
-		aga_size_t i;
-		aga_ulong_t (*history)[AGA_GRAPH_SEGMENTS] = &histories[s];
-		float heights[AGA_GRAPH_SEGMENTS];
-
-		/* if(us > max) max = us; */
-
-		for(i = 0; i < segments; ++i) {
-			(*history)[i] = (*history)[i + 1];
-			heights[i] = (float) ((double) (*history)[i] / (double) max);
-		}
-		(*history)[segments - 1] = us;
-		heights[segments - 1] = (float) ((double) us / (double) max);
-
-		result = aga_render_line_graph(
-				heights, segments, look.width, look.color);
-		aga_error_check_soft(__FILE__, "aga_render_line_graph", result);
-	}
-
-	/* Textual Overlay. */
-	{
-		float tx, ty;
-
-		tx = 0.01f + (0.035f * (float) x);
-		ty = 0.05f + (0.035f * (float) y);
-
-		result = aga_render_text_format(
-				tx, ty, look.color, "%s: %llu", apro_section_name(s), us);
-
-		aga_error_check_soft(__FILE__, "aga_render_text_format", result);
-	}
 }
 
 int main(int argc, char** argv) {
@@ -118,11 +73,9 @@ int main(int argc, char** argv) {
 
 	const char* gl_version;
 
-#ifdef AGA_DEVBUILD
 	/* TODO: CLI opt for this. */
 	aga_bool_t do_prof = !!aga_getenv("AGA_DOPROF");
-	struct aga_window prof_win = { 0 };
-#endif
+	struct aga_graph prof = { 0 };
 
 	struct aga_script_userdata userdata;
 
@@ -167,14 +120,10 @@ int main(int argc, char** argv) {
 	result = aga_keymap_new(&keymap, &env);
 	aga_error_check(__FILE__, "aga_keymap_new", result);
 
-#ifdef AGA_DEVBUILD
 	if(do_prof) {
-		result = aga_window_new(
-				640, 480, "Profile", &env, &prof_win, AGA_TRUE, argc, argv);
-		aga_error_check_soft(__FILE__, "aga_window_new", result);
+		result = aga_graph_new(&prof, &env, argc, argv);
 		if(result) do_prof = AGA_FALSE;
 	}
-#endif
 
 	result = aga_window_new(
 			opts.width, opts.height, opts.title,
@@ -263,7 +212,7 @@ int main(int argc, char** argv) {
 				pointer.dy = 0;
 
 				result = aga_window_device_poll(
-						&env, &keymap, &pointer, &die, &buttons);
+						&env, &keymap, &win, &pointer, &die, &buttons);
 				aga_error_check_soft(
 						__FILE__, "aga_window_device_poll", result);
 			}
@@ -296,63 +245,11 @@ int main(int argc, char** argv) {
 
 		dt = apro_stamp_us(APRO_PRESWAP);
 
-#ifdef AGA_DEVBUILD
-		/* @formatter:off */
 		if(do_prof) {
-			static const float clear[] = { 0.4f, 0.4f, 0.4f, 1.0f };
-
-			unsigned d = 0;
-			unsigned x = 0;
-			unsigned n = 0;
-
-			result = aga_window_select(&env, &prof_win);
-			aga_error_check_soft(__FILE__, "aga_window_select", result);
-
-			result = aga_render_clear(clear);
-			aga_error_check_soft(__FILE__, "aga_render_clear", result);
-
-			aga_put_profile(d++, 0, APRO_PRESWAP);
-				aga_put_profile(d++, 1, APRO_POLL);
-				aga_put_profile(d++, 1, APRO_SCRIPT_UPDATE);
-					aga_put_profile(d++, 2, APRO_SCRIPT_INSTCALL_RISING);
-					aga_put_profile(d++, 2, APRO_SCRIPT_INSTCALL_EXEC);
-						aga_put_profile(d++, 4, APRO_CEVAL_CODE_EVAL_RISING);
-						aga_put_profile(d++, 4, APRO_CEVAL_CODE_EVAL);
-						aga_put_profile(d++, 4, APRO_CEVAL_CODE_EVAL_FALLING);
-				aga_put_profile(d, 1, APRO_RES_SWEEP);
-
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_GETKEY);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_GETMOTION);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_SETCURSOR);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_SETCAM);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_TEXT);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_FOGPARAM);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_FOGCOL);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_CLEAR);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_MKTRANS);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_GETCONF);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_LOG);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_DIE);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_MKOBJ);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_INOBJ);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_PUTOBJ);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_KILLOBJ);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_OBJTRANS);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_OBJCONF);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_BITAND);
-			aga_put_profile(x++, 12, APRO_SCRIPTGLUE_BITSHL);
-			aga_put_profile(x, 12, APRO_SCRIPTGLUE_RANDNORM);
-
-			aga_put_profile(n++, 20, APRO_PUTOBJ_RISING);
-			aga_put_profile(n++, 20, APRO_PUTOBJ_LIGHT);
-			aga_put_profile(n++, 20, APRO_PUTOBJ_CALL);
-			aga_put_profile(n, 20, APRO_PUTOBJ_FALLING);
-
-			result = aga_window_swap(&env, &prof_win);
-			aga_error_check_soft(__FILE__, "aga_window_swap", result);
+			result = aga_graph_update(&prof, &env);
+			aga_error_check_soft(__FILE__, "aga_graph_update", result);
 		}
-		/* @formatter:on */
-#endif
+
 		apro_clear();
 
 		/* Window is already dead/dying if `die' is set. */
@@ -391,12 +288,10 @@ int main(int argc, char** argv) {
 	result = aga_window_delete(&env, &win);
 	aga_error_check_soft(__FILE__, "aga_window_delete", result);
 
-#ifdef AGA_DEVBUILD
 	if(do_prof) {
-		result = aga_window_delete(&env, &prof_win);
+		result = aga_graph_delete(&prof, &env);
 		aga_error_check_soft(__FILE__, "aga_window_delete", result);
 	}
-#endif
 
 	result = aga_keymap_delete(&keymap);
 	aga_error_check_soft(__FILE__, "aga_keymap_delete", result);

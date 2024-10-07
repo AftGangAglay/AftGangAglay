@@ -12,6 +12,7 @@
 #include <aga/utility.h>
 #include <aga/draw.h>
 
+/* TODO: Move shell utils elsewhere and remove this. */
 #define AGA_WANT_UNIX
 #include <aga/std.h>
 
@@ -73,28 +74,16 @@ enum aga_result aga_window_device_new(
 	env->display = AGAX_CHK(XOpenDisplay, (display));
 	if(!env->display) return AGA_RESULT_ERROR;
 
-	{
-		int fl;
-
-		env->display_fd = ConnectionNumber(env->display);
-		if((fl = fcntl(env->display_fd, F_GETFL)) == -1) {
-			return aga_error_system(__FILE__, "fcntl");
-		}
-
-		fl |= O_NONBLOCK;
-		if(fcntl(env->display_fd, F_SETFL, fl) == -1) {
-			return aga_error_system(__FILE__, "fcntl");
-		}
-	}
-
 	env->screen = DefaultScreen(env->display);
 
 	env->wm_protocols = AGAX_CHK(XInternAtom,
 							 	(env->display, "WM_PROTOCOLS", True));
+
 	if(env->wm_protocols == None) return AGA_RESULT_BAD_PARAM;
 
 	env->wm_delete = AGAX_CHK(XInternAtom,
 							  (env->display, "WM_DELETE_WINDOW", True));
+
 	if(env->wm_delete == None) return AGA_RESULT_BAD_PARAM;
 
 	return AGA_RESULT_OK;
@@ -227,13 +216,13 @@ AGA_VERIFY(bitmap != None, AGA_RESULT_OOM);
 XFreePixmap(env->display, bitmap);
  */
 
+static const long aga_global_window_mask = KeyPressMask | KeyReleaseMask |
+					 PointerMotionMask | ButtonPressMask | ButtonReleaseMask;
+
 enum aga_result aga_window_new(
 		aga_size_t width, aga_size_t height, const char* title,
 		struct aga_window_device* env, struct aga_window* win,
 		aga_bool_t do_glx, int argc, char** argv) {
-
-	static const long mask = KeyPressMask | KeyReleaseMask |
-					PointerMotionMask | ButtonPressMask | ButtonReleaseMask;
 
 	enum aga_result result;
 
@@ -258,7 +247,9 @@ enum aga_result aga_window_new(
 	AGAX_CHK(XSetStandardProperties,
 			 (env->display, win->window, title, "", None, argv, argc, 0));
 
-	AGAX_CHK(XSelectInput, (env->display, win->window, mask));
+	AGAX_CHK(XSelectInput,
+			 (env->display, win->window, aga_global_window_mask));
+
 	{
 		Atom* protocols;
 		Atom* new_protocols;
@@ -386,16 +377,15 @@ enum aga_result aga_window_swap(
 
 enum aga_result aga_window_device_poll(
 		struct aga_window_device* env, struct aga_keymap* keymap,
-		struct aga_pointer* pointer, aga_bool_t* die,
-		struct aga_buttons* buttons) {
+		struct aga_window* window, struct aga_pointer* pointer,
+		aga_bool_t* die, struct aga_buttons* buttons) {
 
 	XEvent event;
-	struct pollfd fd;
-	int rdy;
 	unsigned i;
 
 	if(!env) return AGA_RESULT_BAD_PARAM;
 	if(!keymap) return AGA_RESULT_BAD_PARAM;
+	if(!window) return AGA_RESULT_BAD_PARAM;
 	if(!pointer) return AGA_RESULT_BAD_PARAM;
 	if(!die) return AGA_RESULT_BAD_PARAM;
 	if(!buttons) return AGA_RESULT_BAD_PARAM;
@@ -406,117 +396,129 @@ enum aga_result aga_window_device_poll(
 		}
 	}
 
-	fd.fd = env->display_fd;
-	fd.events = POLLIN;
+	/* Thanks to https://stackoverflow.com/a/78649018/13771204. */
 
 	/*
-	 * TODO: This appears to fail under WSLg unless a timeout of 1ms is set
-	 * 		 Which feels like we're doing something deeply importable here.
-	 * 		 Let's try to figure this out!
+	 * TODO: With these `XCheck*WindowEvent' functions we now have an event
+	 * 		 Queue split by window -- which means `poll' invocations can be
+	 * 		 Restructured elsewhere.
 	 */
-	if((rdy = poll(&fd, 1, 1)) == -1) {
-		return aga_error_system(__FILE__, "poll");
+	while(AGA_TRUE) {
+		int ret = XCheckTypedWindowEvent(
+				env->display, window->window, ClientMessage, &event);
+
+		if(!ret) break;
+
+		if(event.xclient.message_type == env->wm_protocols) {
+			aga_ulong_t atom = event.xclient.data.l[0];
+			if(atom == env->wm_delete) {
+				*die = AGA_TRUE;
+			}
+		}
 	}
 
-	if(rdy && (fd.revents & POLLIN)) {
-		while(AGAX_CHK(XPending, (env->display)) > 0) {
-			aga_bool_t press = AGA_FALSE;
+	while(AGA_TRUE) {
+		aga_bool_t press = AGA_FALSE;
 
-			AGAX_CHK(XNextEvent, (env->display, &event));
+		int ret = XCheckWindowEvent(
+				env->display, window->window, aga_global_window_mask, &event);
 
-			switch(event.type) {
-				default: break;
+		if(!ret) break;
 
-				/*
-				 * NOTE: This assumes `Button1 -> LMB', `Button2 -> RMB' and
-				 * 		 `Button3 -> MMB' which (apparently) isn't always true.
-				 */
-				case ButtonPress: {
-					press = AGA_TRUE;
-					AGA_FALLTHROUGH;
-				}
-				/* FALLTHROUGH */
-				case ButtonRelease: {
-					enum aga_button_state state;
-					enum aga_button button = event.xbutton.button - 1;
+		switch(event.type) {
+			default: break;
 
-					if(press) state = AGA_BUTTON_CLICK;
-					else state = AGA_BUTTON_UP;
+			/*
+			 * NOTE: This assumes `Button1 -> LMB', `Button2 -> RMB' and
+			 * 		 `Button3 -> MMB' which (apparently) isn't always true.
+			 */
+			case ButtonPress: {
+				press = AGA_TRUE;
+				AGA_FALLTHROUGH;
+			}
+			/* FALLTHROUGH */
+			case ButtonRelease: {
+				enum aga_button_state state;
+				enum aga_button button = event.xbutton.button - 1;
 
-					buttons->states[button] = state;
-					break;
-				}
+				if(event.xbutton.window != window->window) continue;
+
+				if(press) state = AGA_BUTTON_CLICK;
+				else state = AGA_BUTTON_UP;
+
+				buttons->states[button] = state;
+				break;
+			}
 
 #ifdef __GNUC__
 # pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
-				case KeyPress: {
-					press = AGA_TRUE;
-					AGA_FALLTHROUGH;
-				}
-				/* FALLTHROUGH */
-				case KeyRelease: {
-					unsigned keycode = event.xkey.keycode;
-					KeySym keysym = XKeycodeToKeysym(env->display, keycode, 0);
+			case KeyPress: {
+				press = AGA_TRUE;
+				AGA_FALLTHROUGH;
+			}
+			/* FALLTHROUGH */
+			case KeyRelease: {
+				unsigned keycode = event.xkey.keycode;
+				KeySym keysym = XKeycodeToKeysym(env->display, keycode, 0);
 
-					if(keysym > AGAX_KEY_MAX) break; /* Key out of range. */
+				if(event.xkey.window != window->window) continue;
 
-					keymap->states[keysym] = press;
-					break;
-				}
+				if(keysym > AGAX_KEY_MAX) break; /* Key out of range. */
+
+				keymap->states[keysym] = press;
+				break;
+			}
 #ifdef __GNUC__
 # pragma GCC diagnostic pop
 #endif
 
-				case MotionNotify: {
-					aga_ulong_t win = event.xmotion.window;
-					struct aga_window* capture = env->capture;
+			case MotionNotify: {
+				struct aga_window* capture = env->capture;
 
-					XWindowAttributes attr;
-
-					int x, y;
-					aga_bool_t centred;
-
-					AGAX_CHK(XGetWindowAttributes, (env->display, win, &attr));
-
-					x = (int) attr.width / 2;
-					y = (int) attr.height / 2;
-
-					centred = (event.xmotion.x == x && event.xmotion.y == y);
-
-					if((capture && !centred) || !capture) {
+				if(!capture) {
+					update_pointer: {
 						pointer->dx = event.xmotion.x - pointer->x;
 						pointer->dy = event.xmotion.y - pointer->y;
 
 						pointer->x = event.xmotion.x;
 						pointer->y = event.xmotion.y;
-					}
 
-					if(!capture) break;
+						break;
+					}
+				}
+
+				/* Handle captured pointer. */
+				{
+					aga_ulong_t win;
+					aga_bool_t centred;
+					int x = (int) capture->width / 2;
+					int y = (int) capture->height / 2;
+
+					win = capture->window;
+					centred = (event.xmotion.x == x && event.xmotion.y == y);
 
 					if(capture->window == event.xmotion.window && !centred) {
 						AGAX_CHK(XWarpPointer,
 								 (env->display, win, win, 0, 0, 0, 0, x, y));
 					}
 
+					if(!centred) goto update_pointer;
+
 					break;
 				}
+			}
 
-				case ClientMessage: {
-					/*
-					 * TODO: Indicate which window the event is being returned
-					 * 		 For.
-					 */
-					if(event.xclient.message_type == env->wm_protocols) {
-						aga_ulong_t atom = event.xclient.data.l[0];
-						if(atom == env->wm_delete) {
-							*die = AGA_TRUE;
-						}
+			case ClientMessage: {
+				if(event.xclient.message_type == env->wm_protocols) {
+					aga_ulong_t atom = event.xclient.data.l[0];
+					if(atom == env->wm_delete) {
+						*die = AGA_TRUE;
 					}
-
-					break;
 				}
+
+				break;
 			}
 		}
 	}

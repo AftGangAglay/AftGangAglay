@@ -554,7 +554,7 @@ enum aga_result aga_window_device_poll(
 	SetWindowLongPtr(win->hwnd, GWLP_USERDATA, (LONG_PTR) &pack);
 	if(GetLastError()) return aga_win32_error(__FILE__, "SetWindowLongPtr");
 
-	while(PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
+	while(PeekMessage(&msg, win->hwnd, 0, 0, PM_REMOVE)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}

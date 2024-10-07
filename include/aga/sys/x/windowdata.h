@@ -19,7 +19,6 @@ struct aga_window {
 struct aga_window_device {
 	int screen;
 	void* display;
-	int display_fd;
 
 	aga_ulong_t wm_protocols, wm_delete;
 

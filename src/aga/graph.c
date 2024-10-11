@@ -24,8 +24,12 @@ enum aga_result aga_graph_new(
 	if(result) return result;
 
 	/* TODO: Controllable. */
-	graph->segments = 500;
+	graph->segments = 50;
 	graph->max = 10000;
+	graph->period = 30;
+
+	graph->running = aga_calloc(APRO_MAX, sizeof(aga_ulong_t));
+	if(!graph->running) return aga_error_system(__FILE__, "aga_calloc");
 
 	graph->histories = aga_calloc(
 			graph->segments * APRO_MAX, sizeof(aga_ulong_t));
@@ -52,6 +56,7 @@ enum aga_result aga_graph_delete(
 
 	aga_free(graph->histories);
 	aga_free(graph->heights);
+	aga_free(graph->running);
 #endif
 
 	return AGA_RESULT_OK;
@@ -73,6 +78,8 @@ enum aga_result aga_graph_update(
 
 	result = aga_render_clear(clear);
 	aga_error_check_soft(__FILE__, "aga_render_clear", result);
+
+	graph->inter++;
 
 	result = aga_graph_plot(graph, d++, 0, APRO_PRESWAP);
 	if(result) return result;
@@ -145,6 +152,11 @@ enum aga_result aga_graph_update(
 	result = aga_graph_plot(graph, n, 20, APRO_PUTOBJ_FALLING);
 	if(result) return result;
 
+	if(graph->inter >= graph->period) {
+		graph->inter = 0;
+		aga_memset(graph->running, 0, APRO_MAX * sizeof(aga_ulong_t));
+	}
+
 	return aga_window_swap(env, &graph->window);
 }
 
@@ -156,26 +168,35 @@ enum aga_result aga_graph_plot(
 	static const float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 	enum aga_result result;
+	aga_bool_t shift;
+	aga_ulong_t* history;
 	aga_ulong_t us = apro_stamp_us(s);
 
 	if(!graph) return AGA_RESULT_BAD_PARAM;
 
+	shift = graph->inter >= graph->period;
+	history = &graph->histories[s * graph->segments];
+
 #ifdef AGA_DEVBUILD
+	graph->running[s] += us;
+
 	/* Graph. */
 	{
 		aga_size_t i;
 		double height;
-		aga_ulong_t* history = &graph->histories[s * graph->segments];
 
 		for(i = 0; i < graph->segments; ++i) {
-			history[i] = history[i + 1];
+			if(shift) history[i] = history[i + 1];
 
 			height = (double) history[i] / (double) graph->max;
 			graph->heights[i] = (float) height;
 		}
-		history[graph->segments - 1] = us;
-		height = (double) us / (double) graph->max;
-		graph->heights[graph->segments - 1] = (float) height;
+
+		if(shift) {
+			history[graph->segments - 1] = graph->running[s] / graph->period;
+			height = (double) us / (double) graph->max;
+			graph->heights[graph->segments - 1] = (float) height;
+		}
 
 		result = aga_render_line_graph(
 				graph->heights, graph->segments, width, color);
@@ -191,7 +212,8 @@ enum aga_result aga_graph_plot(
 		ty = 0.05f + (0.035f * (float) y);
 
 		result = aga_render_text_format(
-				tx, ty, color, "%s: %llu", apro_section_name(s), us);
+				tx, ty, color, "%s: %llu",
+				apro_section_name(s), history[graph->segments - 1]);
 
 		if(result) return result;
 	}

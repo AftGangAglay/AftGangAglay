@@ -16,6 +16,11 @@ struct aga_graph {
 	aga_size_t segments;
 	aga_size_t max;
 
+	aga_size_t period;
+	aga_size_t inter;
+
+	aga_ulong_t* running;
+
 	aga_ulong_t* histories;
 	float* heights;
 };

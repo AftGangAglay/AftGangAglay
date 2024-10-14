@@ -28,7 +28,7 @@ enum aga_result aga_settings_new(
 	opts->config_file = "aga.sgml";
 	opts->display = aga_getenv("DISPLAY");
 	opts->chdir = ".";
-	opts->audio_dev = "/dev/dsp1";
+	opts->audio_buffer = 1024;
 	opts->startup_script = "script/main.py";
 	opts->python_path = "script";
 	opts->respack = "agapack.raw";
@@ -82,7 +82,8 @@ enum aga_result aga_settings_new(
 					if(opts->compile) goto help;
 #endif
 
-					opts->audio_dev = optarg;
+					/* TODO: Fix audio buffer options. */
+					/*opts->audio_dev = optarg;*/
 					break;
 				}
 				case 'D': {
@@ -168,12 +169,14 @@ enum aga_result aga_settings_parse_config(
 			AGA_STRING, AGA_TRUE);
 	aga_error_check_soft(__FILE__, "aga_config_lookup", result);
 
+	/*
 	if(!opts->audio_dev) {
 		result = aga_config_lookup(
 				opts->config.children, device, AGA_LEN(device),
 				&opts->audio_dev, AGA_STRING, AGA_TRUE);
 		aga_error_check_soft(__FILE__, "aga_config_lookup", result);
 	}
+	 */
 
 	result = aga_config_lookup(
 			opts->config.children, startup, AGA_LEN(startup),

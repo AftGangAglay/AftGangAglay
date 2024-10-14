@@ -64,12 +64,6 @@
 # ifdef AGA_HAVE_SYS_WAIT
 #  include <sys/wait.h>
 # endif
-# ifdef AGA_HAVE_SYS_IOCTL
-#  include <sys/ioctl.h>
-# endif
-# ifdef AGA_HAVE_SYS_SOUNDCARD
-#  include <sys/soundcard.h>
-# endif
 # ifdef AGA_HAVE_SYS_PARAM
 #  include <sys/param.h>
 # endif

@@ -62,12 +62,6 @@
 # if __has_include(<fcntl.h>)
 #  define AGA_HAVE_FCNTL
 # endif
-# if __has_include(<sys/ioctl.h>)
-#  define AGA_HAVE_SYS_IOCTL
-# endif
-# if __has_include(<sys/soundcard.h>)
-#  define AGA_HAVE_SYS_SOUNDCARD
-# endif
 # if __has_include(<sys/param.h>)
 #  define AGA_HAVE_SYS_PARAM
 # endif

@@ -30,7 +30,7 @@ enum aga_sgml_item_attribs {
 	AGA_ITEM_ATTRIB_COUNT
 };
 
-#define aga_config_MAX_DEPTH (1024)
+#define AGA_CONFIG_MAX_DEPTH (1024)
 
 struct aga_sgml_structured {
 	const HTStructuredClass* class;
@@ -55,7 +55,7 @@ static enum aga_result aga_sgml_push(
 	if(!s) return AGA_RESULT_BAD_PARAM;
 	if(!node) return AGA_RESULT_BAD_PARAM;
 
-	if(s->depth > aga_config_MAX_DEPTH) return AGA_RESULT_OOM;
+	if(s->depth > AGA_CONFIG_MAX_DEPTH) return AGA_RESULT_OOM;
 
 	s->stack[s->depth++] = node;
 

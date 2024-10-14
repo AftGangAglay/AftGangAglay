@@ -9,30 +9,38 @@
 #include <aga/environment.h>
 #include <aga/result.h>
 
-enum aga_sound_settings {
-	AGA_SOUND_SAMPLE_RATE = 8000,
-	AGA_SOUND_CHANNELS = 1,
-	AGA_SOUND_SAMPLE_BITS = 8,
-	AGA_SOUND_BLOCK_COUNT = 200,
-	AGA_SOUND_BLOCK_SIZE = AGA_SOUND_SAMPLE_RATE / AGA_SOUND_BLOCK_COUNT
+struct aga_sound_stream {
+	void* fp;
+
+	aga_bool_t loop;
+	aga_bool_t done;
+
+	aga_bool_t did_finish;
+	aga_size_t last_seek;
+
+	aga_size_t size;
+	aga_size_t base;
+	aga_size_t offset;
 };
 
 struct aga_sound_device {
 	int fd;
-	aga_uchar_t buf[AGA_SOUND_SAMPLE_RATE];
+
+	aga_uchar_t* buffer;
+	aga_uchar_t* scratch;
+
+	aga_size_t size;
+
+	struct aga_sound_stream* streams;
+	aga_size_t count;
 };
 
-struct aga_sound {
-	aga_uchar_t* pcm;
-	aga_size_t len;
-	aga_size_t pos;
-};
-
-enum aga_result aga_sound_device_new(const char*, struct aga_sound_device*);
+enum aga_result aga_sound_device_new(struct aga_sound_device*, aga_size_t);
 enum aga_result aga_sound_device_delete(struct aga_sound_device*);
 
-enum aga_result aga_sound_device_flush(struct aga_sound_device*, aga_size_t*);
+enum aga_result aga_sound_device_update(struct aga_sound_device*);
 
-enum aga_result aga_sound_play(struct aga_sound_device*, struct aga_sound*);
+/* Start a new sound stream into the device */
+enum aga_result aga_sound_play(struct aga_sound_device*, aga_size_t*);
 
 #endif

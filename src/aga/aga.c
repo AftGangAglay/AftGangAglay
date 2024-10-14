@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
 #endif
 
 	if(opts.audio_enabled) {
-		if((result = aga_sound_device_new(opts.audio_dev, &snd))) {
+		if((result = aga_sound_device_new(&snd, opts.audio_buffer))) {
 			aga_error_check_soft(__FILE__, "aga_sound_device_new", result);
 			/* TODO: Separate "unavailable snd/midi" and user defined. */
 			opts.audio_enabled = AGA_FALSE;

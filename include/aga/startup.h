@@ -26,7 +26,7 @@ struct aga_settings {
 
 	const char* respack;
 
-	const char* audio_dev;
+	aga_size_t audio_buffer;
 	aga_bool_t audio_enabled;
 
 	const char* startup_script;

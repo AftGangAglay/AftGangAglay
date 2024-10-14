@@ -496,7 +496,7 @@ struct py_object* agan_mkobj(
 	 * TODO: This is horrible (but only exists until we have an object registry
 	 * 		 To get small unique handle IDs for colour picking.
 	 */
-	static aga_uint32_t objn = 0;
+	static aga_uint_t objn = 0;
 
 	(void) env;
 	(void) self;
@@ -550,13 +550,13 @@ struct py_object* agan_mkobj(
 
 	cleanup: {
 		if(c) {
-			result = aga_config_delete(&conf);
-			if(aga_script_err("aga_config_delete", result)) return 0;
+			aga_error_check_soft(
+					__FILE__, "aga_config_delete", aga_config_delete(&conf));
 		}
 
 		if(m) {
 			glDeleteLists(obj->drawlist, 1);
-			if(aga_script_gl_err("glDeleteLists")) return 0;
+			(void) aga_error_gl(__FILE__, "glDeleteLists");
 		}
 
 		aga_free(obj->light_data);

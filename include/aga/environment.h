@@ -104,31 +104,7 @@ typedef signed short aga_sshort_t;
 typedef signed int aga_sint_t;
 typedef signed long long aga_slong_t;
 
-typedef aga_uchar_t aga_uint8_t;
-typedef aga_ushort_t aga_uint16_t;
-typedef aga_uint_t aga_uint32_t;
-typedef aga_ulong_t aga_uint64_t;
-
-typedef aga_schar_t aga_sint8_t;
-typedef aga_sshort_t aga_sint16_t;
-typedef aga_sint_t aga_sint32_t;
-typedef aga_slong_t aga_sint64_t;
-
-#ifdef __GNUC__
-# ifdef __i386__ /* TODO: Other 32-bit envs. Do we support 16-bit? */
-typedef unsigned long aga_size_t;
-# else
 typedef aga_ulong_t aga_size_t;
-# endif
-#elif defined(_MSC_VER)
-# ifdef _WIN64
-typedef aga_ulong_t aga_size_t;
-# else
-typedef unsigned long aga_size_t;
-# endif
-#else
-typedef aga_ulong_t aga_size_t;
-#endif
 
 typedef aga_uchar_t aga_bool_t;
 

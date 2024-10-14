@@ -279,6 +279,8 @@ enum aga_result aga_config_new(
 		int c = fgetc(fp);
 
 		if(c == EOF) {
+			if(feof(fp)) break;
+
 			SGML_free(s);
 
 			return aga_error_system_path(

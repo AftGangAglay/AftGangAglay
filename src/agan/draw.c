@@ -290,7 +290,7 @@ struct py_object* agan_getpix(
 	static aga_uint_t surface_names[] = {
 			GL_FRONT, GL_BACK, GL_STENCIL, GL_DEPTH };
 
-	aga_uint8_t pix[3];
+	aga_uchar_t pix[3];
 	py_value_t x, y;
 	unsigned i;
 	int h;

@@ -19,7 +19,7 @@ enum aga_sound_settings {
 
 struct aga_sound_device {
 	int fd;
-	aga_uint8_t buf[AGA_SOUND_SAMPLE_RATE];
+	aga_uchar_t buf[AGA_SOUND_SAMPLE_RATE];
 };
 
 struct aga_sound {

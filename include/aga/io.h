@@ -61,6 +61,8 @@ enum aga_result aga_file_attribute(
 
 enum aga_result aga_file_read(void*, aga_size_t, void*);
 
+enum aga_result aga_path_tail(const char*, aga_size_t, void*);
+
 enum aga_result aga_file_print_characters(int, aga_size_t, void*);
 
 #ifdef AGA_HAVE_SPAWN

@@ -10,13 +10,13 @@
 
 #include <aga/result.h>
 
-#define AGA_PACK_MAGIC ((aga_uint32_t) 0xA6A)
+#define AGA_PACK_MAGIC (0xA6AU)
 
 struct aga_resource_pack;
 
 struct aga_resource_pack_header {
-	aga_uint32_t size;
-	aga_uint32_t magic;
+	aga_uint_t size;
+	aga_uint_t magic;
 };
 
 struct aga_resource {

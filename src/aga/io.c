@@ -269,7 +269,9 @@ static enum aga_result aga_file_attribute_type(
 	}
 	else *isdir = AGA_FALSE;
 
-	if(fclose(f) == EOF) return aga_error_system_path(__FILE__, "fclose", path);
+	if(fclose(f) == EOF) {
+		return aga_error_system(__FILE__, "fclose");
+	}
 
 	return AGA_RESULT_OK;
 # else
@@ -283,13 +285,13 @@ enum aga_result aga_file_attribute_length(void* fp, aga_size_t* size) {
 
 	if((off = ftell(fp)) == -1) return aga_error_system(__FILE__, "ftell");
 
-	if(fseek(fp, 0, SEEK_END) == -1) {
+	if(fseek(fp, 0, SEEK_END)) {
 		return aga_error_system(__FILE__, "fseek");
 	}
 	if((tell = ftell(fp)) == -1) return aga_error_system(__FILE__, "ftell");
 	*size = (aga_size_t) tell;
 
-	if(fseek(fp, off, SEEK_SET) == -1) {
+	if(fseek(fp, off, SEEK_SET)) {
 		return aga_error_system(__FILE__, "fseek");
 	}
 
@@ -397,6 +399,40 @@ enum aga_result aga_file_read(void* data, aga_size_t size, void* fp) {
 	}
 
 	return AGA_RESULT_OK;
+}
+
+enum aga_result aga_path_tail(const char* path, aga_size_t size, void* data) {
+	enum aga_result result;
+	void* fp;
+
+	if(!path) return AGA_RESULT_BAD_PARAM;
+	if(!data) return AGA_RESULT_BAD_PARAM;
+
+	if(!(fp = fopen(path, "rb"))) {
+		return aga_error_system_path(__FILE__, "fopen", path);
+	}
+
+	/*
+	 * TODO: Apparently binary streams are not guaranteed to support
+	 * 		 `SEEK_END' -- Is this a case we need to handle?
+	 */
+	if(fseek(fp, (long) size, SEEK_END)) {
+		result = aga_error_system(__FILE__, "fseek");
+		goto cleanup;
+	}
+
+	result = aga_file_read(data, size, fp);
+	if(result) goto cleanup;
+
+	if(fclose(fp) == EOF) return aga_error_system(__FILE__, "fclose");
+
+	return AGA_RESULT_OK;
+
+	cleanup: {
+		if(fclose(fp) == EOF) (void) aga_error_system(__FILE__, "fclose");
+
+		return result;
+	}
 }
 
 enum aga_result aga_file_print_characters(int c, aga_size_t n, void* fp) {

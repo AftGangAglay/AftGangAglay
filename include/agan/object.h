@@ -38,7 +38,7 @@ struct agan_lightdata {
 
 	aga_bool_t directional;
 
-	aga_uint8_t index;
+	aga_uchar_t index;
 };
 
 /*
@@ -54,7 +54,7 @@ struct agan_object {
 	struct py_object* transform;
 	struct aga_resource* res;
 	struct agan_lightdata* light_data;
-	aga_uint32_t ind;
+	aga_uint_t ind;
 
 	char* modelpath;
 

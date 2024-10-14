@@ -166,13 +166,14 @@ enum aga_result aga_resource_pack_new(
 		aga_free(pack->db);
 
 		if(pack->fp && fclose(pack->fp) == EOF) {
-			return aga_error_system(__FILE__, "fclose");
+			(void) aga_error_system(__FILE__, "fclose");
 		}
 		pack->fp = 0;
 
 		if(c) {
-			enum aga_result res2 = aga_config_delete(&pack->root);
-			if(res2) return res2;
+			aga_error_check_soft(
+					__FILE__, "aga_config_delete",
+					aga_config_delete(&pack->root));
 		}
 
 		return result;
@@ -290,7 +291,7 @@ enum aga_result aga_resource_seek(struct aga_resource* res, void** fp) {
 	offset = res->pack->data_offset + res->offset;
 
 	result = fseek(res->pack->fp, (long) offset, SEEK_SET);
-	if(result == -1) return aga_error_system(__FILE__, "fseek");
+	if(result) return aga_error_system(__FILE__, "fseek");
 
 	if(fp) *fp = res->pack->fp;
 

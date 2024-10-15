@@ -49,9 +49,6 @@
 # ifdef AGA_HAVE_POLL
 #  include <poll.h>
 # endif
-# ifdef AGA_HAVE_SYS_MMAN
-#  include <sys/mman.h>
-# endif
 # ifdef AGA_HAVE_SYS_STAT
 #  include <sys/stat.h>
 # endif
@@ -64,17 +61,11 @@
 # ifdef AGA_HAVE_SYS_WAIT
 #  include <sys/wait.h>
 # endif
-# ifdef AGA_HAVE_SYS_PARAM
-#  include <sys/param.h>
+# ifdef AGA_HAVE_SYS_IOCTL
+#  include <sys/ioctl.h>
 # endif
-# ifdef AGA_HAVE_SYS_SENDFILE
-#  include <sys/sendfile.h>
-# endif
-# ifdef AGA_HAVE_COPYFILE
-#  include <copyfile.h>
-# endif
-# ifdef AGA_HAVE_LINUX_VERSION
-#  include <linux/version.h>
+# ifdef AGA_HAVE_SYS_SOUNDCARD
+#  include <sys/soundcard.h>
 # endif
 # ifdef AGA_HAVE_DIRENT
 #  include <dirent.h>

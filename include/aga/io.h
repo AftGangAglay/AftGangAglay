@@ -51,8 +51,15 @@ enum aga_result aga_file_copy_path(const char*, const char*);
  * `len == AGA_COPY_ALL' results in a copy until EOF.
  */
 enum aga_result aga_file_copy(void*, void*, aga_size_t);
+
+enum aga_result aga_path_tail(const char*, aga_size_t, void*);
+
+enum aga_result aga_path_delete(const char*);
 #endif
 
+/*
+ * TODO: Split up -- most pathwise IO shouldn't need to exist in production.
+ */
 enum aga_result aga_file_attribute_path(
 		const char*, enum aga_file_attribute_type, union aga_file_attribute*);
 
@@ -61,8 +68,7 @@ enum aga_result aga_file_attribute(
 
 enum aga_result aga_file_read(void*, aga_size_t, void*);
 
-enum aga_result aga_path_tail(const char*, aga_size_t, void*);
-
+/* TODO: File writes should be devbuild only. */
 enum aga_result aga_file_print_characters(int, aga_size_t, void*);
 
 #ifdef AGA_HAVE_SPAWN

@@ -34,7 +34,7 @@ enum aga_file_kind {
 typedef enum aga_result (*aga_input_iterfn_t)(
 		const char*, enum aga_file_kind, aga_bool_t, void*);
 
-static enum aga_result aga_openconf(
+static enum aga_result aga_build_open_config(
 		const char* path, struct aga_config_node* root) {
 
 	enum aga_result result;
@@ -49,10 +49,22 @@ static enum aga_result aga_openconf(
 	if((result = aga_file_attribute(fp, AGA_FILE_LENGTH, &attr))) return result;
 
 	aga_config_debug_file = path;
-	return aga_config_new(fp, attr.length, root);
+
+	result = aga_config_new(fp, attr.length, root);
+	if(result) {
+		if(fclose(fp) == EOF) (void) aga_error_system(__FILE__, "fclose");
+
+		return result;
+	}
+
+	if(fclose(fp) == EOF) return aga_error_system(__FILE__, "fclose");
+
+	return AGA_RESULT_OK;
 }
 
-static enum aga_result aga_openout(struct aga_config_node* root, void** fp) {
+static enum aga_result aga_build_open_output(
+		struct aga_config_node* root, void** fp, const char** out_path) {
+
 	static const char* output = "Output";
 
 	enum aga_result result;
@@ -67,6 +79,8 @@ static enum aga_result aga_openout(struct aga_config_node* root, void** fp) {
 
 		path = "agapack.raw";
 	}
+
+	*out_path = path;
 
 	aga_log(__FILE__, "Writing output file `%s'...", path);
 
@@ -394,7 +408,7 @@ static enum aga_result aga_build_pack_file(
 	return AGA_RESULT_OK;
 
 	cleanup: {
-		if(fclose(in) == EOF) aga_error_system(__FILE__, "fclose");
+		if(fclose(in) == EOF) (void) aga_error_system(__FILE__, "fclose");
 
 		return result;
 	}
@@ -496,46 +510,71 @@ static enum aga_result aga_build_iter(
 }
 
 /* TODO: Lots of leaky error states in here and the above statics. */
+/* TODO: Extra verbose per-file output if set to verbose output. */
 enum aga_result aga_build(struct aga_settings* opts) {
 	static const char* input = "Input";
 
 	enum aga_result result;
-	enum aga_result held_result = AGA_RESULT_OK;
 
 	struct aga_config_node root;
 	struct aga_config_node* input_root;
 
-	void* fp;
+	void* fp = 0;
+	const char* out_path = 0;
 
 	aga_log(__FILE__, "Compiling project `%s'...", opts->build_file);
 
-	if((result = aga_openconf(opts->build_file, &root))) return result;
+	if((result = aga_build_open_config(opts->build_file, &root))) {
+		return result;
+	}
 
 	result = aga_config_lookup_check(root.children, &input, 1, &input_root);
 	if(result) {
 		aga_log(__FILE__, "err: No input files specified");
-		return result;
+		goto cleanup;
 	}
 
 	if((result = aga_build_iter(input_root, AGA_TRUE, aga_build_input, 0))) {
-		return result;
+		goto cleanup;
 	}
 
-	if((result = aga_openout(&root, &fp))) return result;
+	if((result = aga_build_open_output(&root, &fp, &out_path))) goto cleanup;
 
 	if((result = aga_build_iter(input_root, AGA_FALSE, aga_build_conf, fp))) {
-		return result;
+		goto cleanup;
 	}
 
 	if((result = aga_build_iter(input_root, AGA_FALSE, aga_build_pack, fp))) {
-		return result;
+		goto cleanup;
 	}
 
-	if(fclose(fp) == EOF) return aga_error_system(__FILE__, "fclose");
+	if(fclose(fp) == EOF) goto cleanup;
+
+	if((result = aga_config_delete(&root))) return result;
 
 	aga_log(__FILE__, "Done!");
 
-	return held_result;
+	return AGA_RESULT_OK;
+
+	cleanup: {
+		aga_error_check_soft(
+				__FILE__, "aga_config_delete", aga_config_delete(&root));
+
+		if(fp && fclose(fp) == EOF) {
+			(void) aga_error_system(__FILE__, "fclose");
+		}
+
+		/* TODO: Destroy failed intermediate files in error cases aswell. */
+		if(out_path) {
+			aga_error_check_soft(
+					__FILE__, "aga_path_delete",
+					aga_path_delete(out_path));
+		}
+
+		aga_log(__FILE__, "err: Build failed");
+
+		return result;
+	};
 }
 
 #else

@@ -101,11 +101,6 @@ enum aga_result aga_file_copy_path(
 
 	enum aga_result result;
 
-# ifdef AGA_HAVE_COPYFILE
-	/* OSX. */
-	/* TODO: copyfile */
-# endif
-
 	/* TODO: Leaky error states. */
 
 	void* to;
@@ -133,49 +128,10 @@ enum aga_result aga_file_copy(void* to, void* from, aga_size_t len) {
 
 	if(!len) return AGA_RESULT_OK;
 
-	/* TODO: Use `uname' to detect runtime capabilities. */
-# ifdef __linux__
-#  if 0 && __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 5 && \
-		LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
-
-#   define aga_file_copy_DONE
-	/*
-	 * `splice' here would not work prior to 2.6.30 as neither operand is a
-	 * Pipe.
-	 */
-	/* TODO: splice */
-#  elif 0 && defined(AGA_HAVE_SYS_SENDFILE) && \
-		(LINUX_VERSION_CODE <= KERNEL_VERSION(2, 4, 0) || \
-		LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 33))
-
-#   define aga_file_copy_DONE
-	/*
-	 * `sendfile' from Linux 2.4 to 2.6.33 requires that target be a socket.
-	 */
-	/* TODO: sendfile */
-#  endif
-# endif
-
-# if 0 && !defined(aga_file_copy_DONE) && \
-		(__FreeBSD__ >= 13 || (__GLIBC__ >= 2 && __GLIBC_MINOR__ >= 27))
-
-#  define aga_file_copy_DONE
-	/* TODO: copy_file_range */
-# endif
-
-# if 0 && !defined(aga_file_copy_DONE) && defined(AGA_HAVE_COPYFILE)
-	/* OSX. */
-	/* TODO: fcopyfile */
-# endif
-
-# if 0 && !defined(aga_file_copy_DONE) && defined(_WIN32)
-	/* TODO: CopyFile */
-# endif
-
-# ifndef aga_file_copy_DONE
 	/* Generic impl. */
 
 	{
+		/* TODO: Make static. */
 		aga_fixed_buf_t buf = { 0 };
 
 		enum aga_result result;
@@ -212,7 +168,48 @@ enum aga_result aga_file_copy(void* to, void* from, aga_size_t len) {
 
 		return AGA_RESULT_OK;
 	}
-# endif
+}
+
+enum aga_result aga_path_tail(const char* path, aga_size_t size, void* data) {
+	enum aga_result result;
+	void* fp;
+
+	if(!path) return AGA_RESULT_BAD_PARAM;
+	if(!data) return AGA_RESULT_BAD_PARAM;
+
+	if(!(fp = fopen(path, "rb"))) {
+		return aga_error_system_path(__FILE__, "fopen", path);
+	}
+
+	/*
+	 * TODO: Apparently binary streams are not guaranteed to support
+	 * 		 `SEEK_END' -- Is this a case we need to handle?
+	 */
+	if(fseek(fp, (long) size, SEEK_END)) {
+		result = aga_error_system(__FILE__, "fseek");
+		goto cleanup;
+	}
+
+	result = aga_file_read(data, size, fp);
+	if(result) goto cleanup;
+
+	if(fclose(fp) == EOF) return aga_error_system(__FILE__, "fclose");
+
+	return AGA_RESULT_OK;
+
+	cleanup: {
+		if(fclose(fp) == EOF) (void) aga_error_system(__FILE__, "fclose");
+
+		return result;
+	}
+}
+
+enum aga_result aga_path_delete(const char* path) {
+	if(!path) return AGA_RESULT_BAD_PARAM;
+
+	if(remove(path)) return aga_error_system(__FILE__, "remove");
+
+	return AGA_RESULT_OK;
 }
 
 #endif
@@ -399,40 +396,6 @@ enum aga_result aga_file_read(void* data, aga_size_t size, void* fp) {
 	}
 
 	return AGA_RESULT_OK;
-}
-
-enum aga_result aga_path_tail(const char* path, aga_size_t size, void* data) {
-	enum aga_result result;
-	void* fp;
-
-	if(!path) return AGA_RESULT_BAD_PARAM;
-	if(!data) return AGA_RESULT_BAD_PARAM;
-
-	if(!(fp = fopen(path, "rb"))) {
-		return aga_error_system_path(__FILE__, "fopen", path);
-	}
-
-	/*
-	 * TODO: Apparently binary streams are not guaranteed to support
-	 * 		 `SEEK_END' -- Is this a case we need to handle?
-	 */
-	if(fseek(fp, (long) size, SEEK_END)) {
-		result = aga_error_system(__FILE__, "fseek");
-		goto cleanup;
-	}
-
-	result = aga_file_read(data, size, fp);
-	if(result) goto cleanup;
-
-	if(fclose(fp) == EOF) return aga_error_system(__FILE__, "fclose");
-
-	return AGA_RESULT_OK;
-
-	cleanup: {
-		if(fclose(fp) == EOF) (void) aga_error_system(__FILE__, "fclose");
-
-		return result;
-	}
 }
 
 enum aga_result aga_file_print_characters(int c, aga_size_t n, void* fp) {

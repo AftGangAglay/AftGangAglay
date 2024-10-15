@@ -10,6 +10,11 @@ void* aga_memset(void* p, int c, aga_size_t n) {
 	return memset(p, c, n);
 }
 
+void* aga_bzero(void* p, aga_size_t n) {
+	/* TODO: Era-accurate `bzero' detection. */
+	return aga_memset(p, 0, n);
+}
+
 void* aga_memcpy(void* to, const void* from, aga_size_t sz) {
 	return memcpy(to, from, sz);
 }

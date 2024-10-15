@@ -46,9 +46,6 @@
 # ifdef AGA_HAVE_GETOPT
 #  include <getopt.h>
 # endif
-# ifdef AGA_HAVE_POLL
-#  include <poll.h>
-# endif
 # ifdef AGA_HAVE_SYS_STAT
 #  include <sys/stat.h>
 # endif
@@ -60,12 +57,6 @@
 # endif
 # ifdef AGA_HAVE_SYS_WAIT
 #  include <sys/wait.h>
-# endif
-# ifdef AGA_HAVE_SYS_IOCTL
-#  include <sys/ioctl.h>
-# endif
-# ifdef AGA_HAVE_SYS_SOUNDCARD
-#  include <sys/soundcard.h>
 # endif
 # ifdef AGA_HAVE_DIRENT
 #  include <dirent.h>

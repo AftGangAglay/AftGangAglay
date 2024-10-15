@@ -154,7 +154,7 @@ enum aga_result aga_graph_update(
 
 	if(graph->inter >= graph->period) {
 		graph->inter = 0;
-		aga_memset(graph->running, 0, APRO_MAX * sizeof(aga_ulong_t));
+		aga_bzero(graph->running, APRO_MAX * sizeof(aga_ulong_t));
 	}
 
 	return aga_window_swap(env, &graph->window);

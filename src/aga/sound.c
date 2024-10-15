@@ -5,8 +5,16 @@
 
 #include <aga/sound.h>
 #include <aga/environment.h>
+#include <aga/pack.h>
 
-#if defined(AGA_HAVE_UNISTD) && defined(AGA_HAVE_FCNTL)
+/*
+ * TODO: Apparently Cygwin supports `/dev/dsp'? This check may be too
+ * 		 Restrictive.
+ */
+#if !defined(_WIN32) && \
+		defined(AGA_HAVE_UNISTD) && defined(AGA_HAVE_FCNTL) && \
+		defined(AGA_HAVE_SYS_STAT) && defined(AGA_HAVE_SYS_TYPES)
+
 # define AGA_HAVE_SUN_SOUND
 #endif
 
@@ -31,6 +39,7 @@ enum aga_result aga_sound_device_new(
 	 * Assume default open state is "8-bit, 8Khz, mono u-Law data" from SunOS
 	 * audio(7i) manpage
 	 */
+	/* TODO: Try `/dev/dsp' after this. What are the default params there? */
 	dev->fd = open("/dev/audio", O_WRONLY | O_NONBLOCK);
 	if(dev->fd == -1) return aga_error_system(__FILE__, "open");
 	/*
@@ -88,7 +97,6 @@ enum aga_result aga_sound_device_delete(struct aga_sound_device* dev) {
 
 	if(!dev) return AGA_RESULT_BAD_PARAM;
 
-	if(fsync(dev->fd) == -1) result = aga_error_system(__FILE__, "fsync");
 	if(close(dev->fd) == -1) result = aga_error_system(__FILE__, "close");
 
 	free(dev->buffer);
@@ -110,13 +118,14 @@ static double aga_sound_clip(double a, double b) {
 }
 
 enum aga_result aga_sound_device_update(struct aga_sound_device* dev) {
+	enum aga_result result;
+
 	aga_size_t total = 0;
-	aga_size_t size;
 	aga_size_t i, j;
 
 	if(!dev) return AGA_RESULT_BAD_PARAM;
 
-	aga_memset(dev->buffer, 0, dev->size);
+	aga_bzero(dev->buffer, dev->size);
 
 	while(AGA_TRUE) {
 		aga_size_t rem = dev->size - total;
@@ -124,7 +133,8 @@ enum aga_result aga_sound_device_update(struct aga_sound_device* dev) {
 
 		for(i = 0; i < dev->count; ++i) {
 			struct aga_sound_stream* stream = &dev->streams[i];
-			aga_size_t offset, rdsz;
+			void* fp;
+			aga_size_t rdsz;
 			aga_bool_t eof = AGA_FALSE;
 
 			stream->did_finish = AGA_FALSE;
@@ -134,14 +144,16 @@ enum aga_result aga_sound_device_update(struct aga_sound_device* dev) {
 			 */
 			if(stream->done) continue;
 
-			offset = stream->base + stream->offset;
-			if(fseek(stream->fp, (long) offset, SEEK_SET)) {
+			result = aga_resource_seek(stream->resource, &fp);
+			if(result) return result;
+
+			if(fseek(fp, (long) stream->offset, SEEK_CUR)) {
 				return aga_error_system(__FILE__, "fseek");
 			}
 
-			rdsz = fread(dev->scratch, 1, req, stream->fp);
+			rdsz = fread(dev->scratch, 1, req, fp);
 			if(rdsz < req) {
-				if(ferror(stream->fp)) {
+				if(ferror(fp)) {
 					return aga_error_system(__FILE__, "fread");
 				}
 				else eof = AGA_TRUE;
@@ -192,7 +204,7 @@ enum aga_result aga_sound_device_update(struct aga_sound_device* dev) {
 								stream->last_seek : over;
 
 					if (!stream->offset) {
-						stream->offset = stream->size - reseek;
+						stream->offset = stream->resource->size - reseek;
 					}
 					else stream->offset -= reseek;
 				}
@@ -206,8 +218,16 @@ enum aga_result aga_sound_device_update(struct aga_sound_device* dev) {
 	return AGA_RESULT_OK;
 }
 
-enum aga_result aga_sound_play(struct aga_sound_device* dev, aga_size_t* ind) {
+enum aga_result aga_sound_play(
+		struct aga_sound_device* dev, struct aga_resource* res,
+		aga_bool_t loop, aga_size_t* ind) {
+
+	enum aga_result result;
+
+	struct aga_sound_stream* stream;
+
 	if(!dev) return AGA_RESULT_BAD_PARAM;
+	if(!res) return AGA_RESULT_BAD_PARAM;
 	if(!ind) return AGA_RESULT_BAD_PARAM;
 
 	*ind = dev->count;
@@ -218,45 +238,44 @@ enum aga_result aga_sound_play(struct aga_sound_device* dev, aga_size_t* ind) {
 
 	if(!dev->streams) return aga_error_system(__FILE__, "realloc");
 
-	dev->streams
+	stream = &dev->streams[*ind];
+	aga_bzero(stream, sizeof(struct aga_sound_stream));
+
+	stream->resource = res;
+	stream->loop = loop;
 
 	return AGA_RESULT_OK;
 }
 
 #else
 
-enum aga_result aga_sound_device_new(
-		const char* dev, struct aga_sound_device* dev) {
-
+enum aga_result aga_sound_device_new(struct aga_sound_device* dev, aga_size_t size) {
 	(void) dev;
+	(void) size;
+
+	return AGA_RESULT_OK;
+}
+enum aga_result aga_sound_device_delete(struct aga_sound_device* dev) {
 	(void) dev;
 
 	return AGA_RESULT_OK;
 }
 
-enum aga_result aga_sound_device_delete(
-		struct aga_sound_device* dev) {
-
+enum aga_result aga_sound_device_update(struct aga_sound_device* dev) {
 	(void) dev;
 
 	return AGA_RESULT_OK;
 }
 
-enum aga_result aga_sound_device_flush(
-		struct aga_sound_device* dev, aga_size_t* written) {
-
-	(void) dev;
-
-	*written = 0;
-
-	return AGA_RESULT_OK;
-}
-
+/* Start a new sound stream into the device */
 enum aga_result aga_sound_play(
-		struct aga_sound_device* dev, struct aga_sound* clip) {
+		struct aga_sound_device* dev, struct aga_resource* res, aga_bool_t loop,
+		aga_size_t* ind) {
 
 	(void) dev;
-	(void) clip;
+	(void) res;
+	(void) loop;
+	(void) ind;
 
 	return AGA_RESULT_OK;
 }

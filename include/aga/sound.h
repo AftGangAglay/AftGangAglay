@@ -9,8 +9,10 @@
 #include <aga/environment.h>
 #include <aga/result.h>
 
+struct aga_resource;
+
 struct aga_sound_stream {
-	void* fp;
+	struct aga_resource* resource;
 
 	aga_bool_t loop;
 	aga_bool_t done;
@@ -18,8 +20,6 @@ struct aga_sound_stream {
 	aga_bool_t did_finish;
 	aga_size_t last_seek;
 
-	aga_size_t size;
-	aga_size_t base;
 	aga_size_t offset;
 };
 
@@ -41,6 +41,8 @@ enum aga_result aga_sound_device_delete(struct aga_sound_device*);
 enum aga_result aga_sound_device_update(struct aga_sound_device*);
 
 /* Start a new sound stream into the device */
-enum aga_result aga_sound_play(struct aga_sound_device*, aga_size_t*);
+enum aga_result aga_sound_play(
+		struct aga_sound_device*, struct aga_resource*, aga_bool_t,
+		aga_size_t*);
 
 #endif

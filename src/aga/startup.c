@@ -41,7 +41,7 @@ enum aga_result aga_settings_new(
 	opts->version = AGA_VERSION;
 	opts->verbose = AGA_FALSE;
 
-	aga_memset(&opts->config, 0, sizeof(opts->config));
+	aga_bzero(&opts->config, sizeof(opts->config));
 
 #ifdef AGA_HAVE_GETOPT
 	{
@@ -132,7 +132,6 @@ enum aga_result aga_settings_parse_config(
 	double fv;
 
 	static const char* enabled[] = { "Audio", "Enabled" };
-	static const char* device[] = { "Audio", "Device" };
 	static const char* startup[] = { "Script", "Startup" };
 	static const char* path[] = { "Script", "Path" };
 	static const char* version[] = { "General", "Version" };

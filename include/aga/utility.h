@@ -48,6 +48,7 @@ enum aga_result aga_stream_seek(
 		struct aga_stream*, enum aga_stream_whence, aga_slong_t);
 
 void* aga_memset(void*, int, aga_size_t);
+void* aga_bzero(void*, aga_size_t);
 void* aga_memcpy(void*, const void*, aga_size_t);
 
 aga_bool_t aga_streql(const char*, const char*);

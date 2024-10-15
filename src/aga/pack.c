@@ -64,7 +64,7 @@ enum aga_result aga_resource_pack_new(
 	pack->db = 0;
 	pack->len = 0;
 
-	aga_memset(&pack->root, 0, sizeof(struct aga_config_node));
+	aga_bzero(&pack->root, sizeof(struct aga_config_node));
 
 #ifndef NDEBUG
 	pack->outstanding_refs = 0;

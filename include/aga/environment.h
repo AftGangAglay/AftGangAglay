@@ -44,10 +44,6 @@
 # if __has_include(<getopt.h>)
 #  define AGA_HAVE_GETOPT
 # endif
-/* TODO: This can be removed. */
-# if __has_include(<poll.h>)
-#  define AGA_HAVE_POLL
-# endif
 # if __has_include(<sys/wait.h>)
 #  define AGA_HAVE_SYS_WAIT
 # endif
@@ -59,12 +55,6 @@
 # endif
 # if __has_include(<fcntl.h>)
 #  define AGA_HAVE_FCNTL
-# endif
-# if __has_include(<sys/ioctl.h>)
-#  define AGA_HAVE_SYS_IOCTL
-# endif
-# if __has_include(<sys/soundcard.h>)
-#  define AGA_HAVE_SYS_SOUNDCARD
 # endif
 # if __has_include(<dirent.h>)
 #  define AGA_HAVE_DIRENT
@@ -104,7 +94,7 @@ typedef aga_uchar_t aga_bool_t;
 /*
  * NOTE: This exists for cases where we are forced to use fixed size buffers
  * 		 Due to limitations like the nonexistence of `vsnprintf'.
- * 		 This is NOT an excuse to use this pattern unnecessarily - play nice
+ * 		 This is NOT an excuse to use this pattern unnecessarily -- play nice
  * 		 With your buffers.
  */
 typedef char aga_fixed_buf_t[2048 + 1];

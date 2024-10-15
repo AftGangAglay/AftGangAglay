@@ -39,13 +39,14 @@ enum aga_result aga_sound_device_new(
 	 * Assume default open state is "8-bit, 8Khz, mono u-Law data" from SunOS
 	 * audio(7i) manpage
 	 */
-	/* TODO: Try `/dev/dsp' after this. What are the default params there? */
+	/* TODO: Try `/dev/dsp' after this if missing `/dev/audio'. */
 	dev->fd = open("/dev/audio", O_WRONLY | O_NONBLOCK);
 	if(dev->fd == -1) return aga_error_system(__FILE__, "open");
 	/*
 	 * `/dev/audio' exclusivity varies by system -- we'll just have to assume
-	 * the user doesn't have any other audio-playing applications open on
-	 * legacy systems, as modern OSS emulation allows for device mixing.
+	 * The user doesn't have any other audio-playing applications open on
+	 * Legacy systems, as modern OSS emulation (with `padsp')
+	 * Allows for device mixing.
 	 *
 	 * start = time(0);
 	 * do {
@@ -221,8 +222,6 @@ enum aga_result aga_sound_device_update(struct aga_sound_device* dev) {
 enum aga_result aga_sound_play(
 		struct aga_sound_device* dev, struct aga_resource* res,
 		aga_bool_t loop, aga_size_t* ind) {
-
-	enum aga_result result;
 
 	struct aga_sound_stream* stream;
 

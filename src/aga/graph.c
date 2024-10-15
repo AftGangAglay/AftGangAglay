@@ -12,11 +12,11 @@ enum aga_result aga_graph_new(
 		struct aga_graph* graph, struct aga_window_device* env,
 		int argc, char** argv) {
 
+#ifdef AGA_DEVBUILD
 	enum aga_result result;
 
 	if(!graph) return AGA_RESULT_BAD_PARAM;
 
-#ifdef AGA_DEVBUILD
 	result = aga_window_new(
 				1280, 480, "Profile", env, &graph->window, AGA_TRUE,
 				argc, argv);
@@ -38,6 +38,11 @@ enum aga_result aga_graph_new(
 
 	graph->heights = aga_calloc(graph->segments, sizeof(float));
 	if(!graph->heights) return aga_error_system(__FILE__, "aga_calloc");
+#else
+	(void) graph;
+	(void) env;
+	(void) argc;
+	(void) argv;
 #endif
 
 	return AGA_RESULT_OK;
@@ -46,17 +51,20 @@ enum aga_result aga_graph_new(
 enum aga_result aga_graph_delete(
 		struct aga_graph* graph, struct aga_window_device* env) {
 
+#ifdef AGA_DEVBUILD
 	enum aga_result result;
 
 	if(!graph) return AGA_RESULT_BAD_PARAM;
 
-#ifdef AGA_DEVBUILD
 	result = aga_window_delete(env, &graph->window);
 	if(result) return result;
 
 	aga_free(graph->histories);
 	aga_free(graph->heights);
 	aga_free(graph->running);
+#else
+	(void) graph;
+	(void) env;
 #endif
 
 	return AGA_RESULT_OK;
@@ -65,6 +73,7 @@ enum aga_result aga_graph_delete(
 enum aga_result aga_graph_update(
 		struct aga_graph* graph, struct aga_window_device* env) {
 
+#ifdef AGA_DEVBUILD
 	static const float clear[] = { 0.4f, 0.4f, 0.4f, 1.0f };
 
 	enum aga_result result;
@@ -158,12 +167,19 @@ enum aga_result aga_graph_update(
 	}
 
 	return aga_window_swap(env, &graph->window);
+#else
+	(void) graph;
+	(void) env;
+
+	return AGA_RESULT_OK;
+#endif
 }
 
 /* TODO: Controls to select+compare certain stats by themselves/highlighted. */
 enum aga_result aga_graph_plot(
 		struct aga_graph* graph, unsigned y, unsigned x, enum apro_section s) {
 
+#ifdef AGA_DEVBUILD
 	static const float width = 0.1f;
 	static const float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -177,7 +193,6 @@ enum aga_result aga_graph_plot(
 	shift = graph->inter >= graph->period;
 	history = &graph->histories[s * graph->segments];
 
-#ifdef AGA_DEVBUILD
 	graph->running[s] += us;
 
 	/* Graph. */
@@ -217,6 +232,11 @@ enum aga_result aga_graph_plot(
 
 		if(result) return result;
 	}
+#else
+	(void) graph;
+	(void) y;
+	(void) x;
+	(void) s;
 #endif
 
 	return AGA_RESULT_OK;

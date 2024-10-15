@@ -38,6 +38,12 @@
  */
 
 /*
+ * TODO: `AGA_DEVBUILD' is inconsistent as to whether they eliminate the
+ * 		 Function and its decls or just disable their functionality and force
+ * 		 An error or guaranteed safe return.
+ */
+#ifdef AGA_DEVBUILD
+/*
  * TODO: Tear down and reload script land (or just user scripts) once we
  * 		 Consolidate Python state more to allow it.
  */
@@ -253,16 +259,19 @@ static struct py_object* agan_setobjmdl(
 
 	return py_object_incref(PY_NONE);
 }
+#endif
 
 enum aga_result agan_ed_register(struct py_env* env) {
-#define aga_(name) { #name, agan_##name }
+#ifdef AGA_DEVBUILD
+# define aga_(name) { #name, agan_##name }
 	static const struct py_methodlist methods[] = {
 			aga_(killpack), aga_(mkpack), aga_(dumpobj), aga_(fdiag),
 			aga_(setobjmdl),
 
 			{ 0, 0 }
 	};
-#undef aga_
+# undef aga_
+#endif
 
 	struct py_object* ed;
 
@@ -276,6 +285,8 @@ enum aga_result agan_ed_register(struct py_env* env) {
 		return AGA_RESULT_ERROR;
 	}
 #else
+	(void) env;
+
 	if(!(ed = py_int_new(0))) {
 		aga_script_engine_trace();
 		return AGA_RESULT_ERROR;

@@ -484,6 +484,10 @@ static enum aga_result aga_dumptree_int(
 
 	return AGA_RESULT_OK;
 #else
+	(void) node;
+	(void) fp;
+	(void) depth;
+
 	aga_log(
 			__FILE__,
 			"err: Serialising conf trees is only supported in dev builds");

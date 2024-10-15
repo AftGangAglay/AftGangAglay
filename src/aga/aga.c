@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
 
 	aga_error_check(__FILE__, "aga_draw_set", aga_draw_set(draw_flags));
 
-#ifndef NDEBUG
+#ifdef AGA_DEVBUILD
 # ifdef AGA_HAVE_SPAWN
 	aga_error_check_soft(__FILE__, "aga_prerun_hook", aga_prerun_hook(&opts));
 # endif

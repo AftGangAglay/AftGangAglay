@@ -56,7 +56,11 @@ enum aga_result aga_settings_new(
 		int o;
 		while((o = getopt(argc, argv, "hcf:s:A:D:C:v")) != -1) {
 			switch(o) {
-				default:; help: {
+				default:
+#ifdef AGA_DEVBUILD
+					;help:
+#endif
+				{
 					aga_log(__FILE__, helpmsg, argv[0], argv[0]);
 					goto break2;
 				}

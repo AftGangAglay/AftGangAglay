@@ -31,8 +31,10 @@ SET_CFLAGS = $(SET_CFLAGS) /O2 /DNDEBUG /MT
 SET_CFLAGS = $(SET_CFLAGS) /DAGA_DEVBUILD
 !endif
 
+# TODO: Use pragma comment lib under `_MSC_VER' to simplify this? Should this
+#		File use Tools.ini?
 GL_LDLIBS = opengl32.lib glu32.lib gdi32.lib shell32.lib user32.lib winmm.lib
-GL_LDLIBS = $(GL_LDLIBS) commdlg32.lib
+GL_LDLIBS = $(GL_LDLIBS) comdlg32.lib
 
 !include lib/prof/apro.mk
 !include vendor/python.mk

@@ -2,6 +2,7 @@
 # Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
 # TODO: Revisit `INSTALL' and create a proper catalogue of build requirements.
+# TODO: BSD/Make, IRIX-y make etc. support?
 
 include VERSION
 

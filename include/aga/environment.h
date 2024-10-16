@@ -37,6 +37,10 @@
 # define AGA_UNREACHABLE
 #endif
 
+/*
+ * TODO: More cohesively detect POXIX.1-1990 based on spec. compliance to
+ * 		 Determine our basic IO subsystems etc.
+ */
 #ifdef __has_include
 # if __has_include(<unistd.h>)
 #  define AGA_HAVE_UNISTD

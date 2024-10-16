@@ -218,10 +218,12 @@ enum aga_result aga_path_delete(const char* path) {
 # define AGA_HAVE_STAT
 #endif
 
+/* TODO: More central NT POSIX subsystem wrapper. */
 #ifdef _WIN32
 # define AGA_HAVE_STAT
 # define stat _stat
 # define fstat _fstat
+# define S_IFDIR _S_IFDIR
 #endif
 
 #ifdef AGA_HAVE_STAT
@@ -244,8 +246,14 @@ static enum aga_result aga_file_attribute_select_stat(
 		}
 
 		case AGA_FILE_TYPE: {
+#ifdef S_ISDIR
 			if(S_ISDIR(st->st_mode)) out->type = AGA_FILE_DIRECTORY;
-			else out->type = AGA_FILE_REGULAR;
+			else
+#elif defined(S_IFDIR)
+			if(st->st_mode & S_IFDIR) out->type = AGA_FILE_DIRECTORY;
+			else
+#endif
+			out->type = AGA_FILE_REGULAR;
 			break;
 		}
 	}

@@ -14,6 +14,11 @@
 /* TODO: Fix subsystem setting. */
 # ifdef NDEBUG
 int main(int, char**);
+/*
+ * TODO: This isn't very 1992 friendly -- we should handle our "main" function
+ * 		 In an agnostic way and call it appropriately from here or std main.
+ * 		 This also lets us register our class properly.
+ */
 int __stdcall WinMain(
 		HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
 		int nShowCmd) {

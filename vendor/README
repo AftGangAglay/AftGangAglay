@@ -9,6 +9,11 @@ irrelevant platform code.
 Python 0.9.1 from 1991 pulled from here:
 https://www.python.org/ftp/python/src/Python-0.9.1.tar.gz
 
+SGI Demos pulled from here:
+https://ftp.zx.net.nz/pub/archive/ftp.sgi.com/sgi/opengl/CAL/s97demos.sgi.tar.gz
+For a closer to era-accurate OBJ parser and reference implementations of GL
+techniques.
+
 XLib is going to be stuck requiring whatever very late system version is
 available for now, as the original GLX was proprietary until 1999.
 
@@ -16,4 +21,4 @@ This file is part of AftGangAglay
 (https://github.com/AftGangAglay/AftGangAglay) which is licenced under the
 GNU General Public License v3.0 or later.
 
-Copyright (C) 2023 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>

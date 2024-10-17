@@ -39,6 +39,7 @@ GL_LDLIBS = $(GL_LDLIBS) comdlg32.lib
 !include lib/prof/apro.mk
 !include vendor/python.mk
 !include vendor/www.mk
+!include vendor/glm.mk
 !include src/aga.mk
 
 SET_LDFLAGS =
@@ -63,7 +64,7 @@ SET_CFLAGS = $(SET_CFLAGS) /wd4061
 SET_CFLAGS = $(SET_CFLAGS) /wd4127
 !endif
 
-SET_CFLAGS = $(SET_CFLAGS) /I$(APRO) /I$(PYI) /I$(WWW) /Iinclude
+SET_CFLAGS = $(SET_CFLAGS) /I$(APRO) /I$(PYI) /I$(WWWH) /I$(GLMH) /Iinclude
 SET_CFLAGS = $(SET_CFLAGS) /DAGA_VERSION=\"$(VERSION)\"
 
 .c$(OBJ):
@@ -71,4 +72,4 @@ SET_CFLAGS = $(SET_CFLAGS) /DAGA_VERSION=\"$(VERSION)\"
 
 all: $(AGA_OUT)
 
-clean: clean_apro clean_python clean_www clean_aga
+clean: clean_apro clean_python clean_www clean_aga clean_glm

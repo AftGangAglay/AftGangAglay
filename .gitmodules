@@ -2,7 +2,16 @@
 	path = vendor/www
 	branch = trunk
 	url = https://github.com/AftGangAglay/libwww93
+	shallow = true
+
 [submodule "vendor/python"]
 	path = vendor/python
 	branch = trunk
 	url = https://github.com/AftGangAglay/python0.9.1
+	shallow = true
+
+[submodule "vendor/SGI-SIGGRAPH97-Demos"]
+	path = vendor/SGI-SIGGRAPH97-Demos
+	branch = trunk
+	url = https://github.com/AftGangAglay/SGI-SIGGRAPH97-Demos
+	shallow = true

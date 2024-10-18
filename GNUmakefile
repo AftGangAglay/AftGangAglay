@@ -23,10 +23,15 @@ else
 	RM = rm -f
 	SEP = /
 endif
-
 AR = ar -rc $@ $^
-CCLD = $(CC) -o $@ $^
-WL =
+
+CCLD_LDFLAGS = $(LDFLAGS) $(SET_LDFLAGS)
+CCLD_LDLIBS = $(LDLIBS) $(SET_LDLIBS)
+CCLD = $(CC) $(CCLD_LDFLAGS) -o $@ $^ $(CCLD_LDLIBS)
+
+GL_CCLD_LDFLAGS = $(LDFLAGS) $(SET_LDFLAGS) $(GL_LDFLAGS)
+GL_CCLD_LDLIBS = $(LDLIBS) $(SET_LDLIBS) $(GL_LDLIBS)
+GL_CCLD = $(CC) $(GL_CCLD_LDFLAGS) -o $@ $^ $(GL_CCLD_LDLIBS)
 
 ifdef DEBUG
 	SET_CFLAGS = -g
@@ -72,6 +77,12 @@ include lib/prof/apro.mk
 include vendor/python.mk
 include vendor/www.mk
 include vendor/glm.mk
+
+ifdef DEVBUILD
+	DEV_LIBS = $(GLM_OUT)
+	DEV_HDR = $(GLM_HDR)
+endif
+
 include src/aga.mk
 
 SET_CFLAGS += $(GL_CFLAGS)

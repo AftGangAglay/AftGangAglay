@@ -6,7 +6,7 @@ GLM = $(SGI)examples$(SEP)samples$(SEP)shadow$(SEP)
 GLMH = $(GLM)
 
 GLM_SRC = $(GLM)glm.c
-GLM_HDR1 = $(GLMH)glm.h
+GLM_HDR = $(GLMH)glm.h
 
 GLM_OBJ = $(subst .c,$(OBJ),$(GLM_SRC))
 

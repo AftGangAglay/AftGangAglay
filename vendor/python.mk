@@ -59,7 +59,7 @@ PGEN_OUT = $(PY)pgenmain$(EXE)
 $(PGEN_SRC): $(PY_HDR)
 
 $(PGEN_OUT): $(PGEN_OBJ)
-	$(CCLD) $(WL) $(LDFLAGS) $(LDLIBS) $(SET_LDFLAGS) $(SET_LDLIBS)
+	$(CCLD)
 
 PYGRAM = $(PY)graminit.c $(PYI)python$(SEP)graminit.h
 

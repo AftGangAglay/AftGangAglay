@@ -16,8 +16,14 @@ A = .lib
 CC = $(CC) /nologo
 
 AR = lib /nologo /out:$@ $**
-CCLD = $(CC) /Fe:$@ $**
-WL = /link
+
+CCLD_LDFLAGS = $(LDFLAGS) $(SET_LDFLAGS)
+CCLD_LDLIBS = $(LDLIBS) $(SET_LDLIBS)
+CCLD = $(CC) /Fe:$@ $** /link $(CCLD_LDFLAGS) $(CCLD_LDLIBS)
+
+GL_CCLD_LDFLAGS = $(LDFLAGS) $(SET_LDFLAGS) $(GL_LDFLAGS)
+GL_CCLD_LDLIBS = $(LDLIBS) $(SET_LDLIBS) $(GL_LDLIBS)
+GL_CCLD = $(CC) /Fe:$@ $** /link $(GL_CCLD_LDFLAGS) $(GL_CCLD_LDLIBS)
 
 SET_CFLAGS = /Zc:wchar_t
 
@@ -41,6 +47,11 @@ GL_LDLIBS = $(GL_LDLIBS) comdlg32.lib
 !include vendor/www.mk
 !include vendor/glm.mk
 !include src/aga.mk
+
+!ifdef DEVBUILD
+DEV_LIBS = $(GLM_OUT)
+DEV_HDR = $(GLM_HDR)
+!endif
 
 SET_LDFLAGS =
 SET_LDLIBS =

@@ -32,11 +32,11 @@ AGA_OBJ = $(subst .c,$(OBJ),$(AGA_SRC))
 
 AGA_OUT = $(AGA)aga$(EXE)
 
-$(AGA_OBJ): $(APRO_HDR) $(PY_HDR) $(WWW_HDR) $(AGA_HDR) $(GLM_HDR)
+$(AGA_OBJ): $(APRO_HDR) $(PY_HDR) $(WWW_HDR) $(AGA_HDR) $(DEV_HDR)
 
-$(AGA_OUT): $(APRO_OUT) $(PY_OUT) $(WWW_OUT) $(GLM_OUT)
+$(AGA_OUT): $(APRO_OUT) $(PY_OUT) $(WWW_OUT) $(DEV_LIBS)
 $(AGA_OUT): $(AGA_OBJ)
-	$(CCLD) $(WL) $(LDFLAGS) $(LDLIBS) $(SET_LDFLAGS) $(SET_LDLIBS) $(GL_LDFLAGS) $(GL_LDLIBS)
+	$(GL_CCLD)
 
 $(AGA)script.c: $(PYGRAM)
 

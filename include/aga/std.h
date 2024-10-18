@@ -38,6 +38,14 @@
 #include <errno.h>
 #include <signal.h>
 
+#ifdef AGA_WANT_MATH
+# include <math.h>
+
+# ifndef M_PI
+#  define M_PI (3.14159265358979323846)
+# endif
+#endif
+
 #ifdef AGA_WANT_UNIX
 # undef AGA_WANT_UNIX
 # ifdef AGA_HAVE_UNISTD

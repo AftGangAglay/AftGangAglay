@@ -74,13 +74,15 @@ else
 endif
 
 include lib/prof/apro.mk
+
 include vendor/python.mk
 include vendor/www.mk
 include vendor/glm.mk
+include vendor/tiff.mk
 
 ifdef DEVBUILD
-	DEV_LIBS = $(GLM_OUT)
-	DEV_HDR = $(GLM_HDR)
+	DEV_LIBS = $(GLM_OUT) $(TIF_OUT)
+	DEV_HDR = $(GLM_HDR) $(TIF_HDR)
 endif
 
 include src/aga.mk
@@ -98,5 +100,5 @@ SET_CFLAGS += -DAGA_VERSION=\"$(VERSION)\"
 all: $(AGA_OUT)
 
 .PHONY: clean
-.PHONY: clean_apro clean_python clean_www clean_aga clean_glm
-clean: clean_apro clean_python clean_www clean_aga clean_glm
+.PHONY: clean_apro clean_python clean_www clean_aga clean_glm clean_tiff
+clean: clean_apro clean_python clean_www clean_aga clean_glm clean_tiff

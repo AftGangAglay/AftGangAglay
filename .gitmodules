@@ -15,3 +15,9 @@
 	branch = trunk
 	url = https://github.com/AftGangAglay/SGI-SIGGRAPH97-Demos
 	shallow = true
+
+[submodule "vendor/libtiff"]
+	path = vendor/libtiff
+	branch = trunk
+	url = https://github.com/AftGangAglay/libtiff4.3beta018
+	shallow = true

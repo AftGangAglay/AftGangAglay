@@ -43,15 +43,18 @@ GL_LDLIBS = opengl32.lib glu32.lib gdi32.lib shell32.lib user32.lib winmm.lib
 GL_LDLIBS = $(GL_LDLIBS) comdlg32.lib
 
 !include lib/prof/apro.mk
+
 !include vendor/python.mk
 !include vendor/www.mk
 !include vendor/glm.mk
-!include src/aga.mk
+!include vendor/tiff.mk
 
 !ifdef DEVBUILD
-DEV_LIBS = $(GLM_OUT)
-DEV_HDR = $(GLM_HDR)
+DEV_LIBS = $(GLM_OUT) $(TIF_OUT)
+DEV_HDR = $(GLM_HDR) $(TIF_HDR)
 !endif
+
+!include src/aga.mk
 
 SET_LDFLAGS =
 SET_LDLIBS =
@@ -83,4 +86,4 @@ SET_CFLAGS = $(SET_CFLAGS) /DAGA_VERSION=\"$(VERSION)\"
 
 all: $(AGA_OUT)
 
-clean: clean_apro clean_python clean_www clean_aga clean_glm
+clean: clean_apro clean_python clean_www clean_aga clean_glm clean_tiff

@@ -52,6 +52,7 @@ GL_LDLIBS = $(GL_LDLIBS) comdlg32.lib
 !ifdef DEVBUILD
 DEV_LIBS = $(GLM_OUT) $(TIF_OUT)
 DEV_HDR = $(GLM_HDR) $(TIF_HDR)
+DEV_INC = /I$(GLMH) /I$(TIFI)
 !endif
 
 !include src/aga.mk
@@ -78,7 +79,7 @@ SET_CFLAGS = $(SET_CFLAGS) /wd4061
 SET_CFLAGS = $(SET_CFLAGS) /wd4127
 !endif
 
-SET_CFLAGS = $(SET_CFLAGS) /I$(APRO) /I$(PYI) /I$(WWWH) /I$(GLMH) /Iinclude
+SET_CFLAGS = $(SET_CFLAGS) /I$(APRO) /I$(PYI) /I$(WWWH) $(DEV_INC) /Iinclude
 SET_CFLAGS = $(SET_CFLAGS) /DAGA_VERSION=\"$(VERSION)\"
 
 .c$(OBJ):

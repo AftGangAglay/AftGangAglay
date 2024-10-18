@@ -83,12 +83,13 @@ include vendor/tiff.mk
 ifdef DEVBUILD
 	DEV_LIBS = $(GLM_OUT) $(TIF_OUT)
 	DEV_HDR = $(GLM_HDR) $(TIF_HDR)
+	DEV_INC = -I$(GLMH) -I$(TIFI)
 endif
 
 include src/aga.mk
 
 SET_CFLAGS += $(GL_CFLAGS)
-SET_CFLAGS += -I$(APRO) -I$(PYI) -I$(WWWH) -I$(GLMH) -Iinclude
+SET_CFLAGS += -I$(APRO) -I$(PYI) -I$(WWWH) $(DEV_INC) -Iinclude
 SET_CFLAGS += -DAGA_VERSION=\"$(VERSION)\"
 
 .SUFFIXES: $(OBJ)

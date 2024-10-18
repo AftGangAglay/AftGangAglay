@@ -13,6 +13,11 @@
 #include <aga/io.h>
 #include <aga/utility.h>
 
+/* TODO: For `struct vertex' definition -- move elsewhere. */
+#include <agan/object.h>
+
+#include <glm.h>
+
 #define AGA_RAWPATH (".raw")
 #define AGA_PY_END ("\n\xFF")
 
@@ -146,6 +151,71 @@ static enum aga_result aga_build_python(void* out, void* in) {
 	return AGA_RESULT_OK;
 }
 
+static enum aga_result aga_build_obj(void* out, void* in) {
+	GLMmodel* model;
+	float extent[6];
+
+	unsigned i, j;
+	GLMgroup* group;
+
+	if(!(model = glmReadOBJFile("<build OBJ>", in))) {
+		/* TODO: Handle different EH. */
+		return AGA_RESULT_OOM;
+	}
+
+	/* TODO: Put this epsilon somewhere configurable. */
+	/* TODO: This hangs? (Or takes a *really* long time on sponza or smth.) */
+	/* glmWeld(model, 0.0001f); */
+	glmExtent(model, extent);
+
+	group = model->groups;
+	while(group) {
+		const GLMtriangle* tris = model->tris;
+		const GLMmaterial* mats = model->mats;
+		const float* norms = model->norms;
+		const float* uvs = model->uvs;
+		const float* verts = model->verts;
+
+		for(i = 0; i < group->ntris; i++) {
+			const GLMtriangle* t = &tris[group->tris[i]];
+			const GLMmaterial* mat = &mats[group->material];
+
+			struct aga_vertex v;
+
+			if(mat) aga_memcpy(v.col, mat->diffuse, sizeof(v.col));
+			else aga_memset(v.col, 0, sizeof(v.col));
+
+			for(j = 0; j < 3; ++j) {
+				aga_memcpy(v.norm, &norms[3 * t->n_inds[j]], sizeof(v.norm));
+				aga_memcpy(v.uv, &uvs[2 * t->t_inds[j]], sizeof(v.uv));
+				aga_memcpy(v.pos, &verts[3 * t->v_inds[j]], sizeof(v.pos));
+
+				if(fwrite(&v, sizeof(v), 1, out) < 1) {
+					if(ferror(out)) {
+						return aga_error_system(__FILE__, "fwrite");
+					}
+
+					return AGA_RESULT_EOF;
+				}
+			}
+		}
+
+		group = group->next;
+	}
+
+	if(fwrite(extent, sizeof(float), AGA_LEN(extent), out) < AGA_LEN(extent)) {
+		if(ferror(out)) {
+			return aga_error_system(__FILE__, "fwrite");
+		}
+
+		return AGA_RESULT_EOF;
+	}
+
+	glmDelete(model);
+
+	return AGA_RESULT_OK;
+}
+
 static enum aga_result aga_build_input_file(
 		const char* path, enum aga_file_kind kind) {
 
@@ -206,9 +276,9 @@ static enum aga_result aga_build_input_file(
 
 		case AGA_KIND_PY: result = aga_build_python(out, in); break;
 
+		case AGA_KIND_OBJ: result = aga_build_obj(out, in); break;
 /*
 		case AGA_KIND_TIFF: break;
-		case AGA_KIND_OBJ: break;
 
 		case AGA_KIND_WAV: break;
 		case AGA_KIND_MIDI: break;
@@ -376,6 +446,8 @@ static enum aga_result aga_build_conf(
 static enum aga_result aga_build_pack_file(
 		const char* path, enum aga_file_kind kind, void* fp) {
 
+	static aga_fixed_buf_t outpath = { 0 };
+
 	enum aga_result result;
 
 	union aga_file_attribute attr;
@@ -383,7 +455,10 @@ static enum aga_result aga_build_pack_file(
 	void* in;
 	aga_size_t size;
 
-	if((result = aga_file_attribute_path(path, AGA_FILE_LENGTH, &attr))) {
+	strcpy(outpath, path);
+	strcat(outpath, AGA_RAWPATH);
+
+	if((result = aga_file_attribute_path(outpath, AGA_FILE_LENGTH, &attr))) {
 		return result;
 	}
 
@@ -392,12 +467,13 @@ static enum aga_result aga_build_pack_file(
 	switch(kind) {
 		default: break;
 
+		/* TODO: Structurize file tails. */
 		case AGA_KIND_TIFF: size -= sizeof(aga_uint_t); break;
 		case AGA_KIND_OBJ: size -= sizeof(float[6]); break;
 	}
 
-	if(!(in = fopen(path, "rb"))) {
-		return aga_error_system_path(__FILE__, "fopen", path);
+	if(!(in = fopen(outpath, "rb"))) {
+		return aga_error_system_path(__FILE__, "fopen", outpath);
 	}
 
 	result = aga_file_copy(fp, in, size);
@@ -557,18 +633,22 @@ enum aga_result aga_build(struct aga_settings* opts) {
 	return AGA_RESULT_OK;
 
 	cleanup: {
+		/* TODO: Destroy failed intermediate files in error cases aswell. */
+		/*
+		 * NOTE: `out_path' may reside in `root' so this needs to be before
+		 * 		 `aga_config_delete'.
+		 */
+		if(out_path) {
+			aga_error_check_soft(
+					__FILE__, "aga_path_delete",
+					aga_path_delete(out_path));
+		}
+
 		aga_error_check_soft(
 				__FILE__, "aga_config_delete", aga_config_delete(&root));
 
 		if(fp && fclose(fp) == EOF) {
 			(void) aga_error_system(__FILE__, "fclose");
-		}
-
-		/* TODO: Destroy failed intermediate files in error cases aswell. */
-		if(out_path) {
-			aga_error_check_soft(
-					__FILE__, "aga_path_delete",
-					aga_path_delete(out_path));
 		}
 
 		aga_log(__FILE__, "err: Build failed");

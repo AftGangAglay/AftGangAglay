@@ -58,6 +58,15 @@ void aga_error_check_soft(
 	aga_log(loc, "err: %s: %s", proc, aga_result_name(e));
 }
 
+void aga_error_check_path_soft(
+		const char* loc, const char* proc, const char* path,
+		enum aga_result e) {
+
+	if(!e) return;
+
+	aga_log(loc, "err: %s: %s `%s'", proc, aga_result_name(e), path);
+}
+
 enum aga_result aga_error_system(const char* loc, const char* proc) {
 	return aga_error_system_path(loc, proc, 0);
 }

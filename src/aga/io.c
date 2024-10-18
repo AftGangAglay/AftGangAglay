@@ -48,8 +48,8 @@ enum aga_result aga_directory_iterate(
 
 		if((result = aga_file_attribute_path(buf, AGA_FILE_TYPE, &attr))) {
 			if(keep_going) {
-				aga_error_check_soft(
-						__FILE__, "aga_file_attribute_path", result);
+				aga_error_check_path_soft(
+						__FILE__, "aga_file_attribute_path", buf, result);
 
 				held_result = result;
 				continue;
@@ -64,8 +64,9 @@ enum aga_result aga_directory_iterate(
 
 				if(result) {
 					if(keep_going) {
-						aga_error_check_soft(
-								__FILE__, "aga_directory_iterate", result);
+						aga_error_check_path_soft(
+								__FILE__, "aga_directory_iterate", buf,
+								result);
 
 						held_result = result;
 						continue;
@@ -77,8 +78,10 @@ enum aga_result aga_directory_iterate(
 		}
 		else if((result = fn(buf, pass))) {
 			if(keep_going) {
-				aga_error_check_soft(
-						__FILE__, "aga_directory_iterate::<callback>", result);
+				aga_error_check_path_soft(
+						__FILE__, "aga_directory_iterate::<callback>", buf,
+						result);
+
 				held_result = result;
 				continue;
 			}
@@ -185,7 +188,7 @@ enum aga_result aga_path_tail(const char* path, aga_size_t size, void* data) {
 	 * TODO: Apparently binary streams are not guaranteed to support
 	 * 		 `SEEK_END' -- Is this a case we need to handle?
 	 */
-	if(fseek(fp, (long) size, SEEK_END)) {
+	if(fseek(fp, -(long) size, SEEK_END)) {
 		result = aga_error_system(__FILE__, "fseek");
 		goto cleanup;
 	}

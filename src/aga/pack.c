@@ -41,6 +41,8 @@ enum aga_result aga_resource_pack_lookup(
 		}
 	}
 
+	aga_log(__FILE__, "err: Path `%s' not found in resource pack", path);
+
 	return AGA_RESULT_BAD_PARAM;
 }
 

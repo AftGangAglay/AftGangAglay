@@ -503,6 +503,9 @@ static enum aga_result aga_dumptree_int(
 enum aga_result aga_config_dump(struct aga_config_node* root, void* fp) {
 	enum aga_result result;
 
+	if(!root) return AGA_RESULT_BAD_PARAM;
+	if(!fp) return AGA_RESULT_BAD_PARAM;
+
 	if((result = aga_dumpf(fp, "<root>\n"))) return result;
 	if((result = aga_dumptree_int(root, fp, 1))) return result;
 	if((result = aga_dumpf(fp, "</root>"))) return result;

@@ -32,7 +32,7 @@ enum aga_file_type {
 };
 
 union aga_file_attribute {
-	aga_slong_t modified;
+	aga_time_t modified;
 	aga_size_t length;
 	enum aga_file_type type;
 };

@@ -99,6 +99,7 @@ static LRESULT CALLBACK aga_winproc(
 			return 0;
 		}
 
+		/* TODO: This isn't really era-appropriate. */
 		case WM_INPUT: {
 			static const UINT err = (UINT) -1;
 			static const UINT header_size = sizeof(RAWINPUTHEADER);

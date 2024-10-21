@@ -12,8 +12,7 @@ TIF_SRC3 = $(TIFS)dumpmode.c $(TIFS)error.c
 TIF_SRC4 = $(TIFS)getimage.c $(TIFS)flush.c $(TIFS)lzw.c
 TIF_SRC5 = $(TIFS)next.c $(TIFS)open.c $(TIFS)packbits.c $(TIFS)predict.c
 TIF_SRC6 = $(TIFS)read.c $(TIFS)swab.c $(TIFS)strip.c
-# TODO: Does `unix.c' need to be swapped out based on target? (probably).
-TIF_SRC7 = $(TIFS)thunder.c $(TIFS)tile.c $(TIFS)unix.c $(TIFS)version.c
+TIF_SRC7 = $(TIFS)thunder.c $(TIFS)tile.c $(TIFS)platform.c $(TIFS)version.c
 TIF_SRC8 = $(TIFS)warning.c $(TIFS)write.c
 TIF_SRC9 = $(TIF_SRC1) $(TIF_SRC2) $(TIF_SRC3) $(TIF_SRC4) $(TIF_SRC5)
 
@@ -28,6 +27,10 @@ $(TIF_OBJ): $(TIF_HDR)
 
 $(TIF_OUT): $(TIF_OBJ)
 	$(AR)
+
+# TODO: This doesn't seem to be working?
+$(TIFS)platform.c: $(TIFS)win3.c
+$(TIFS)platform.c: $(TIFS)unix.c
 
 clean_tiff:
 	$(RM) $(TIF_OBJ) $(TIF_OUT)

@@ -15,6 +15,18 @@
 
 #include <aga/std.h>
 
+static aga_bool_t aga_check_argv0_tail(const char* argv0, const char* tail) {
+	const char* p;
+	const char* end;
+
+	if(!(p = strrchr(argv0, '-'))) return AGA_FALSE;
+	if(!(end = strchr(p, '.'))) end = strchr(p, '\0');
+
+	aga_log(__FILE__, "%s %s %s %s %d", argv0, tail, p, end, end - p - 1);
+
+	return !strncmp(p + 1, tail, end - p - 1);
+}
+
 enum aga_result aga_settings_new(
 		struct aga_settings* opts, int argc, char** argv) {
 
@@ -22,7 +34,7 @@ enum aga_result aga_settings_new(
 	if(!argv) return AGA_RESULT_BAD_PARAM;
 
 #ifdef AGA_DEVBUILD
-	opts->compile = AGA_FALSE;
+	opts->compile = aga_check_argv0_tail(argv[0], "build");
 	opts->build_file = "agabuild.sgml";
 #endif
 	opts->config_file = "aga.sgml";
@@ -43,6 +55,13 @@ enum aga_result aga_settings_new(
 
 	aga_bzero(&opts->config, sizeof(opts->config));
 
+	/*
+	 * TODO: `vendor/libtiff/port/getopt.c' is from 1991 and should work for
+	 * 		 Us as `getopt' emulation.
+	 * 		 Could also appropriate code from MS-DOS for MS-style argparse:
+	 * 		 		https://github.com/microsoft/MS-DOS
+	 * 		 		v4.0/src/CMD/FC/FC.C:288
+	 */
 #ifdef AGA_HAVE_GETOPT
 	{
 		static const char helpmsg[] =

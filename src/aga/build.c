@@ -23,8 +23,17 @@
 
 #ifdef AGA_DEVBUILD
 
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable: 4668) /* Symbol not defined as macro. */
+#endif
+
 #include <glm.h>
 #include <tiffio.h>
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 enum aga_file_kind {
 	AGA_KIND_NONE = 0,

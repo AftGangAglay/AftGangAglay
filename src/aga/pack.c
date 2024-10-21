@@ -14,6 +14,8 @@
 /*
  * TODO: Allow inplace use of UNIX `compress'/`uncompress' utilities on pack
  * 		 In distribution.
+ * 		 Windows apparently had `COMPRESS.EXE' and could use `LZRead' etc. for
+ * 		 In-place compressed reads (!).
  */
 
 /*

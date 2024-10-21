@@ -260,7 +260,7 @@ static aga_bool_t agan_mkobj_model(
 		else {
 			static const char* version = "Version";
 
-			struct aga_vertex v;
+			struct aga_vertex vert;
 			void* fp;
 			aga_size_t i, len;
 			aga_slong_t ver;
@@ -291,8 +291,8 @@ static aga_bool_t agan_mkobj_model(
 			glBegin(GL_TRIANGLES);
 			/* if(aga_script_gl_err("glBegin")) return 0; */
 
-			for(i = 0; i < len; i += sizeof(v)) {
-				result = aga_file_read(&v, sizeof(v), pack->fp);
+			for(i = 0; i < len; i += sizeof(vert)) {
+				result = aga_file_read(&vert, sizeof(vert), pack->fp);
 				if(aga_script_err("aga_file_read", result)) return AGA_TRUE;
 
 				/*
@@ -308,14 +308,14 @@ static aga_bool_t agan_mkobj_model(
 				else {
 					AGA_DEPRECATED_IMPL(
 							"Loading Version 1 model data is deprecated");
-					glColor4fv(v.col);
+					glColor4fv(vert.col);
 				}
 
-				glTexCoord2fv(v.uv);
+				glTexCoord2fv(vert.uv);
 				/* if(aga_script_gl_err("glTexCoord2fv")) return AGA_TRUE; */
-				glNormal3fv(v.norm);
+				glNormal3fv(vert.norm);
 				/* if(aga_script_gl_err("glNormal3fv")) return AGA_TRUE; */
-				glVertex3fv(v.pos);
+				glVertex3fv(vert.pos);
 				/* if(aga_script_gl_err("glVertex3fv")) return AGA_TRUE; */
 			}
 
@@ -357,15 +357,16 @@ static aga_bool_t agan_mkobj_light(
 		struct aga_config_node* child = &node->children[i];
 
 		if(aga_config_variable("Index", child, AGA_INTEGER, &index)) {
-			data->index = index;
-			if(data->index > 7) {
+			if(index > 7 || index < 0) {
 				aga_log(
-						__FILE__, "warn: Light index `%u' exceeds max of 7",
+						__FILE__, "warn: Light index `%u' out of range 0-7",
 						data->index);
 				free(data);
 				obj->light_data = 0;
 				return AGA_TRUE;
 			}
+
+			data->index = (aga_uchar_t) index;
 		}
 		else if(aga_config_variable("Directional", child, AGA_INTEGER, &scr)) {
 			data->directional = !!scr;

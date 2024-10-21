@@ -20,13 +20,12 @@
  * `stddef.h' is needed for `wchar_t'.
  */
 # ifndef AGA_WGL_SUPPRESS_AUX
-#  define AGA_WANT_WINDOWS_H
-
-#  include <aga/win32.h>
 #  ifndef _WCHAR_T_DEFINED
 #   include <aga/std.h>
 #  endif
 
+#  define AGA_WANT_WINDOWS_H
+#  include <aga/win32.h>
 # endif
 
 # include <GL/gl.h>

@@ -195,13 +195,13 @@ enum aga_result aga_settings_parse_config(
 			opts->config.children, width, AGA_LEN(width), &v,
 			AGA_INTEGER, AGA_TRUE);
 	aga_error_check_soft(__FILE__, "aga_config_lookup", result);
-	if(!result) opts->width = v;
+	if(!result) opts->width = (aga_size_t) v;
 
 	result = aga_config_lookup(
 			opts->config.children, height, AGA_LEN(height), &v,
 			AGA_INTEGER, AGA_TRUE);
 	aga_error_check_soft(__FILE__, "aga_config_lookup", result);
-	if(!result) opts->height = v;
+	if(!result) opts->height = (aga_size_t) v;
 
 	result = aga_config_lookup(
 			opts->config.children, mipmap, AGA_LEN(mipmap), &v,

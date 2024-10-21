@@ -31,6 +31,8 @@ SET_CFLAGS = /Zc:wchar_t
 SET_CFLAGS = $(SET_CFLAGS) /Od /Zi /MTd
 !else
 SET_CFLAGS = $(SET_CFLAGS) /O2 /DNDEBUG /MT
+# NOTE: Fixes register spilling diagnostics.
+SET_CFLAGS = $(SET_CFLAGS) /fp:fast
 !endif
 
 !ifdef DEVBUILD

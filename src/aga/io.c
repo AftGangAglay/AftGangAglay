@@ -93,6 +93,12 @@ enum aga_result aga_directory_iterate(
 
 	return held_result;
 #else
+	(void) path;
+	(void) fn;
+	(void) recurse;
+	(void) pass;
+	(void) keep_going;
+
 	return AGA_RESULT_NOT_IMPLEMENTED;
 #endif
 }

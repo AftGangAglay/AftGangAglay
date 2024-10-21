@@ -77,7 +77,14 @@
 typedef unsigned char aga_uchar_t;
 typedef unsigned short aga_ushort_t;
 typedef unsigned int aga_uint_t;
+/*
+ * TODO: Review all `long long' vs. `long' and see if we can eliminate misuse.
+ */
+#ifdef _WIN64
 typedef unsigned long long aga_ulong_t;
+#else
+typedef unsigned long aga_ulong_t;
+#endif
 
 typedef signed char aga_schar_t;
 typedef signed short aga_sshort_t;

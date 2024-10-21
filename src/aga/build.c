@@ -16,15 +16,15 @@
 /* TODO: For `struct vertex' definition -- move elsewhere. */
 #include <agan/object.h>
 
-#include <glm.h>
-#include <tiffio.h>
-
 #define AGA_RAWPATH (".raw")
 #define AGA_PY_END ("\n\xFF")
 /* TODO: Pass this through properly to `aga_build_X'. */
 #define AGA_BUILD_FNAME ("<build>")
 
 #ifdef AGA_DEVBUILD
+
+#include <glm.h>
+#include <tiffio.h>
 
 enum aga_file_kind {
 	AGA_KIND_NONE = 0,

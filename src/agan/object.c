@@ -46,7 +46,7 @@ static aga_bool_t agan_mkobj_trans(
 
 	struct py_object* l;
 	struct py_object* o;
-	aga_size_t i, j;
+	unsigned i, j;
 	double f;
 
 	for(i = 0; i < 3; ++i) {
@@ -64,12 +64,14 @@ static aga_bool_t agan_mkobj_trans(
 			result = aga_config_lookup(
 					conf->children, path, AGA_LEN(path), &f, AGA_FLOAT,
 					AGA_FALSE);
+
 			if(result) f = 0.0f;
 
 			if(!(o = py_float_new(f))) {
 				py_error_set_nomem();
 				return 0;
 			}
+
 			py_list_set(l, j, o);
 		}
 	}
@@ -620,7 +622,7 @@ struct py_object* agan_inobj(
 	double rotation[3];
 
 	aga_bool_t planar;
-	aga_size_t i;
+	unsigned i;
 	struct agan_object* obj;
 	double tolerance = AGA_TRANSFORM_TOLERANCE;
 

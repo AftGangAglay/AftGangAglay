@@ -89,7 +89,7 @@ aga_bool_t aga_arg(
 		struct py_object** v, struct py_object* args, aga_size_t n,
 		enum py_type type) {
 
-	return (*v = py_tuple_get(args, n)) && (*v)->type == type;
+	return (*v = py_tuple_get(args, (unsigned) n)) && (*v)->type == type;
 }
 
 aga_bool_t aga_vararg(

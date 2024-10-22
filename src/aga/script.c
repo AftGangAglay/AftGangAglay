@@ -16,6 +16,11 @@
 
 #include <apro.h>
 
+/*
+ * TODO: Once we have precompiled binaries -- make python consume bytecode
+ * 		 Buffered stream-wise instead of preallocating entire bytecode buffer.
+ */
+
 void aga_script_engine_trace(void) {
 	struct py_object* exc;
 	struct py_object* val;

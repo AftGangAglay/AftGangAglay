@@ -40,7 +40,12 @@ enum aga_result aga_directory_iterate(
 	enum aga_result held_result = AGA_RESULT_OK;
 
 	struct _finddata_t data;
+
+#ifdef _WIN64
+	intptr_t find;
+#else
 	long find;
+#endif
 
 	if(sprintf(buf, "%s\\*", path) < 0) {
 		return aga_error_system(__FILE__, "sprintf");
@@ -52,9 +57,23 @@ enum aga_result aga_directory_iterate(
 	}
 
 	do {
+		static aga_bool_t did_warn_deprecation = AGA_FALSE;
+
 		if(data.name[0] == '.') continue;
 
-		if(sprintf(buf, "%s\\%s", path, data.name) < 0) {
+		if(!did_warn_deprecation) {
+			/* TODO: Address this in next major release. */
+			aga_log(
+					__FILE__,
+					"warn: Windows directory iteration currently replaces "
+					"`\\' with `/' during path concatenation -- this will be "
+					"changed in a future release when config can mark inputs "
+					"as paths to auto-replace path separators");
+
+			did_warn_deprecation = !did_warn_deprecation;
+		}
+
+		if(sprintf(buf, "%s/%s", path, data.name) < 0) {
 			result = aga_error_system(__FILE__, "sprintf");
 			if(keep_going) {
 				held_result = result;

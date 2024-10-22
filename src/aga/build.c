@@ -696,7 +696,9 @@ static enum aga_result aga_build_iter(
 		}
 
 		if((result = fn(path, kind, recurse, pass))) {
-			aga_error_check_soft(__FILE__, "aga_build_input", result);
+			aga_error_check_soft(
+					__FILE__, "aga_build_iter::<callback>", result);
+
 			held_result = result;
 		}
 	}

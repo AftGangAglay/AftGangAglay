@@ -29,8 +29,8 @@ $(TIF_OUT): $(TIF_OBJ)
 	$(AR)
 
 # TODO: This doesn't seem to be working?
-$(TIFS)platform.c: $(TIFS)win3.c
-$(TIFS)platform.c: $(TIFS)unix.c
+$(TIFS)platform$(OBJ): $(TIFS)win3.c
+$(TIFS)platform$(OBJ): $(TIFS)unix.c
 
 clean_tiff:
 	$(RM) $(TIF_OBJ) $(TIF_OUT)

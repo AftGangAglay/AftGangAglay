@@ -82,6 +82,8 @@ SET_CFLAGS = $(SET_CFLAGS) /wd4127
 !endif
 
 SET_CFLAGS = $(SET_CFLAGS) /I$(APRO) /I$(PYI) /I$(WWWH) $(DEV_INC) /Iinclude
+# NOTE: Only needed for VC `getopt' emulation for now.
+SET_CFLAGS = $(SET_CFLAGS) /Ivendor$(SEP)libtiff$(SEP)
 SET_CFLAGS = $(SET_CFLAGS) /DAGA_VERSION=\"$(VERSION)\"
 
 .c$(OBJ):

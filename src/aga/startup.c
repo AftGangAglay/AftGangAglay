@@ -12,20 +12,13 @@
 #include <aga/diagnostic.h>
 
 #define AGA_WANT_UNIX
-
 #include <aga/std.h>
 
-static aga_bool_t aga_check_argv0_tail(const char* argv0, const char* tail) {
-	const char* p;
-	const char* end;
-
-	if(!(p = strrchr(argv0, '-'))) return AGA_FALSE;
-	if(!(end = strchr(p, '.'))) end = strchr(p, '\0');
-
-	aga_log(__FILE__, "%s %s %s %s %d", argv0, tail, p, end, end - p - 1);
-
-	return !strncmp(p + 1, tail, end - p - 1);
-}
+/* Prefer system `getopt'. */
+#ifndef AGA_HAVE_GETOPT
+# define AGA_HAVE_GETOPT
+# include <port/getopt.c>
+#endif
 
 enum aga_result aga_settings_new(
 		struct aga_settings* opts, int argc, char** argv) {
@@ -34,7 +27,7 @@ enum aga_result aga_settings_new(
 	if(!argv) return AGA_RESULT_BAD_PARAM;
 
 #ifdef AGA_DEVBUILD
-	opts->compile = aga_check_argv0_tail(argv[0], "build");
+	opts->compile = AGA_FALSE;
 	opts->build_file = "agabuild.sgml";
 #endif
 	opts->config_file = "aga.sgml";

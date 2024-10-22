@@ -8,6 +8,8 @@ from mido import MidiFile
 
 MAGIC = 0xA6A31D10
 
+print('warn: `aga-midigen\' is deprecated in favour of `agabuild.sgml\'')
+
 if len(argv) != 3:
 	print('usage: ' + argv[0] + ' <input> <output>')
 	exit(1)

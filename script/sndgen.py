@@ -7,6 +7,8 @@ from os import system
 
 # TODO: Add some magic to this to verify the data is sensible.
 
+print('warn: `aga-sndgen\' is deprecated in favour of `agabuild.sgml\'')
+
 if len(argv) != 3:
 	print('usage: ' + argv[0] + ' <input> <output>')
 	exit(1)

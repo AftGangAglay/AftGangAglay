@@ -8,6 +8,8 @@ from PIL import Image
 
 MAGIC = 0xA6A13600
 
+print('warn: `aga-imggen\' is deprecated in favour of `agabuild.sgml\'')
+
 if len(argv) != 3:
 	print('usage: ' + argv[0] + ' <input> <output>')
 	exit(1)

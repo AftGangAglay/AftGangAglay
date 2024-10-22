@@ -20,6 +20,8 @@ MAGIC = 0xA6A3D700
 
 VERTSZ = 3 + 4 + 2 + 3
 
+print('warn: `aga-vertgen\' is deprecated in favour of `agabuild.sgml\'')
+
 if len(argv) != 3:
 	print('usage: ' + argv[0] + ' <input> <output>')
 	exit(1)

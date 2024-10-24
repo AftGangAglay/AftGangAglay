@@ -14,6 +14,8 @@
 /*
  * TODO: Allow inplace use of UNIX `compress'/`uncompress' utilities on pack
  * 		 In distribution.
+ * 		 Windows apparently had `COMPRESS.EXE' and could use `LZRead' etc. for
+ * 		 In-place compressed reads (!).
  */
 
 /*
@@ -128,7 +130,7 @@ enum aga_result aga_resource_pack_new(
 							  "entry", i);
 			continue;
 		}
-		res->offset = offset;
+		res->offset = (aga_size_t) offset;
 
 		if(res->offset >= pack->size) {
 			aga_log(
@@ -148,7 +150,7 @@ enum aga_result aga_resource_pack_new(
 							  "entry", i);
 			continue;
 		}
-		res->size = size;
+		res->size = (aga_size_t) size;
 
 		if(res->offset + res->size >= pack->size) {
 			aga_log(

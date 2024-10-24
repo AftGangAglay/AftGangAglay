@@ -67,7 +67,7 @@ enum aga_result aga_midi_new(
 	hdr = midi->hdr;
 
 	hdr->lpData = buf;
-	hdr->dwBytesRecorded = hdr->dwBufferLength = len;
+	hdr->dwBytesRecorded = hdr->dwBufferLength = (DWORD) len;
 
 	err = midiOutPrepareHeader(dev->dev, hdr, sizeof(MIDIHDR));
 	result = aga_mmsys_result(err);

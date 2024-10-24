@@ -19,7 +19,106 @@ enum aga_result aga_directory_iterate(
 		const char* path, aga_directory_callback_t fn, aga_bool_t recurse,
 		void* pass, aga_bool_t keep_going) {
 
-#ifdef AGA_HAVE_DIRENT
+#ifdef _WIN32
+	/*
+	 * TODO: These compat. functions appear to have come about in 2000-ish with
+	 * 		 XP -- what did 9x/3.1 use to access these "portably"?
+	 * 		 There is some dubious evidence that the `_dos_' variants of these
+	 * 		 Existed earlier:
+	 * 		 		https://jeffpar.github.io/kbarchive/kb/043/Q43144/
+	 * 		 		https://www.ee.iitb.ac.in/student/~bhush/C%20Programming%20-%20Just%20the%20FAQs.pdf
+	 * 		 Possibly as a Watcom/Borland exclusive extension:
+	 *				https://openwatcom.org/ftp/manuals/1.5/clib.pdf
+	 *		 There's also something weird with the MSDN docs here:
+	 *		 		https://learn.microsoft.com/en-us/cpp/c-runtime-library/system-calls?view=msvc-170
+	 *		 As this set of functions are the only ones present.
+	 */
+
+	aga_fixed_buf_t buf = { 0 };
+
+	enum aga_result result;
+	enum aga_result held_result = AGA_RESULT_OK;
+
+	struct _finddata_t data;
+
+#ifdef _WIN64
+	intptr_t find;
+#else
+	long find;
+#endif
+
+	if(sprintf(buf, "%s\\*", path) < 0) {
+		return aga_error_system(__FILE__, "sprintf");
+	}
+
+	/* TODO: Should this class of DOS compat function use `_doserrno'? */
+	if((find = _findfirst(buf, &data)) == -1) {
+		return aga_error_system_path(__FILE__, "_findfirst", path);
+	}
+
+	do {
+		static aga_bool_t did_warn_deprecation = AGA_FALSE;
+
+		if(data.name[0] == '.') continue;
+
+		if(!did_warn_deprecation) {
+			/* TODO: Address this in next major release. */
+			aga_log(
+					__FILE__,
+					"warn: Windows directory iteration currently replaces "
+					"`\\' with `/' during path concatenation -- this will be "
+					"changed in a future release when config can mark inputs "
+					"as paths to auto-replace path separators");
+
+			did_warn_deprecation = !did_warn_deprecation;
+		}
+
+		if(sprintf(buf, "%s/%s", path, data.name) < 0) {
+			result = aga_error_system(__FILE__, "sprintf");
+			if(keep_going) {
+				held_result = result;
+				continue;
+			}
+			else return result;
+		}
+
+		if(data.attrib & _A_SUBDIR) {
+			if(recurse) {
+				result = aga_directory_iterate(
+						buf, fn, recurse, pass, keep_going);
+
+				if(result) {
+					if(keep_going) {
+						aga_error_check_path_soft(
+								__FILE__, "aga_directory_iterate", buf,
+								result);
+
+						held_result = result;
+						continue;
+					}
+					else return result;
+				}
+			}
+			else continue;
+		}
+		else if((result = fn(buf, pass))) {
+			if(keep_going) {
+				aga_error_check_path_soft(
+						__FILE__, "aga_directory_iterate::<callback>", buf,
+						result);
+
+				held_result = result;
+				continue;
+			}
+			else return result;
+		}
+	} while(_findnext(find, &data) != -1);
+
+	if(errno != ENOENT) return aga_error_system(__FILE__, "_findnext");
+
+	return held_result;
+
+#elif defined(AGA_HAVE_DIRENT)
 	enum aga_result result;
 	enum aga_result held_result = AGA_RESULT_OK;
 
@@ -93,6 +192,12 @@ enum aga_result aga_directory_iterate(
 
 	return held_result;
 #else
+	(void) path;
+	(void) fn;
+	(void) recurse;
+	(void) pass;
+	(void) keep_going;
+
 	return AGA_RESULT_NOT_IMPLEMENTED;
 #endif
 }

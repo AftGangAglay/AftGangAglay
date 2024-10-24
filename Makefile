@@ -31,6 +31,8 @@ SET_CFLAGS = /Zc:wchar_t
 SET_CFLAGS = $(SET_CFLAGS) /Od /Zi /MTd
 !else
 SET_CFLAGS = $(SET_CFLAGS) /O2 /DNDEBUG /MT
+# NOTE: Fixes register spilling diagnostics.
+SET_CFLAGS = $(SET_CFLAGS) /fp:fast
 !endif
 
 !ifdef DEVBUILD
@@ -80,6 +82,8 @@ SET_CFLAGS = $(SET_CFLAGS) /wd4127
 !endif
 
 SET_CFLAGS = $(SET_CFLAGS) /I$(APRO) /I$(PYI) /I$(WWWH) $(DEV_INC) /Iinclude
+# NOTE: Only needed for VC `getopt' emulation for now.
+SET_CFLAGS = $(SET_CFLAGS) /Ivendor$(SEP)libtiff$(SEP)
 SET_CFLAGS = $(SET_CFLAGS) /DAGA_VERSION=\"$(VERSION)\"
 
 .c$(OBJ):

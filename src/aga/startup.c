@@ -12,8 +12,13 @@
 #include <aga/diagnostic.h>
 
 #define AGA_WANT_UNIX
-
 #include <aga/std.h>
+
+/* Prefer system `getopt'. */
+#ifndef AGA_HAVE_GETOPT
+# define AGA_HAVE_GETOPT
+# include <port/getopt.c>
+#endif
 
 enum aga_result aga_settings_new(
 		struct aga_settings* opts, int argc, char** argv) {
@@ -43,6 +48,13 @@ enum aga_result aga_settings_new(
 
 	aga_bzero(&opts->config, sizeof(opts->config));
 
+	/*
+	 * TODO: `vendor/libtiff/port/getopt.c' is from 1991 and should work for
+	 * 		 Us as `getopt' emulation.
+	 * 		 Could also appropriate code from MS-DOS for MS-style argparse:
+	 * 		 		https://github.com/microsoft/MS-DOS
+	 * 		 		v4.0/src/CMD/FC/FC.C:288
+	 */
 #ifdef AGA_HAVE_GETOPT
 	{
 		static const char helpmsg[] =
@@ -195,13 +207,13 @@ enum aga_result aga_settings_parse_config(
 			opts->config.children, width, AGA_LEN(width), &v,
 			AGA_INTEGER, AGA_TRUE);
 	aga_error_check_soft(__FILE__, "aga_config_lookup", result);
-	if(!result) opts->width = v;
+	if(!result) opts->width = (aga_size_t) v;
 
 	result = aga_config_lookup(
 			opts->config.children, height, AGA_LEN(height), &v,
 			AGA_INTEGER, AGA_TRUE);
 	aga_error_check_soft(__FILE__, "aga_config_lookup", result);
-	if(!result) opts->height = v;
+	if(!result) opts->height = (aga_size_t) v;
 
 	result = aga_config_lookup(
 			opts->config.children, mipmap, AGA_LEN(mipmap), &v,

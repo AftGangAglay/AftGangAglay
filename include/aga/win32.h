@@ -18,6 +18,8 @@
 #  include <windows.h>
 #  include <windowsx.h>
 #  include <hidusage.h>
+/* TODO: This might be Watcom/Borland only. */
+#  include <dos.h>
 
 #  ifdef _MSC_VER
 #   pragma warning(pop)

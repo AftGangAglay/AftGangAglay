@@ -16,6 +16,11 @@
 
 #include <apro.h>
 
+/*
+ * TODO: Once we have precompiled binaries -- make python consume bytecode
+ * 		 Buffered stream-wise instead of preallocating entire bytecode buffer.
+ */
+
 void aga_script_engine_trace(void) {
 	struct py_object* exc;
 	struct py_object* val;
@@ -65,8 +70,6 @@ enum aga_result aga_pyresult(enum py_result result) {
 		case PY_RESULT_OOM: return AGA_RESULT_OOM;
 		case PY_RESULT_DONE: return AGA_RESULT_OK;
 	}
-
-	return AGA_RESULT_ERROR;
 }
 
 #ifdef _MSC_VER

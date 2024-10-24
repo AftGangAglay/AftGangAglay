@@ -16,15 +16,24 @@
 /* TODO: For `struct vertex' definition -- move elsewhere. */
 #include <agan/object.h>
 
-#include <glm.h>
-#include <tiffio.h>
-
 #define AGA_RAWPATH (".raw")
 #define AGA_PY_END ("\n\xFF")
 /* TODO: Pass this through properly to `aga_build_X'. */
 #define AGA_BUILD_FNAME ("<build>")
 
 #ifdef AGA_DEVBUILD
+
+#ifdef _MSC_VER
+# pragma warning(push)
+# pragma warning(disable: 4668) /* Symbol not defined as macro. */
+#endif
+
+#include <glm.h>
+#include <tiffio.h>
+
+#ifdef _MSC_VER
+# pragma warning(pop)
+#endif
 
 enum aga_file_kind {
 	AGA_KIND_NONE = 0,
@@ -687,7 +696,9 @@ static enum aga_result aga_build_iter(
 		}
 
 		if((result = fn(path, kind, recurse, pass))) {
-			aga_error_check_soft(__FILE__, "aga_build_input", result);
+			aga_error_check_soft(
+					__FILE__, "aga_build_iter::<callback>", result);
+
 			held_result = result;
 		}
 	}

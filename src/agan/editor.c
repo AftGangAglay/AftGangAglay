@@ -121,7 +121,7 @@ static struct py_object* agan_dumpobj(
 	/* Update conf tree with current transform data. */
 	/* TODO: This is copied from `mkobj_trans'. */
 	{
-		aga_size_t i, j;
+		unsigned i, j;
 
 		const char* elem[2];
 

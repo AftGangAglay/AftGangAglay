@@ -29,6 +29,8 @@ MODEL_MAX_X = 8
 MODEL_MAX_Y = 9
 MODEL_MAX_Z = 10
 
+print('warn: `aga-packgen\' is deprecated in favour of `agabuild.sgml\'')
+
 if len(argv) < 3:
 	print('usage: ' + argv[0] + ' <output> <input...>')
 	exit(1)

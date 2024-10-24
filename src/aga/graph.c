@@ -185,8 +185,8 @@ enum aga_result aga_graph_plot(
 
 	enum aga_result result;
 	aga_bool_t shift;
-	aga_ulong_t* history;
-	aga_ulong_t us = apro_stamp_us(s);
+	apro_unit_t* history;
+	apro_unit_t us = apro_stamp_us(s);
 
 	if(!graph) return AGA_RESULT_BAD_PARAM;
 

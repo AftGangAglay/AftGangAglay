@@ -44,7 +44,7 @@ struct py_object* agan_getkey(
 	/* getkey(int) */
 	if(!aga_arg_list(args, PY_TYPE_INT)) return aga_arg_error("getkey", "int");
 
-	result = aga_keymap_lookup(keymap, py_int_get(args), &b);
+	result = aga_keymap_lookup(keymap, (unsigned) py_int_get(args), &b);
 	if(aga_script_err("aga_keymap_lookup", result)) return 0;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_GETKEY);

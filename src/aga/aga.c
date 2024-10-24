@@ -243,7 +243,8 @@ int main(int argc, char** argv) {
 		}
 		apro_stamp_end(APRO_PRESWAP);
 
-		dt = apro_stamp_us(APRO_PRESWAP);
+		/* TODO: This doesn't work under devbuilds. */
+		dt = (aga_size_t) apro_stamp_us(APRO_PRESWAP);
 
 		if(do_prof) {
 			result = aga_graph_update(&prof, &env);

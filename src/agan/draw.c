@@ -174,7 +174,7 @@ struct py_object* agan_fogparam(
 struct py_object* agan_fogcol(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
-	aga_size_t i;
+	unsigned i;
 	float col[3];
 
 	(void) env;
@@ -203,7 +203,7 @@ struct py_object* agan_fogcol(
 struct py_object* agan_clear(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
-	aga_size_t i;
+	unsigned i;
 	float color[4];
 
 	(void) env;
@@ -232,7 +232,7 @@ struct py_object* agan_mktrans(
 
 	struct py_object* retval;
 	struct py_object* list;
-	aga_size_t i, j;
+	unsigned i, j;
 
 	(void) env;
 	(void) self;
@@ -385,7 +385,7 @@ struct py_object* agan_getflag(
 struct py_object* agan_line3d(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
-	aga_size_t i;
+	unsigned i;
 
 	struct py_object* from;
 	struct py_object* to;

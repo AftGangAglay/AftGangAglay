@@ -69,20 +69,37 @@
 #define AGA_TRANSFORM_TOLERANCE (0.1f)
 #define AGA_LEN(arr) (sizeof((arr)) / sizeof((arr)[0]))
 
+
+typedef unsigned char aga_uchar_t;
+typedef unsigned short aga_ushort_t;
+typedef unsigned int aga_uint_t;
+
+typedef signed char aga_schar_t;
+typedef signed short aga_sshort_t;
+typedef signed int aga_sint_t;
+
 #ifdef __GNUC__
 # pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wlong-long"
 #endif
 
-typedef unsigned char aga_uchar_t;
-typedef unsigned short aga_ushort_t;
-typedef unsigned int aga_uint_t;
+/*
+ * TODO: Review all `long long' vs. `long' and see if we can eliminate misuse.
+ */
+#ifdef _WIN64
 typedef unsigned long long aga_ulong_t;
-
-typedef signed char aga_schar_t;
-typedef signed short aga_sshort_t;
-typedef signed int aga_sint_t;
 typedef signed long long aga_slong_t;
+#else
+typedef unsigned long aga_ulong_t;
+typedef signed long aga_slong_t;
+#endif
+
+/* TODO: Find a way to switch this to be era-accurate. */
+typedef signed long long aga_time_t;
+
+#ifdef __GNUC__
+# pragma GCC diagnostic pop
+#endif
 
 typedef aga_ulong_t aga_size_t;
 
@@ -90,10 +107,6 @@ typedef aga_uchar_t aga_bool_t;
 
 #define AGA_TRUE (1)
 #define AGA_FALSE (0)
-
-#ifdef __GNUC__
-# pragma GCC diagnostic pop
-#endif
 
 /*
  * NOTE: This exists for cases where we are forced to use fixed size buffers

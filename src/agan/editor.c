@@ -46,6 +46,9 @@
 /*
  * TODO: Tear down and reload script land (or just user scripts) once we
  * 		 Consolidate Python state more to allow it.
+ * 		 Either implement serialisation so the application editor class can
+ * 		 Maintain position/other state or have explicit functions in-engine for
+ * 		 Storing camera state etc..
  */
 static struct py_object* agan_killpack(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
@@ -58,6 +61,10 @@ static struct py_object* agan_killpack(
 
 	if(args) return aga_arg_error("killpack", "none");
 
+	/*
+	 * TODO: These should have extra safeties on them. Do they even need to
+	 * 		 Be separate or can we just have a "reload" function?
+	 */
 	result = aga_resource_pack_delete(pack);
 	if(aga_script_err("aga_resource_pack_delete", result)) return 0;
 

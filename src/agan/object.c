@@ -207,10 +207,6 @@ static aga_bool_t agan_mkobj_model(
 			 * 		 `glPolygonStipple' can be used for fake transparency.
 			 */
 			if(do_mips) {
-				/*
-				 * TODO: Send textures to server as bitmaps and reuse instead
-				 * 		 Of uploading from data parameter directly.
-				 */
 				gluBuild2DMipmaps(
 						GL_TEXTURE_2D, 4, (int) w, (int) h, GL_RGBA,
 						GL_UNSIGNED_BYTE, res->data);

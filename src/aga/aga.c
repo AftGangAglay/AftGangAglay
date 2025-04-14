@@ -80,9 +80,6 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 
 	const char* gl_version;
 
-	/* TODO: CLI opt for this. */
-	/* TODO: Fix this */
-	asys_bool_t do_prof = ASYS_FALSE; /* !!aga_getenv("AGA_DOPROF") */
 	struct aga_graph prof = { 0 };
 
 	struct aga_script_userdata userdata;
@@ -126,9 +123,12 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	result = aga_keymap_new(&keymap, &env);
 	asys_result_check(__FILE__, "aga_keymap_new", result);
 
-	if(do_prof) {
+	if(opts.profiler) {
 		result = aga_graph_new(&prof, &env, main_data);
-		if(result) do_prof = ASYS_FALSE;
+		if(result) {
+			asys_result_check(__FILE__, "aga_graph_new", result);
+			opts.profiler = ASYS_FALSE;
+		}
 	}
 
 	result = aga_window_new(
@@ -255,7 +255,7 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 		/* TODO: This doesn't work under devbuilds. */
 		dt = (asys_size_t) apro_stamp_us(APRO_PRESWAP);
 
-		if(do_prof) {
+		if(opts.profiler) {
 			result = aga_graph_update(&prof, &env);
 			asys_log_result(__FILE__, "aga_graph_update", result);
 		}
@@ -301,7 +301,7 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	result = aga_window_delete(&env, &win);
 	asys_log_result(__FILE__, "aga_window_delete", result);
 
-	if(do_prof) {
+	if(opts.profiler) {
 		result = aga_graph_delete(&prof, &env);
 		asys_log_result(__FILE__, "aga_window_delete", result);
 	}

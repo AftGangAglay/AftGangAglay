@@ -42,6 +42,7 @@ struct aga_settings {
 	float fov;
 
 	asys_bool_t verbose;
+	asys_bool_t profiler;
 
 	struct aga_config_node config;
 };

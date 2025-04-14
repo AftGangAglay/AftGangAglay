@@ -4,6 +4,7 @@
  */
 
 #include <aga/pack.h>
+#include <aga/startup.h>
 
 #include <asys/log.h>
 #include <asys/memory.h>
@@ -71,7 +72,7 @@ enum asys_result aga_resource_pack_lookup(
 }
 
 enum asys_result aga_resource_pack_new(
-		const char* path, struct aga_resource_pack* pack) {
+		const char* path, struct aga_resource_pack* pack, struct aga_settings* opts) {
 
 	enum asys_result result;
 
@@ -136,26 +137,38 @@ enum asys_result aga_resource_pack_new(
 		struct aga_config_node* node = &pack->root.children->children[i];
 
 		aga_config_int_t v;
-		asys_size_t offset, size;
 
 		result = aga_config_lookup(
 				node, &offset_name, 1, &v, AGA_INTEGER, ASYS_TRUE);
 
 		if(result) continue;
-		offset = v;
+		resource->offset = (asys_size_t) v;
 
 		result = aga_config_lookup(
 				node, &size_name, 1, &v, AGA_INTEGER, ASYS_TRUE);
 
 		if(result) continue;
-		size = v;
+		resource->size = (asys_offset_t) v;
 
 		/* Only make a valid resource entry once all checks have passed. */
 		resource->config = node;
 		resource->pack = pack;
-		resource->offset = (asys_size_t) offset;
-		resource->size = (asys_size_t) size;
+
+		/*
+		 * TODO: Should we automatically disable trace log output based on
+		 * 		 Verbosity from log?
+		 */
+		if(opts->verbose) {
+			asys_log(
+					__FILE__,
+					"trace: Added resource entry `%s` (@"
+					ASYS_NATIVE_LONG_FORMAT ", " ASYS_NATIVE_ULONG_FORMAT ")",
+					asys_string_optional(node->name),
+					resource->offset, resource->size);
+		}
 	}
+
+	pack->opts = opts;
 
 	asys_log(
 			__FILE__,
@@ -210,6 +223,7 @@ enum asys_result aga_resource_pack_delete(struct aga_resource_pack* pack) {
 
 enum asys_result aga_resource_pack_sweep(struct aga_resource_pack* pack) {
 	asys_size_t i;
+	asys_size_t cleared = 0;
 
 	if(!pack) return ASYS_RESULT_BAD_PARAM;
 
@@ -218,12 +232,27 @@ enum asys_result aga_resource_pack_sweep(struct aga_resource_pack* pack) {
 
 		if(resource->refcount || !resource->data) continue;
 
+		cleared++;
+
 #ifndef NDEBUG
 		pack->outstanding_refs--;
 #endif
 
 		asys_memory_free(resource->data);
 		resource->data = 0;
+
+		if(pack->opts->verbose) {
+			asys_log(
+				__FILE__,
+				"trace: Cleared resource entry `%s'", resource->config->name);
+		}
+	}
+
+	if(cleared) {
+		asys_log(
+			__FILE__,
+			"Sweep cleared `" ASYS_NATIVE_ULONG_FORMAT "' resources...",
+			cleared);
 	}
 
 	return ASYS_RESULT_OK;

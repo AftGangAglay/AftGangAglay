@@ -112,24 +112,8 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	}
 #endif
 
-	result = aga_resource_pack_new(opts.respack, &pack);
+	result = aga_resource_pack_new(opts.respack, &pack, &opts);
 	asys_log_result(__FILE__, "aga_resource_pack_new", result);
-
-	/*
-	 * TODO: Trace each resource load (from `pack.c' not here) in verbose mode.
-	 */
-	/*{
-		asys_size_t i;
-
-		for(i = 0; i < pack.count; ++i) {
-			const char* name = pack.resources[i].config->name;
-
-			asys_log(__FILE__, "%s", name);
-		}
-
-		result = aga_resource_pack_sweep(&pack);
-		asys_log_result(__FILE__, "aga_resource_pack_sweep", result);
-	}*/
 
 	result = aga_settings_parse_config(&opts, &pack);
 	asys_log_result(__FILE__, "aga_settings_parse_config", result);

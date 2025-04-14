@@ -14,6 +14,7 @@
 #define AGA_PACK_MAGIC (0xA6AU)
 
 struct aga_resource_pack;
+struct aga_settings;
 
 typedef float aga_model_tail_t[6];
 typedef asys_uint_t aga_image_tail_t;
@@ -59,6 +60,8 @@ struct aga_resource_pack {
 #endif
 
 	struct aga_config_node root;
+
+	struct aga_settings* opts;
 };
 
 /*
@@ -68,7 +71,7 @@ struct aga_resource_pack {
  */
 extern struct aga_resource_pack* aga_global_pack;
 
-enum asys_result aga_resource_pack_new(const char*, struct aga_resource_pack*);
+enum asys_result aga_resource_pack_new(const char*, struct aga_resource_pack*, struct aga_settings*);
 enum asys_result aga_resource_pack_delete(struct aga_resource_pack*);
 
 enum asys_result aga_resource_pack_lookup(

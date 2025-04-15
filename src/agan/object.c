@@ -3,6 +3,8 @@
  * Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
+#include <apro.h>
+
 #include <agan/object.h>
 #include <agan/draw.h>
 
@@ -13,11 +15,11 @@
 #include <aga/pack.h>
 #include <aga/diagnostic.h>
 
-#include <apro.h>
-
 #include <asys/log.h>
 #include <asys/memory.h>
 #include <asys/string.h>
+#define ASYS_FORCE_STD_INCLUDE
+#include <asys/math.h>
 
 /* TODO: Some `aga_script_*err` disable with noverify. */
 

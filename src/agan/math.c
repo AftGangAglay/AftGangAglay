@@ -5,8 +5,10 @@
 
 #include <agan/math.h>
 
-#include <asys/log.h>
 #include <aga/diagnostic.h>
+
+#include <asys/log.h>
+#include <asys/math.h>
 
 #include <apro.h>
 
@@ -16,8 +18,8 @@
  */
 
 enum asys_result agan_math_register(struct py_env* env) {
-	static const double pi = 3.14159265358979323846;
-	static const double e = 2.71828182845904523536;
+	static const double pi = ASYS_PI;
+	static const double e = ASYS_E;
 
 	enum asys_result result;
 
@@ -109,7 +111,7 @@ struct py_object* agan_randnorm(
 
 	if(args) return aga_arg_error("randnorm", "none");
 
-	if(!(v = py_float_new((double) rand() / (double) RAND_MAX))) {
+	if(!(v = py_float_new(asys_random()))) {
 		py_error_set_nomem();
 	}
 

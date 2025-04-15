@@ -10,9 +10,12 @@
 
 #if defined(ASYS_STDC) || defined(ASYS_FORCE_STD_INCLUDE) /* TODO: Temp!*/
 # include <math.h>
-# ifndef M_PI /* TODO: Remove reliance on this */
-#  define M_PI (3.14159265358979323846)
-# endif
 #endif
+
+#define ASYS_PI (3.14159265358979323846)
+#define ASYS_E (2.71828182845904523536)
+
+/* Returns a normalized random value. */
+double asys_random(void);
 
 #endif

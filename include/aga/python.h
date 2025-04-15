@@ -7,10 +7,10 @@
 #define AGA_PYTHON_H
 
 #include <asys/base.h>
+#include <asys/result.h>
 
 #include <python/state.h>
 #include <python/errors.h>
-#include <asys/result.h>
 #include <python/ceval.h>
 #include <python/traceback.h>
 #include <python/compile.h>

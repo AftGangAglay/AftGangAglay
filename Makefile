@@ -58,6 +58,10 @@ CFLAGS = $(CFLAGS) /fp:fast
 CFLAGS = $(CFLAGS) /DAGA_DEVBUILD
 !endif
 
+!ifdef NOVERIFY
+CFLAGS = $(CFLAGS) /DAGA_NOVERIFY
+!endif
+
 !ifdef MAINTAINER
 CFLAGS = $(CFLAGS) /Wall /WX
 

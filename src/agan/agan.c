@@ -27,11 +27,7 @@
 
 /* TODO: Mode disable error-to-exception propagation - "continue". */
 
-/*
- * NOTE: We need a bit of global state here to get engine system contexts etc.
- * 		 Into script land because this version of Python's state is spread
- * 		 Across every continent.
- */
+/* TODO: Global state. */
 struct py_object* agan_dict = 0;
 
 const char* agan_trans_components[3] = { "pos", "rot", "scale" };

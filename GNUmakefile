@@ -41,6 +41,10 @@ ifdef DEVBUILD
 	override CFLAGS += -DAGA_DEVBUILD
 endif
 
+ifdef NOVERIFY
+	override CFLAGS += -DAGA_NOVERIFY
+endif
+
 ifdef MAINTAINER
 	override CFLAGS += -ansi -pedantic -pedantic-errors -Wall -W -Werror
 endif

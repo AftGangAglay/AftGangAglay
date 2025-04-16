@@ -548,6 +548,7 @@ enum asys_result asys_stream_write_characters(
 
 enum asys_result asys_stream_splice(
 		struct asys_stream* to, struct asys_stream* from, asys_size_t count) {
+
 #ifdef AGA_DEVBUILD
 	static asys_fixed_buffer_t buffer = { 0 };
 

@@ -64,13 +64,6 @@ struct aga_resource_pack {
 	struct aga_settings* opts;
 };
 
-/*
- * TODO: This is only for situations where we can't get the context through
- *		 Non-global data flow (i.e. filesystem intercepts). Once we have a
- *		 More congruent state model for Python etc. we can
- */
-extern struct aga_resource_pack* aga_global_pack;
-
 enum asys_result aga_resource_pack_new(const char*, struct aga_resource_pack*, struct aga_settings*);
 enum asys_result aga_resource_pack_delete(struct aga_resource_pack*);
 

@@ -205,6 +205,7 @@ struct py_object* agan_scriptconf(
 	unsigned i, len = py_varobject_size(list);
 	struct py_object* retval;
 
+	/* TODO: This doesn't need an intermediate buffer. */
 	if(!(names = malloc(len * sizeof(char*)))) return py_error_set_nomem();
 
 	for(i = 0; i < len; ++i) {

@@ -23,9 +23,6 @@
  * 		 System.
  */
 
-/* TODO: Hopefully we eventually won't need this anymore. */
-struct aga_resource_pack* aga_global_pack = 0;
-
 enum asys_result aga_resource_pack_lookup(
 		struct aga_resource_pack* pack, const char* path,
 		struct aga_resource** out) {
@@ -81,8 +78,6 @@ enum asys_result aga_resource_pack_new(
 
 	if(!path) return ASYS_RESULT_BAD_PARAM;
 	if(!pack) return ASYS_RESULT_BAD_PARAM;
-
-	aga_global_pack = pack;
 
 	asys_memory_zero(pack, sizeof(struct aga_resource_pack));
 	asys_memory_zero(&pack->root, sizeof(struct aga_config_node));

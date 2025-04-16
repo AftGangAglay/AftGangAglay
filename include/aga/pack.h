@@ -41,6 +41,10 @@ struct aga_resource {
 	struct aga_config_node* config;
 };
 
+#if !defined(NDEBUG) || defined(AGA_DEVBUILD)
+# define AGA_PACK_DEBUG
+#endif
+
 struct aga_resource_pack {
 	struct asys_stream stream;
 	asys_size_t data_offset;
@@ -54,8 +58,7 @@ struct aga_resource_pack {
 	struct aga_resource* resources;
 	asys_size_t count; /* Alias for `pack->root.children->len'. */
 
-	/* TODO: This should be enabled for dev builds, not just debug builds. */
-#ifndef NDEBUG
+#ifdef AGA_PACK_DEBUG
 	asys_size_t outstanding_refs;
 #endif
 

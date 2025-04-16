@@ -82,7 +82,7 @@ enum asys_result aga_resource_pack_new(
 	asys_memory_zero(pack, sizeof(struct aga_resource_pack));
 	asys_memory_zero(&pack->root, sizeof(struct aga_config_node));
 
-#ifndef NDEBUG
+#ifdef AGA_PACK_DEBUG
 	pack->outstanding_refs = 0;
 #endif
 
@@ -137,13 +137,13 @@ enum asys_result aga_resource_pack_new(
 				node, &offset_name, 1, &v, AGA_INTEGER, ASYS_TRUE);
 
 		if(result) continue;
-		resource->offset = (asys_size_t) v;
+		resource->offset = (asys_offset_t) v;
 
 		result = aga_config_lookup(
 				node, &size_name, 1, &v, AGA_INTEGER, ASYS_TRUE);
 
 		if(result) continue;
-		resource->size = (asys_offset_t) v;
+		resource->size = (asys_size_t) v;
 
 		/* Only make a valid resource entry once all checks have passed. */
 		resource->config = node;
@@ -194,7 +194,7 @@ enum asys_result aga_resource_pack_delete(struct aga_resource_pack* pack) {
 
 	if((result = aga_resource_pack_sweep(pack))) return result;
 
-#ifndef NDEBUG
+#ifdef AGA_PACK_DEBUG
 	if(pack->outstanding_refs) {
 		asys_log(
 				__FILE__,
@@ -229,7 +229,7 @@ enum asys_result aga_resource_pack_sweep(struct aga_resource_pack* pack) {
 
 		cleared++;
 
-#ifndef NDEBUG
+#ifdef AGA_PACK_DEBUG
 		pack->outstanding_refs--;
 #endif
 
@@ -273,7 +273,7 @@ enum asys_result aga_resource_new(
 		result = aga_resource_seek(*resource, 0);
 		if(result) return result;
 
-#ifndef NDEBUG
+#ifdef AGA_PACK_DEBUG
 		pack->outstanding_refs++;
 #endif
 

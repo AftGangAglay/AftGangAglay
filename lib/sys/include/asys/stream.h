@@ -9,7 +9,29 @@
 #include <asys/base.h>
 #include <asys/result.h>
 #include <asys/filedata.h>
-#include <asys/streamdata.h>
+
+#ifdef ASYS_WIN32
+typedef int asys_stream_native_t;
+#elif defined(ASYS_UNIX)
+typedef int asys_stream_native_t;
+#elif defined(ASYS_STDC)
+typedef void* asys_stream_native_t;
+#else
+/* TODO: RAM-disk support with an embedded pack? */
+typedef int asys_stream_native_t;
+#endif
+
+struct asys_stream {
+	asys_stream_native_t handle;
+	/*
+	 * TODO: In dev+debug builds -- remember the open mode for the stream and
+	 * 		 Fail early with invalid operations.
+	 */
+	/*
+	 * TODO: In dev/debug mode, remember the original file's path and use the
+	 * 		 `_path' variants of error functions in all stream IO functions.
+	 */
+};
 
 #define ASYS_COPY_ALL ((asys_size_t) -1)
 

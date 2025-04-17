@@ -11,7 +11,6 @@ struct aga_window {
 	asys_size_t width, height;
 };
 
-/* TODO: Move event state output to window device? */
 struct aga_window_device {
 	void* cursor;
 	asys_bool_t visible, captured;

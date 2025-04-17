@@ -24,7 +24,7 @@ enum asys_result asys_stream_new(
 	 * TODO: The original open flag constant was just `READ' but for modern VC
 	 * 		 We appear to need `OF_READ'.
 	 */
-	if((stream->hfile = _lopen(path, OF_READ)) == HFILE_ERROR) {
+	if((stream->handle = _lopen(path, OF_READ)) == HFILE_ERROR) {
 		result = ASYS_RESULT_ERROR;
 		asys_log_result_path(__FILE__, "_lopen", path, result);
 		return result;
@@ -67,7 +67,7 @@ enum asys_result asys_stream_new_write(
 # ifdef ASYS_WIN32
 	enum asys_result result;
 
-	if((stream->hfile = _lcreat(path, 0)) == HFILE_ERROR) {
+	if((stream->handle = _lcreat(path, 0)) == HFILE_ERROR) {
 		result = ASYS_RESULT_ERROR;
 		asys_log_result_path(__FILE__, "_lcreat", path, result);
 		return result;
@@ -108,7 +108,7 @@ enum asys_result asys_stream_delete(struct asys_stream* stream) {
 #ifdef ASYS_WIN32
 	enum asys_result result;
 
-	if(_lclose(stream->hfile) == HFILE_ERROR) {
+	if(_lclose(stream->handle) == HFILE_ERROR) {
 		result = ASYS_RESULT_ERROR;
 		asys_log_result(__FILE__, "_lclose", result);
 		return result;
@@ -135,16 +135,7 @@ enum asys_result asys_stream_delete(struct asys_stream* stream) {
 }
 
 asys_stream_native_t asys_stream_native(struct asys_stream* stream) {
-#ifdef ASYS_WIN32
-	return stream->hfile;
-#elif defined(ASYS_UNIX)
-	return stream->fd;
-#elif defined(ASYS_STDC)
-	return stream->fp;
-#else
-	(void) stream;
-	return -1;
-#endif
+	return stream->handle;
 }
 
 #ifdef ASYS_WIN32
@@ -156,7 +147,7 @@ void* asys_stream_stdc(struct asys_stream* stream) {
 	void* file;
 	int fd;
 
-	fd = _open_osfhandle((asys_native_long_t) stream->hfile , _O_RDONLY);
+	fd = _open_osfhandle((asys_native_long_t) stream->handle , _O_RDONLY);
 	if(fd == -1) {
 		asys_log_result(__FILE__, "_open_osfhandle", ASYS_RESULT_ERROR);
 		return 0;
@@ -207,7 +198,7 @@ enum asys_result asys_stream_seek(
 
 	int seek_whence = asys_stream_whence_to_win32(whence);
 
-	if(_llseek(stream->hfile, (LONG) offset, seek_whence) == HFILE_ERROR) {
+	if(_llseek(stream->handle, (LONG) offset, seek_whence) == HFILE_ERROR) {
 		result = ASYS_RESULT_ERROR;
 		asys_log_result(__FILE__, "_llseek", result);
 		return result;
@@ -246,7 +237,7 @@ enum asys_result asys_stream_tell(
 #ifdef ASYS_WIN32
 	enum asys_result result;
 
-	if((*offset = _llseek(stream->hfile, 0, 1)) == HFILE_ERROR) {
+	if((*offset = _llseek(stream->handle, 0, 1)) == HFILE_ERROR) {
 		result = ASYS_RESULT_ERROR;
 		asys_log_result(__FILE__, "_llseek", result);
 		return result;
@@ -284,7 +275,7 @@ enum asys_result asys_stream_read(
 	enum asys_result result;
 
 	/* TODO: Need to detect EOF for Python readline. */
-	long read_result = _hread(stream->hfile, buffer, (LONG) count);
+	long read_result = _hread(stream->handle, buffer, (LONG) count);
 	if(read_count) *read_count = read_result;
 
 	if(read_result == -1L) {
@@ -373,7 +364,7 @@ enum asys_result asys_stream_attribute(
 			FILETIME modified;
 			HANDLE handle;
 
-			handle = (void*) (asys_native_long_t) stream->hfile;
+			handle = (void*) (asys_native_long_t) stream->handle;
 			if(!GetFileTime(handle, 0, 0, &modified)) {
 				result = ASYS_RESULT_ERROR;
 				asys_log_result(__FILE__, "GetFileTime", result);
@@ -397,7 +388,7 @@ enum asys_result asys_stream_attribute(
 			DWORD low;
 			HANDLE handle;
 
-			handle = (void*) (asys_native_long_t) stream->hfile;
+			handle = (void*) (asys_native_long_t) stream->handle;
 			low = GetFileSize(handle, &integer.HighPart);
 			if(low == INVALID_FILE_SIZE) {
 				result = ASYS_RESULT_ERROR;
@@ -442,7 +433,7 @@ enum asys_result asys_stream_write(
 # ifdef ASYS_WIN32
 	enum asys_result result;
 
-	if(_hwrite(stream->hfile, buffer, (long) count) == -1L) {
+	if(_hwrite(stream->handle, buffer, (long) count) == -1L) {
 		result = ASYS_RESULT_ERROR;
 		asys_log_result(__FILE__, "_hwrite", result);
 		return result;

@@ -9,14 +9,19 @@
 #include <asys/base.h>
 #include <asys/result.h>
 
+struct asys_main_data {
 #ifdef ASYS_WIN32
-# include <asys/sys/win32/maindata.h>
-#else
-# include <asys/sys/stdc/maindata.h>
+	void* module;
+	void* window_class;
+	int show;
 #endif
 
+	int argc;
+	char** argv;
+};
+
 #ifdef ASYS_WIN32
-extern const char* asys_global_win32_class_name;
+extern const char* const asys_global_win32_class_name;
 
 enum asys_result asys_win32_register_class(void*, void*);
 #endif

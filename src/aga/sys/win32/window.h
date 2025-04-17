@@ -198,7 +198,7 @@ static LRESULT FAR CALLBACK aga_winproc(
 	}
 }
 
-const char* asys_global_win32_class_name = AGA_CLASS_NAME;
+const char* const asys_global_win32_class_name = AGA_CLASS_NAME;
 
 enum asys_result asys_win32_register_class(void* out, void* module) {
 	WNDCLASS* out_class = out;

@@ -26,11 +26,6 @@ struct aga_resource_pack_header {
 
 struct aga_resource {
 	asys_size_t refcount;
-	/*
-	 * TODO: This should be an fpos, not an offset. May need to restructure
-	 * 		 Pack config entries to point to sequential offsets instead of
-	 * 		 Absolute offsets.
-	 */
 	asys_offset_t offset; /* Offset into pack data fields, not data member. */
 
 	void* data;
@@ -49,12 +44,7 @@ struct aga_resource_pack {
 	struct asys_stream stream;
 	asys_size_t data_offset;
 
-	/*
-	 * TODO: This should eventually be a hashmap. Windows has `GetAtom' etc. as
-	 * 		 As a sort of built-in hashmap system -- does X allow arbitrary use
-	 * 		 Of Atoms (and is it wise to do so?). If so, then add natively to
-	 * 		 Python to avoid re-creating loads of strings.
-	 */
+	/* TODO: This should be a hashmap. */
 	struct aga_resource* resources;
 	asys_size_t count; /* Alias for `pack->root.children->len'. */
 

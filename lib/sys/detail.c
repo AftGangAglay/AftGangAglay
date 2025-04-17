@@ -26,7 +26,6 @@ enum asys_result asys_file_attribute_length_default(
 
 	if((result = asys_stream_new(&stream, path))) return result;
 
-	/* TODO: Use an fpos wrapper here. */
 	result = asys_stream_tell(&stream, &offset);
 	if(result) goto cleanup;
 	result = asys_stream_seek(&stream, ASYS_SEEK_END, 0);

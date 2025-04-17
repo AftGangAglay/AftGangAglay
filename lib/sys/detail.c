@@ -9,46 +9,45 @@
 #include <asys/stream.h>
 
 #ifdef ASYS_UNIX
-# include "sys/unix/detail.h"
+#include <asys/system.h>
+
+enum asys_result asys_file_attribute_stat(
+		struct stat* buffer, enum asys_file_attribute_field type,
+		union asys_file_attribute* attribute) {
+
+	switch(type) {
+		default: return ASYS_RESULT_BAD_PARAM;
+
+		case ASYS_FILE_MODIFIED: {
+			attribute->modified = buffer->st_mtime;
+			break;
+		}
+
+		case ASYS_FILE_LENGTH: {
+			attribute->length = buffer->st_size;
+			break;
+		}
+
+		case ASYS_FILE_TYPE: {
+#if !defined(S_ISDIR)
+# ifdef S_IFDIR
+#  define ASYS_ISDIR(mode) (!!(mode & S_IFDIR))
+# else
+#  define ASYS_ISDIR(mode) (ASYS_FALSE)
+# endif
+#else
+# define ASYS_ISDIR S_ISDIR
 #endif
 
-/*
- * TODO: stdc detail.
- */
-#if 0
-enum asys_result asys_file_attribute_length_default(
-		const char* path, union asys_file_attribute* attribute) {
+			if(ASYS_ISDIR(buffer->st_mode)) {
+				attribute->type = ASYS_FILE_DIRECTORY;
+			}
+			else attribute->type = ASYS_FILE_REGULAR;
 
-	enum asys_result result;
-
-	asys_offset_t offset;
-	struct asys_stream stream;
-
-	if((result = asys_stream_new(&stream, path))) return result;
-
-	result = asys_stream_tell(&stream, &offset);
-	if(result) goto cleanup;
-	result = asys_stream_seek(&stream, ASYS_SEEK_END, 0);
-	if(result) goto cleanup;
-	result = asys_stream_tell(&stream, &attribute->length);
-	if(result) goto cleanup;
-	result = asys_stream_seek(&stream, ASYS_SEEK_SET, offset);
-	if(result) goto cleanup;
-
-	if((result = asys_stream_delete(&stream))) return result;
+			break;
+		}
+	}
 
 	return ASYS_RESULT_OK;
-
-	cleanup: {
-		/*
-		 * TODO: Seek back to original position -- also verify we always do
-		 * 		 In error conditions.
-		 */
-
-		asys_log_result(
-				__FILE__, "asys_stream_delete", asys_stream_delete(&stream));
-
-		return result;
-	}
 }
 #endif

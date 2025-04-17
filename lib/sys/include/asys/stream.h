@@ -61,7 +61,7 @@ enum asys_result asys_stream_read_line(
 		struct asys_stream*, void*, asys_size_t);
 
 enum asys_result asys_stream_attribute(
-		struct asys_stream*, enum asys_file_attribute_type,
+		struct asys_stream*, enum asys_file_attribute_field,
 		union asys_file_attribute*);
 
 /* NOTE: No stream-writing IO functions are available outside of dev builds. */

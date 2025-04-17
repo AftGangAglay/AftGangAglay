@@ -134,7 +134,7 @@ static asys_bool_t aga_build_path_matches_kind(
 	};
 
 	/* TODO: `strcasecmp'? */
-	const char* ext = strrchr(path, '.');
+	const char* ext = asys_string_find_const(path, '.');
 	if(!ext || !asys_string_equal(ext, kind_exts[kind])) return ASYS_FALSE;
 
 	return ASYS_TRUE;
@@ -318,6 +318,10 @@ static enum asys_result aga_build_input_file(
 	asys_string_concatenate(buffer, path);
 	asys_string_concatenate(buffer, AGA_RAW_SUFFIX);
 
+	/*
+	 * TODO: On Windows this requires opening streams -- should we have a way
+	 * 		 To keep streams alive for input assets in general?
+	 */
 	result = asys_path_older(path, buffer, &older);
 	/* If we can't determine the age of the files -- rebuild anyway. */
 	asys_log_result(__FILE__, "asys_path_older", result);

@@ -10,12 +10,11 @@
 #include <asys/result.h>
 
 #ifdef ASYS_UNIX
-# include <asys/sys/unix/detail.h>
-#endif
+struct stat;
 
-#if 0
-enum asys_result asys_file_attribute_length_default(
-		const char*, union asys_file_attribute*);
+enum asys_result asys_file_attribute_stat(
+		struct stat*, enum asys_file_attribute_field,
+		union asys_file_attribute*);
 #endif
 
 #endif

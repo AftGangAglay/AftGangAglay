@@ -113,7 +113,9 @@ enum asys_result aga_resource_pack_new(
 	result = aga_config_new(&pack->stream, header.size, &pack->root);
 	if(result) goto cleanup;
 
-	pack->count = pack->root.children->len;
+	if(pack->root.len) pack->count = pack->root.children->len;
+	else asys_log(__FILE__, "warn: Resource pack appears to be empty");
+
 	pack->data_offset = header.size + sizeof(header);
 
 	pack->resources = asys_memory_allocate_zero(

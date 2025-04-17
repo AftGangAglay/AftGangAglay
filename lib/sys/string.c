@@ -304,41 +304,21 @@ asys_native_long_t asys_string_to_native_long(
 		const char* string, char** end) {
 
 /* TODO: Did Windows 3.1 have a native way of doing this? */
-#ifdef ASYS_LP32
+#ifdef ASYS_STDC
+# ifdef ASYS_LP32
 	return strtoll(string, end, 0);
-#else
+# else
 	return strtol(string, end, 0);
-#endif
-	/* TODO: This is broken. */
+# endif
+#else
 	/* TODO: Work out const-ness on end ptr. */
+	/* TODO: Roll our own. */
 
-	/*
-	asys_size_t len = asys_string_length(string);
-	asys_size_t i = len;
-	asys_native_long_t ret = 0;
-	asys_bool_t negate = (string[0] == '-');
-	asys_size_t negate_offset = (asys_size_t) negate;
+	(void) string;
+	(void) end;
 
-	while(string[i - 1] < '0' || string[i - 1] > '9') i--;
-
-	if(end) *end = (char*) &string[i];
-
-	for(; i > negate_offset; --i) {
-		asys_native_long_t v;
-		char c = string[i - 1];
-
-		if(c < '0' || c > '9') break;
-
-		v = (asys_native_long_t) ((len - i) * 10);
-		ret += (c - '0') * v;
-	}
-
-	if(negate) ret = -ret;
-
-	asys_log(__FILE__, "%s -> " ASYS_NATIVE_LONG_FORMAT, string, ret);
-
-	return ret;
-	 */
+	return -1;
+#endif
 }
 
 double asys_string_to_double(const char* string, char** end) {
@@ -364,16 +344,11 @@ enum asys_result asys_float_to_string(
 	if(count < 0) return asys_result_errno(__FILE__, "vsprintf");
 
 	return ASYS_RESULT_OK;
-#elif defined(ASYS_WIN32)
-	/* TODO: Temp. */
-	extern int sprintf(char*, const char*, ...);
-
-	int count = sprintf(*buffer, "%f", value);
-	if(count < 0) return ASYS_RESULT_ERROR;
-
-	return ASYS_RESULT_OK;
 #else
 	/* TODO: Roll our own impl. */
+	(void) value;
+	(void) buffer;
+
 	return ASYS_RESULT_NOT_IMPLEMENTED;
 #endif
 }

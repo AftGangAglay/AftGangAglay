@@ -9,6 +9,7 @@
 #include <asys/base.h>
 #include <asys/result.h>
 
+/* TODO: This is overkill. */
 typedef char asys_float_format_buffer_t[128 + 1];
 typedef int (*asys_string_find_predicate_t)(int);
 

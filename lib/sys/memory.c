@@ -103,10 +103,12 @@ void* asys_memory_allocate_zero(asys_size_t count, asys_size_t size) {
 	return pointer;
 #elif defined(ASYS_UNIX)
 	(void) size;
+	(void) count;
 
 	return 0;
 #else
 	(void) size;
+	(void) count;
 
 	return 0;
 #endif

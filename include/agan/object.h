@@ -56,8 +56,9 @@ struct agan_object {
 	struct agan_lightdata* light_data;
 	asys_uint_t ind;
 
-	/* TODO: This only needs to exist in devbuilds. */
+#ifdef AGA_DEVBUILD
 	char* modelpath;
+#endif
 
 	asys_uint_t drawlist;
 	float min_extent[3];

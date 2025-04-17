@@ -292,11 +292,13 @@ static asys_bool_t agan_mkobj_model(
 			asys_size_t i, len;
 			aga_config_int_t ver;
 
+#ifdef AGA_DEVBUILD
 			asys_memory_free(obj->modelpath);
 			if(!(obj->modelpath = asys_string_duplicate(model_path))) {
 				py_error_set_nomem();
 				return 0;
 			}
+#endif
 
 			result = aga_resource_pack_lookup(pack, model_path, &res);
 			if(aga_script_err("aga_resource_pack_lookup", result)) {
@@ -620,7 +622,9 @@ struct py_object* agan_killobj(
 
 	py_object_decref(obj->transform);
 
+#ifdef AGA_DEVBUILD
 	asys_memory_free(obj->modelpath);
+#endif
 	asys_memory_free(obj);
 
 	apro_stamp_end(APRO_SCRIPTGLUE_KILLOBJ);

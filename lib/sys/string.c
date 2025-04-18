@@ -35,6 +35,26 @@ int asys_character_is_digit(int character) {
 #endif
 }
 
+static const int case_difference = 'a' - 'A';
+
+int asys_character_to_upper(int character) {
+#ifdef ASYS_STDC
+	return toupper(character);
+#else
+	return (character > 'A' && character < 'Z') ?
+			(character - case_difference) : character;
+#endif
+}
+
+int asys_character_to_lower(int character) {
+#ifdef ASYS_STDC
+	return tolower(character);
+#else
+	return (character > 'A' && character < 'Z') ?
+			(character + case_difference) : character;
+#endif
+}
+
 asys_size_t asys_string_length(const char* string) {
 #ifdef ASYS_WIN32
 	return (asys_size_t) lstrlen(string);
@@ -300,6 +320,10 @@ char* asys_string_duplicate(const char* string) {
 	return new;
 }
 
+#ifndef ASYS_STDC
+# include <glibc/stdlib/strtol.c>
+#endif
+
 asys_native_long_t asys_string_to_native_long(
 		const char* string, char** end) {
 
@@ -311,13 +335,7 @@ asys_native_long_t asys_string_to_native_long(
 	return strtol(string, end, 0);
 # endif
 #else
-	/* TODO: Work out const-ness on end ptr. */
-	/* TODO: Roll our own. */
-
-	(void) string;
-	(void) end;
-
-	return -1;
+	return glibc_strtol(string, end, 0);
 #endif
 }
 

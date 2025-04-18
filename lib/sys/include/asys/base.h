@@ -97,6 +97,8 @@ typedef asys_native_long_t asys_offset_t;
 /* TODO: Find a way to switch this to be era-accurate (time32 vs. time64). */
 typedef asys_native_long_t asys_time_t;
 
+#define ASYS_NATIVE_ULONG_MAX ((asys_native_ulong_t) -1)
+
 typedef enum asys_bool { ASYS_TRUE = 1, ASYS_FALSE = 0 } asys_bool_t;
 
 /* NOTE: `wsprintf''s maximum buffer size is `1024'. */

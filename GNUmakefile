@@ -89,7 +89,7 @@ include src/aga.mk
 override CFLAGS += -I$(APRO_INCLUDE) -I$(ASYS_INCLUDE) -I$(PY_INCLUDE)
 override CFLAGS += -I$(WWW_INCLUDE) -I$(GLM_INCLUDE) -I$(TIFF_INCLUDE)
 
-override CFLAGS += -Iinclude -Ivendor$(SEP)libtiff$(SEP)
+override CFLAGS += -Iinclude -Ivendor$(SEP)libtiff$(SEP) -Ivendor$(SEP)
 override CFLAGS += -DAGA_VERSION=\"$(VERSION)\"
 
 .SUFFIXES: $(OBJ)

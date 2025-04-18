@@ -17,12 +17,6 @@
  * 		 In-place compressed reads (!).
  */
 
-/*
- * TODO: Allow pack input as a "raw" argument and make space for a shebang so
- * 		 Packs can be executed directly by the shell if we're installed on the
- * 		 System.
- */
-
 enum asys_result aga_resource_pack_lookup(
 		struct aga_resource_pack* pack, const char* path,
 		struct aga_resource** out) {
@@ -46,6 +40,7 @@ enum asys_result aga_resource_pack_lookup(
 			return ASYS_RESULT_OK;
 		}
 #ifdef ASYS_WIN32
+		/* TODO: Should pack paths be pre-transformed. */
 		else {
 			asys_size_t j;
 

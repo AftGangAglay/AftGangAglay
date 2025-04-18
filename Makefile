@@ -84,7 +84,7 @@ CFLAGS = $(CFLAGS) /wd4127
 CFLAGS = $(CFLAGS) /I$(APRO_INCLUDE) /I$(ASYS_INCLUDE) /I$(PY_INCLUDE)
 CFLAGS = $(CFLAGS) /I$(WWW_INCLUDE) /I$(GLM_INCLUDE) /I$(TIFF_INCLUDE)
 
-CFLAGS = $(CFLAGS) /Iinclude /Ivendor$(SEP)libtiff$(SEP)
+CFLAGS = $(CFLAGS) /Iinclude /Ivendor$(SEP)libtiff$(SEP) /Ivendor$(SEP)
 CFLAGS = $(CFLAGS) /DAGA_VERSION=\"$(VERSION)\"
 
 .c$(OBJ):

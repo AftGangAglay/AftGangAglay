@@ -18,7 +18,6 @@
 #include <asys/log.h>
 #include <asys/memory.h>
 #include <asys/string.h>
-#define ASYS_FORCE_STD_INCLUDE
 #include <asys/math.h>
 
 /* TODO: Some `aga_script_*err` disable with noverify. */
@@ -716,7 +715,7 @@ struct py_object* agan_inobj(
 
 	/* rot[Y] ~= 90 */
 	/* rot[Y] ~= -90 */
-	if(fabs(fabs(rotation[1]) - 90.0) < AGA_TRANSFORM_TOLERANCE) {
+	if(asys_fabs(asys_fabs(rotation[1]) - 90.0) < AGA_TRANSFORM_TOLERANCE) {
 		AGA_SWAP_FLOAT(min[0], min[2]);
 		AGA_SWAP_FLOAT(max[0], max[2]);
 	}

@@ -7,6 +7,10 @@
 #define ASYS_FORCE_STD_INCLUDE
 #include <asys/system.h>
 
+double asys_fabs(double x) {
+	return x < 0.0 ? -x : x;
+}
+
 double asys_random(void) {
 	/* TODO: Non-stdc impl. */
 	return (double) rand() / (double) RAND_MAX;

@@ -49,6 +49,7 @@
 # include <ctype.h>
 # include <errno.h>
 # include <signal.h>
+# include <math.h>
 #endif
 
 #include <asys/varargs.h>

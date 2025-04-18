@@ -10,6 +10,8 @@
 #include <asys/result.h>
 
 #ifdef ASYS_UNIX
+# include <asys/filedata.h>
+
 struct stat;
 
 enum asys_result asys_file_attribute_stat(

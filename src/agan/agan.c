@@ -18,6 +18,7 @@
 
 #include <asys/log.h>
 #include <asys/string.h>
+#include <asys/memory.h>
 
 /*
  * TODO: Switch to unchecked List/Tuple/String accesses for release/noverify
@@ -206,13 +207,15 @@ struct py_object* agan_scriptconf(
 	struct py_object* retval;
 
 	/* TODO: This doesn't need an intermediate buffer. */
-	if(!(names = malloc(len * sizeof(char*)))) return py_error_set_nomem();
+	if(!(names = asys_memory_allocate(len * sizeof(char*)))) {
+		return py_error_set_nomem();
+	}
 
 	for(i = 0; i < len; ++i) {
 		struct py_object* op = py_list_get(list, i);
 
 		if(op->type != PY_TYPE_STRING) {
-			free(names);
+			asys_memory_free(names);
 			py_error_set_badarg();
 			return 0;
 		}
@@ -222,7 +225,8 @@ struct py_object* agan_scriptconf(
 
 	result = aga_config_lookup_check(
 			root ? node->children : node, names, len, &out);
-	free(names);
+
+	asys_memory_free(names);
 	if(result) return py_object_incref(PY_NONE);
 
 	str = out->data.string ? out->data.string : "";

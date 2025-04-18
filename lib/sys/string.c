@@ -35,7 +35,9 @@ int asys_character_is_digit(int character) {
 #endif
 }
 
+#ifndef ASYS_STDC
 static const int case_difference = 'a' - 'A';
+#endif
 
 int asys_character_to_upper(int character) {
 #ifdef ASYS_STDC

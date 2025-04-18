@@ -386,9 +386,11 @@ static asys_bool_t agan_mkobj_light(
 
 	if(aga_config_lookup_raw(node, &light, 1, &node)) return ASYS_FALSE;
 
-	if(!(obj->light_data = calloc(1, sizeof(struct agan_lightdata)))) {
-		return ASYS_TRUE;
-	}
+	obj->light_data = asys_memory_allocate_zero(
+			1, sizeof(struct agan_lightdata));
+
+	if(!obj->light_data) return ASYS_TRUE;
+
 	data = obj->light_data;
 
 	for(i = 0; i < node->len; ++i) {
@@ -404,7 +406,8 @@ static asys_bool_t agan_mkobj_light(
 				asys_log(
 						__FILE__, "warn: Light index `%u' out of range 0-7",
 						data->index);
-				free(data);
+
+				asys_memory_free(data);
 				obj->light_data = 0;
 				return ASYS_TRUE;
 			}
@@ -686,8 +689,8 @@ struct py_object* agan_inobj(
 	planar = !!py_int_get(planarp);
 
 	obj = aga_script_pointer_get(objp);
-	memcpy(min, obj->min_extent, sizeof(min));
-	memcpy(max, obj->max_extent, sizeof(max));
+	asys_memory_copy(min, obj->min_extent, sizeof(min));
+	asys_memory_copy(max, obj->max_extent, sizeof(max));
 
 	if(!(pos = py_dict_lookup(obj->transform, "pos"))) return 0;
 	if(!(rot = py_dict_lookup(obj->transform, "rot"))) return 0;

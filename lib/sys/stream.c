@@ -351,6 +351,8 @@ enum asys_result asys_stream_attribute(
 	}
 
 #ifdef ASYS_UNIX
+	(void) result;
+
 	{
 		struct stat buffer;
 
@@ -358,7 +360,7 @@ enum asys_result asys_stream_attribute(
 			return asys_result_errno(__FILE__, "fstat");
 		}
 
-		return asys_file_attribute_stat(&buffer, type, attribute);
+		return asys_file_attribute_stat(&buffer, field, attribute);
 	}
 #else
 	switch(field) {
@@ -440,8 +442,8 @@ enum asys_result asys_stream_attribute(
 			}
 # endif
 		}
-#endif
 	}
+#endif
 }
 
 enum asys_result asys_stream_write(

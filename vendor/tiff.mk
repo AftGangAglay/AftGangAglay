@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
-# TODO: Need to document tiff in vendor README.
-
 TIFF = vendor$(SEP)libtiff$(SEP)libtiff$(SEP)
 TIFF_INCLUDE = $(TIFF)
 TIFFS = $(TIFF)tif_

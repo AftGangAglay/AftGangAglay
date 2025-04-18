@@ -10,16 +10,16 @@
 	url = https://github.com/AftGangAglay/python0.9.1
 	shallow = true
 
-[submodule "vendor/SGI-SIGGRAPH97-Demos"]
-	path = vendor/SGI-SIGGRAPH97-Demos
+[submodule "vendor/sgi-demos97"]
+	path = vendor/sgi-demos97
 	branch = trunk
-	url = https://github.com/AftGangAglay/SGI-SIGGRAPH97-Demos
+	url = https://github.com/AftGangAglay/sgi-demos97
 	shallow = true
 
 [submodule "vendor/libtiff"]
 	path = vendor/libtiff
 	branch = trunk
-	url = https://github.com/AftGangAglay/libtiff4.3beta018
+	url = https://github.com/AftGangAglay/libtiff3.4beta018
 	shallow = true
 
 [submodule "vendor/glibc"]

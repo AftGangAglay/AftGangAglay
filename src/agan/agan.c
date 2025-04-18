@@ -27,11 +27,7 @@
 
 /* TODO: Mode disable error-to-exception propagation - "continue". */
 
-/*
- * NOTE: We need a bit of global state here to get engine system contexts etc.
- * 		 Into script land because this version of Python's state is spread
- * 		 Across every continent.
- */
+/* TODO: Global state. */
 struct py_object* agan_dict = 0;
 
 const char* agan_trans_components[3] = { "pos", "rot", "scale" };
@@ -209,6 +205,7 @@ struct py_object* agan_scriptconf(
 	unsigned i, len = py_varobject_size(list);
 	struct py_object* retval;
 
+	/* TODO: This doesn't need an intermediate buffer. */
 	if(!(names = malloc(len * sizeof(char*)))) return py_error_set_nomem();
 
 	for(i = 0; i < len; ++i) {

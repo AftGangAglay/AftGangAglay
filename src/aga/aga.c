@@ -80,9 +80,6 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 
 	const char* gl_version;
 
-	/* TODO: CLI opt for this. */
-	/* TODO: Fix this */
-	asys_bool_t do_prof = ASYS_FALSE; /* !!aga_getenv("AGA_DOPROF") */
 	struct aga_graph prof = { 0 };
 
 	struct aga_script_userdata userdata;
@@ -112,24 +109,8 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	}
 #endif
 
-	result = aga_resource_pack_new(opts.respack, &pack);
+	result = aga_resource_pack_new(opts.respack, &pack, &opts);
 	asys_log_result(__FILE__, "aga_resource_pack_new", result);
-
-	/*
-	 * TODO: Trace each resource load (from `pack.c' not here) in verbose mode.
-	 */
-	/*{
-		asys_size_t i;
-
-		for(i = 0; i < pack.count; ++i) {
-			const char* name = pack.resources[i].config->name;
-
-			asys_log(__FILE__, "%s", name);
-		}
-
-		result = aga_resource_pack_sweep(&pack);
-		asys_log_result(__FILE__, "aga_resource_pack_sweep", result);
-	}*/
 
 	result = aga_settings_parse_config(&opts, &pack);
 	asys_log_result(__FILE__, "aga_settings_parse_config", result);
@@ -142,9 +123,12 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	result = aga_keymap_new(&keymap, &env);
 	asys_result_check(__FILE__, "aga_keymap_new", result);
 
-	if(do_prof) {
+	if(opts.profiler) {
 		result = aga_graph_new(&prof, &env, main_data);
-		if(result) do_prof = ASYS_FALSE;
+		if(result) {
+			asys_result_check(__FILE__, "aga_graph_new", result);
+			opts.profiler = ASYS_FALSE;
+		}
 	}
 
 	result = aga_window_new(
@@ -271,7 +255,7 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 		/* TODO: This doesn't work under devbuilds. */
 		dt = (asys_size_t) apro_stamp_us(APRO_PRESWAP);
 
-		if(do_prof) {
+		if(opts.profiler) {
 			result = aga_graph_update(&prof, &env);
 			asys_log_result(__FILE__, "aga_graph_update", result);
 		}
@@ -317,7 +301,7 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	result = aga_window_delete(&env, &win);
 	asys_log_result(__FILE__, "aga_window_delete", result);
 
-	if(do_prof) {
+	if(opts.profiler) {
 		result = aga_graph_delete(&prof, &env);
 		asys_log_result(__FILE__, "aga_window_delete", result);
 	}

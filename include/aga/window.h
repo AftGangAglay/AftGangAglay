@@ -16,9 +16,44 @@
 #include <asys/result.h>
 
 #ifdef ASYS_WIN32
-# include <aga/sys/win32/windowdata.h>
+struct aga_window {
+	void* hwnd;
+    void* wgl;
+	asys_size_t width, height;
+};
+
+struct aga_window_device {
+	void* cursor;
+	asys_bool_t visible, captured;
+
+	struct aga_window* capture;
+
+	int caption_height;
+	int border_sizeable_x, border_sizeable_y;
+	int border_x, border_y;
+};
 #else
-# include <aga/sys/x/windowdata.h>
+typedef unsigned long aga_xid_t;
+
+struct aga_window {
+	asys_size_t width, height;
+
+	aga_xid_t window;
+	void* glx;
+
+	asys_bool_t double_buffered;
+
+	aga_xid_t blank_cursor, arrow_cursor;
+};
+
+struct aga_window_device {
+	int screen;
+	void* display;
+
+	aga_xid_t wm_protocols, wm_delete;
+
+	struct aga_window* capture;
+};
 #endif
 
 struct asys_main_data;

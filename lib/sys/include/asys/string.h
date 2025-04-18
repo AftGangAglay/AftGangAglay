@@ -9,12 +9,16 @@
 #include <asys/base.h>
 #include <asys/result.h>
 
+/* TODO: This is overkill. */
 typedef char asys_float_format_buffer_t[128 + 1];
 typedef int (*asys_string_find_predicate_t)(int);
 
 int asys_character_is_blank(int);
 int asys_character_is_letter(int);
 int asys_character_is_digit(int);
+
+int asys_character_to_upper(int);
+int asys_character_to_lower(int);
 
 asys_size_t asys_string_length(const char*);
 

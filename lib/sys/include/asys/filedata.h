@@ -8,7 +8,7 @@
 
 #include <asys/base.h>
 
-enum asys_file_attribute_type {
+enum asys_file_attribute_field {
 	ASYS_FILE_MODIFIED,
 	ASYS_FILE_LENGTH,
 	ASYS_FILE_TYPE

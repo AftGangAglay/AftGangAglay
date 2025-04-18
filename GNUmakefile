@@ -41,6 +41,10 @@ ifdef DEVBUILD
 	override CFLAGS += -DAGA_DEVBUILD
 endif
 
+ifdef NOVERIFY
+	override CFLAGS += -DAGA_NOVERIFY
+endif
+
 ifdef MAINTAINER
 	override CFLAGS += -ansi -pedantic -pedantic-errors -Wall -W -Werror
 endif
@@ -85,7 +89,7 @@ include src/aga.mk
 override CFLAGS += -I$(APRO_INCLUDE) -I$(ASYS_INCLUDE) -I$(PY_INCLUDE)
 override CFLAGS += -I$(WWW_INCLUDE) -I$(GLM_INCLUDE) -I$(TIFF_INCLUDE)
 
-override CFLAGS += -Iinclude -Ivendor$(SEP)libtiff$(SEP)
+override CFLAGS += -Iinclude -Ivendor$(SEP)libtiff$(SEP) -Ivendor$(SEP)
 override CFLAGS += -DAGA_VERSION=\"$(VERSION)\"
 
 .SUFFIXES: $(OBJ)

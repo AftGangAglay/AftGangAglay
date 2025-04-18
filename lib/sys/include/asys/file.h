@@ -15,7 +15,7 @@ typedef enum asys_result (*aga_directory_callback_t)(const char*, void*);
 /* NOTE: No path-wise IO functions are available outside of dev builds. */
 
 enum asys_result asys_path_attribute(
-		const char*, enum asys_file_attribute_type,
+		const char*, enum asys_file_attribute_field,
 		union asys_file_attribute*);
 
 enum asys_result asys_path_older(const char*, const char*, asys_bool_t*);

@@ -38,31 +38,6 @@ void asys_log(const char* file, const char* format, ...) {
 	asys_string_format(&buffer, &length, "[%s] %s", file, body);
 
 	OutputDebugString(buffer);
-
-	/*
-	 * NOTE: Having console output isn't era-accurate -- but debugging
-	 * 		 Heisenbugs without debug output is almost impossible.
-	 */
-# if defined(ASYS_WIN64) && (defined(AGA_DEVBUILD) || !defined(NDEBUG))
-	{
-		static asys_bool_t initialized = ASYS_FALSE;
-		static HANDLE stdout_handle = 0;
-
-		if(!initialized) {
-			initialized = ASYS_TRUE;
-			if(AllocConsole()) {
-				stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
-			}
-		}
-
-		do {
-			if(!stdout_handle) break;
-
-			WriteConsole(stdout_handle, buffer, (DWORD) length, 0, 0);
-			WriteConsole(stdout_handle, "\r\n", sizeof("\r\n") - 1, 0, 0);
-		} while(0);
-	}
-# endif
 #else
 	(void) file;
 	(void) format;

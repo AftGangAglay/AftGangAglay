@@ -25,7 +25,6 @@ AGAH3 = $(AGAH)window.h $(AGAH)graph.h
 # agan
 AGAH4 = $(AGANH)agan.h $(AGANH)object.h $(AGANH)draw.h $(AGAH)render.h
 AGAH5 = $(AGANH)utility.h $(AGANH)io.h
-# TODO: `sys' headers.
 
 AGA_SRC = $(AGA1) $(AGA2) $(AGA3) $(AGA4) $(AGA5) $(AGA6)
 AGA_HDR = $(AGAH1) $(AGAH2) $(AGAH3) $(AGAH4) $(AGAH5)
@@ -43,11 +42,6 @@ $(AGA_OUT): $(AGA_OBJ)
 	$(LINK)
 
 $(AGA)script.c: $(PYGRAM)
-
-$(AGA)window$(OBJ): $(AGA)sys$(SEP)x$(SEP)window.h
-$(AGA)window$(OBJ): $(AGA)sys$(SEP)win32$(SEP)window.h
-
-$(AGA)midi$(OBJ): $(AGA)sys$(SEP)win32$(SEP)midi.h
 
 clean_aga:
 	$(RM) $(AGA_OBJ) $(AGA_OUT)

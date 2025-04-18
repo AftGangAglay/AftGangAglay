@@ -4,6 +4,7 @@
  */
 
 #include <aga/pack.h>
+#include <aga/startup.h>
 
 #include <asys/log.h>
 #include <asys/memory.h>
@@ -15,15 +16,6 @@
  * 		 Windows apparently had `COMPRESS.EXE' and could use `LZRead' etc. for
  * 		 In-place compressed reads (!).
  */
-
-/*
- * TODO: Allow pack input as a "raw" argument and make space for a shebang so
- * 		 Packs can be executed directly by the shell if we're installed on the
- * 		 System.
- */
-
-/* TODO: Hopefully we eventually won't need this anymore. */
-struct aga_resource_pack* aga_global_pack = 0;
 
 enum asys_result aga_resource_pack_lookup(
 		struct aga_resource_pack* pack, const char* path,
@@ -48,6 +40,7 @@ enum asys_result aga_resource_pack_lookup(
 			return ASYS_RESULT_OK;
 		}
 #ifdef ASYS_WIN32
+		/* TODO: Should pack paths be pre-transformed. */
 		else {
 			asys_size_t j;
 
@@ -71,7 +64,7 @@ enum asys_result aga_resource_pack_lookup(
 }
 
 enum asys_result aga_resource_pack_new(
-		const char* path, struct aga_resource_pack* pack) {
+		const char* path, struct aga_resource_pack* pack, struct aga_settings* opts) {
 
 	enum asys_result result;
 
@@ -81,12 +74,10 @@ enum asys_result aga_resource_pack_new(
 	if(!path) return ASYS_RESULT_BAD_PARAM;
 	if(!pack) return ASYS_RESULT_BAD_PARAM;
 
-	aga_global_pack = pack;
-
 	asys_memory_zero(pack, sizeof(struct aga_resource_pack));
 	asys_memory_zero(&pack->root, sizeof(struct aga_config_node));
 
-#ifndef NDEBUG
+#ifdef AGA_PACK_DEBUG
 	pack->outstanding_refs = 0;
 #endif
 
@@ -117,7 +108,9 @@ enum asys_result aga_resource_pack_new(
 	result = aga_config_new(&pack->stream, header.size, &pack->root);
 	if(result) goto cleanup;
 
-	pack->count = pack->root.children->len;
+	if(pack->root.len) pack->count = pack->root.children->len;
+	else asys_log(__FILE__, "warn: Resource pack appears to be empty");
+
 	pack->data_offset = header.size + sizeof(header);
 
 	pack->resources = asys_memory_allocate_zero(
@@ -136,26 +129,38 @@ enum asys_result aga_resource_pack_new(
 		struct aga_config_node* node = &pack->root.children->children[i];
 
 		aga_config_int_t v;
-		asys_size_t offset, size;
 
 		result = aga_config_lookup(
 				node, &offset_name, 1, &v, AGA_INTEGER, ASYS_TRUE);
 
 		if(result) continue;
-		offset = v;
+		resource->offset = (asys_offset_t) v;
 
 		result = aga_config_lookup(
 				node, &size_name, 1, &v, AGA_INTEGER, ASYS_TRUE);
 
 		if(result) continue;
-		size = v;
+		resource->size = (asys_size_t) v;
 
 		/* Only make a valid resource entry once all checks have passed. */
 		resource->config = node;
 		resource->pack = pack;
-		resource->offset = (asys_size_t) offset;
-		resource->size = (asys_size_t) size;
+
+		/*
+		 * TODO: Should we automatically disable trace log output based on
+		 * 		 Verbosity from log?
+		 */
+		if(opts->verbose) {
+			asys_log(
+					__FILE__,
+					"trace: Added resource entry `%s` (@"
+					ASYS_NATIVE_LONG_FORMAT ", " ASYS_NATIVE_ULONG_FORMAT ")",
+					asys_string_optional(node->name),
+					resource->offset, resource->size);
+		}
 	}
+
+	pack->opts = opts;
 
 	asys_log(
 			__FILE__,
@@ -186,7 +191,7 @@ enum asys_result aga_resource_pack_delete(struct aga_resource_pack* pack) {
 
 	if((result = aga_resource_pack_sweep(pack))) return result;
 
-#ifndef NDEBUG
+#ifdef AGA_PACK_DEBUG
 	if(pack->outstanding_refs) {
 		asys_log(
 				__FILE__,
@@ -210,6 +215,7 @@ enum asys_result aga_resource_pack_delete(struct aga_resource_pack* pack) {
 
 enum asys_result aga_resource_pack_sweep(struct aga_resource_pack* pack) {
 	asys_size_t i;
+	asys_size_t cleared = 0;
 
 	if(!pack) return ASYS_RESULT_BAD_PARAM;
 
@@ -218,12 +224,27 @@ enum asys_result aga_resource_pack_sweep(struct aga_resource_pack* pack) {
 
 		if(resource->refcount || !resource->data) continue;
 
-#ifndef NDEBUG
+		cleared++;
+
+#ifdef AGA_PACK_DEBUG
 		pack->outstanding_refs--;
 #endif
 
 		asys_memory_free(resource->data);
 		resource->data = 0;
+
+		if(pack->opts->verbose) {
+			asys_log(
+				__FILE__,
+				"trace: Cleared resource entry `%s'", resource->config->name);
+		}
+	}
+
+	if(cleared) {
+		asys_log(
+			__FILE__,
+			"Sweep cleared `" ASYS_NATIVE_ULONG_FORMAT "' resources...",
+			cleared);
 	}
 
 	return ASYS_RESULT_OK;
@@ -249,7 +270,7 @@ enum asys_result aga_resource_new(
 		result = aga_resource_seek(*resource, 0);
 		if(result) return result;
 
-#ifndef NDEBUG
+#ifdef AGA_PACK_DEBUG
 		pack->outstanding_refs++;
 #endif
 

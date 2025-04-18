@@ -104,7 +104,7 @@ static struct py_object* agan_mkpack(
 	result = aga_build(opts);
 	if(aga_script_err("aga_build", result)) return 0;
 
-	result = aga_resource_pack_new(opts->respack, pack);
+	result = aga_resource_pack_new(opts->respack, pack, opts);
 	if(aga_script_err("aga_resource_pack_new", result)) return 0;
 
 	return py_object_incref(PY_NONE);

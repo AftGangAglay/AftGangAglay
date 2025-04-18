@@ -17,12 +17,11 @@ ASYSH = $(ASYS_INCLUDE)asys$(SEP)
 
 ASYS1 = $(ASYS)stream.c $(ASYS)result.c $(ASYS)string.c $(ASYS)memory.c
 ASYS2 = $(ASYS)error.c $(ASYS)log.c $(ASYS)file.c $(ASYS)detail.c
-ASYS3 = $(ASYS)getopt.c
+ASYS3 = $(ASYS)getopt.c $(ASYS)math.c
 
 ASYSH1 = $(ASYSH)base.h $(ASYSH)stream.h $(ASYSH)result.h $(ASYSH)system.h
 ASYSH2 = $(ASYSH)string.h $(ASYSH)memory.h $(ASYSH)error.h $(ASYSH)log.h
 ASYSH3 = $(ASYSH)varargs.h $(ASYSH)file.h $(ASYSH)getopt.h $(ASYSH)main.h
-# TODO: `sys' headers.
 
 ASYS_SRC = $(ASYS1) $(ASYS2) $(ASYS3)
 ASYS_HDR = $(ASYSH1) $(ASYSH2) $(ASYSH3)

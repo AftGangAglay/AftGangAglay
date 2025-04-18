@@ -38,6 +38,7 @@ enum asys_result aga_settings_new(
 	opts->audio_enabled = ASYS_TRUE;
 	opts->version = AGA_VERSION;
 	opts->verbose = ASYS_FALSE;
+	opts->profiler = ASYS_FALSE;
 
 	/*
 	 * TODO: Remove need to zero this externally by zeroing relevant fields in
@@ -48,7 +49,7 @@ enum asys_result aga_settings_new(
 	{
 		static const char helpmsg[] =
 			"warn: usage:\n"
-			"\t%s [-f respack] [-A dsp] [-D display] [-C dir] [-v] [-h]"
+			"\t%s [-f respack] [-A dsp] [-D display] [-C dir] [-v] [-h] [-p]"
 #ifdef AGA_DEVBUILD
 			"\n\t%s -c [-f buildfile] [-C dir] [-v] [-h]"
 #endif
@@ -56,7 +57,7 @@ enum asys_result aga_settings_new(
 
 		int o;
 		while(1) {
-			o = getopt(main_data->argc, main_data->argv, "hcf:s:A:D:C:v");
+			o = getopt(main_data->argc, main_data->argv, "hcf:A:D:C:vp");
 			if(o == -1) break;
 
 			switch(o) {
@@ -69,6 +70,7 @@ enum asys_result aga_settings_new(
 					asys_log(__FILE__, helpmsg, program, program);
 					goto break2;
 				}
+
 #ifdef AGA_DEVBUILD
 				case 'c': {
 					if(optind != 2) goto help;
@@ -77,6 +79,7 @@ enum asys_result aga_settings_new(
 					break;
 				}
 #endif
+
 				case 'f': {
 #ifdef AGA_DEVBUILD
 					if(opts->compile) opts->build_file = optarg;
@@ -86,6 +89,7 @@ enum asys_result aga_settings_new(
 
 					break;
 				}
+
 				case 'A': {
 #ifdef AGA_DEVBUILD
 					if(opts->compile) goto help;
@@ -95,6 +99,16 @@ enum asys_result aga_settings_new(
 					/*opts->audio_dev = optarg;*/
 					break;
 				}
+
+				case 'p': {
+#ifdef AGA_DEVBUILD
+					if(opts->compile) goto help;
+#endif
+
+					opts->profiler = ASYS_TRUE;
+					break;
+				}
+
 				case 'D': {
 #ifdef AGA_DEVBUILD
 					if(opts->compile) goto help;
@@ -103,10 +117,12 @@ enum asys_result aga_settings_new(
 					opts->display = optarg;
 					break;
 				}
+
 				case 'C': {
 					opts->chdir = optarg;
 					break;
 				}
+
 				case 'v': {
 					extern int WWW_TraceFlag; /* From libwww. */
 					WWW_TraceFlag = 1;
@@ -277,6 +293,8 @@ enum asys_result aga_settings_parse_config(
 	asys_log(__FILE__, "\tFOV: %s", double_format);
 
 	asys_log(__FILE__, "\tVerbose?: %s", asys_bool_to_string(opts->verbose));
+
+	asys_log(__FILE__, "\tProfiler?: %s", asys_bool_to_string(opts->profiler));
 
 	/* TODO: Config dump. */
 

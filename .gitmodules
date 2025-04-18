@@ -21,3 +21,9 @@
 	branch = trunk
 	url = https://github.com/AftGangAglay/libtiff4.3beta018
 	shallow = true
+
+[submodule "vendor/glibc"]
+	path = vendor/glibc
+	branch = trunk
+	url = https://github.com/AftGangAglay/glibc1.03
+	shallow = true

@@ -9,6 +9,7 @@
 #include <agan/agan.h>
 
 #include <asys/log.h>
+#include <asys/error.h>
 #include <asys/string.h>
 
 /*
@@ -17,16 +18,19 @@
  */
 
 void py_fatal(const char* msg) {
-	asys_log(__FILE__, "Python Fatal Error: %s", msg);
-	abort();
+	asys_result_fatal(__FILE__, msg, ASYS_RESULT_ERROR);
 }
 
-enum asys_result py_open_r(const char* path, struct asys_stream** stream) {
+enum asys_result py_open_r(
+		struct py_env* env, const char* path, struct asys_stream** stream) {
+
 	enum asys_result result;
 
 	struct aga_resource* resource;
 
-	result = aga_resource_pack_lookup(aga_global_pack, path, &resource);
+	result = aga_resource_pack_lookup(
+			AGA_GET_USERDATA(env)->resource_pack, path, &resource);
+
 	if(result) return result;
 
 	result = aga_resource_seek(resource, stream);
@@ -106,9 +110,10 @@ asys_bool_t aga_vararg_typed(
 void* aga_arg_error(const char* function, const char* types) {
 	asys_fixed_buffer_t buffer = { 0 };
 
-	strcat(buffer, function);
-	strcat(buffer, "() arguments must be ");
-	strcat(buffer, types);
+	asys_string_concatenate(buffer, function);
+	asys_string_concatenate(buffer, "() arguments must be ");
+	asys_string_concatenate(buffer, types);
+
 	py_error_set_string(py_type_error, buffer);
 
 	return 0;

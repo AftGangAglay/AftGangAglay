@@ -11,110 +11,6 @@
 #include <asys/string.h>
 
 /*
- * TODO: Old stdc-y stat emulation -- reuse me.
-static enum asys_result asys_file_attribute_type(
-		const char* path, union aga_file_attr* out) {
-
-# ifdef EISDIR
- * Try and fall back to a solution using `fopen'.
-FILE* f;
-
-if(!(f = fopen(path, "r"))) {
-if(errno == EISDIR) *isdir = ASYS_TRUE;
-else return asys_result_errno_path(__FILE__, "fopen", path);
-}
-else *isdir = ASYS_FALSE;
-
-if(fclose(f) == EOF) {
-return aga_error_system(__FILE__, "fclose");
-}
-
-return ASYS_RESULT_OK;
-# else
-return AGA_ERROR_NOT_IMPLEMENTED;
-# endif
-}
-
-enum asys_result asys_file_attribute_length(void* fp, asys_size_t* size) {
-	long off;
-	long tell;
-
-	if((off = ftell(fp)) == -1) return aga_error_system(__FILE__, "ftell");
-
-	if(fseek(fp, 0, SEEK_END)) {
-		return aga_error_system(__FILE__, "fseek");
-	}
-	if((tell = ftell(fp)) == -1) return aga_error_system(__FILE__, "ftell");
-	*size = (asys_size_t) tell;
-
-	if(fseek(fp, off, SEEK_SET)) {
-		return aga_error_system(__FILE__, "fseek");
-	}
-
-	return ASYS_RESULT_OK;
-}
-
-static enum asys_result asys_file_attribute_select(
-		void* fp, enum asys_file_attribute_type attr, union asys_file_attribute* out) {
-
-	switch(attr) {
-		default: return ASYS_RESULT_BAD_PARAM;
-
-		case AGA_FILE_MODIFIED: return ASYS_RESULT_NOT_IMPLEMENTED;
-
-		case ASYS_FILE_LENGTH: return asys_file_attribute_length(fp, &out->length);
-
- * If it's a file handle, it's a regular file.
-		case ASYS_FILE_TYPE: {
-			out->type = AGA_REGULAR;
-			break;
-		}
-	}
-
-	return ASYS_RESULT_OK;
-}
-#endif
-
-enum asys_result asys_path_attribute(
-		const char* path, enum asys_file_attribute_type attr,
-		union asys_file_attribute* out) {
-
-	if(!path) return ASYS_RESULT_BAD_PARAM;
-	if(!out) return ASYS_RESULT_BAD_PARAM;
-
-#ifdef AGA_HAVE_STAT
-	{
-		struct stat st;
-
-		if(stat(path, &st) == -1) {
-			return asys_result_errno_path(__FILE__, "stat", path);
-		}
-
-		return asys_file_attribute_select_stat(&st, attr, out);
-	}
-#else
-	if(attr == ASYS_FILE_TYPE) return asys_file_attribute_type(path, out);
-
-	{
-		enum asys_result result;
-
-		void* fp;
-
-		if(!(fp = fopen(path, "rb"))) {
-			return asys_result_errno_path(__FILE__, "fopen", path);
-		}
-
-		if((result = asys_file_attribute_select(fp, attr, out))) return result;
-
-		if(fclose(fp) == EOF) return aga_error_system(__FILE__, "fclose");
-
-		return ASYS_RESULT_OK;
-	}
-#endif
-}
- */
-
-/*
  * TODO: See here: https://winasm.tripod.com/Clib.html (esp. Note #5) and
  * 		 Clarify what we can/can't do with modern code, and whether we can
  * 		 Switch to older impls. by detecting compilation env./Win32 version.
@@ -125,7 +21,7 @@ enum asys_result asys_path_attribute(
  * 		 Directory inputs.
  */
 enum asys_result asys_path_attribute(
-		const char* path, enum asys_file_attribute_type type,
+		const char* path, enum asys_file_attribute_field type,
 		union asys_file_attribute* attribute) {
 
 #ifdef AGA_DEVBUILD
@@ -184,12 +80,6 @@ enum asys_result asys_path_attribute(
 	}
 
 	return asys_file_attribute_stat(&buffer, type, attribute);
-# elif defined(ASYS_STDC)
-	(void) path;
-	(void) type;
-	(void) attribute;
-
-	return ASYS_RESULT_NOT_IMPLEMENTED;
 # else
 	(void) path;
 	(void) type;

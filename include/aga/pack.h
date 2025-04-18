@@ -14,6 +14,7 @@
 #define AGA_PACK_MAGIC (0xA6AU)
 
 struct aga_resource_pack;
+struct aga_settings;
 
 typedef float aga_model_tail_t[6];
 typedef asys_uint_t aga_image_tail_t;
@@ -25,11 +26,6 @@ struct aga_resource_pack_header {
 
 struct aga_resource {
 	asys_size_t refcount;
-	/*
-	 * TODO: This should be an fpos, not an offset. May need to restructure
-	 * 		 Pack config entries to point to sequential offsets instead of
-	 * 		 Absolute offsets.
-	 */
 	asys_offset_t offset; /* Offset into pack data fields, not data member. */
 
 	void* data;
@@ -40,35 +36,28 @@ struct aga_resource {
 	struct aga_config_node* config;
 };
 
+#if !defined(NDEBUG) || defined(AGA_DEVBUILD)
+# define AGA_PACK_DEBUG
+#endif
+
 struct aga_resource_pack {
 	struct asys_stream stream;
 	asys_size_t data_offset;
 
-	/*
-	 * TODO: This should eventually be a hashmap. Windows has `GetAtom' etc. as
-	 * 		 As a sort of built-in hashmap system -- does X allow arbitrary use
-	 * 		 Of Atoms (and is it wise to do so?). If so, then add natively to
-	 * 		 Python to avoid re-creating loads of strings.
-	 */
+	/* TODO: This should be a hashmap. */
 	struct aga_resource* resources;
 	asys_size_t count; /* Alias for `pack->root.children->len'. */
 
-	/* TODO: This should be enabled for dev builds, not just debug builds. */
-#ifndef NDEBUG
+#ifdef AGA_PACK_DEBUG
 	asys_size_t outstanding_refs;
 #endif
 
 	struct aga_config_node root;
+
+	struct aga_settings* opts;
 };
 
-/*
- * TODO: This is only for situations where we can't get the context through
- *		 Non-global data flow (i.e. filesystem intercepts). Once we have a
- *		 More congruent state model for Python etc. we can
- */
-extern struct aga_resource_pack* aga_global_pack;
-
-enum asys_result aga_resource_pack_new(const char*, struct aga_resource_pack*);
+enum asys_result aga_resource_pack_new(const char*, struct aga_resource_pack*, struct aga_settings*);
 enum asys_result aga_resource_pack_delete(struct aga_resource_pack*);
 
 enum asys_result aga_resource_pack_lookup(

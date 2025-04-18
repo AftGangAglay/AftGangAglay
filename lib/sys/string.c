@@ -35,6 +35,16 @@ int asys_character_is_digit(int character) {
 #endif
 }
 
+int asys_character_is_hex_digit(int character) {
+#ifdef ASYS_STDC
+	return isxdigit(character);
+#else
+	return asys_character_is_digit(character) ||
+			(asys_character_to_upper(character) > 'A' &&
+			asys_character_to_upper(character) <= 'F');
+#endif
+}
+
 #ifndef ASYS_STDC
 static const int case_difference = 'a' - 'A';
 #endif

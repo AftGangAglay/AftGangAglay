@@ -12,6 +12,7 @@
 #define ASYS_E (2.71828182845904523536)
 
 double asys_fabs(double);
+double asys_fmod(double, double);
 
 /* Returns a normalized random value. */
 double asys_random(void);

@@ -98,6 +98,7 @@ typedef asys_native_long_t asys_offset_t;
 typedef asys_native_long_t asys_time_t;
 
 #define ASYS_NATIVE_ULONG_MAX ((asys_native_ulong_t) -1)
+#define ASYS_NATIVE_LONG_MAX ((asys_native_long_t) (ASYS_NATIVE_ULONG_MAX / 2))
 
 typedef enum asys_bool { ASYS_TRUE = 1, ASYS_FALSE = 0 } asys_bool_t;
 

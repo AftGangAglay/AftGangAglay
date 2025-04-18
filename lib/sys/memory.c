@@ -35,6 +35,22 @@ void asys_memory_copy(void* to, const void* from, asys_size_t count) {
 #endif
 }
 
+void asys_memory_move(void* to, const void* from, asys_size_t count) {
+#ifdef ASYS_STDC
+	memmove(to, from, count);
+#else
+	glibc_memmove(to, from, count);
+#endif
+}
+
+int asys_memory_compare(const void* a, const void* b, asys_size_t count) {
+#ifdef ASYS_STDC
+	return memcmp(a, b, count);
+#else
+	return glibc_memcmp(a, b, count);
+#endif
+}
+
 /* TODO: Temporary -- make a better tracker. */
 #if defined(ASYS_WIN32) && defined(ASYS_TRACK_MEMORY)
 static asys_size_t aga_global_memory_use = 0;

@@ -11,6 +11,9 @@
 
 void asys_memory_zero(void*, asys_size_t);
 void asys_memory_copy(void*, const void*, asys_size_t);
+void asys_memory_move(void*, const void*, asys_size_t);
+
+int asys_memory_compare(const void*, const void*, asys_size_t);
 
 /*
  * NOTE: These internally handle system-specific error conditions and normalise

@@ -35,13 +35,13 @@ static enum asys_result aga_put_default(void) {
 
 	static const char str1[] = "No project loaded or no script files provided";
 	static const char str2[] = "Did you forget `-f' or `-C'?";
-	static const float text_color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	static const float color[] = { 0.6f, 0.3f, 0.8f, 1.0f };
+	static const float text_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	static const float color[] = {0.6f, 0.3f, 0.8f, 1.0f};
 
-	if((result = aga_render_clear(color))) return result;
+	if ((result = aga_render_clear(color))) return result;
 
 	result = aga_render_text_format(0.05f, 0.1f, text_color, str1);
-	if(result) return result;
+	if (result) return result;
 
 	return aga_render_text_format(0.05f, 0.2f, text_color, str2);
 }

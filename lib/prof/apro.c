@@ -57,15 +57,15 @@ void apro_stamp_end(enum apro_section section) {
 	struct apro_timestamp* start = &aga_global_prof[section * 2];
 	struct apro_timestamp* new = &aga_global_prof[section * 2 + 1];
 	apro_unit_t ds;
-	apro_unit_t duss;
+	apro_unit_t dus;
 
 	(void) aga_getstamp(&stamp);
 
 	ds = stamp.seconds - start->seconds;
-	duss = stamp.microseconds - start->microseconds;
+	dus = stamp.microseconds - start->microseconds;
 
 	new->seconds += ds;
-	new->microseconds += duss;
+	new->microseconds += dus;
 #else
 	(void) section;
 #endif

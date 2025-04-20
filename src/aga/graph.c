@@ -24,9 +24,9 @@ enum asys_result aga_graph_new(
 
 	if(result) return result;
 
-	/* TODO: Controllable. */
+	/* TODO: Controllable and make max raise to ceiling. */
 	graph->segments = 50;
-	graph->max = 10000;
+	graph->max = 2000;
 	graph->period = 30;
 
 	graph->running = asys_memory_allocate_zero(APRO_MAX, sizeof(apro_unit_t));
@@ -179,7 +179,8 @@ enum asys_result aga_graph_plot(
 
 #ifdef AGA_DEVBUILD
 	static const float width = 0.1f;
-	static const float color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+	float color[4];
 
 	enum asys_result result;
 	asys_bool_t shift;
@@ -187,6 +188,11 @@ enum asys_result aga_graph_plot(
 	apro_unit_t us = apro_stamp_us(s);
 
 	if(!graph) return ASYS_RESULT_BAD_PARAM;
+
+	color[0] = (float) (s % 3) / 2.0f;
+	color[1] = (float) (s % 7) / 6.0f;
+	color[2] = (float) (s % 13) / 12.0f;
+	color[3] = 1.0f;
 
 	shift = graph->inter >= graph->period;
 	history = &graph->histories[s * graph->segments];

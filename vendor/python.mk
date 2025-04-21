@@ -51,7 +51,10 @@ PGEN1 = $(PY)pgenmain.c $(PY)acceler.c $(PY)printgrammar.c
 PGEN2 = $(PY)node.c $(PY)parser.c $(PY)parsetok.c $(PY)tokenizer.c $(PY)pgen.c
 PGEN3 = $(PY)bitset.c $(PY)firstsets.c $(PY)grammar.c $(PY)metagrammar.c
 
-PGEN_SRC = $(PGEN1) $(PGEN2) $(PGEN3)
+# TODO: Temporary.
+PGEN4 = $(ASYS)main.c
+
+PGEN_SRC = $(PGEN1) $(PGEN2) $(PGEN3) $(PGEN4)
 PGEN_OBJ = $(subst .c,$(OBJ),$(PGEN_SRC))
 
 PGEN_OUT = $(PY)pgenmain$(EXE)

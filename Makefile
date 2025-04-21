@@ -39,9 +39,6 @@ LINK = LINK /NOLOGO /OUT:$@ $** $(LDFLAGS) $(LDLIBS)
 !include vendor/glm.mk
 !include vendor/tiff.mk
 
-# TODO: Remove once pgen has been switched to `asys_main'.
-LDFLAGS = $(LDFLAGS) /SUBSYSTEM:WINDOWS
-
 !include src/aga.mk
 
 ### Compilation.

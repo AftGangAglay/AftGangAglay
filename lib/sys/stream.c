@@ -63,18 +63,28 @@ enum asys_result asys_stream_new(
 enum asys_result asys_stream_new_write(
 		struct asys_stream* stream, const char* path) {
 
-#ifdef AGA_DEVBUILD
-# ifdef ASYS_WIN32
-	enum asys_result result;
+	/*
+	 * NOTE: This can't just be turned off as pgen needs to generate the
+	 * 		 Grammar definition.
+	 */
+	/*
+	 * TODO: Can we just remove pgen and generate+hold grammar spec at runtime.
+	 */
+#ifndef AGA_DEVBUILD
+	asys_log(
+			__FILE__,
+			"warn: Opening writeable file `%s' in non-devbuild is inadvisable",
+			path);
+#endif
 
+#ifdef ASYS_WIN32
 	if((stream->handle = _lcreat(path, 0)) == HFILE_ERROR) {
-		result = ASYS_RESULT_ERROR;
-		asys_log_result_path(__FILE__, "_lcreat", path, result);
-		return result;
+		asys_log_result_path(__FILE__, "_lcreat", path, ASYS_RESULT_ERROR);
+		return ASYS_RESULT_ERROR;
 	}
 
 	return ASYS_RESULT_OK;
-# elif defined(ASYS_UNIX)
+#elif defined(ASYS_UNIX)
 	stream->handle = 0;
 
 	if((stream->handle = open(path, O_WRONLY | O_CREAT, 0666)) == -1) {
@@ -82,7 +92,7 @@ enum asys_result asys_stream_new_write(
 	}
 
 	return ASYS_RESULT_OK;
-# elif defined(ASYS_STDC)
+#elif defined(ASYS_STDC)
 	stream->handle = 0;
 
 	if(!(stream->handle = fopen(path, "w"))) {
@@ -90,12 +100,6 @@ enum asys_result asys_stream_new_write(
 	}
 
 	return ASYS_RESULT_OK;
-# else
-	(void) stream;
-	(void) path;
-
-	return ASYS_RESULT_NOT_IMPLEMENTED;
-# endif
 #else
 	(void) stream;
 	(void) path;
@@ -449,8 +453,9 @@ enum asys_result asys_stream_attribute(
 enum asys_result asys_stream_write(
 		struct asys_stream* stream, const void* buffer, asys_size_t count) {
 
-#ifdef AGA_DEVBUILD
-# ifdef ASYS_WIN32
+	/* TODO: Disable once static pgen. */
+
+#ifdef ASYS_WIN32
 	enum asys_result result;
 
 	if(_hwrite(stream->handle, buffer, (long) count) == -1L) {
@@ -460,13 +465,13 @@ enum asys_result asys_stream_write(
 	}
 
 	return ASYS_RESULT_OK;
-# elif defined(ASYS_UNIX)
+#elif defined(ASYS_UNIX)
 	if(write(stream->handle, buffer, count) == -1) {
 		return asys_result_errno(__FILE__, "write");
 	}
 
 	return ASYS_RESULT_OK;
-# elif defined(ASYS_STDC)
+#elif defined(ASYS_STDC)
 	fwrite(buffer, 1, count, stream->handle);
 
 	if(ferror(stream->handle)) {
@@ -475,13 +480,6 @@ enum asys_result asys_stream_write(
 	}
 
 	return ASYS_RESULT_OK;
-# else
-	(void) stream;
-	(void) buffer;
-	(void) count;
-
-	return ASYS_RESULT_NOT_IMPLEMENTED;
-# endif
 #else
 	(void) stream;
 	(void) buffer;
@@ -494,7 +492,8 @@ enum asys_result asys_stream_write(
 enum asys_result asys_stream_write_format(
 		struct asys_stream* stream, const char* format, ...) {
 
-#ifdef AGA_DEVBUILD
+	/* TODO: Disable once static pgen. */
+
 	enum asys_result result;
 
 	va_list list;
@@ -506,18 +505,13 @@ enum asys_result asys_stream_write_format(
 	va_end(list);
 
 	return result;
-#else
-	(void) stream;
-	(void) format;
-
-	return ASYS_RESULT_NOT_IMPLEMENTED;
-#endif
 }
 
 enum asys_result asys_stream_write_format_variadic(
 		struct asys_stream* stream, const char* format, va_list list) {
 
-#ifdef AGA_DEVBUILD
+	/* TODO: Disable once static pgen. */
+
 	static asys_fixed_buffer_t buffer = { 0 };
 
 	enum asys_result result;
@@ -527,19 +521,13 @@ enum asys_result asys_stream_write_format_variadic(
 	if(result) return result;
 
 	return asys_stream_write(stream, buffer, count);
-#else
-	(void) stream;
-	(void) format;
-	(void) list;
-
-	return ASYS_RESULT_NOT_IMPLEMENTED;
-#endif
 }
 
 enum asys_result asys_stream_write_characters(
 		struct asys_stream* stream, char character, asys_size_t count) {
 
-#ifdef AGA_DEVBUILD
+	/* TODO: Disable once static pgen. */
+
 	enum asys_result result;
 	asys_size_t i;
 
@@ -548,19 +536,13 @@ enum asys_result asys_stream_write_characters(
 	}
 
 	return ASYS_RESULT_OK;
-#else
-	(void) stream;
-	(void) character;
-	(void) count;
-
-	return ASYS_RESULT_NOT_IMPLEMENTED;
-#endif
 }
 
 enum asys_result asys_stream_splice(
 		struct asys_stream* to, struct asys_stream* from, asys_size_t count) {
 
-#ifdef AGA_DEVBUILD
+	/* TODO: Disable once static pgen. */
+
 	static asys_fixed_buffer_t buffer = { 0 };
 
 	enum asys_result result;
@@ -612,11 +594,4 @@ enum asys_result asys_stream_splice(
 	}
 
 	return ASYS_RESULT_OK;
-#else
-	(void) to;
-	(void) from;
-	(void) count;
-
-	return ASYS_RESULT_NOT_IMPLEMENTED;
-#endif
 }

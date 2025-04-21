@@ -43,11 +43,6 @@
  * 		 An error or guaranteed safe return.
  */
 
-/*
- * TODO: Trying to call editor functions directly from the `agan' module
- * 		 Causes a segfault.
- */
-
 #ifdef AGA_DEVBUILD
 
 /*
@@ -94,7 +89,6 @@ static struct py_object* agan_mkpack(
 	 * TODO: Make `aga.sgml' contain build file info as a fallback from CLI
 	 * 		 For this.
 	 */
-	/* TODO: Auto-build on startup in dev builds (?). */
 	/*
 	 * TODO: Implement partial/archive updates -- in dev builds could allow for
 	 * 		 Leaving stale files as gaps in the pack and append new/moved
@@ -257,8 +251,8 @@ static struct py_object* agan_setobjmdl(
 
 	/* setobjmdl(int, string) */
 	if(!aga_vararg_list(args, PY_TYPE_TUPLE, 2) ||
-		!aga_arg(&objp, args, 0, PY_TYPE_INT) ||
-		!aga_arg(&pathp, args, 1, PY_TYPE_STRING)) {
+			!aga_arg(&objp, args, 0, PY_TYPE_INT) ||
+			!aga_arg(&pathp, args, 1, PY_TYPE_STRING)) {
 
 		return aga_arg_error("setobjmdl", "int and string");
 	}

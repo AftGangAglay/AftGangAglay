@@ -656,6 +656,7 @@ struct py_object* agan_inobj(
 
 	asys_bool_t planar;
 	unsigned i;
+	double abs_rot;
 	struct agan_object* obj;
 	double tolerance = AGA_TRANSFORM_TOLERANCE;
 
@@ -715,7 +716,8 @@ struct py_object* agan_inobj(
 
 	/* rot[Y] ~= 90 */
 	/* rot[Y] ~= -90 */
-	if(asys_fabs(asys_fabs(rotation[1]) - 90.0) < AGA_TRANSFORM_TOLERANCE) {
+	abs_rot = asys_math_fabs(asys_math_fabs(rotation[1]) - 90.0);
+	if(abs_rot < AGA_TRANSFORM_TOLERANCE) {
 		AGA_SWAP_FLOAT(min[0], min[2]);
 		AGA_SWAP_FLOAT(max[0], max[2]);
 	}

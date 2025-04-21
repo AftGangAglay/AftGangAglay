@@ -23,11 +23,10 @@ PYO3 = $(PYO)int.c
 PYM1 = $(PYM)builtin.c $(PYM)math.c
 
 PYH1 = $(PYH)bitset.h $(PYH)ceval.h $(PYH)opcode.h $(PYH)import.h $(PYH)types.h
-PYH2 = $(PYH)compile.h $(PYH)env.h $(PYH)errors.h $(PYH)state.h $(PYH)token.h
-PYH3 = $(PYH)metagrammar.h $(PYH)node.h $(PYH)object.h $(PYH)grammar.h
-PYH4 = $(PYH)parser.h $(PYH)pgen.h $(PYH)std.h $(PYH)parsetok.h
-PYH5 = $(PYH)tokenizer.h $(PYH)traceback.h
-PYH6 = $(PYH1) $(PYH2) $(PYH3) $(PYH4) $(PYH5)
+PYH2 = $(PYH)compile.h $(PYH)errors.h $(PYH)state.h $(PYH)token.h $(PYH)node.h
+PYH3 = $(PYH)metagrammar.h $(PYH)object.h $(PYH)grammar.h $(PYH)traceback.h
+PYH4 = $(PYH)parser.h $(PYH)pgen.h $(PYH)parsetok.h $(PYH)tokenizer.h
+PYH5 = $(PYH1) $(PYH2) $(PYH3) $(PYH4)
 
 PYOH1 = $(PYOH)list.h $(PYOH)dict.h $(PYOH)float.h $(PYOH)frame.h $(PYOH)func.h
 PYOH2 = $(PYOH)class.h $(PYOH)method.h $(PYOH)module.h $(PYOH)string.h

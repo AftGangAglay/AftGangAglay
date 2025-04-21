@@ -15,8 +15,9 @@ typedef int (*asys_string_find_predicate_t)(int);
 
 int asys_character_is_blank(int);
 int asys_character_is_letter(int);
-int asys_character_is_digit(int);
+int asys_character_is_dec_digit(int);
 int asys_character_is_hex_digit(int);
+int asys_character_is_oct_digit(int);
 
 int asys_character_to_upper(int);
 int asys_character_to_lower(int);

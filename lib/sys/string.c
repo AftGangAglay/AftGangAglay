@@ -27,9 +27,9 @@ int asys_character_is_letter(int character) {
 #endif
 }
 
-int asys_character_is_digit(int character) {
+int asys_character_is_dec_digit(int character) {
 #ifdef ASYS_STDC
-	return isalpha(character);
+	return isdigit(character);
 #else
 	return character >= '0' && character <= '9';
 #endif
@@ -39,10 +39,14 @@ int asys_character_is_hex_digit(int character) {
 #ifdef ASYS_STDC
 	return isxdigit(character);
 #else
-	return asys_character_is_digit(character) ||
+	return asys_character_is_dec_digit(character) ||
 			(asys_character_to_upper(character) > 'A' &&
 			asys_character_to_upper(character) <= 'F');
 #endif
+}
+
+int asys_character_is_oct_digit(int character) {
+	return character >= '0' && character <= '8';
 }
 
 #ifndef ASYS_STDC

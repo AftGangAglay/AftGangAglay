@@ -47,6 +47,7 @@
 # define ASYS_EXTENSION
 #endif
 
+/* TODO: Check attributes from old gcc release. */
 #ifdef __has_attribute
 # if __has_attribute(fallthrough)
 #  define ASYS_FALLTHROUGH __attribute__((fallthrough))
@@ -99,6 +100,9 @@ typedef asys_native_long_t asys_time_t;
 
 #define ASYS_NATIVE_ULONG_MAX ((asys_native_ulong_t) -1)
 #define ASYS_NATIVE_LONG_MAX ((asys_native_long_t) (ASYS_NATIVE_ULONG_MAX / 2))
+
+#define ASYS_UINT_MAX ((unsigned) -1)
+#define ASYS_INT_MAX ((int) (ASYS_UINT_MAX / 2))
 
 typedef enum asys_bool { ASYS_TRUE = 1, ASYS_FALSE = 0 } asys_bool_t;
 

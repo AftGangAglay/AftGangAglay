@@ -39,7 +39,14 @@ void asys_memory_move(void* to, const void* from, asys_size_t count) {
 #ifdef ASYS_STDC
 	memmove(to, from, count);
 #else
-	glibc_memmove(to, from, count);
+	/* TODO: glibc_memmove(to, from, count); */
+	void* intermediate = asys_memory_allocate(count);
+	if(!intermediate) return;
+
+	asys_memory_copy(intermediate, from, count);
+	asys_memory_copy(to, intermediate, count);
+
+	asys_memory_free(intermediate);
 #endif
 }
 
@@ -47,7 +54,19 @@ int asys_memory_compare(const void* a, const void* b, asys_size_t count) {
 #ifdef ASYS_STDC
 	return memcmp(a, b, count);
 #else
-	return glibc_memcmp(a, b, count);
+	/* TODO: return glibc_memcmp(a, b, count); */
+	asys_size_t i;
+
+	const char* ap = a;
+	const char* bp = b;
+
+	for(i = 0; i < count; ++i) {
+		int result = ap[i] - bp[i];
+
+		if(result) return result;
+	}
+
+	return 0;
 #endif
 }
 

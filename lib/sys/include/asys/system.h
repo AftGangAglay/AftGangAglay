@@ -52,6 +52,16 @@
 # include <math.h>
 #endif
 
+/*
+ * NOTE: Windows had a math.h implementation in the SDK in 3.0 so we can safely
+ * 		 Use these -- it also had a separate library to be linked so we don't
+ * 		 Need the C runtime.
+ */
+#if defined(ASYS_STDC) || defined(ASYS_WIN32)
+# include <math.h>
+#endif
+
+
 #include <asys/varargs.h>
 
 #ifdef ASYS_VISUALC

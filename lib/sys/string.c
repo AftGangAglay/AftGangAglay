@@ -362,7 +362,7 @@ double asys_string_to_double(const char* string, char** end) {
 	/* TODO: Temporary. */
 	return strtod(string, end);
 #else
-	/* TODO: Roll our own impl.. */
+	/* TODO: Use Glibc. */
 	(void) string;
 	(void) end;
 
@@ -375,11 +375,18 @@ enum asys_result asys_float_to_string(
 
 #ifdef ASYS_STDC
 	int count = sprintf(*buffer, "%f", value);
-	if(count < 0) return asys_result_errno(__FILE__, "vsprintf");
+	if(count < 0) return asys_result_errno(__FILE__, "sprintf");
+
+	return ASYS_RESULT_OK;
+#elif defined(ASYS_WIN32)
+	/* TODO: Temporary. */
+	extern int sprintf(char*, const char*, ...);
+	int count = sprintf(*buffer, "%f", value);
+	if(count < 0) return ASYS_RESULT_ERROR;
 
 	return ASYS_RESULT_OK;
 #else
-	/* TODO: Roll our own impl. */
+	/* TODO: Use Glibc. */
 	(void) value;
 	(void) buffer;
 

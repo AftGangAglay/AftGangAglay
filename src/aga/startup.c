@@ -71,14 +71,19 @@ enum asys_result aga_settings_new(
 					goto break2;
 				}
 
-#ifdef AGA_DEVBUILD
 				case 'c': {
+#ifdef AGA_DEVBUILD
 					if(optind != 2) goto help;
 
 					opts->compile = ASYS_TRUE;
 					break;
-				}
+#else
+					asys_result_fatal(
+							__FILE__,
+							"err: Cannot compile respack in non-devbuild",
+							ASYS_RESULT_BAD_PARAM);
 #endif
+				}
 
 				case 'f': {
 #ifdef AGA_DEVBUILD

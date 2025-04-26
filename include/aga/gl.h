@@ -6,14 +6,16 @@
 #ifndef AGA_GL_H
 #define AGA_GL_H
 
+#include <asys/base.h>
 #include <asys/result.h>
 
-#ifdef _WIN32
-# ifdef _MSC_VER
+#ifdef ASYS_WIN32
+# ifdef ASYS_VISUALC
 #  pragma warning(push)
 #  pragma warning(disable: 4255) /* Function with `()' prototype. */
 #  pragma warning(disable: 4668) /* Symbol not defined as macro. */
 # endif
+
 /*
  * This is super annoying as it leaks a load of garbage into scope.
  * `windows.h' is needed for declaration attributes.
@@ -22,7 +24,7 @@
 # include <GL/gl.h>
 # include <GL/glu.h>
 
-# ifdef _MSC_VER
+# ifdef ASYS_VISUALC
 #  pragma warning(pop)
 # endif
 #else

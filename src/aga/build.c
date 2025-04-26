@@ -11,8 +11,8 @@
 #define AGA_BUILD_FNAME ("<build>")
 
 #ifdef AGA_DEVBUILD
-# include <glm.h>
-# include <tiffio.h>
+/* We need the `va_list' stream procs. */
+# include <asys/varargs.h>
 
 # include <aga/build.h>
 # include <aga/startup.h>
@@ -26,6 +26,9 @@
 
 /* TODO: For `struct vertex' definition -- move elsewhere. */
 # include <agan/object.h>
+
+# include <glm.h>
+# include <tiffio.h>
 
 enum aga_file_kind {
 	AGA_KIND_NONE = 0,

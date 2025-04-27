@@ -1,12 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
-# TODO: Add README to lib/ base to explain these.
-
-# TODO: Windows shouldn't need a C runtime at all if asys is doing its
-#		Job correctly.
-
-# TODO: See Win3 Guide section 14.5 for useful impl. info re: asys:
+# NOTE: See Win3 Guide section 14.5 for useful implementation info:
 #		http://www.bitsavers.org/pdf/microsoft/windows_3.1
 #		Windows_3.1_Guide_to_Programming_1992.pdf, Page 331
 

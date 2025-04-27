@@ -867,8 +867,16 @@ enum asys_result aga_build(struct aga_settings* opts) {
 	return ASYS_RESULT_OK;
 
 	cleanup: {
-		/* TODO: Add option to clean built files. */
-		/* TODO: Destroy failed intermediate files in error cases as well. */
+		/*
+		 * TODO: Add option to clean built files.
+		 * TODO: Destroy failed intermediate files in error cases as well --
+		 * 		 Should probably just be handled by individual build procs.
+		 * TODO: Add a mode to continue trying to build after errors vs. die
+		 * 		 On first error -- separate between stages? An invalid pack
+		 * 		 Isn't terribly useful but is a pack with half its files okay?
+		 * TODO: Python should have a graceful fallback for failed imports
+		 * 		 Exposed as a user option.
+		 */
 
 		/*
 		 * NOTE: `out_path' may reside in `root' so this needs to be before

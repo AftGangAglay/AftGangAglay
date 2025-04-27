@@ -155,17 +155,13 @@ enum asys_result asys_path_remove(const char* path) {
 # ifdef ASYS_WIN32
 	enum asys_result result;
 
-	/*
-	 * TODO: Unclear as to whether Windows treats this as a POSIX compat
-	 * 		 Function or a DOS compat function.
-	 */
 	if(_unlink(path) == -1) {
 		/*
 		 * TODO: Ensure all Windows call errors log like this for parity with
 		 * 		 *nix-y/stdc EH.
 		 */
 		result = ASYS_RESULT_ERROR;
-		asys_log_result(__FILE__, "_unlink", result);
+		asys_result_check_path(__FILE__, "_unlink", path, result);
 		return result;
 	}
 
@@ -203,6 +199,10 @@ enum asys_result asys_path_iterate(
 	 * 		 Longer appear to exist:
 	 * 		 		https://github.com/microsoft/MS-DOS/blob/main/
 	 * 		 				/v4.0/src/TOOLS/BLD/INC/DOS.H
+	 * 		 But were at least present until Windows 3.1's SDK (and probably
+	 * 		 9x/ME if we go and check) so we should switch between NT-y
+	 * 		 Behaviour and the `_dos_' functions based on target. Did programs
+	 * 		 Using these really just stop working whenever they were removed?
 	 */
 
 	/* NOTE: This cannot be static as this function recurses. */

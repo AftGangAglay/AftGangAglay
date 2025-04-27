@@ -22,12 +22,17 @@
 # include <windows.h>
 # include <commdlg.h>
 # include <dos.h>
-# include <io.h> /* TODO: Did this exist? */
+# include <io.h>
 /*
  * TODO: This appears to be a modern compat header. Can we examine it for help
  * 		 In using era-accurate alternatives?
  */
 # include <windowsx.h>
+/*
+ * TODO: This seems to have some poorly/undocumented legacy functions which
+ * 		 May date back far enough?
+ */
+/* # include <memory.h> */
 #endif
 
 #ifdef ASYS_UNIX

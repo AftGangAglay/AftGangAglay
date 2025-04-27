@@ -22,6 +22,7 @@ enum asys_result aga_settings_new(
 #ifdef AGA_DEVBUILD
 	opts->compile = ASYS_FALSE;
 	opts->build_file = "agabuild.sgml";
+	opts->no_stamp = ASYS_FALSE;
 #endif
 	opts->config_file = "aga.sgml";
 	opts->display = 0;
@@ -49,15 +50,15 @@ enum asys_result aga_settings_new(
 	{
 		static const char helpmsg[] =
 			"warn: usage:\n"
-			"\t%s [-f respack] [-A dsp] [-D display] [-C dir] [-v] [-h] [-p]"
+			"\t%s [-f respack] [-A dsp] [-D display] [-C dir] [-p] [-v] [-h]"
 #ifdef AGA_DEVBUILD
-			"\n\t%s -c [-f buildfile] [-C dir] [-v] [-h]"
+			"\n\t%s -c [-f buildfile] [-C dir] [-B] [-v] [-h]"
 #endif
 		;
 
 		int o;
 		while(1) {
-			o = getopt(main_data->argc, main_data->argv, "hcf:A:D:C:vp");
+			o = getopt(main_data->argc, main_data->argv, "hcf:A:D:C:vpB");
 			if(o == -1) break;
 
 			switch(o) {
@@ -133,6 +134,18 @@ enum asys_result aga_settings_new(
 					WWW_TraceFlag = 1;
 
 					opts->verbose = ASYS_TRUE;
+
+					break;
+				}
+
+				case 'B': {
+#ifdef AGA_DEVBUILD
+					if(!opts->compile) goto help;
+#endif
+
+					opts->no_stamp = ASYS_TRUE;
+
+					break;
 				}
 			}
 		}

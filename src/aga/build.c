@@ -295,7 +295,8 @@ static enum asys_result aga_build_tiff(
 }
 
 static enum asys_result aga_build_input_file(
-		const char* path, enum aga_file_kind kind) {
+		struct aga_settings* opts, const char* path,
+		enum aga_file_kind kind) {
 
 	static asys_fixed_buffer_t buffer = { 0 };
 
@@ -304,7 +305,7 @@ static enum asys_result aga_build_input_file(
 	aga_build_input_fn_t fn;
 	struct asys_stream in, out;
 
-	asys_bool_t older;
+	asys_bool_t older = ASYS_TRUE;
 
 	/*
 	 * Input kinds which are handled as "raw" need a special case when
@@ -329,8 +330,7 @@ static enum asys_result aga_build_input_file(
 	/* If we can't determine the age of the files -- rebuild anyway. */
 	asys_log_result(__FILE__, "asys_path_older", result);
 
-	/* TODO: Flag to force rebuilds. */
-	if(older) return ASYS_RESULT_OK;
+	if(older && !opts->no_stamp) return ASYS_RESULT_OK;
 
 	result = asys_stream_new(&in, path);
 	if(result) return result;
@@ -376,11 +376,20 @@ static enum asys_result aga_build_input_file(
 	}
 }
 
-static enum asys_result aga_build_input_dir(const char* path, void* pass) {
-	enum aga_file_kind* kind = pass;
+struct aga_build_input_dir_pass {
+	enum aga_file_kind kind;
+	struct aga_settings* opts;
+};
 
-	return aga_build_input_file(path, *kind);
+static enum asys_result aga_build_input_dir(const char* path, void* pass) {
+	struct aga_build_input_dir_pass* input_pass = pass;
+
+	return aga_build_input_file(input_pass->opts, path, input_pass->kind);
 }
+
+struct aga_build_input_pass {
+	struct aga_settings* opts;
+};
 
 static enum asys_result aga_build_input(
 		const char* path, enum aga_file_kind kind, asys_bool_t recurse,
@@ -389,16 +398,21 @@ static enum asys_result aga_build_input(
 	enum asys_result result;
 	union asys_file_attribute attribute;
 
-	(void) pass;
+	struct aga_build_input_pass* build_pass = pass;
 
 	result = asys_path_attribute(path, ASYS_FILE_TYPE, &attribute);
 	if(result) return result;
 
 	if(attribute.type == ASYS_FILE_DIRECTORY) {
+		struct aga_build_input_dir_pass input_pass;
+
+		input_pass.kind = kind;
+		input_pass.opts = build_pass->opts;
+
 		return asys_path_iterate(
-				path, aga_build_input_dir, recurse, &kind, ASYS_TRUE);
+				path, aga_build_input_dir, recurse, &input_pass, ASYS_TRUE);
 	}
-	else return aga_build_input_file(path, kind);
+	else return aga_build_input_file(build_pass->opts, path, kind);
 }
 
 static enum asys_result aga_build_conf_file(
@@ -761,6 +775,10 @@ enum asys_result aga_build(struct aga_settings* opts) {
 	struct asys_stream stream = { 0 };
 	char* out_path = 0;
 
+	struct aga_build_input_pass build_pass;
+
+	build_pass.opts = opts;
+
 	asys_log(__FILE__, "Compiling project `%s'...", opts->build_file);
 
 	TIFFSetErrorHandler(aga_tiff_error);
@@ -776,9 +794,10 @@ enum asys_result aga_build(struct aga_settings* opts) {
 		goto cleanup;
 	}
 
-	if((result = aga_build_iter(input_root, ASYS_TRUE, aga_build_input, 0))) {
-		goto cleanup;
-	}
+	result = aga_build_iter(
+			input_root, ASYS_TRUE, aga_build_input, &build_pass);
+
+	if(result) goto cleanup;
 
 	result = aga_build_open_output(&root, &stream, &out_path);
 	if(result) goto cleanup;
@@ -834,6 +853,8 @@ enum asys_result aga_build(struct aga_settings* opts) {
 	result = aga_build_iter(input_root, ASYS_FALSE, aga_build_pack, &stream);
 	if(result) goto cleanup;
 
+	/* TODO: Log how many items were processed vs. rebuilt at each stage. */
+
 	result = asys_stream_delete(&stream);
 	if(result) goto cleanup;
 
@@ -883,7 +904,7 @@ enum asys_result aga_build(struct aga_settings* opts) {
 	asys_log(
 		__FILE__, "err: Project building is only supported in dev builds");
 
-	return ASYS_RESULT_ERROR;
+	return ASYS_RESULT_NOT_IMPLEMENTED;
 }
 
 #endif

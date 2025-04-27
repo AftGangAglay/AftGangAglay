@@ -101,7 +101,8 @@ enum asys_result asys_path_older(
 
 	enum asys_result result;
 
-	union asys_file_attribute a_attribute, b_attribute;
+	union asys_file_attribute a_attribute = { 0 };
+	union asys_file_attribute b_attribute = { 0 };
 
 	result = asys_path_attribute(a, ASYS_FILE_MODIFIED, &a_attribute);
 	if(result) return result;

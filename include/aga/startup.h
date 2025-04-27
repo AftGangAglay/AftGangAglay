@@ -17,6 +17,8 @@ struct aga_settings {
 #ifdef AGA_DEVBUILD
 	asys_bool_t compile;
 	const char* build_file;
+
+	asys_bool_t no_stamp;
 #endif
 
 	const char* title;

@@ -1,0 +1,15 @@
+			Secondary library code.
+These are separated components from the main AftGangAglay tree to make their
+use inside vendored code easier/more legible in terms of build workflow.
+
+`prof/' (or `apro') is a profiling library which requires intrusive timestamp
+functions be inserted into code that is to be measured.
+
+`sys/' (or `asys') is a base system layer for abstracting between various
+supported platforms.
+
+This file is part of AftGangAglay
+(https://github.com/AftGangAglay/AftGangAglay) which is licenced under the
+GNU General Public License v3.0 or later.
+
+Copyright (C) 2025 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>

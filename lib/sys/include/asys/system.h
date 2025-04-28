@@ -23,6 +23,8 @@
 # include <commdlg.h>
 # include <dos.h>
 # include <io.h>
+# include <winsock.h>
+# include <process.h>
 /*
  * TODO: This appears to be a modern compat header. Can we examine it for help
  * 		 In using era-accurate alternatives?
@@ -43,6 +45,10 @@
 # include <sys/types.h>
 # include <getopt.h>
 # include <dirent.h>
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
+# include <netdb.h>
 #endif
 
 #if defined(ASYS_STDC) || defined(ASYS_FORCE_STD_INCLUDE) /* TODO: Temp!*/

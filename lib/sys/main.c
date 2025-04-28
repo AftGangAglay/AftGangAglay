@@ -9,12 +9,6 @@
 #include <asys/system.h>
 #include <asys/main.h>
 
-/* TODO: Move argparse in here. */
-/*
- * TODO: Should we abstract event loop so we can use message-driven
- * 		 Application loop under Win32.
- */
-
 #ifdef ASYS_WIN32
 /*
  * NOTE: The Windows 3.1 guide to programming section 14.3 states that we need
@@ -64,7 +58,7 @@ int PASCAL WinMain(
 	if(!UnregisterClass(asys_global_win32_class_name, 0)) {
 		result = ASYS_RESULT_ERROR;
 		asys_log_result(__FILE__, "UnregisterClass", result);
-		return result; /* TODO: This is wrong. */
+		return 1;
 	}
 
 	return 0;

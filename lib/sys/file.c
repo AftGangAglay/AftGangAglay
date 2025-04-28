@@ -10,26 +10,12 @@
 #include <asys/log.h>
 #include <asys/string.h>
 
-/*
- * TODO: See here: https://winasm.tripod.com/Clib.html (esp. Note #5) and
- * 		 Clarify what we can/can't do with modern code, and whether we can
- * 		 Switch to older impls. by detecting compilation env./Win32 version.
- */
-/*
- * TODO: Does this need to exist in general? We only seem to use it for file
- * 		 Type checks where we could just ask the user to specify file vs.
- * 		 Directory inputs.
- */
 enum asys_result asys_path_attribute(
 		const char* path, enum asys_file_attribute_field type,
 		union asys_file_attribute* attribute) {
 
 #ifdef AGA_DEVBUILD
 # ifdef ASYS_WIN32
-	/*
-	 * TODO: DOS `_dos_getfileattr' compat function seems to be a Borland-ism
-	 * 		 Whch no longer exists and has very little documentation.
-	 */
 	enum asys_result result;
 
 	struct asys_stream stream;
@@ -74,7 +60,6 @@ enum asys_result asys_path_attribute(
 # elif defined(ASYS_UNIX)
 	struct stat buffer;
 
-	/* TODO: Is `lseek' or `stat' more efficient for getting file length. */
 	if(stat(path, &buffer) == -1) {
 		return asys_result_errno_path(__FILE__, "stat", path);
 	}

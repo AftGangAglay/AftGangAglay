@@ -223,7 +223,10 @@ static void aga_sgml_start_element(
 			if(!attribute_present[AGA_ITEM_NAME]) node->name = 0;
 			else {
 				const char* value = attribute_value[AGA_ITEM_NAME];
-				/* TODO: Clear new alloc on OOM (?). */
+				/*
+				 * TODO: Clear new alloc on OOM (?). Can a shrinking realloc
+				 * 		 Fail?
+				 */
 				if(!(node->name = asys_string_duplicate(value))) return;
 			}
 
@@ -350,10 +353,6 @@ void HTOOM(const char* file, const char* func) {
 	asys_result_fatal(file, func, ASYS_RESULT_OOM);
 }
 
-/*
- * TODO: Derive when to end the stream when the `<root>' element closes instead
- * 		 Of needing to provide a `count'? Lets `aga_build' skip a few `stat's.
- */
 enum asys_result aga_config_new(
 		struct asys_stream* stream, asys_size_t count,
 		struct aga_config_node* root) {

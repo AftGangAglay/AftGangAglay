@@ -40,7 +40,7 @@ enum asys_result aga_resource_pack_lookup(
 			return ASYS_RESULT_OK;
 		}
 #ifdef ASYS_WIN32
-		/* TODO: Should pack paths be pre-transformed. */
+		/* TODO: Should pack paths be pre-transformed? */
 		else {
 			asys_size_t j;
 
@@ -103,7 +103,8 @@ enum asys_result aga_resource_pack_new(
 
 	/*
 	 * TODO: Needing to keep the entire resource pack header config loaded
-	 * 		 Is not a terribly efficient use of our memory. Can we avoid this?
+	 * 		 Is not a terribly efficient use of our memory.
+	 * 		 Can we avoid/reduce this?
 	 */
 	result = aga_config_new(&pack->stream, header.size, &pack->root);
 	if(result) goto cleanup;
@@ -274,7 +275,9 @@ enum asys_result aga_resource_new(
 		pack->outstanding_refs++;
 #endif
 
-		/* TODO: Use mapping for large reads. */
+		/*
+		 * TODO: Use mapping for large reads (user configurable as mapping is
+		 * 		 Suboptimal for linear media). */
 		(*resource)->data = asys_memory_allocate((*resource)->size);
 		if(!(*resource)->data) return ASYS_RESULT_OOM;
 

@@ -11,7 +11,11 @@
  * TODO: Apparently Cygwin supports `/dev/dsp'? This check may be too
  * 		 Restrictive.
  */
-#if !defined(_WIN32) && \
+/*
+ * TODO: None of these checks are necessary. Try to open `/dev/audio' with
+ * 		 asys streams -- if it isn't there it isn't there.
+ */
+#if !defined(ASYS_WIN32) && \
 		defined(AGA_HAVE_UNISTD) && defined(AGA_HAVE_FCNTL) && \
 		defined(AGA_HAVE_SYS_STAT) && defined(AGA_HAVE_SYS_TYPES)
 
@@ -231,7 +235,6 @@ enum asys_result aga_sound_play(
 
 	*ind = dev->count;
 
-	/* TODO: `printf'/`allocator' attributes for our stdlib wrappers. */
 	dev->streams = aga_realloc(
 			dev->streams, ++dev->count * sizeof(struct aga_sound_stream));
 

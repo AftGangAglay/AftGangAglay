@@ -22,7 +22,8 @@ enum asys_result asys_stream_new(
 
 	/*
 	 * TODO: The original open flag constant was just `READ' but for modern VC
-	 * 		 We appear to need `OF_READ'.
+	 * 		 We appear to need `OF_READ'. `OpenFile' is era-appropriate we
+	 * 		 Should probably just use that in Windows builds.
 	 */
 	if((stream->handle = _lopen(path, OF_READ)) == HFILE_ERROR) {
 		result = ASYS_RESULT_ERROR;

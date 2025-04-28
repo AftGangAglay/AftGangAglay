@@ -188,7 +188,7 @@ static enum asys_result aga_setkeys(void) {
 		result = aga_insertint(name, value); \
 		if(result) return result; \
 	} while(0)
-#ifdef _WIN32
+#ifdef ASYS_WIN32
 /*
  * Values taken from:
  * https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes

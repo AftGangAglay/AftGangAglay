@@ -19,7 +19,7 @@ static enum aga_draw_flags aga_global_draw_flags = 0;
 
 enum asys_result aga_draw_set(enum aga_draw_flags flags) {
 	static const char* name[] = { "glDisable", "glEnable" };
-#ifdef _WIN32
+#ifdef ASYS_WIN32
 	static void (APIENTRY *func[2])(GLenum);
 #else
 	static void (*func[2])(GLenum);

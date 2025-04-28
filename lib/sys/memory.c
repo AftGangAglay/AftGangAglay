@@ -10,7 +10,6 @@
 
 void asys_memory_zero(void* pointer, asys_size_t count) {
 /* TODO: Detect `bzero'. */
-/* TODO: Does `memset' work on Windows without CRT? */
 #ifdef ASYS_STDC
 	memset(pointer, 0, count);
 #else
@@ -41,7 +40,10 @@ void asys_memory_move(void* to, const void* from, asys_size_t count) {
 #else
 	/* TODO: glibc_memmove(to, from, count); */
 	void* intermediate = asys_memory_allocate(count);
-	if(!intermediate) return;
+	if(!intermediate) {
+		asys_result_check(__FILE__, "asys_memory_allocate", ASYS_RESULT_OOM);
+		return;
+	}
 
 	asys_memory_copy(intermediate, from, count);
 	asys_memory_copy(to, intermediate, count);
@@ -105,7 +107,7 @@ void* asys_memory_allocate(asys_size_t size) {
 
 	return 0;
 #else
-	/* TODO: Heap implementation? */
+	/* TODO: Heap implementation? Can we borrow from glibc? */
 	(void) size;
 
 	return 0;

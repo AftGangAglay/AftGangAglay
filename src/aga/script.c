@@ -136,7 +136,6 @@ enum asys_result aga_script_engine_new(
 	eng->env = asys_memory_allocate_zero(1, sizeof(struct py_env));
 	if(!eng->env) return ASYS_RESULT_OOM;
 
-	/* TODO: Cleanup these. */
 	pyres = py_new(eng->py, pypath);
 	if(pyres != PY_RESULT_OK) return aga_pyresult(pyres);
 

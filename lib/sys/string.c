@@ -343,7 +343,6 @@ char* asys_string_duplicate(const char* string) {
 asys_native_long_t asys_string_to_native_long(
 		const char* string, char** end) {
 
-/* TODO: Did Windows 3.1 have a native way of doing this? */
 #ifdef ASYS_STDC
 # ifdef ASYS_LP32
 	return strtoll(string, end, 0);

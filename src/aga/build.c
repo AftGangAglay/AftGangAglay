@@ -186,7 +186,6 @@ static enum asys_result aga_build_obj(
 
 	void* stdc_handle;
 
-	/* TODO: This needs to be closed. */
 	stdc_handle = asys_stream_stdc(in);
 	if(!stdc_handle) return ASYS_RESULT_NOT_IMPLEMENTED;
 
@@ -322,10 +321,6 @@ static enum asys_result aga_build_input_file(
 	asys_string_concatenate(buffer, path);
 	asys_string_concatenate(buffer, AGA_RAW_SUFFIX);
 
-	/*
-	 * TODO: On Windows this requires opening streams -- should we have a way
-	 * 		 To keep streams alive for input assets in general?
-	 */
 	result = asys_path_older(path, buffer, &older);
 	/* If we can't determine the age of the files -- rebuild anyway. */
 	asys_log_result(__FILE__, "asys_path_older", result);
@@ -508,8 +503,7 @@ static enum asys_result aga_build_conf_file(
 			default: break;
 
 			/*
-			 * TODO: More formally document these "tails" in a comment at the
-			 * 		 Top of this file.
+			 * TODO: More formally document these "tails".
 			 */
 			case AGA_KIND_TIFF: {
 				aga_image_tail_t tail;

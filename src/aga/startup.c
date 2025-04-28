@@ -41,10 +41,6 @@ enum asys_result aga_settings_new(
 	opts->verbose = ASYS_FALSE;
 	opts->profiler = ASYS_FALSE;
 
-	/*
-	 * TODO: Remove need to zero this externally by zeroing relevant fields in
-	 * 		 Node init.
-	 */
 	asys_memory_zero(&opts->config, sizeof(struct aga_config_node));
 
 	{
@@ -101,7 +97,7 @@ enum asys_result aga_settings_new(
 					if(opts->compile) goto help;
 #endif
 
-					/* TODO: Fix audio buffer options. */
+					asys_log(__FILE__, "")
 					/*opts->audio_dev = optarg;*/
 					break;
 				}

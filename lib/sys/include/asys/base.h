@@ -22,7 +22,6 @@
 
 /* Target system. */
 
-/* TODO: Review all `_WIN64'/`_WIN32' uses. */
 #ifdef _WIN32
 # undef ASYS_STDC
 # define ASYS_WIN32

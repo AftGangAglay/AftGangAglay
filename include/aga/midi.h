@@ -9,7 +9,7 @@
 #include <asys/base.h>
 #include <asys/result.h>
 
-#ifdef _WIN32
+#ifdef ASYS_WIN32
 struct aga_midi_device {
 	void* dev;
 };

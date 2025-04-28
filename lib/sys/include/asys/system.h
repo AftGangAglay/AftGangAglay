@@ -38,14 +38,20 @@
 #endif
 
 #ifdef ASYS_UNIX
-# define _POSIX_C_SOURCE 2 /* TODO: We shouldn't rely on this -- remove. */
+# define _DEFAULT_SOURCE /* Avoids modern glibc deprecation warnings. */
+# define _POSIX_C_SOURCE 2
+# define _BSD_SOURCE
+
 # include <unistd.h>
 # include <fcntl.h>
-# include <sys/stat.h>
-# include <sys/types.h>
 # include <getopt.h>
 # include <dirent.h>
+
+# include <sys/stat.h>
+# include <sys/types.h>
 # include <sys/socket.h>
+# include <sys/param.h>
+
 # include <netinet/in.h>
 # include <arpa/inet.h>
 # include <netdb.h>

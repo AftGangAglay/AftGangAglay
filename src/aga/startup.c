@@ -97,7 +97,6 @@ enum asys_result aga_settings_new(
 					if(opts->compile) goto help;
 #endif
 
-					asys_log(__FILE__, "")
 					/*opts->audio_dev = optarg;*/
 					break;
 				}

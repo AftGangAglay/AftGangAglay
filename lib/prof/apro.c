@@ -96,6 +96,7 @@ const char* apro_section_name(enum apro_section section) {
 		case APRO_CEVAL_CODE_EVAL: return "CEVAL";
 		case APRO_CEVAL_CODE_EVAL_FALLING: return "CEVAL_FALLING";
 		case APRO_RES_SWEEP: return "RES_SWEEP";
+		case APRO_AUDIO_UPDATE: return "AUDIO_UPDATE";
 		case APRO_SCRIPTGLUE_GETKEY: return "AGAN_GETKEY";
 		case APRO_SCRIPTGLUE_GETMOTION: return "AGAN_GETMOTION";
 		case APRO_SCRIPTGLUE_SETCURSOR: return "AGAN_SETCURSOR";
@@ -123,6 +124,7 @@ const char* apro_section_name(enum apro_section section) {
 		case APRO_SCRIPTGLUE_BITSHL: return "AGAN_BITSHL";
 		case APRO_SCRIPTGLUE_RANDNORM: return "AGAN_RANDNORM";
 		case APRO_SCRIPTGLUE_BITOR: return "AGAN_BITOR";
+		case APRO_SCRIPTGLUE_PLAYSND: return "AGAN_PLAYSND";
 		case APRO_PUTOBJ_RISING: return "PUTOBJ_RISING";
 		case APRO_PUTOBJ_LIGHT: return "PUTOBJ_LIGHT";
 		case APRO_PUTOBJ_CALL: return "PUTOBJ_CALL";

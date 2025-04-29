@@ -18,36 +18,36 @@ enum agan_surface {
 enum asys_result agan_draw_register(struct py_env*);
 
 struct py_object* agan_setcam(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_text(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_fogparam(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_fogcol(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_clear(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_mktrans(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_shadeflat(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_getpix(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_setflag(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_getflag(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_line3d(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 #endif

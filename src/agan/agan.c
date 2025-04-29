@@ -10,6 +10,7 @@
 #include <agan/utility.h>
 #include <agan/math.h>
 #include <agan/editor.h>
+#include <agan/audio.h>
 
 #include <aga/draw.h>
 #include <aga/config.h>
@@ -95,6 +96,9 @@ enum asys_result aga_mkmod(struct py_env* env, void** dict) {
 			/* Maths */
 			aga_(bitand), aga_(bitshl), aga_(randnorm), aga_(bitor),
 
+			/* Audio */
+			aga_(playsnd),
+
 			{ 0, 0 } };
 #undef aga_
 
@@ -108,6 +112,7 @@ enum asys_result aga_mkmod(struct py_env* env, void** dict) {
 	if((result = agan_math_register(env))) return result;
 	if((result = agan_misc_register(env))) return result;
 	if((result = agan_ed_register(env))) return result;
+	if((result = agan_audio_register(env))) return result;
 
 	*dict = agan_dict;
 

@@ -8,6 +8,7 @@
 
 #include <asys/base.h>
 #include <asys/result.h>
+#include <asys/stream.h>
 
 struct aga_resource;
 
@@ -20,11 +21,13 @@ struct aga_sound_stream {
 	asys_bool_t did_finish;
 	asys_size_t last_seek;
 
-	asys_size_t offset;
+	asys_offset_t offset;
+
+	/* TODO: Spatial audio info for mix/clip function here. */
 };
 
 struct aga_sound_device {
-	int fd;
+	struct asys_stream device_stream;
 
 	asys_uchar_t* buffer;
 	asys_uchar_t* scratch;

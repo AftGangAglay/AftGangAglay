@@ -4,30 +4,12 @@
  */
 
 #include <aga/sound.h>
-#include <asys/base.h>
 #include <aga/pack.h>
 
-/*
- * TODO: Apparently Cygwin supports `/dev/dsp'? This check may be too
- * 		 Restrictive.
- */
-/*
- * TODO: None of these checks are necessary. Try to open `/dev/audio' with
- * 		 asys streams -- if it isn't there it isn't there.
- */
-#if !defined(ASYS_WIN32) && \
-		defined(AGA_HAVE_UNISTD) && defined(AGA_HAVE_FCNTL) && \
-		defined(AGA_HAVE_SYS_STAT) && defined(AGA_HAVE_SYS_TYPES)
-
-# define AGA_HAVE_SUN_SOUND
-#endif
-
-#ifdef AGA_HAVE_SUN_SOUND
-# define AGA_WANT_UNIX
-# include <aga/std.h>
-# include <asys/log.h>
-# include <aga/error.h>
-# include <aga/utility.h>
+#include <asys/base.h>
+#include <asys/log.h>
+#include <asys/memory.h>
+#include <asys/error.h>
 
 enum asys_result aga_sound_device_new(
 		struct aga_sound_device* dev, asys_size_t size) {
@@ -43,9 +25,12 @@ enum asys_result aga_sound_device_new(
 	 * Assume default open state is "8-bit, 8Khz, mono u-Law data" from SunOS
 	 * audio(7i) manpage
 	 */
-	/* TODO: Try `/dev/dsp' after this if missing `/dev/audio'. */
-	dev->fd = open("/dev/audio", O_WRONLY | O_NONBLOCK);
-	if(dev->fd == -1) return aga_error_system(__FILE__, "open");
+	result = asys_stream_new_write(&dev->device_stream, "/dev/audio");
+	if(result) return result;
+
+	result = asys_stream_set_nonblock(&dev->device_stream);
+	if(result) goto cleanup;
+
 	/*
 	 * `/dev/audio' exclusivity varies by system -- we'll just have to assume
 	 * The user doesn't have any other audio-playing applications open on
@@ -68,23 +53,25 @@ enum asys_result aga_sound_device_new(
 	 */
 
 	dev->size = size;
-
 	dev->scratch = 0; /* For `cleanup'. */
 
-	if(!(dev->buffer = aga_malloc(size))) {
-		result = aga_error_system(__FILE__, "malloc");
+	if(!(dev->buffer = asys_memory_allocate(size))) {
+		result = ASYS_RESULT_OOM;
 		goto cleanup;
 	}
 
-	if(!(dev->scratch = aga_malloc(size))) {
-		result = aga_error_system(__FILE__, "malloc");
+	if(!(dev->scratch = asys_memory_allocate(size))) {
+		result = ASYS_RESULT_OOM;
 		goto cleanup;
 	}
 
 	return ASYS_RESULT_OK;
 
 	cleanup: {
-		if(close(dev->fd) == -1) aga_error_system(__FILE__, "close");
+		enum asys_result cleanup_result;
+
+		cleanup_result = asys_stream_delete(&dev->device_stream);
+		asys_result_check(__FILE__, "asys_stream_delete", cleanup_result);
 
 		asys_memory_free(dev->buffer);
 		asys_memory_free(dev->scratch);
@@ -98,17 +85,13 @@ enum asys_result aga_sound_device_new(
  * 		 Error conditions.
  */
 enum asys_result aga_sound_device_delete(struct aga_sound_device* dev) {
-	enum asys_result result = ASYS_RESULT_OK;
-
 	if(!dev) return ASYS_RESULT_BAD_PARAM;
 
-	if(close(dev->fd) == -1) result = aga_error_system(__FILE__, "close");
+	asys_memory_free(dev->buffer);
+	asys_memory_free(dev->scratch);
+	asys_memory_free(dev->streams);
 
-	free(dev->buffer);
-	free(dev->scratch);
-	free(dev->streams);
-
-	return result;
+	return asys_stream_delete(&dev->device_stream);
 }
 
 /* TODO: User controllable clip function. */
@@ -130,19 +113,21 @@ enum asys_result aga_sound_device_update(struct aga_sound_device* dev) {
 
 	if(!dev) return ASYS_RESULT_BAD_PARAM;
 
-	aga_bzero(dev->buffer, dev->size);
+	asys_memory_zero(dev->buffer, dev->size);
 
 	while(ASYS_TRUE) {
-		asys_size_t rem = dev->size - total;
-		asys_size_t req = rem > dev->size ? dev->size : rem;
+		asys_size_t remainder = dev->size - total;
+		asys_size_t want = remainder > dev->size ? dev->size : remainder;
 
 		for(i = 0; i < dev->count; ++i) {
 			struct aga_sound_stream* stream = &dev->streams[i];
-			void* fp;
-			asys_size_t rdsz;
+			struct asys_stream* fp;
+
+			asys_size_t read_count;
 			asys_bool_t eof = ASYS_FALSE;
 
 			stream->did_finish = ASYS_FALSE;
+
 			/*
 			 * TODO: Add sound device sweep function to clean up finished
 			 * 		 Streams.
@@ -152,25 +137,29 @@ enum asys_result aga_sound_device_update(struct aga_sound_device* dev) {
 			result = aga_resource_seek(stream->resource, &fp);
 			if(result) return result;
 
-			if(fseek(fp, (long) stream->offset, SEEK_CUR)) {
-				return aga_error_system(__FILE__, "fseek");
+			/*
+			 * TODO: Just splice the streams if there is only one user allows
+			 * 		 Clipping to be overridden.
+			 */
+
+			result = asys_stream_seek(fp, ASYS_SEEK_CURRENT, stream->offset);
+			if(result) return result;
+
+			result = asys_stream_read(fp, &read_count, dev->scratch, want);
+			if(result) {
+				if(result == ASYS_RESULT_EOF) eof = ASYS_TRUE;
+				else return result;
 			}
 
-			rdsz = fread(dev->scratch, 1, req, fp);
-			if(rdsz < req) {
-				if(ferror(fp)) {
-					return aga_error_system(__FILE__, "fread");
-				}
-				else eof = ASYS_TRUE;
-			}
-			stream->last_seek = rdsz;
-			stream->offset += rdsz;
+			stream->last_seek = read_count;
+			stream->offset += (asys_offset_t) read_count;
 
-			for(j = 0; j < rdsz; ++j) {
+			for(j = 0; j < read_count; ++j) {
 				static const double smax = (double) 0xFF;
 
 				double v = aga_sound_clip(
 						dev->buffer[j] / smax, dev->scratch[j] / smax);
+
 				dev->buffer[j] = (asys_uchar_t) (v * smax);
 			}
 
@@ -184,39 +173,45 @@ enum asys_result aga_sound_device_update(struct aga_sound_device* dev) {
 		}
 
 		{
-			asys_size_t reseek, over;
-			ssize_t wrsz = write(dev->fd, dev->buffer, req);
+			asys_size_t seek_corrected, over, write_count;
 
-			if (wrsz == -1) {
-				if (errno == EWOULDBLOCK || errno == EAGAIN) over = req;
-				else return aga_error_system(__FILE__, "write");
+			result = asys_stream_write(
+					&dev->device_stream, &write_count, dev->buffer, want);
+
+			if(result) {
+				if(result == ASYS_RESULT_BLOCKING) {
+					over = want;
+				}
+				else return result;
 			}
-			else over = req - wrsz;
+			else over = want - write_count;
 
-			if (over) {
+			if(over) {
 				for (i = 0; i < dev->count; ++i) {
 					struct aga_sound_stream* stream = &dev->streams[i];
 
-					if (stream->done) {
-						if (stream->did_finish) {
+					if(stream->done) {
+						if(stream->did_finish) {
 							stream->done = ASYS_FALSE;
 							stream->did_finish = ASYS_FALSE;
 						}
 						else continue;
 					}
 
-					reseek = stream->last_seek > over ?
+					seek_corrected = stream->last_seek > over ?
 								stream->last_seek : over;
 
-					if (!stream->offset) {
-						stream->offset = stream->resource->size - reseek;
+					if(!stream->offset) {
+						stream->offset =
+								(asys_offset_t) (stream->resource->size -
+													seek_corrected);
 					}
-					else stream->offset -= reseek;
+					else stream->offset -= (asys_offset_t) seek_corrected;
 				}
 			}
 
-			if (req == rem) break;
-			total += wrsz;
+			if(want == remainder) break;
+			total += write_count;
 		}
 	}
 
@@ -235,51 +230,26 @@ enum asys_result aga_sound_play(
 
 	*ind = dev->count;
 
-	dev->streams = aga_realloc(
+	/*
+	 * TODO: Once we have resource limits -- warn on dev about exceeding
+	 * 		 Concurrent streams.
+	 */
+
+	dev->streams = asys_memory_reallocate_safe(
 			dev->streams, ++dev->count * sizeof(struct aga_sound_stream));
 
-	if(!dev->streams) return aga_error_system(__FILE__, "realloc");
+	if(!dev->streams) return ASYS_RESULT_OOM;
 
 	stream = &dev->streams[*ind];
-	aga_bzero(stream, sizeof(struct aga_sound_stream));
+	asys_memory_zero(stream, sizeof(struct aga_sound_stream));
 
 	stream->resource = res;
+
+	/*
+	 * TODO: Looping streams are broken at the moment. Are we relying on
+	 * 		 Stream EOF?
+	 */
 	stream->loop = loop;
 
 	return ASYS_RESULT_OK;
 }
-
-#else
-
-enum asys_result aga_sound_device_new(struct aga_sound_device* dev, asys_size_t size) {
-	(void) dev;
-	(void) size;
-
-	return ASYS_RESULT_OK;
-}
-enum asys_result aga_sound_device_delete(struct aga_sound_device* dev) {
-	(void) dev;
-
-	return ASYS_RESULT_OK;
-}
-
-enum asys_result aga_sound_device_update(struct aga_sound_device* dev) {
-	(void) dev;
-
-	return ASYS_RESULT_OK;
-}
-
-/* Start a new sound stream into the device */
-enum asys_result aga_sound_play(
-		struct aga_sound_device* dev, struct aga_resource* res, asys_bool_t loop,
-		asys_size_t* ind) {
-
-	(void) dev;
-	(void) res;
-	(void) loop;
-	(void) ind;
-
-	return ASYS_RESULT_OK;
-}
-
-#endif

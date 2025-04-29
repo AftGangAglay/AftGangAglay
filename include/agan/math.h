@@ -11,15 +11,15 @@
 enum asys_result agan_math_register(struct py_env*);
 
 struct py_object* agan_bitand(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_bitshl(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_randnorm(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_bitor(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 #endif

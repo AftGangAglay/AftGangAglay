@@ -11,18 +11,18 @@
 enum asys_result agan_io_register(struct py_env*);
 
 struct py_object* agan_getkey(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_getmotion(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_setcursor(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_getbuttons(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 struct py_object* agan_getpos(
-		struct py_env* env, struct py_object*, struct py_object*);
+		struct py_env*, struct py_object*, struct py_object*);
 
 #endif

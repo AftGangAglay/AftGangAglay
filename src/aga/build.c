@@ -170,7 +170,7 @@ static enum asys_result aga_build_python(
 
 	if((result = asys_stream_splice(out, in, ASYS_COPY_ALL))) return result;
 
-	return asys_stream_write(out, AGA_PY_TAIL, sizeof(AGA_PY_TAIL) - 1);
+	return asys_stream_write(out, 0, AGA_PY_TAIL, sizeof(AGA_PY_TAIL) - 1);
 }
 
 static enum asys_result aga_build_obj(
@@ -224,7 +224,9 @@ static enum asys_result aga_build_obj(
 				asys_memory_copy(
 						v.pos, &verts[3 * t->v_inds[j]], sizeof(float[3]));
 
-				result = asys_stream_write(out, &v, sizeof(struct aga_vertex));
+				result = asys_stream_write(
+						out, 0, &v, sizeof(struct aga_vertex));
+
 				if(result) goto cleanup;
 			}
 		}
@@ -232,7 +234,7 @@ static enum asys_result aga_build_obj(
 		group = group->next;
 	}
 
-	result = asys_stream_write(out, &extent, sizeof(float[6]));
+	result = asys_stream_write(out, 0, &extent, sizeof(float[6]));
 
 	cleanup: glmDelete(model);
 
@@ -278,10 +280,10 @@ static enum asys_result aga_build_tiff(
 		goto cleanup;
 	}
 
-	result = asys_stream_write(out, raster, size);
+	result = asys_stream_write(out, 0, raster, size);
 	if(result) goto cleanup;
 
-	result = asys_stream_write(out, &img.width, sizeof(uint32));
+	result = asys_stream_write(out, 0, &img.width, sizeof(uint32));
 	if(result) goto cleanup;
 
 	cleanup: {
@@ -808,7 +810,7 @@ enum asys_result aga_build(struct aga_settings* opts) {
 		conf_pass.offset = 0;
 
 		result = asys_stream_write(
-				&stream, &header, sizeof(struct aga_resource_pack_header));
+				&stream, 0, &header, sizeof(struct aga_resource_pack_header));
 
 		if(result) goto cleanup;
 
@@ -834,7 +836,7 @@ enum asys_result aga_build(struct aga_settings* opts) {
 		if(result) goto cleanup;
 
 		result = asys_stream_write(
-				&stream, &header, sizeof(struct aga_resource_pack_header));
+				&stream, 0, &header, sizeof(struct aga_resource_pack_header));
 
 		if(result) goto cleanup;
 

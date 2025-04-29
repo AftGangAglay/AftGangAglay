@@ -104,7 +104,9 @@ enum asys_result aga_graph_update(
 	if(result) return result;
 	result = aga_graph_plot(graph, d++, 4, APRO_CEVAL_CODE_EVAL_FALLING);
 	if(result) return result;
-	result = aga_graph_plot(graph, d, 1, APRO_RES_SWEEP);
+	result = aga_graph_plot(graph, d++, 1, APRO_RES_SWEEP);
+	if(result) return result;
+	result = aga_graph_plot(graph, d, 1, APRO_AUDIO_UPDATE);
 	if(result) return result;
 
 	result = aga_graph_plot(graph, x++, 12, APRO_SCRIPTGLUE_GETKEY);
@@ -147,7 +149,9 @@ enum asys_result aga_graph_update(
 	if(result) return result;
 	result = aga_graph_plot(graph, x++, 12, APRO_SCRIPTGLUE_BITSHL);
 	if(result) return result;
-	result = aga_graph_plot(graph, x, 12, APRO_SCRIPTGLUE_RANDNORM);
+	result = aga_graph_plot(graph, x++, 12, APRO_SCRIPTGLUE_RANDNORM);
+	if(result) return result;
+	result = aga_graph_plot(graph, x, 12, APRO_SCRIPTGLUE_PLAYSND);
 	if(result) return result;
 
 	result = aga_graph_plot(graph, n++, 20, APRO_PUTOBJ_RISING);

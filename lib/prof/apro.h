@@ -33,6 +33,8 @@ enum apro_section {
 
 	APRO_RES_SWEEP, /* Resource pack sweep. */
 
+	APRO_AUDIO_UPDATE, /* Audio device update. */
+
 	/* Scriptglue calls */
 	APRO_SCRIPTGLUE_GETKEY,
 	APRO_SCRIPTGLUE_GETMOTION,
@@ -65,6 +67,8 @@ enum apro_section {
 	APRO_SCRIPTGLUE_BITSHL,
 	APRO_SCRIPTGLUE_RANDNORM,
 	APRO_SCRIPTGLUE_BITOR,
+
+	APRO_SCRIPTGLUE_PLAYSND,
 
 	APRO_PUTOBJ_RISING,
 	APRO_PUTOBJ_LIGHT,

@@ -35,13 +35,13 @@ static enum asys_result aga_put_default(void) {
 
 	static const char str1[] = "No project loaded or no script files provided";
 	static const char str2[] = "Did you forget `-f' or `-C'?";
-	static const float text_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
-	static const float color[] = {0.6f, 0.3f, 0.8f, 1.0f};
+	static const float text_color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	static const float color[] = { 0.6f, 0.3f, 0.8f, 1.0f };
 
 	if ((result = aga_render_clear(color))) return result;
 
 	result = aga_render_text_format(0.05f, 0.1f, text_color, str1);
-	if (result) return result;
+	if(result) return result;
 
 	return aga_render_text_format(0.05f, 0.2f, text_color, str2);
 }
@@ -205,6 +205,15 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 
 	asys_log(__FILE__, "Done!");
 
+	/*{
+		struct aga_resource* res = 0;
+		asys_size_t ind;
+		aga_resource_pack_lookup(&pack, "snd/pcm/giveup.raw", &res);
+		aga_sound_play(&snd, res, ASYS_TRUE, &ind);
+		aga_resource_pack_lookup(&pack, "snd/pcm/jump.raw", &res);
+		aga_sound_play(&snd, res, ASYS_TRUE, &ind);
+	}*/
+
 	while(!die) {
 		/* TODO: Fix more formal ref/obj tracing for devbuilds. */
 
@@ -251,6 +260,14 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 			apro_stamp_end(APRO_RES_SWEEP);
 		}
 		apro_stamp_end(APRO_PRESWAP);
+
+		apro_stamp_start(APRO_AUDIO_UPDATE);
+		if(opts.audio_enabled) {
+			result = aga_sound_device_update(&snd);
+			asys_log_result(
+					__FILE__, "aga_sound_device_update", result);
+		}
+		apro_stamp_end(APRO_AUDIO_UPDATE);
 
 		/* TODO: This doesn't work under devbuilds. */
 		dt = (asys_size_t) apro_stamp_us(APRO_PRESWAP);

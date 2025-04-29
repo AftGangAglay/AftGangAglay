@@ -13,7 +13,7 @@ AGA2 = $(AGA)python.c $(AGA)script.c $(AGA)startup.c $(AGA)render.c
 AGA3 = $(AGA)sound.c $(AGA)aga.c $(AGA)window.c $(AGA)build.c
 # agan
 AGA4 = $(AGAN)draw.c $(AGAN)agan.c $(AGAN)object.c $(AGAN)utility.c $(AGAN)io.c
-AGA5 = $(AGAN)math.c $(AGAN)editor.c
+AGA5 = $(AGAN)math.c $(AGAN)editor.c $(AGAN)audio.c
 
 # TODO: Temporary.
 AGA6 = $(ASYS)main.c
@@ -24,7 +24,7 @@ AGAH2 = $(AGAH)python.h $(AGAH)sound.h $(AGAH)startup.h $(AGAH)render.h
 AGAH3 = $(AGAH)window.h $(AGAH)graph.h
 # agan
 AGAH4 = $(AGANH)agan.h $(AGANH)object.h $(AGANH)draw.h $(AGAH)render.h
-AGAH5 = $(AGANH)utility.h $(AGANH)io.h
+AGAH5 = $(AGANH)utility.h $(AGANH)io.h $(AGANH)audio.h
 
 AGA_SRC = $(AGA1) $(AGA2) $(AGA3) $(AGA4) $(AGA5) $(AGA6)
 AGA_HDR = $(AGAH1) $(AGAH2) $(AGAH3) $(AGAH4) $(AGAH5)

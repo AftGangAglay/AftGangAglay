@@ -5,7 +5,7 @@ use inside vendored code easier/more legible in terms of build workflow.
 `prof/' (or `apro') is a profiling library which requires intrusive timestamp
 functions be inserted into code that is to be measured.
 
-`sys/' (or `asys') is a base system layer for abstracting between various
+`asys/' is a base system layer for abstracting between various
 supported platforms.
 
 This file is part of AftGangAglay

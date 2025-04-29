@@ -27,3 +27,6 @@
 	branch = trunk
 	url = https://github.com/AftGangAglay/glibc1.03
 	shallow = true
+[submodule "lib/asys"]
+	path = lib/asys
+	url = https://github.com/AftGangAglay/asys

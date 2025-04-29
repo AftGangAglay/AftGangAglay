@@ -76,7 +76,7 @@ else
 	endif
 endif
 
-include lib/sys/asys.mk
+include lib/asys/asys.mk
 include lib/prof/apro.mk
 
 include vendor/python.mk

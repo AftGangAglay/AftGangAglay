@@ -31,7 +31,7 @@ LINK = LINK /NOLOGO /OUT:$@ $** $(LDFLAGS) $(LDLIBS)
 
 ### Modules.
 
-!include lib/sys/asys.mk
+!include lib/asys/asys.mk
 !include lib/prof/apro.mk
 
 !include vendor/python.mk

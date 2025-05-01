@@ -33,6 +33,8 @@ LINK = LINK /NOLOGO /OUT:$@ $** $(LDFLAGS) $(LDLIBS)
 
 !include lib/asys/asys.mk
 !include lib/prof/apro.mk
+MIL_BASE = lib$(SEP)mil$(SEP)mil$(SEP)
+!include lib/mil/mil/mil.mk
 
 !include vendor/python.mk
 !include vendor/www.mk
@@ -80,6 +82,7 @@ CFLAGS = $(CFLAGS) /wd4127
 
 CFLAGS = $(CFLAGS) /I$(APRO_INCLUDE) /I$(ASYS_INCLUDE) /I$(PY_INCLUDE)
 CFLAGS = $(CFLAGS) /I$(WWW_INCLUDE) /I$(GLM_INCLUDE) /I$(TIFF_INCLUDE)
+CFLAGS = $(CFLAGS) /I$(MIL_INCLUDE)
 
 CFLAGS = $(CFLAGS) /Iinclude /Ivendor$(SEP)libtiff$(SEP) /Ivendor$(SEP)
 CFLAGS = $(CFLAGS) /DAGA_VERSION=\"$(VERSION)\"
@@ -89,6 +92,6 @@ CFLAGS = $(CFLAGS) /DAGA_VERSION=\"$(VERSION)\"
 
 all: $(AGA_OUT)
 
-clean: clean_asys clean_apro
+clean: clean_asys clean_apro clean_mil
 clean: clean_python clean_www clean_glm clean_tiff
 clean: clean_aga

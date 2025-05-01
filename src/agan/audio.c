@@ -43,7 +43,8 @@ struct py_object* agan_playsnd(
 	}
 
 	result = aga_resource_pack_lookup(
-			AGA_GET_USERDATA(env)->resource_pack, py_string_get(path), &resource);
+			AGA_GET_USERDATA(env)->resource_pack, py_string_get(path),
+			&resource);
 
 	if(aga_script_err("aga_resource_pack_lookup", result)) return 0;
 

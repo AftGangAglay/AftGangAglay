@@ -27,6 +27,15 @@
 	branch = trunk
 	url = https://github.com/AftGangAglay/glibc1.03
 	shallow = true
+
 [submodule "lib/asys"]
 	path = lib/asys
+	branch = trunk
 	url = https://github.com/AftGangAglay/asys
+	shallow = true
+
+[submodule "lib/mil"]
+	path = lib/mil
+	branch = trunk
+	url = https://github.com/AftGangAglay/MirageLayer
+	shallow = true

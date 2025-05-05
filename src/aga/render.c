@@ -86,6 +86,12 @@ enum asys_result aga_render_line_graph(
 	return aga_draw_set(fl);
 }
 
+enum asys_result aga_render_area(int x, int y, unsigned width, unsigned height) {
+	glViewport(x, y, (int) width, (int) height);
+
+	return mil_gl_result(__FILE__, "glViewport");
+}
+
 enum asys_result aga_render_clear(const float* color) {
 	enum asys_result result;
 

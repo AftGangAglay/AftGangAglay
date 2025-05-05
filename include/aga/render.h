@@ -20,6 +20,7 @@ enum asys_result aga_render_text_format(
 enum asys_result aga_render_line_graph(
 		const float*, asys_size_t, float, const float*);
 
+enum asys_result aga_render_area(int, int, unsigned, unsigned);
 enum asys_result aga_render_clear(const float*);
 enum asys_result aga_render_flush(void);
 

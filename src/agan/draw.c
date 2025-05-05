@@ -14,6 +14,7 @@
 #include <asys/log.h>
 
 #include <mil/system.h>
+#include <mil/widget.h>
 
 #include <apro.h>
 
@@ -54,8 +55,11 @@ struct py_object* agan_setcam(
 	struct py_object* mode;
 	asys_bool_t b;
 	double ar;
+	unsigned width, height;
 
 	struct aga_settings* opts = AGA_GET_USERDATA(env)->opts;
+	struct mil_ctx* mil = AGA_GET_USERDATA(env)->mil;
+	mil_widget_t gl_area = AGA_GET_USERDATA(env)->gl_area;
 
 	(void) env;
 	(void) self;
@@ -72,7 +76,9 @@ struct py_object* agan_setcam(
 
 	b = !!py_int_get(mode);
 
-	ar = (double) opts->height / (double) opts->width;
+	mil_widget_get_size(mil, gl_area, &width, &height);
+
+	ar = (double) height / (double) width;
 
 	glMatrixMode(GL_PROJECTION);
 	if(aga_script_gl_err(__FILE__, "glMatrixMode")) return 0;
@@ -80,6 +86,7 @@ struct py_object* agan_setcam(
 	if(aga_script_gl_err(__FILE__, "glLoadIdentity")) return 0;
 
 	if(b) {
+		/* TODO: Parameterized FOV. */
 		gluPerspective(opts->fov, 1.0 / ar, 0.1, 10000.0);
 		if(aga_script_gl_err(__FILE__, "gluPerspective")) return 0;
 	}
@@ -305,19 +312,22 @@ struct py_object* agan_getpix(
 
 	asys_uchar_t pix[3];
 	py_value_t x, y;
-	unsigned i;
+	unsigned i, width, height;
 	int h;
 	struct py_object* retval;
 	struct py_object* list;
 	/* TODO: Gracefully handle single vs. double buffered envs. */
 	enum agan_surface surface = AGAN_SURFACE_BACK;
 
-	struct aga_settings* opts = AGA_GET_USERDATA(env)->opts;
+	struct mil_ctx* mil = AGA_GET_USERDATA(env)->mil;
+	mil_widget_t gl_area = AGA_GET_USERDATA(env)->gl_area;
 
 	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_GETPIX);
+
+	mil_widget_get_size(mil, gl_area, &width, &height);
 
 	list = args;
 
@@ -351,8 +361,7 @@ struct py_object* agan_getpix(
 	glReadBuffer(surface_names[surface]);
 	if(aga_script_gl_err(__FILE__, "glReadBuffer")) return 0;
 
-	/* TODO: This won't work with resizing. */
-	h = (int) (opts->height - y);
+	h = (int) (height - y);
 	glReadPixels((int) x, h, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pix);
 	if(aga_script_gl_err(__FILE__, "glReadPixels")) return 0;
 

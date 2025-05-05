@@ -85,6 +85,8 @@ enum asys_result aga_graph_update(
 
 	enum asys_result result;
 
+	unsigned width, height;
+
 	unsigned d = 0;
 	unsigned x = 0;
 	unsigned n = 0;
@@ -94,6 +96,11 @@ enum asys_result aga_graph_update(
 
 	result = mil_gl_context_widget(mil, graph->gl_area);
 	asys_log_result(__FILE__, "mil_gl_context_widget", result);
+
+	mil_widget_get_size(mil, graph->gl_area, &width, &height);
+
+	result = aga_render_area(0, 0, width, height);
+	asys_log_result(__FILE__, "aga_render_area", result);
 
 	asys_log_result(__FILE__, "aga_render_clear", aga_render_clear(clear));
 

@@ -29,8 +29,6 @@
 #include <mil/gl.h>
 /* TODO: Move out input translation somewhere else. */
 #include <mil/translate.h>
-/* TODO: Temporary! For `glViewport'. */
-#include <mil/system.h>
 
 struct aga_mil_userdata {
 	struct mil_drawing_area_input_storage input_storage;
@@ -103,7 +101,7 @@ static mil_widget_t aga_setup_main_window(struct mil_ctx* mil) {
 	mil_widget_t window, frame, area;
 
 	window = mil_widget(
-			mil, mil->settings.title, MIL_WINDOW, mil->top, MIL_END);
+			mil, mil->settings.title, MIL_MAIN_WINDOW, mil->top, MIL_END);
 
 	frame = mil_widget(mil, "frame", MIL_FRAME, window, MIL_END);
 
@@ -240,7 +238,8 @@ static void aga_update(struct mil_ctx* mil) {
 		userdata->frame_zero = ASYS_FALSE;
 	}
 
-	glViewport(0, 0, (GLint) width, (GLint) height);
+	result = aga_render_area(0, 0, width, height);
+	asys_log_result(__FILE__, "aga_render_area", result);
 
 	apro_stamp_start(APRO_PRESWAP);
 	{

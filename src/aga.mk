@@ -10,7 +10,7 @@ AGANH = include$(SEP)agan$(SEP)
 # aga
 AGA1 = $(AGA)config.c $(AGA)draw.c $(AGA)midi.c $(AGA)pack.c $(AGA)graph.c
 AGA2 = $(AGA)python.c $(AGA)script.c $(AGA)startup.c $(AGA)render.c
-AGA3 = $(AGA)sound.c $(AGA)aga.c $(AGA)window.c $(AGA)build.c
+AGA3 = $(AGA)sound.c $(AGA)aga.c $(AGA)build.c $(AGA)input.c
 # agan
 AGA4 = $(AGAN)draw.c $(AGAN)agan.c $(AGAN)object.c $(AGAN)utility.c $(AGAN)io.c
 AGA5 = $(AGAN)math.c $(AGAN)editor.c $(AGAN)audio.c
@@ -19,9 +19,9 @@ AGA5 = $(AGAN)math.c $(AGAN)editor.c $(AGAN)audio.c
 AGA6 = $(ASYS)main.c
 
 # aga
-AGAH1 = $(AGAH)config.h $(AGAH)gl.h $(AGAH)script.h $(AGAH)pack.h $(AGAH)draw.h
+AGAH1 = $(AGAH)config.h $(AGAH)script.h $(AGAH)pack.h $(AGAH)draw.h
 AGAH2 = $(AGAH)python.h $(AGAH)sound.h $(AGAH)startup.h $(AGAH)render.h
-AGAH3 = $(AGAH)window.h $(AGAH)graph.h
+AGAH3 = $(AGAH)graph.h $(AGAH)input.h
 # agan
 AGAH4 = $(AGANH)agan.h $(AGANH)object.h $(AGANH)draw.h $(AGAH)render.h
 AGAH5 = $(AGANH)utility.h $(AGANH)io.h $(AGANH)audio.h

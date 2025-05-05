@@ -5,11 +5,11 @@
 
 #include <aga/render.h>
 #include <aga/draw.h>
-#include <aga/window.h>
-#include <aga/gl.h>
 
 #include <asys/varargs.h>
 #include <asys/string.h>
+
+#include <mil/system.h>
 
 enum asys_result aga_render_text(
 		float x, float y, const float* color, const char* text) {
@@ -23,13 +23,13 @@ enum asys_result aga_render_text(
 	glColor4fv(color);
 
 	glRasterPos2f(x, y);
-	if((result = aga_error_gl(__FILE__, "glRasterPos2f"))) return result;
+	if((result = mil_gl_result(__FILE__, "glRasterPos2f"))) return result;
 
 	glListBase(AGA_FONT_LIST_BASE);
-	if((result = aga_error_gl(__FILE__, "glListBase"))) return result;
+	if((result = mil_gl_result(__FILE__, "glListBase"))) return result;
 
 	glCallLists((int) asys_string_length(text), GL_UNSIGNED_BYTE, text);
-	if((result = aga_error_gl(__FILE__, "glCallLists"))) return result;
+	if((result = mil_gl_result(__FILE__, "glCallLists"))) return result;
 
 	if((result = aga_draw_pop())) return result;
 	return aga_draw_set(fl);
@@ -74,13 +74,13 @@ enum asys_result aga_render_line_graph(
 	if((result = aga_draw_set(AGA_DRAW_NONE))) return result;
 
 	glLineWidth(width);
-	if((result = aga_error_gl(__FILE__, "glLineWidth"))) return result;
+	if((result = mil_gl_result(__FILE__, "glLineWidth"))) return result;
 
 	glBegin(GL_LINE_STRIP);
 		glColor4fv(color);
 		for(i = 0; i < count; ++i) glVertex2f(i * dx, 1.0f - heights[i]);
 	glEnd();
-	if((result = aga_error_gl(__FILE__, "glEnd"))) return result;
+	if((result = mil_gl_result(__FILE__, "glEnd"))) return result;
 
 	if((result = aga_draw_pop())) return result;
 	return aga_draw_set(fl);
@@ -92,15 +92,15 @@ enum asys_result aga_render_clear(const float* color) {
 	if(!color) return ASYS_RESULT_BAD_PARAM;
 
 	glClearColor(color[0], color[1], color[2], color[3]);
-	if((result = aga_error_gl(__FILE__, "glClearColor"))) return result;
+	if((result = mil_gl_result(__FILE__, "glClearColor"))) return result;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	if((result = aga_error_gl(__FILE__, "glClear"))) return result;
+	if((result = mil_gl_result(__FILE__, "glClear"))) return result;
 
 	return ASYS_RESULT_OK;
 }
 
 enum asys_result aga_render_flush(void) {
 	glFlush();
-	return aga_error_gl(__FILE__, "glFlush");
+	return mil_gl_result(__FILE__, "glFlush");
 }

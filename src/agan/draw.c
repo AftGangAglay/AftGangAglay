@@ -7,12 +7,13 @@
 
 #include <aga/script.h>
 #include <aga/startup.h>
-#include <aga/window.h>
-#include <aga/gl.h>
 #include <aga/draw.h>
-#include <asys/log.h>
 #include <aga/diagnostic.h>
 #include <aga/render.h>
+
+#include <asys/log.h>
+
+#include <mil/system.h>
 
 #include <apro.h>
 
@@ -74,23 +75,23 @@ struct py_object* agan_setcam(
 	ar = (double) opts->height / (double) opts->width;
 
 	glMatrixMode(GL_PROJECTION);
-	if(aga_script_gl_err("glMatrixMode")) return 0;
+	if(aga_script_gl_err(__FILE__, "glMatrixMode")) return 0;
 	glLoadIdentity();
-	if(aga_script_gl_err("glLoadIdentity")) return 0;
+	if(aga_script_gl_err(__FILE__, "glLoadIdentity")) return 0;
 
 	if(b) {
 		gluPerspective(opts->fov, 1.0 / ar, 0.1, 10000.0);
-		if(aga_script_gl_err("gluPerspective")) return 0;
+		if(aga_script_gl_err(__FILE__, "gluPerspective")) return 0;
 	}
 	else {
 		glOrtho(-1.0, 1.0, -ar, ar, 0.001, 1.0);
-		if(aga_script_gl_err("glOrtho")) return 0;
+		if(aga_script_gl_err(__FILE__, "glOrtho")) return 0;
 	}
 
 	glMatrixMode(GL_MODELVIEW);
-	if(aga_script_gl_err("glMatrixMode")) return 0;
+	if(aga_script_gl_err(__FILE__, "glMatrixMode")) return 0;
 	glLoadIdentity();
-	if(aga_script_gl_err("glLoadIdentity")) return 0;
+	if(aga_script_gl_err(__FILE__, "glLoadIdentity")) return 0;
 	if(agan_settransmat(t, ASYS_TRUE)) return 0;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_SETCAM);
@@ -132,7 +133,9 @@ struct py_object* agan_text(
 	y = (float) py_float_get(py_list_get(t, 1));
 
 	/* TODO: Color. */
-	if(aga_script_err("aga_render_text", aga_render_text(x, y, color, text))) {
+	if(aga_script_err(
+			__FILE__, "aga_render_text", aga_render_text(x, y, color, text))) {
+
 		return 0;
 	}
 
@@ -159,16 +162,16 @@ struct py_object* agan_fogparam(
 	}
 
 	glFogi(GL_FOG_MODE, GL_EXP);
-	if(aga_script_gl_err("glFogi")) return 0;
+	if(aga_script_gl_err(__FILE__, "glFogi")) return 0;
 
 	glFogf(GL_FOG_DENSITY, (float) py_float_get(py_list_get(args, 0)));
-	if(aga_script_gl_err("glFogf")) return 0;
+	if(aga_script_gl_err(__FILE__, "glFogf")) return 0;
 
 	glFogf(GL_FOG_START, (float) py_float_get(py_list_get(args, 1)));
-	if(aga_script_gl_err("glFogf")) return 0;
+	if(aga_script_gl_err(__FILE__, "glFogf")) return 0;
 
 	glFogf(GL_FOG_END, (float) py_float_get(py_list_get(args, 2)));
-	if(aga_script_gl_err("glFogf")) return 0;
+	if(aga_script_gl_err(__FILE__, "glFogf")) return 0;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_FOGPARAM);
 
@@ -200,7 +203,7 @@ struct py_object* agan_fogcol(
 	}
 
 	glFogfv(GL_FOG_COLOR, col);
-	if(aga_script_gl_err("glFogfv")) return 0;
+	if(aga_script_gl_err(__FILE__, "glFogfv")) return 0;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_FOGCOL);
 
@@ -228,7 +231,9 @@ struct py_object* agan_clear(
 		color[i] = (float) py_float_get(py_list_get(args, i));
 	}
 
-	if(aga_script_err("aga_render_clear", aga_render_clear(color))) return 0;
+	if(aga_script_err(__FILE__, "aga_render_clear", aga_render_clear(color))) {
+		return 0;
+	}
 
 	apro_stamp_end(APRO_SCRIPTGLUE_CLEAR);
 
@@ -285,7 +290,7 @@ struct py_object* agan_shadeflat(
 	}
 
 	glShadeModel(py_int_get(args) ? GL_FLAT : GL_SMOOTH);
-	if(aga_script_gl_err("glShadeModel")) return 0;
+	if(aga_script_gl_err(__FILE__, "glShadeModel")) return 0;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_SHADEFLAT);
 
@@ -307,7 +312,7 @@ struct py_object* agan_getpix(
 	/* TODO: Gracefully handle single vs. double buffered envs. */
 	enum agan_surface surface = AGAN_SURFACE_BACK;
 
-	struct aga_window* win = AGA_GET_USERDATA(env)->window;
+	struct aga_settings* opts = AGA_GET_USERDATA(env)->opts;
 
 	(void) env;
 	(void) self;
@@ -344,11 +349,12 @@ struct py_object* agan_getpix(
 	y = py_int_get(py_list_get(list, 1));
 
 	glReadBuffer(surface_names[surface]);
-	if(aga_script_gl_err("glReadBuffer")) return 0;
+	if(aga_script_gl_err(__FILE__, "glReadBuffer")) return 0;
 
-	h = (int) (win->height - y);
+	/* TODO: This won't work with resizing. */
+	h = (int) (opts->height - y);
 	glReadPixels((int) x, h, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pix);
-	if(aga_script_gl_err("glReadPixels")) return 0;
+	if(aga_script_gl_err(__FILE__, "glReadPixels")) return 0;
 
 	if(!(retval = py_list_new(ASYS_LENGTH(pix)))) return py_error_set_nomem();
 
@@ -373,7 +379,11 @@ struct py_object* agan_setflag(
 		return aga_arg_error("setflag", "int");
 	}
 
-	if(aga_script_err("aga_draw_set", aga_draw_set(py_int_get(args)))) return 0;
+	if(aga_script_err(
+			__FILE__, "aga_draw_set", aga_draw_set(py_int_get(args)))) {
+
+		return 0;
+	}
 
 	return py_object_incref(PY_NONE);
 }
@@ -430,14 +440,14 @@ struct py_object* agan_line3d(
 	}
 
 	glLineWidth((float) py_float_get(pt));
-	if(aga_script_gl_err("glLineWidth")) return 0;
+	if(aga_script_gl_err(__FILE__, "glLineWidth")) return 0;
 
 	glBegin(GL_LINES);
 		glColor3dv(colf);
 		glVertex3dv(fromf);
 		glVertex3dv(tof);
 	glEnd();
-	if(aga_script_gl_err("glEnd")) return 0;
+	if(aga_script_gl_err(__FILE__, "glEnd")) return 0;
 
 	return py_object_incref(PY_NONE);
 }

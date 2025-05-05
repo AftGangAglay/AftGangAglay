@@ -6,7 +6,6 @@
 /* TODO: Fuzz headless. */
 /* TODO: Test build input types individually. */
 
-#include <aga/window.h>
 #include <aga/sound.h>
 #include <aga/pack.h>
 #include <aga/midi.h>
@@ -16,6 +15,7 @@
 #include <aga/script.h>
 #include <aga/build.h>
 #include <aga/graph.h>
+#include <aga/input.h>
 
 #include <apro.h>
 
@@ -23,6 +23,35 @@
 #include <asys/error.h>
 #include <asys/string.h>
 #include <asys/main.h>
+
+#include <mil/mil.h>
+#include <mil/widget.h>
+#include <mil/gl.h>
+/* TODO: Move out input translation somewhere else. */
+#include <mil/translate.h>
+/* TODO: Temporary! For `glViewport'. */
+#include <mil/system.h>
+
+struct aga_mil_userdata {
+	struct mil_drawing_area_input_storage input_storage;
+	mil_widget_t gl_area;
+
+	struct aga_script_engine* script_engine;
+	struct aga_script_class* script_class;
+	struct aga_script_instance* script_instance;
+
+	struct aga_resource_pack* resource_pack;
+
+	struct aga_sound_device* sound_device;
+
+	struct aga_settings* settings;
+
+	struct aga_graph* profile_graph;
+
+	struct aga_input_pack* input;
+
+	asys_bool_t frame_zero;
+};
 
 static enum asys_result aga_put_default(void) {
 	/*
@@ -47,6 +76,223 @@ static enum asys_result aga_put_default(void) {
 }
 
 /*
+ * TODO: Set dirty flag on pointer deltas and only reset if there was no input
+ * 		 That frame.
+ */
+static void aga_main_window_input(
+		mil_widget_t widget, struct mil_ctx* mil, void* data) {
+
+	struct aga_mil_userdata* userdata = mil->user;
+
+	struct mil_input_data input;
+
+	(void) widget;
+
+	mil_get_input_data(mil, data, &input);
+
+	/*
+	 * TODO: Just send the event to script land and deprecate our input procs.
+	 */
+
+	aga_translate_mil_input(&input, userdata->input);
+}
+
+static mil_widget_t aga_setup_main_window(struct mil_ctx* mil) {
+	struct aga_mil_userdata* userdata = mil->user;
+
+	mil_widget_t window, frame, area;
+
+	window = mil_widget(
+			mil, mil->settings.title, MIL_WINDOW, mil->top, MIL_END);
+
+	frame = mil_widget(mil, "frame", MIL_FRAME, window, MIL_END);
+
+	userdata->input_storage.callback = aga_main_window_input;
+	userdata->input_storage.ctx = mil;
+
+	area = mil_widget(
+			mil, "gl_area", MIL_DRAWING_AREA, frame,
+			/* TODO: Resizing. */
+			/* MIL_DRAWING_AREA_RESIZE_CALLBACK, area_resize, */
+			MIL_DRAWING_AREA_INPUT_CALLBACK, &userdata->input_storage,
+			MIL_END);
+
+	return area;
+}
+
+static void aga_frame_zero(struct mil_ctx* mil) {
+	struct aga_mil_userdata* userdata = mil->user;
+
+	enum aga_draw_flags draw_flags = AGA_DRAW_BACKFACE | AGA_DRAW_FOG |
+									 AGA_DRAW_TEXTURE | AGA_DRAW_LIGHTING |
+									 AGA_DRAW_DEPTH | AGA_DRAW_FLAT;
+
+	enum asys_result result;
+
+	const char* gl_version;
+
+	result = aga_renderer_string(&gl_version);
+	asys_log_result(__FILE__, "aga_renderer_string", result);
+	asys_log(
+			__FILE__, "Acquired GL context: %s",
+			gl_version ? gl_version : "<error>");
+
+	asys_result_check(__FILE__, "aga_draw_set", aga_draw_set(draw_flags));
+
+	result = mil_gl_load_font(mil, AGA_FONT_LIST_BASE);
+	asys_log_result(__FILE__, "mil_gl_load_font", result);
+
+	asys_log(__FILE__, "Instantiating game instance...");
+
+	result = aga_script_engine_lookup(
+			userdata->script_engine, userdata->script_class, "game");
+
+	asys_result_check(__FILE__, "aga_script_engine_lookup", result);
+
+	result = aga_script_instance_new(
+			userdata->script_class, userdata->script_instance);
+
+	asys_result_check(__FILE__, "aga_script_instance_new", result);
+
+	result = aga_script_instance_call(
+			userdata->script_engine, userdata->script_instance,
+			AGA_SCRIPT_CREATE);
+
+	asys_log_result(__FILE__, "aga_script_instance_call", result);
+}
+
+static void aga_warp_pointer(struct mil_ctx* mil, int width, int height) {
+	struct aga_mil_userdata* userdata = mil->user;
+	struct aga_pointer* pointer = &userdata->input->pointer;
+
+	if(pointer->dirty) {
+		/* TODO: Configurable. */
+		static const int edge_tolerance = 10;
+
+		pointer->dirty = ASYS_FALSE;
+
+		if(pointer->captured &&
+		   !pointer->warping) {
+
+			int x, y;
+
+			if(pointer->x > width - edge_tolerance) {
+				pointer->warping = ASYS_TRUE;
+				pointer->warp_gt = ASYS_TRUE;
+				pointer->warp_x = ASYS_TRUE;
+
+				x = pointer->warp_coord = edge_tolerance * 2;
+				y = pointer->y;
+			}
+			else if(pointer->x < edge_tolerance) {
+				pointer->warping = ASYS_TRUE;
+				pointer->warp_gt = ASYS_FALSE;
+				pointer->warp_x = ASYS_TRUE;
+
+				x = pointer->warp_coord = width - (edge_tolerance * 2);
+				y = pointer->y;
+			}
+			else if(pointer->y > height - edge_tolerance) {
+				pointer->warping = ASYS_TRUE;
+				pointer->warp_gt = ASYS_TRUE;
+				pointer->warp_x = ASYS_FALSE;
+
+				x = pointer->x;
+				y = pointer->warp_coord = edge_tolerance * 2;
+			}
+			else if(pointer->y < edge_tolerance) {
+				pointer->warping = ASYS_TRUE;
+				pointer->warp_gt = ASYS_FALSE;
+				pointer->warp_x = ASYS_FALSE;
+
+				x = pointer->x;
+				y = pointer->warp_coord = height - (edge_tolerance * 2);
+			}
+
+			if(pointer->warping) {
+				mil_widget_move_pointer(mil, userdata->gl_area, x, y);
+			}
+		}
+	}
+	else {
+		pointer->dx = 0;
+		pointer->dy = 0;
+	}
+}
+
+static void aga_update(struct mil_ctx* mil) {
+	struct aga_mil_userdata* userdata = mil->user;
+
+	enum asys_result result;
+	unsigned width, height;
+
+	/* TODO: Fix more formal ref/obj tracing for devbuilds. */
+
+	result = mil_gl_context_widget(mil, userdata->gl_area);
+	asys_log_result(__FILE__, "mil_gl_context_widget", result);
+
+	mil_widget_get_size(mil, userdata->gl_area, &width, &height);
+
+	aga_warp_pointer(mil, (int) width, (int) height);
+
+	if(userdata->frame_zero) {
+		aga_frame_zero(mil);
+		userdata->frame_zero = ASYS_FALSE;
+	}
+
+	glViewport(0, 0, (GLint) width, (GLint) height);
+
+	apro_stamp_start(APRO_PRESWAP);
+	{
+		apro_stamp_start(APRO_SCRIPT_UPDATE);
+		{
+			if(userdata->script_class->class) {
+				result = aga_script_instance_call(
+						userdata->script_engine, userdata->script_instance,
+						AGA_SCRIPT_UPDATE);
+
+				asys_log_result(
+						__FILE__, "aga_script_instance_call", result);
+			}
+			else {
+				result = aga_put_default();
+				asys_log_result(__FILE__, "aga_put_default", result);
+			}
+		}
+		apro_stamp_end(APRO_SCRIPT_UPDATE);
+
+		apro_stamp_start(APRO_RES_SWEEP);
+		{
+			result = aga_resource_pack_sweep(userdata->resource_pack);
+			asys_log_result(
+					__FILE__, "aga_resource_pack_sweep", result);
+		}
+		apro_stamp_end(APRO_RES_SWEEP);
+	}
+	apro_stamp_end(APRO_PRESWAP);
+
+	apro_stamp_start(APRO_AUDIO_UPDATE);
+	if(userdata->settings->audio_enabled) {
+		result = aga_sound_device_update(userdata->sound_device);
+		asys_log_result(
+				__FILE__, "aga_sound_device_update", result);
+	}
+	apro_stamp_end(APRO_AUDIO_UPDATE);
+
+	/* TODO: This needs to be fixed. */
+	/* dt = (asys_size_t) apro_stamp_us(APRO_PRESWAP); */
+
+	if(userdata->settings->profiler) {
+		result = aga_graph_update(userdata->profile_graph, mil);
+		asys_log_result(__FILE__, "aga_graph_update", result);
+	}
+
+	apro_clear();
+
+	mil_gl_swap(mil, userdata->gl_area);
+}
+
+/*
  * TODO: We appear to have a memory leak (at least on Windows) which consumes
  * 		 Hundreds of MiBs in seconds. Probably leaking a script engine
  * 		 Reference.
@@ -61,39 +307,43 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	struct aga_sound_device snd;
 	struct aga_midi_device midi;
 
-	struct aga_window_device env;
-	struct aga_window win;
-	struct aga_keymap keymap;
-	struct aga_pointer pointer;
-	struct aga_buttons buttons = { 0 };
+	struct aga_mil_userdata mil_userdata;
+
+	struct mil_settings mil_opts;
+	struct mil_ctx mil;
+
+	struct aga_input_pack input = { 0 };
 
 	struct aga_script_engine script_engine;
 	struct aga_script_class class = { 0 };
 	struct aga_script_instance inst;
 
-	enum aga_draw_flags draw_flags = AGA_DRAW_BACKFACE | AGA_DRAW_FOG |
-								   AGA_DRAW_TEXTURE | AGA_DRAW_LIGHTING |
-								   AGA_DRAW_DEPTH | AGA_DRAW_FLAT;
-
 	asys_bool_t die = ASYS_FALSE;
 	apro_unit_t dt = 0;
 
-	const char* gl_version;
-
 	struct aga_graph prof = { 0 };
 
-	struct aga_script_userdata userdata;
+	struct aga_script_userdata script_userdata;
 
-	userdata.keymap = &keymap;
-	userdata.pointer = &pointer;
-	userdata.opts = &opts;
-	userdata.sound_device = &snd;
-	userdata.die = &die;
-	userdata.window_device = &env;
-	userdata.window = &win;
-	userdata.resource_pack = &pack;
-	userdata.buttons = &buttons;
-	userdata.dt = &dt;
+	script_userdata.opts = &opts;
+	script_userdata.sound_device = &snd;
+	script_userdata.resource_pack = &pack;
+	script_userdata.die = &die;
+	script_userdata.dt = &dt;
+	script_userdata.input = &input;
+	script_userdata.mil = &mil;
+
+	mil.user = &mil_userdata;
+
+	mil_userdata.script_engine = &script_engine;
+	mil_userdata.script_class = &class;
+	mil_userdata.script_instance = &inst;
+	mil_userdata.resource_pack = &pack;
+	mil_userdata.settings = &opts;
+	mil_userdata.sound_device = &snd;
+	mil_userdata.profile_graph = &prof;
+	mil_userdata.frame_zero = ASYS_TRUE;
+	mil_userdata.input = &input;
 
 	asys_log(__FILE__, "Breathing in the chemicals...");
 
@@ -117,33 +367,24 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 
 	asys_log(__FILE__, "Initializing systems...");
 
-	result = aga_window_device_new(&env, opts.display);
-	asys_result_check(__FILE__, "aga_window_device_new", result);
+	mil_opts.title = opts.title;
+	mil_opts.min_width = opts.width;
+	mil_opts.min_height = opts.height;
 
-	result = aga_keymap_new(&keymap, &env);
-	asys_result_check(__FILE__, "aga_keymap_new", result);
+	mil.update = aga_update;
+
+	mil_ctx_new(&mil, &mil_opts, &main_data->argc, main_data->argv);
+
+	mil_userdata.gl_area = aga_setup_main_window(&mil);
+	script_userdata.gl_area = mil_userdata.gl_area;
 
 	if(opts.profiler) {
-		result = aga_graph_new(&prof, &env, main_data);
+		result = aga_graph_new(&prof, &mil);
 		if(result) {
 			asys_result_check(__FILE__, "aga_graph_new", result);
 			opts.profiler = ASYS_FALSE;
 		}
 	}
-
-	result = aga_window_new(
-			opts.width, opts.height, opts.title, &env, &win, ASYS_TRUE,
-			main_data);
-
-	asys_result_check(__FILE__, "aga_window_new", result);
-
-	result = aga_renderer_string(&gl_version);
-	asys_log_result(__FILE__, "aga_renderer_string", result);
-	asys_log(
-			__FILE__, "Acquired GL context: %s",
-			gl_version ? gl_version : "<error>");
-
-	asys_result_check(__FILE__, "aga_draw_set", aga_draw_set(draw_flags));
 
 	if(opts.audio_enabled) {
 		if((result = aga_sound_device_new(&snd, opts.audio_buffer))) {
@@ -185,108 +426,17 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 
 	result = aga_script_engine_new(
 			&script_engine, opts.startup_script, &pack, opts.python_path,
-			&userdata);
+			&script_userdata);
 
 	asys_log_result(__FILE__, "aga_script_engine_new", result);
-	if(!result) {
-		asys_log(__FILE__, "Instantiating game instance...");
-
-		result = aga_script_engine_lookup(&script_engine, &class, "game");
-		asys_result_check(__FILE__, "aga_script_engine_lookup", result);
-
-		result = aga_script_instance_new(&class, &inst);
-		asys_result_check(__FILE__, "aga_script_instance_new", result);
-
-		result = aga_script_instance_call(
-				&script_engine, &inst, AGA_SCRIPT_CREATE);
-
-		asys_log_result(__FILE__, "aga_script_instance_call", result);
-	}
 
 	asys_log(__FILE__, "Done!");
 
-	/*{
-		struct aga_resource* res = 0;
-		asys_size_t ind;
-		aga_resource_pack_lookup(&pack, "snd/pcm/giveup.raw", &res);
-		aga_sound_play(&snd, res, ASYS_TRUE, &ind);
-		aga_resource_pack_lookup(&pack, "snd/pcm/jump.raw", &res);
-		aga_sound_play(&snd, res, ASYS_TRUE, &ind);
-	}*/
-
-	while(!die) {
-		/* TODO: Fix more formal ref/obj tracing for devbuilds. */
-
-		result = aga_window_select(&env, &win);
-		asys_log_result(__FILE__, "aga_window_select", result);
-
-		apro_stamp_start(APRO_PRESWAP);
-		{
-			apro_stamp_start(APRO_POLL);
-			{
-				pointer.dx = 0;
-				pointer.dy = 0;
-
-				result = aga_window_device_poll(
-						&env, &keymap, &win, &pointer, &die, &buttons);
-
-				asys_log_result(
-						__FILE__, "aga_window_device_poll", result);
-			}
-			apro_stamp_end(APRO_POLL);
-
-			apro_stamp_start(APRO_SCRIPT_UPDATE);
-			{
-				if(class.class) {
-					result = aga_script_instance_call(
-							&script_engine, &inst, AGA_SCRIPT_UPDATE);
-
-					asys_log_result(
-							__FILE__, "aga_script_instance_call", result);
-				}
-				else {
-					result = aga_put_default();
-					asys_log_result(__FILE__, "aga_put_default", result);
-				}
-			}
-			apro_stamp_end(APRO_SCRIPT_UPDATE);
-
-			apro_stamp_start(APRO_RES_SWEEP);
-			{
-				result = aga_resource_pack_sweep(&pack);
-				asys_log_result(
-						__FILE__, "aga_resource_pack_sweep", result);
-			}
-			apro_stamp_end(APRO_RES_SWEEP);
-		}
-		apro_stamp_end(APRO_PRESWAP);
-
-		apro_stamp_start(APRO_AUDIO_UPDATE);
-		if(opts.audio_enabled) {
-			result = aga_sound_device_update(&snd);
-			asys_log_result(
-					__FILE__, "aga_sound_device_update", result);
-		}
-		apro_stamp_end(APRO_AUDIO_UPDATE);
-
-		/* TODO: This doesn't work under devbuilds. */
-		dt = (asys_size_t) apro_stamp_us(APRO_PRESWAP);
-
-		if(opts.profiler) {
-			result = aga_graph_update(&prof, &env);
-			asys_log_result(__FILE__, "aga_graph_update", result);
-		}
-
-		apro_clear();
-
-		/* Window is already dead/dying if `die' is set. */
-		if(!die) {
-			result = aga_window_swap(&env, &win);
-			asys_log_result(__FILE__, "aga_window_swap", result);
-		}
-	}
+	mil_start(&mil);
 
 	asys_log(__FILE__, "Tearing down...");
+
+	mil_ctx_delete(&mil);
 
 	/* TODO: Add `asys' Apple OSX/OS9 detection. */
 #ifdef __APPLE__
@@ -315,33 +465,10 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	result = aga_config_delete(&opts.config);
 	asys_log_result(__FILE__, "aga_config_delete", result);
 
-	result = aga_window_delete(&env, &win);
-	asys_log_result(__FILE__, "aga_window_delete", result);
-
 	if(opts.profiler) {
-		result = aga_graph_delete(&prof, &env);
+		result = aga_graph_delete(&prof);
 		asys_log_result(__FILE__, "aga_window_delete", result);
 	}
-
-	result = aga_keymap_delete(&keymap);
-	asys_log_result(__FILE__, "aga_keymap_delete", result);
-
-	/*
-	 * NOTE: Windows needs to process final Window messages for `WM_DESTROY'
-	 * 		 Before teardown.
-	 */
-	/*
-	 * TODO: Currently broken under multiwindow -- need to explicitly poll a
-	 * 		 Window that hasn't been closed.
-	 */
-	/*
-	result = aga_window_device_poll(
-			&env, &keymap, &win, &pointer, &die, &buttons);
-	asys_log_result(__FILE__, "aga_window_device_poll", result);
-	 */
-
-	result = aga_window_device_delete(&env);
-	asys_log_result(__FILE__, "aga_window_device_delete", result);
 
 	result = aga_resource_pack_delete(&pack);
 	asys_log_result(__FILE__, "aga_resource_pack_delete", result);

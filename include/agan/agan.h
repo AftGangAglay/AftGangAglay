@@ -30,9 +30,9 @@ enum asys_result aga_insertint(const char*, py_value_t);
 
 enum asys_result aga_mkmod(struct py_env*, void**);
 
-asys_bool_t aga_script_err(const char*, enum asys_result);
+asys_bool_t aga_script_err(const char*, const char*, enum asys_result);
 
-asys_bool_t aga_script_gl_err(const char*);
+asys_bool_t aga_script_gl_err(const char*, const char*);
 
 asys_bool_t agan_settransmat(struct py_object*, asys_bool_t);
 

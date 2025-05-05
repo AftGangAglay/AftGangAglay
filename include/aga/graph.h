@@ -6,14 +6,17 @@
 #ifndef AGA_GRAPH_H
 #define AGA_GRAPH_H
 
-#include <aga/window.h>
+#include <asys/result.h>
 
 #include <apro.h>
 
+#include <mil/mil.h>
+
 struct asys_main_data;
 
+/* TODO: Rename to "profile graph". */
 struct aga_graph {
-	struct aga_window window;
+	mil_widget_t gl_area;
 
 	asys_size_t segments;
 	asys_size_t max;
@@ -27,13 +30,10 @@ struct aga_graph {
 	float* heights;
 };
 
-enum asys_result aga_graph_new(
-		struct aga_graph*, struct aga_window_device*, struct asys_main_data*);
+enum asys_result aga_graph_new(struct aga_graph*, struct mil_ctx*);
+enum asys_result aga_graph_delete(struct aga_graph*);
 
-enum asys_result aga_graph_delete(struct aga_graph*, struct aga_window_device*);
-
-enum asys_result aga_graph_update(struct aga_graph*, struct aga_window_device*);
-
+enum asys_result aga_graph_update(struct aga_graph*, struct mil_ctx*);
 enum asys_result aga_graph_plot(
 		struct aga_graph*, unsigned, unsigned, enum apro_section);
 

@@ -29,8 +29,6 @@ enum asys_result aga_draw_pop(void);
 
 enum asys_result aga_draw_fidelity(asys_bool_t);
 
-enum asys_result aga_error_gl(const char*, const char*);
-
 /* NOTE: Outputs pointer to static string storage. */
 enum asys_result aga_renderer_string(const char**);
 

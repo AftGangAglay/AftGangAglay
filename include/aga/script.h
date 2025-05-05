@@ -11,28 +11,30 @@
 
 #include <apro.h>
 
+#include <mil/mil.h>
+
+struct aga_settings;
+
 struct aga_resource;
 struct aga_resource_pack;
 
-struct aga_keymap;
-struct aga_pointer;
-struct aga_settings;
+struct aga_input_pack;
+
 struct aga_sound_device;
-struct aga_window_device;
-struct aga_window;
-struct aga_resource_pack;
-struct aga_buttons;
 
 struct aga_script_userdata {
-	struct aga_keymap* keymap;
-	struct aga_pointer* pointer;
+	struct mil_ctx* mil;
+	mil_widget_t gl_area;
+
 	struct aga_settings* opts;
+
 	struct aga_sound_device* sound_device;
-	asys_bool_t* die;
-	struct aga_window_device* window_device;
-	struct aga_window* window;
+
 	struct aga_resource_pack* resource_pack;
-	struct aga_buttons* buttons;
+
+	struct aga_input_pack* input;
+
+	asys_bool_t* die;
 	apro_unit_t* dt;
 };
 
@@ -73,7 +75,10 @@ enum asys_result aga_script_engine_new(
 
 enum asys_result aga_script_engine_delete(struct aga_script_engine*);
 
-/* TODO: Generalised object storage/lookup abstraction. */
+/*
+ * TODO: No need to abstract the main Python object interaction API now that we
+ * 		 Have it cleaned up.
+ */
 enum asys_result aga_script_engine_lookup(
 		struct aga_script_engine*, struct aga_script_class*, const char*);
 

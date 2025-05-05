@@ -9,20 +9,34 @@
 #include <asys/memory.h>
 #include <asys/log.h>
 
-enum asys_result aga_graph_new(
-		struct aga_graph* graph, struct aga_window_device* env,
-		struct asys_main_data* main_data) {
+#include <mil/widget.h>
+#include <mil/gl.h>
 
+enum asys_result aga_graph_new(struct aga_graph* graph, struct mil_ctx* mil) {
 #ifdef AGA_DEVBUILD
-	enum asys_result result;
-
 	if(!graph) return ASYS_RESULT_BAD_PARAM;
 
-	result = aga_window_new(
-				1280, 480, "Profile", env, &graph->window, ASYS_TRUE,
-				main_data);
+	{
+		mil_widget_t window, frame, area;
 
-	if(result) return result;
+		window = mil_widget(
+				mil, "Profile", MIL_WINDOW, mil->top,
+				MIL_WIDTH, 1280,
+				MIL_HEIGHT, 480,
+				MIL_END);
+
+		frame = mil_widget(mil, "frame", MIL_FRAME, window, MIL_END);
+
+		area = mil_widget(
+				mil, "gl_area", MIL_DRAWING_AREA, frame,
+				/* TODO: Resizing. */
+				/* MIL_DRAWING_AREA_RESIZE_CALLBACK, area_resize, */
+				/* TODO: Graph controls. */
+				/* MIL_DRAWING_AREA_INPUT_CALLBACK, aga_main_window_input, */
+				MIL_END);
+
+		graph->gl_area = area;
+	}
 
 	/* TODO: Controllable and make max raise to ceiling. */
 	graph->segments = 50;
@@ -48,16 +62,9 @@ enum asys_result aga_graph_new(
 	return ASYS_RESULT_OK;
 }
 
-enum asys_result aga_graph_delete(
-		struct aga_graph* graph, struct aga_window_device* env) {
-
+enum asys_result aga_graph_delete(struct aga_graph* graph) {
 #ifdef AGA_DEVBUILD
-	enum asys_result result;
-
 	if(!graph) return ASYS_RESULT_BAD_PARAM;
-
-	result = aga_window_delete(env, &graph->window);
-	if(result) return result;
 
 	asys_memory_free(graph->histories);
 	asys_memory_free(graph->heights);
@@ -71,7 +78,7 @@ enum asys_result aga_graph_delete(
 }
 
 enum asys_result aga_graph_update(
-		struct aga_graph* graph, struct aga_window_device* env) {
+		struct aga_graph* graph, struct mil_ctx* mil) {
 
 #ifdef AGA_DEVBUILD
 	static const float clear[] = { 0.4f, 0.4f, 0.4f, 1.0f };
@@ -82,9 +89,11 @@ enum asys_result aga_graph_update(
 	unsigned x = 0;
 	unsigned n = 0;
 
-	asys_log_result(
-			__FILE__, "aga_window_select",
-			aga_window_select(env, &graph->window));
+	if(!graph) return ASYS_RESULT_BAD_PARAM;
+	if(!mil) return ASYS_RESULT_BAD_PARAM;
+
+	result = mil_gl_context_widget(mil, graph->gl_area);
+	asys_log_result(__FILE__, "mil_gl_context_widget", result);
 
 	asys_log_result(__FILE__, "aga_render_clear", aga_render_clear(clear));
 
@@ -168,7 +177,9 @@ enum asys_result aga_graph_update(
 		asys_memory_zero(graph->running, APRO_MAX * sizeof(apro_unit_t));
 	}
 
-	return aga_window_swap(env, &graph->window);
+	mil_gl_swap(mil, graph->gl_area);
+
+	return ASYS_RESULT_OK;
 #else
 	(void) graph;
 	(void) env;

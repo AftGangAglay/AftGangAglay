@@ -14,12 +14,13 @@
 
 #include <aga/draw.h>
 #include <aga/config.h>
-#include <aga/gl.h>
 #include <aga/script.h>
 
 #include <asys/log.h>
 #include <asys/string.h>
 #include <asys/memory.h>
+
+#include <mil/system.h>
 
 /*
  * TODO: Switch to unchecked List/Tuple/String accesses for release/noverify
@@ -119,7 +120,9 @@ enum asys_result aga_mkmod(struct py_env* env, void** dict) {
 	return ASYS_RESULT_OK;
 }
 
-asys_bool_t aga_script_err(const char* function, enum asys_result result) {
+asys_bool_t aga_script_err(
+		const char* file, const char* function, enum asys_result result) {
+
 	static asys_fixed_buffer_t buffer = { 0 };
 
 	const char* description;
@@ -129,15 +132,15 @@ asys_bool_t aga_script_err(const char* function, enum asys_result result) {
 	description = asys_result_description(result);
 
 	result = asys_string_format(&buffer, 0, "%s: %s", function, description);
-	asys_log_result(__FILE__, "asys_string_format", result);
+	asys_log_result(file, "asys_string_format", result);
 
 	py_error_set_string(py_runtime_error, buffer);
 
 	return ASYS_TRUE;
 }
 
-asys_bool_t aga_script_gl_err(const char* function) {
-	return aga_script_err(function, aga_error_gl(__FILE__, function));
+asys_bool_t aga_script_gl_err(const char* file, const char* function) {
+	return aga_script_err(file, function, mil_gl_result(file, function));
 }
 
 asys_bool_t agan_settransmat(struct py_object* trans, asys_bool_t inv) {
@@ -177,21 +180,23 @@ asys_bool_t agan_settransmat(struct py_object* trans, asys_bool_t inv) {
 			default: break;
 			case 0: {
 				glTranslated(x, y, z);
-				if(aga_script_gl_err("glTranslated")) return ASYS_TRUE;
+				if(aga_script_gl_err(__FILE__, "glTranslated")) {
+					return ASYS_TRUE;
+				}
 				break;
 			}
 			case 1: {
 				glRotated(x, 1.0, 0.0, 0.0);
-				if(aga_script_gl_err("glRotated")) return ASYS_TRUE;
+				if(aga_script_gl_err(__FILE__, "glRotated")) return ASYS_TRUE;
 				glRotated(y, 0.0, 1.0, 0.0);
-				if(aga_script_gl_err("glRotated")) return ASYS_TRUE;
+				if(aga_script_gl_err(__FILE__, "glRotated")) return ASYS_TRUE;
 				glRotated(z, 0.0, 0.0, 1.0);
-				if(aga_script_gl_err("glRotated")) return ASYS_TRUE;
+				if(aga_script_gl_err(__FILE__, "glRotated")) return ASYS_TRUE;
 				break;
 			}
 			case 2: {
 				glScaled(x, y, z);
-				if(aga_script_gl_err("glScaled")) return ASYS_TRUE;
+				if(aga_script_gl_err(__FILE__, "glScaled")) return ASYS_TRUE;
 				break;
 			}
 		}

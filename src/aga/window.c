@@ -737,11 +737,11 @@ enum asys_result aga_shell_open(const char* uri) {
  */
 #define AGA_KEY_MAX (0xFFFF)
 
-static const char* aga_check_x_last = "xlib";
+static const char* aga_global_check_x_last = "xlib";
 
 /* TODO: Check against return value for `0'. */
 #define AGA_CHECK_X(function, parameter) \
-			(aga_check_x_last = #function, function parameter)
+			(aga_global_check_x_last = #function, function parameter)
 
 static const int single_buffer_fb[] = {
 		GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT, GLX_RENDER_TYPE, GLX_RGBA_BIT,
@@ -765,10 +765,10 @@ static const int double_buffer_fb[] = {
 static int aga_window_device_error_handler(
 		Display* display, XErrorEvent* err) {
 
-	asys_fixed_buffer_t buffer = { 0 };
+	static asys_fixed_buffer_t buffer = { 0 };
 
 	XGetErrorText(display, err->error_code, buffer, sizeof(buffer));
-	asys_log(__FILE__, "err: %s: %s", aga_check_x_last, buffer);
+	asys_log(__FILE__, "err: %s: %s", aga_global_check_x_last, buffer);
 
 	return 0;
 }
@@ -910,7 +910,7 @@ static enum asys_result aga_window_set_glx(
 	 * 		 An error state sometimes in practice.
 	 */
 	AGA_CHECK_X(glXUseXFont, (font, 0, 256, AGA_FONT_LIST_BASE));
-	(void) aga_error_gl(0, "glXUseXFont");
+	(void) mil_gl_result(0, "glXUseXFont");
 
 	AGA_CHECK_X(XUnloadFont, (env->display, font));
 

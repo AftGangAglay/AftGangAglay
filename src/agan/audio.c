@@ -46,13 +46,13 @@ struct py_object* agan_playsnd(
 			AGA_GET_USERDATA(env)->resource_pack, py_string_get(path),
 			&resource);
 
-	if(aga_script_err("aga_resource_pack_lookup", result)) return 0;
+	if(aga_script_err(__FILE__, "aga_resource_pack_lookup", result)) return 0;
 
 	result = aga_sound_play(
 				AGA_GET_USERDATA(env)->sound_device, resource,
 				py_int_get(loop), &index_value);
 
-	if(aga_script_err("aga_sound_play", result)) return 0;
+	if(aga_script_err(__FILE__, "aga_sound_play", result)) return 0;
 
 	index = py_int_new((py_value_t) index_value);
 

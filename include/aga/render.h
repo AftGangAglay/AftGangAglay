@@ -9,6 +9,8 @@
 #include <asys/result.h>
 #include <asys/base.h>
 
+#define AGA_FONT_LIST_BASE (1000)
+
 enum asys_result aga_render_text(
 		float, float, const float*, const char*);
 

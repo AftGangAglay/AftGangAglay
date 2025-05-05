@@ -10,13 +10,14 @@
 #include <aga/pack.h>
 #include <aga/startup.h>
 #include <aga/config.h>
-#include <aga/window.h>
 #include <aga/build.h>
 
 #include <asys/log.h>
 #include <asys/memory.h>
 #include <asys/string.h>
 #include <asys/stream.h>
+
+#include <mil/widget.h>
 
 /*
  * "Editor" functions are isolated here as they should not be callable in
@@ -68,7 +69,7 @@ static struct py_object* agan_killpack(
 	 * 		 Be separate or can we just have a "reload" function?
 	 */
 	result = aga_resource_pack_delete(pack);
-	if(aga_script_err("aga_resource_pack_delete", result)) return 0;
+	if(aga_script_err(__FILE__, "aga_resource_pack_delete", result)) return 0;
 
 	return py_object_incref(PY_NONE);
 }
@@ -96,10 +97,10 @@ static struct py_object* agan_mkpack(
 	 * 		 Allowance in the pack header of empty space in dev builds.
 	 */
 	result = aga_build(opts);
-	if(aga_script_err("aga_build", result)) return 0;
+	if(aga_script_err(__FILE__, "aga_build", result)) return 0;
 
 	result = aga_resource_pack_new(opts->respack, pack, opts);
-	if(aga_script_err("aga_resource_pack_new", result)) return 0;
+	if(aga_script_err(__FILE__, "aga_resource_pack_new", result)) return 0;
 
 	return py_object_incref(PY_NONE);
 }
@@ -131,7 +132,7 @@ static struct py_object* agan_dumpobj(
 	path = py_string_get(pathp);
 
 	result = agan_getobjconf(obj, &node);
-	if(aga_script_err("agan_getobjconf", result)) return 0;
+	if(aga_script_err(__FILE__, "agan_getobjconf", result)) return 0;
 
 	/* Update conf tree with current transform data. */
 	/* TODO: This is copied from `mkobj_trans'. */
@@ -159,7 +160,12 @@ static struct py_object* agan_dumpobj(
 
 				result = aga_config_lookup_check(
 						node.children, elem, ASYS_LENGTH(elem), &n);
-				if(aga_script_err("aga_config_lookup_check", result)) return 0;
+
+				if(aga_script_err(
+						__FILE__, "aga_config_lookup_check", result)) {
+
+					return 0;
+				}
 
 				if((o = py_list_get(l, j))->type != PY_TYPE_FLOAT) {
 					py_error_set_badarg();
@@ -178,7 +184,9 @@ static struct py_object* agan_dumpobj(
 		struct aga_config_node* n;
 
 		result = aga_config_lookup_check(node.children, &model, 1, &n);
-		if(aga_script_err("aga_config_lookup_check", result)) return 0;
+		if(aga_script_err(__FILE__, "aga_config_lookup_check", result)) {
+			return 0;
+		}
 
 		asys_memory_free(n->data.string);
 		n->data.string = asys_string_duplicate(obj->modelpath);
@@ -188,19 +196,19 @@ static struct py_object* agan_dumpobj(
 		struct asys_stream stream;
 
 		result = asys_stream_new_write(&stream, path);
-		if(aga_script_err("asys_stream_new", result)) return 0;
+		if(aga_script_err(__FILE__, "asys_stream_new", result)) return 0;
 
 		/* TODO: Leaky stream. */
 		result = aga_config_dump(node.children, &stream);
-		if(aga_script_err("aga_config_dump", result)) return 0;
+		if(aga_script_err(__FILE__, "aga_config_dump", result)) return 0;
 
 		result = asys_stream_delete(&stream);
-		if(aga_script_err("asys_stream_delete", result)) return 0;
+		if(aga_script_err(__FILE__, "asys_stream_delete", result)) return 0;
 	}
 
 	/* TODO: Leaky conf.. */
 	result = aga_config_delete(&node);
-	if(aga_script_err("aga_config_delete", result)) return 0;
+	if(aga_script_err(__FILE__, "aga_config_delete", result)) return 0;
 
 	return py_object_incref(PY_NONE);
 }
@@ -208,7 +216,9 @@ static struct py_object* agan_dumpobj(
 static struct py_object* agan_fdiag(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
-	char* path;
+	struct mil_ctx* mil = AGA_GET_USERDATA(env)->mil;
+
+	char* path = "";
 	struct py_object* str;
 
 	(void) env;
@@ -216,7 +226,12 @@ static struct py_object* agan_fdiag(
 
 	if(args) return aga_arg_error("fdiag", "none");
 
-	if(aga_script_err("aga_dialog_file", aga_dialog_file(&path))) return 0;
+	/* TODO: Fix this! */
+	/*
+	if(aga_script_err(__FILE__, "aga_dialog_file", aga_dialog_file(&path))) {
+		return 0;
+	 */
+	mil_widget(mil, "agan_fdiag", MIL_FILE_MODAL, mil->top, MIL_END);
 
 	if(!(str = py_string_new(path))) {
 		asys_memory_free(path);
@@ -225,7 +240,7 @@ static struct py_object* agan_fdiag(
 		return 0;
 	}
 
-	asys_memory_free(path);
+	/*asys_memory_free(path);*/
 
 	return str;
 }
@@ -261,11 +276,11 @@ static struct py_object* agan_setobjmdl(
 	path = py_string_get(pathp);
 
 	result = agan_getobjconf(obj, &root);
-	if(aga_script_err("agan_getobjconf", result)) return 0;
+	if(aga_script_err(__FILE__, "agan_getobjconf", result)) return 0;
 
 	/* TODO: We really need to work out this whole root/non-root fiasco. */
 	result = aga_config_lookup_check(root.children, &model, 1, &node);
-	if(aga_script_err("aga_config_lookup_check", result)) return 0;
+	if(aga_script_err(__FILE__, "aga_config_lookup_check", result)) return 0;
 
 	/*
 	 * TODO: We don't validate that the conf node is the correct type here nor

@@ -14,12 +14,6 @@ ifdef OS
 	RM = del
 	SEP = \\
 else
-	ifndef CROSS
-		ifeq ($(shell uname -s),Darwin)
-			APPLE = 1
-		endif
-	endif
-
 	RM = rm -f
 	SEP = /
 endif
@@ -69,11 +63,7 @@ else
 	EXE =
 	A = .a
 
-	override LDLIBS += -lGL -lGLU -lX11
-	ifdef APPLE
-		override CFLAGS += -I$(XQUARTZ_ROOT)/include
-		override LDFLAGS += -L$(XQUARTZ_ROOT)/lib
-	endif
+	override LDLIBS += -lGL -lGLU -lXm -lXt -lX11
 endif
 
 include lib/asys/asys.mk

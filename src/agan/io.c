@@ -5,8 +5,12 @@
 
 #include <agan/io.h>
 
-#include <aga/window.h>
 #include <aga/script.h>
+#include <aga/input.h>
+
+#include <asys/log.h>
+
+#include <mil/widget.h>
 
 #include <apro.h>
 
@@ -32,9 +36,10 @@ enum asys_result agan_io_register(struct py_env* env) {
 struct py_object* agan_getkey(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
-	enum asys_result result;
+	struct aga_input_pack* input = AGA_GET_USERDATA(env)->input;
+
 	asys_bool_t b;
-	struct aga_keymap* keymap = AGA_GET_USERDATA(env)->keymap;
+	py_value_t key;
 
 	(void) env;
 	(void) self;
@@ -44,8 +49,14 @@ struct py_object* agan_getkey(
 	/* getkey(int) */
 	if(!aga_arg_list(args, PY_TYPE_INT)) return aga_arg_error("getkey", "int");
 
-	result = aga_keymap_lookup(keymap, (unsigned) py_int_get(args), &b);
-	if(aga_script_err("aga_keymap_lookup", result)) return 0;
+	key = py_int_get(args);
+
+	if(key > AGA_KEY_MAX || key < 0) {
+		py_error_set_badarg();
+		return 0;
+	}
+
+	b = input->keymap.states[key];
 
 	apro_stamp_end(APRO_SCRIPTGLUE_GETKEY);
 
@@ -59,9 +70,10 @@ struct py_object* agan_getkey(
 struct py_object* agan_getmotion(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
+	struct aga_input_pack* input = AGA_GET_USERDATA(env)->input;
+
 	struct py_object* retval;
 	struct py_object* o;
-	struct aga_pointer* pointer = AGA_GET_USERDATA(env)->pointer;
 
 	(void) env;
 	(void) self;
@@ -72,10 +84,10 @@ struct py_object* agan_getmotion(
 
 	if(!(retval = py_list_new(2))) return py_error_set_nomem();
 
-	if(!(o = py_float_new(pointer->dx))) return py_error_set_nomem();
+	if(!(o = py_float_new(input->pointer.dx))) return py_error_set_nomem();
 	py_list_set(retval, 0, o);
 
-	if(!(o = py_float_new(pointer->dy))) return py_error_set_nomem();
+	if(!(o = py_float_new(input->pointer.dy))) return py_error_set_nomem();
 	py_list_set(retval, 1, o);
 
 	apro_stamp_end(APRO_SCRIPTGLUE_GETMOTION);
@@ -86,32 +98,33 @@ struct py_object* agan_getmotion(
 struct py_object* agan_setcursor(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
-	enum asys_result result;
+	struct mil_ctx* mil = AGA_GET_USERDATA(env)->mil;
+	mil_widget_t gl_area = AGA_GET_USERDATA(env)->gl_area;
+	struct aga_input_pack* input = AGA_GET_USERDATA(env)->input;
 
-	struct py_object* v;
-	struct py_object* c;
+	struct py_object* visible;
+	struct py_object* captured;
 
-	struct aga_window_device* window_device;
-	struct aga_window* win = AGA_GET_USERDATA(env)->window;
+	asys_bool_t captured_v;
 
-	(void) env;
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_SETCURSOR);
 
-	window_device = AGA_GET_USERDATA(env)->window_device;
-
 	/* setcursor(int, int) */
 	if(!aga_vararg_list(args, PY_TYPE_TUPLE, 2) ||
-		!aga_arg(&v, args, 0, PY_TYPE_INT) ||
-		!aga_arg(&c, args, 1, PY_TYPE_INT)) {
+		!aga_arg(&visible, args, 0, PY_TYPE_INT) ||
+		!aga_arg(&captured, args, 1, PY_TYPE_INT)) {
 
 		return aga_arg_error("setcursor", "int and int");
 	}
 
-	result = aga_window_set_cursor(
-			window_device, win, !!py_int_get(v), !!py_int_get(c));
-	if(aga_script_err("aga_window_set_cursor", result)) return 0;
+	captured_v = !!py_int_get(captured);
+
+	mil_widget_set_capture(
+			mil, gl_area, captured_v, !!py_int_get(visible));
+
+	input->pointer.captured = captured_v;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_SETCURSOR);
 
@@ -125,8 +138,9 @@ struct py_object* agan_setcursor(
 struct py_object* agan_getbuttons(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
+	struct aga_input_pack* input = AGA_GET_USERDATA(env)->input;
+
 	struct py_object* retval;
-	struct aga_buttons* buttons = AGA_GET_USERDATA(env)->buttons;
 	unsigned i;
 
 	(void) env;
@@ -138,10 +152,12 @@ struct py_object* agan_getbuttons(
 
 	if(!(retval = py_list_new(AGA_BUTTON_MAX))) return py_error_set_nomem();
 
-	for(i = 0; i < ASYS_LENGTH(buttons->states); ++i) {
+	for(i = 0; i < ASYS_LENGTH(input->buttons.states); ++i) {
 		struct py_object* v;
 
-		if(!(v = py_int_new(buttons->states[i]))) return py_error_set_nomem();
+		v = py_int_new(input->buttons.states[i]);
+		if(!v) return py_error_set_nomem();
+
 		py_list_set(retval, i, v);
 	}
 
@@ -153,10 +169,10 @@ struct py_object* agan_getbuttons(
 struct py_object* agan_getpos(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
+	struct aga_input_pack* input = AGA_GET_USERDATA(env)->input;
+
 	struct py_object* retval;
 	struct py_object* v;
-
-	struct aga_pointer* pointer = AGA_GET_USERDATA(env)->pointer;
 
 	(void) env;
 	(void) self;
@@ -165,13 +181,13 @@ struct py_object* agan_getpos(
 
 	if(!(retval = py_list_new(2))) return py_error_set_nomem();
 
-	if(!(v = py_int_new(pointer->x))) {
+	if(!(v = py_int_new(input->pointer.x))) {
 		py_error_set_nomem();
 		return 0;
 	}
 	py_list_set(retval, 0, v);
 
-	if(!(v = py_int_new(pointer->y))) {
+	if(!(v = py_int_new(input->pointer.y))) {
 		py_error_set_nomem();
 		return 0;
 	}

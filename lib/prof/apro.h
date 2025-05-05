@@ -22,6 +22,7 @@
 enum apro_section {
 	APRO_PRESWAP, /* All operations before buffer swapping. */
 
+	/* TODO: Clean up unused ones post-MIL rework. */
 	APRO_POLL, /* Top level window system/input poll. */
 
 	APRO_SCRIPT_UPDATE, /* Script update call. */

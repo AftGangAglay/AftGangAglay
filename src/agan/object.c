@@ -8,7 +8,6 @@
 #include <agan/object.h>
 #include <agan/draw.h>
 
-#include <aga/gl.h>
 #include <aga/startup.h>
 #include <aga/draw.h>
 #include <aga/script.h>
@@ -19,6 +18,8 @@
 #include <asys/memory.h>
 #include <asys/string.h>
 #include <asys/math.h>
+
+#include <mil/system.h>
 
 /* TODO: Some `aga_script_*err` disable with noverify. */
 
@@ -140,7 +141,7 @@ static asys_bool_t agan_mkobj_model(
 
 	/* TODO: Delete lists in error conditions. */
 	obj->drawlist = glGenLists(1);
-	if(aga_script_gl_err("glGenLists")) return 0;
+	if(aga_script_gl_err(__FILE__, "glGenLists")) return 0;
 
 #ifndef NDEBUG
 	mode = GL_COMPILE_AND_EXECUTE;
@@ -158,7 +159,7 @@ static asys_bool_t agan_mkobj_model(
 	 * 		 Draw.
 	 */
 	glNewList(obj->drawlist, mode);
-	if(aga_script_gl_err("glNewList")) return 0;
+	if(aga_script_gl_err(__FILE__, "glNewList")) return 0;
 
 	{
 		asys_bool_t do_mips, tex_filter;
@@ -210,10 +211,12 @@ static asys_bool_t agan_mkobj_model(
 			 * 		 To it.
 			 */
 			result = aga_resource_new(pack, texture_path, &res);
-			if(aga_script_err("aga_resource_new", result)) return ASYS_TRUE;
+			if(aga_script_err(__FILE__, "aga_resource_new", result)) {
+				return ASYS_TRUE;
+			}
 
 			result = aga_resource_release(res);
-			if(aga_script_err("aga_resource_release", result)) {
+			if(aga_script_err(__FILE__, "aga_resource_release", result)) {
 				return ASYS_TRUE;
 			}
 
@@ -243,14 +246,18 @@ static asys_bool_t agan_mkobj_model(
 				 * 		 Especially in functions like this which aren't
 				 * 		 Supposed to be run every frame.
 				 */
-				if(aga_script_gl_err("gluBuild2DMipmaps")) return ASYS_TRUE;
+				if(aga_script_gl_err(__FILE__, "gluBuild2DMipmaps")) {
+					return ASYS_TRUE;
+				}
 			}
 			else {
 				glTexImage2D(
 						GL_TEXTURE_2D, 0, 4, (int) w, (int) h, 0, GL_RGBA,
 						GL_UNSIGNED_BYTE, res->data);
 
-				if(aga_script_gl_err("glTexImage2D")) return ASYS_TRUE;
+				if(aga_script_gl_err(__FILE__, "glTexImage2D")) {
+					return ASYS_TRUE;
+				}
 			}
 
 			{
@@ -266,10 +273,14 @@ static asys_bool_t agan_mkobj_model(
 				else min = mag;
 
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
-				if(aga_script_gl_err("glTexParameteri")) return ASYS_TRUE;
+				if(aga_script_gl_err(__FILE__, "glTexParameteri")) {
+					return ASYS_TRUE;
+				}
 
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
-				if(aga_script_gl_err("glTexParameteri")) return ASYS_TRUE;
+				if(aga_script_gl_err(__FILE__, "glTexParameteri")) {
+					return ASYS_TRUE;
+				}
 			}
 
 			asys_memory_free(texture_path);
@@ -300,7 +311,7 @@ static asys_bool_t agan_mkobj_model(
 #endif
 
 			result = aga_resource_pack_lookup(pack, model_path, &res);
-			if(aga_script_err("aga_resource_pack_lookup", result)) {
+			if(aga_script_err(__FILE__, "aga_resource_pack_lookup", result)) {
 				asys_log(
 						__FILE__, "err: Failed to find resource `%s'",
 						model_path);
@@ -318,7 +329,9 @@ static asys_bool_t agan_mkobj_model(
 
 			result = aga_resource_seek(res, &stream);
 			/* TODO: We can't return during list build! */
-			if(aga_script_err("aga_resource_stream", result)) return ASYS_TRUE;
+			if(aga_script_err(__FILE__, "aga_resource_stream", result)) {
+				return ASYS_TRUE;
+			}
 			len = res->size;
 
 			glBegin(GL_TRIANGLES);
@@ -328,7 +341,7 @@ static asys_bool_t agan_mkobj_model(
 				result = asys_stream_read(
 						stream, 0, &vert, sizeof(struct aga_vertex));
 
-				if(aga_script_err("asys_stream_read", result)) {
+				if(aga_script_err(__FILE__, "asys_stream_read", result)) {
 					return ASYS_TRUE;
 				}
 
@@ -358,12 +371,12 @@ static asys_bool_t agan_mkobj_model(
 			}
 
 			glEnd();
-			if(aga_script_gl_err("glEnd")) return 0;
+			if(aga_script_gl_err(__FILE__, "glEnd")) return 0;
 		}
 	}
 
 	glEndList();
-	if(aga_script_gl_err("glEndList")) return 0;
+	if(aga_script_gl_err(__FILE__, "glEndList")) return 0;
 
 	return ASYS_FALSE;
 }
@@ -568,20 +581,22 @@ struct py_object* agan_mkobj(
 	path = py_string_get(args);
 
 	result = aga_resource_pack_lookup(pack, path, &obj->res);
-	if(aga_script_err("aga_resource_pack_lookup", result)) goto cleanup;
+	if(aga_script_err(__FILE__, "aga_resource_pack_lookup", result)) {
+		goto cleanup;
+	}
 
 	result = aga_resource_seek(obj->res, &stream);
-	if(aga_script_err("aga_resource_seek", result)) goto cleanup;
+	if(aga_script_err(__FILE__, "aga_resource_seek", result)) goto cleanup;
 
 	result = aga_config_new(stream, obj->res->size, &conf);
-	if(aga_script_err("aga_resource_stream", result)) goto cleanup;
+	if(aga_script_err(__FILE__, "aga_resource_stream", result)) goto cleanup;
 
 	if(agan_mkobj_trans(obj, &conf)) goto cleanup;
 	if(agan_mkobj_model(env, obj, &conf, pack, path)) goto cleanup;
 	if(agan_mkobj_light(obj, &conf)) goto cleanup;
 
 	result = aga_config_delete(&conf);
-	if(aga_script_err("aga_config_delete", result)) goto cleanup;
+	if(aga_script_err(__FILE__, "aga_config_delete", result)) goto cleanup;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_MKOBJ);
 
@@ -592,7 +607,7 @@ struct py_object* agan_mkobj(
 					__FILE__, "aga_config_delete", aga_config_delete(&conf));
 
 		glDeleteLists(obj->drawlist, 1);
-		(void) aga_error_gl(__FILE__, "glDeleteLists");
+		(void) mil_gl_result(__FILE__, "glDeleteLists");
 
 		asys_memory_free(obj->light_data);
 		py_object_decref(obj->transform);
@@ -620,7 +635,7 @@ struct py_object* agan_killobj(
 	obj = aga_script_pointer_get(args);
 
 	glDeleteLists(obj->drawlist, 1);
-	if(aga_script_gl_err("glDeleteLists")) return 0;
+	if(aga_script_gl_err(__FILE__, "glDeleteLists")) return 0;
 
 	py_object_decref(obj->transform);
 
@@ -749,10 +764,14 @@ struct py_object* agan_inobj(
 	if(py_int_get(dbgp)) {
 		enum aga_draw_flags fl = aga_draw_get();
 
-		if(aga_script_err("aga_draw_set", aga_draw_set(AGA_DRAW_NONE))) return 0;
+		if(aga_script_err(
+				__FILE__, "aga_draw_set", aga_draw_set(AGA_DRAW_NONE))) {
+
+			return 0;
+		}
 
 		glLineWidth(1.0f);
-		if(aga_script_gl_err("glLineWidth")) return 0;
+		if(aga_script_gl_err(__FILE__, "glLineWidth")) return 0;
 
 		glBegin(GL_LINE_STRIP);
 			glColor3f(0.0f, 1.0f, 0.0f);
@@ -771,9 +790,11 @@ struct py_object* agan_inobj(
 			glVertex3f(min[0], max[1], min[2]);
 			glVertex3f(max[0], max[1], min[2]);
 		glEnd();
-		if(aga_script_gl_err("glEnd")) return 0;
+		if(aga_script_gl_err(__FILE__, "glEnd")) return 0;
 
-		if(aga_script_err("aga_draw_set", aga_draw_set(fl))) return 0;
+		if(aga_script_err(__FILE__, "aga_draw_set", aga_draw_set(fl))) {
+			return 0;
+		}
 	}
 
 	apro_stamp_end(APRO_SCRIPTGLUE_INOBJ);
@@ -793,10 +814,10 @@ enum asys_result agan_getobjconf(
 	enum asys_result result;
 
 	result = aga_resource_seek(obj->res, &stream);
-	if(aga_script_err("aga_resource_seek", result)) return 0;
+	if(aga_script_err(__FILE__, "aga_resource_seek", result)) return 0;
 
 	result = aga_config_new(stream, obj->res->size, node);
-	if(aga_script_err("aga_config_new", result)) return 0;
+	if(aga_script_err(__FILE__, "aga_config_new", result)) return 0;
 
 	return ASYS_RESULT_OK;
 }
@@ -828,12 +849,12 @@ struct py_object* agan_objconf(
 	obj = aga_script_pointer_get(o);
 
 	result = agan_getobjconf(obj, &conf);
-	if(aga_script_err("agan_getobjconf", result)) return 0;
+	if(aga_script_err(__FILE__, "agan_getobjconf", result)) return 0;
 
 	retval = agan_scriptconf(&conf, ASYS_TRUE, l);
 
 	result = aga_config_delete(&conf);
-	if(aga_script_err("aga_config_delete", result)) return 0;
+	if(aga_script_err(__FILE__, "aga_config_delete", result)) return 0;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_OBJCONF);
 
@@ -846,37 +867,37 @@ static asys_bool_t agan_putobj_light(struct agan_lightdata* data) {
 	pos[3] = data->directional ? 0.0f : 1.0f;
 
 	glEnable(ind);
-	if(aga_script_gl_err("glEnable")) return ASYS_TRUE;
+	if(aga_script_gl_err(__FILE__, "glEnable")) return ASYS_TRUE;
 
 	glLightfv(ind, GL_POSITION, pos);
-	if(aga_script_gl_err("glLightfv")) return ASYS_TRUE;
+	if(aga_script_gl_err(__FILE__, "glLightfv")) return ASYS_TRUE;
 
 	glLightfv(ind, GL_AMBIENT, data->ambient);
-	if(aga_script_gl_err("glLightfv")) return ASYS_TRUE;
+	if(aga_script_gl_err(__FILE__, "glLightfv")) return ASYS_TRUE;
 
 	glLightfv(ind, GL_DIFFUSE, data->diffuse);
-	if(aga_script_gl_err("glLightfv")) return ASYS_TRUE;
+	if(aga_script_gl_err(__FILE__, "glLightfv")) return ASYS_TRUE;
 
 	glLightfv(ind, GL_SPECULAR, data->specular);
-	if(aga_script_gl_err("glLightfv")) return ASYS_TRUE;
+	if(aga_script_gl_err(__FILE__, "glLightfv")) return ASYS_TRUE;
 
 	glLightf(ind, GL_CONSTANT_ATTENUATION, data->constant_attenuation);
-	if(aga_script_gl_err("glLightf")) return ASYS_TRUE;
+	if(aga_script_gl_err(__FILE__, "glLightf")) return ASYS_TRUE;
 
 	glLightf(ind, GL_LINEAR_ATTENUATION, data->linear_attenuation);
-	if(aga_script_gl_err("glLightf")) return ASYS_TRUE;
+	if(aga_script_gl_err(__FILE__, "glLightf")) return ASYS_TRUE;
 
 	glLightf(ind, GL_QUADRATIC_ATTENUATION, data->quadratic_attenuation);
-	if(aga_script_gl_err("glLightf")) return ASYS_TRUE;
+	if(aga_script_gl_err(__FILE__, "glLightf")) return ASYS_TRUE;
 
 	glLightf(ind, GL_SPOT_EXPONENT, data->exponent);
-	if(aga_script_gl_err("glLightf")) return ASYS_TRUE;
+	if(aga_script_gl_err(__FILE__, "glLightf")) return ASYS_TRUE;
 
 	glLightf(ind, GL_SPOT_CUTOFF, data->angle);
-	if(aga_script_gl_err("glLightf")) return ASYS_TRUE;
+	if(aga_script_gl_err(__FILE__, "glLightf")) return ASYS_TRUE;
 
 	glLightfv(ind, GL_SPOT_DIRECTION, data->direction);
-	if(aga_script_gl_err("glLightfv")) return ASYS_TRUE;
+	if(aga_script_gl_err(__FILE__, "glLightfv")) return ASYS_TRUE;
 
 	return ASYS_FALSE;
 }
@@ -900,9 +921,9 @@ struct py_object* agan_putobj(
 	obj = aga_script_pointer_get(args);
 
 	glMatrixMode(GL_MODELVIEW);
-	if(aga_script_gl_err("glMatrixMode")) return 0;
+	if(aga_script_gl_err(__FILE__, "glMatrixMode")) return 0;
 	glPushMatrix();
-	if(aga_script_gl_err("glPushMatrix")) return 0;
+	if(aga_script_gl_err(__FILE__, "glPushMatrix")) return 0;
 	if(agan_settransmat(obj->transform, ASYS_FALSE)) return 0;
 
 	apro_stamp_end(APRO_PUTOBJ_RISING);
@@ -916,16 +937,16 @@ struct py_object* agan_putobj(
 	apro_stamp_start(APRO_PUTOBJ_CALL);
 
 	glCallList(obj->drawlist);
-	if(aga_script_gl_err("glCallList")) return 0;
+	if(aga_script_gl_err(__FILE__, "glCallList")) return 0;
 
 	apro_stamp_end(APRO_PUTOBJ_CALL);
 
 	apro_stamp_start(APRO_PUTOBJ_FALLING);
 
 	glMatrixMode(GL_MODELVIEW);
-	if(aga_script_gl_err("glMatrixMode")) return 0;
+	if(aga_script_gl_err(__FILE__, "glMatrixMode")) return 0;
 	glPopMatrix();
-	if(aga_script_gl_err("glPopMatrix")) return 0;
+	if(aga_script_gl_err(__FILE__, "glPopMatrix")) return 0;
 
 	apro_stamp_end(APRO_PUTOBJ_FALLING);
 

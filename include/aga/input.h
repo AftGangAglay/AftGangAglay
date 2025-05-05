@@ -14,6 +14,8 @@
 
 #include <asys/base.h>
 
+#include <mil/mil.h>
+
 #ifdef ASYS_WIN32
 # define AGA_KEY_MAX (0xFF)
 #else
@@ -62,6 +64,9 @@ struct aga_input_pack {
 };
 
 struct mil_input_data;
+
+void aga_wrap_pointer(
+		struct mil_ctx*, mil_widget_t, struct aga_pointer*, int, int);
 
 void aga_translate_mil_input(struct mil_input_data*, struct aga_input_pack*);
 

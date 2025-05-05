@@ -122,8 +122,8 @@ static void aga_frame_zero(struct mil_ctx* mil) {
 	struct aga_mil_userdata* userdata = mil->user;
 
 	enum aga_draw_flags draw_flags = AGA_DRAW_BACKFACE | AGA_DRAW_FOG |
-									 AGA_DRAW_TEXTURE | AGA_DRAW_LIGHTING |
-									 AGA_DRAW_DEPTH | AGA_DRAW_FLAT;
+										AGA_DRAW_TEXTURE | AGA_DRAW_LIGHTING |
+										AGA_DRAW_DEPTH | AGA_DRAW_FLAT;
 
 	enum asys_result result;
 
@@ -159,65 +159,6 @@ static void aga_frame_zero(struct mil_ctx* mil) {
 	asys_log_result(__FILE__, "aga_script_instance_call", result);
 }
 
-static void aga_warp_pointer(struct mil_ctx* mil, int width, int height) {
-	struct aga_mil_userdata* userdata = mil->user;
-	struct aga_pointer* pointer = &userdata->input->pointer;
-
-	if(pointer->dirty) {
-		/* TODO: Configurable. */
-		static const int edge_tolerance = 10;
-
-		pointer->dirty = ASYS_FALSE;
-
-		if(pointer->captured &&
-		   !pointer->warping) {
-
-			int x, y;
-
-			if(pointer->x > width - edge_tolerance) {
-				pointer->warping = ASYS_TRUE;
-				pointer->warp_gt = ASYS_TRUE;
-				pointer->warp_x = ASYS_TRUE;
-
-				x = pointer->warp_coord = edge_tolerance * 2;
-				y = pointer->y;
-			}
-			else if(pointer->x < edge_tolerance) {
-				pointer->warping = ASYS_TRUE;
-				pointer->warp_gt = ASYS_FALSE;
-				pointer->warp_x = ASYS_TRUE;
-
-				x = pointer->warp_coord = width - (edge_tolerance * 2);
-				y = pointer->y;
-			}
-			else if(pointer->y > height - edge_tolerance) {
-				pointer->warping = ASYS_TRUE;
-				pointer->warp_gt = ASYS_TRUE;
-				pointer->warp_x = ASYS_FALSE;
-
-				x = pointer->x;
-				y = pointer->warp_coord = edge_tolerance * 2;
-			}
-			else if(pointer->y < edge_tolerance) {
-				pointer->warping = ASYS_TRUE;
-				pointer->warp_gt = ASYS_FALSE;
-				pointer->warp_x = ASYS_FALSE;
-
-				x = pointer->x;
-				y = pointer->warp_coord = height - (edge_tolerance * 2);
-			}
-
-			if(pointer->warping) {
-				mil_widget_move_pointer(mil, userdata->gl_area, x, y);
-			}
-		}
-	}
-	else {
-		pointer->dx = 0;
-		pointer->dy = 0;
-	}
-}
-
 static void aga_update(struct mil_ctx* mil) {
 	struct aga_mil_userdata* userdata = mil->user;
 
@@ -231,7 +172,9 @@ static void aga_update(struct mil_ctx* mil) {
 
 	mil_widget_get_size(mil, userdata->gl_area, &width, &height);
 
-	aga_warp_pointer(mil, (int) width, (int) height);
+	aga_wrap_pointer(
+			mil, userdata->gl_area, &userdata->input->pointer,
+			(int) width, (int) height);
 
 	if(userdata->frame_zero) {
 		aga_frame_zero(mil);

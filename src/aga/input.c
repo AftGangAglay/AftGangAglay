@@ -5,7 +5,68 @@
 
 #include <aga/input.h>
 
+#include <mil/mil.h>
 #include <mil/translate.h>
+#include <mil/widget.h>
+
+void aga_wrap_pointer(
+		struct mil_ctx* mil, mil_widget_t widget, struct aga_pointer* pointer,
+		int width, int height) {
+
+	if(pointer->dirty) {
+		/* TODO: Configurable. */
+		static const int edge_tolerance = 10;
+
+		pointer->dirty = ASYS_FALSE;
+
+		if(pointer->captured &&
+		   !pointer->warping) {
+
+			int x, y;
+
+			if(pointer->x > width - edge_tolerance) {
+				pointer->warping = ASYS_TRUE;
+				pointer->warp_gt = ASYS_TRUE;
+				pointer->warp_x = ASYS_TRUE;
+
+				x = pointer->warp_coord = edge_tolerance * 2;
+				y = pointer->y;
+			}
+			else if(pointer->x < edge_tolerance) {
+				pointer->warping = ASYS_TRUE;
+				pointer->warp_gt = ASYS_FALSE;
+				pointer->warp_x = ASYS_TRUE;
+
+				x = pointer->warp_coord = width - (edge_tolerance * 2);
+				y = pointer->y;
+			}
+			else if(pointer->y > height - edge_tolerance) {
+				pointer->warping = ASYS_TRUE;
+				pointer->warp_gt = ASYS_TRUE;
+				pointer->warp_x = ASYS_FALSE;
+
+				x = pointer->x;
+				y = pointer->warp_coord = edge_tolerance * 2;
+			}
+			else if(pointer->y < edge_tolerance) {
+				pointer->warping = ASYS_TRUE;
+				pointer->warp_gt = ASYS_FALSE;
+				pointer->warp_x = ASYS_FALSE;
+
+				x = pointer->x;
+				y = pointer->warp_coord = height - (edge_tolerance * 2);
+			}
+
+			if(pointer->warping) {
+				mil_widget_move_pointer(mil, widget, x, y);
+			}
+		}
+	}
+	else {
+		pointer->dx = 0;
+		pointer->dy = 0;
+	}
+}
 
 void aga_translate_mil_input(
 		struct mil_input_data* input, struct aga_input_pack* out) {

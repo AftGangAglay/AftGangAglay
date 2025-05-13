@@ -106,6 +106,7 @@ enum asys_result aga_graph_update(
 
 	graph->inter++;
 
+	/* TODO: Clean this up -- `graph_range', don't hard fail. */
 	result = aga_graph_plot(graph, d++, 0, APRO_PRESWAP);
 	if(result) return result;
 	result = aga_graph_plot(graph, d++, 1, APRO_POLL);
@@ -184,7 +185,8 @@ enum asys_result aga_graph_update(
 		asys_memory_zero(graph->running, APRO_MAX * sizeof(apro_unit_t));
 	}
 
-	mil_gl_swap(mil, graph->gl_area);
+	result = mil_gl_swap(mil, graph->gl_area);
+	if(result) return result;
 
 	return ASYS_RESULT_OK;
 #else

@@ -24,7 +24,6 @@
 #include <asys/string.h>
 #include <asys/main.h>
 
-#include <mil/mil.h>
 #include <mil/widget.h>
 #include <mil/gl.h>
 /* TODO: Move out input translation somewhere else. */
@@ -137,7 +136,7 @@ static void aga_frame_zero(struct mil_ctx* mil) {
 
 	asys_result_check(__FILE__, "aga_draw_set", aga_draw_set(draw_flags));
 
-	result = mil_gl_load_font(mil, AGA_FONT_LIST_BASE);
+	result = mil_gl_load_font(mil, userdata->gl_area, AGA_FONT_LIST_BASE);
 	asys_log_result(__FILE__, "mil_gl_load_font", result);
 
 	asys_log(__FILE__, "Instantiating game instance...");
@@ -231,7 +230,8 @@ static void aga_update(struct mil_ctx* mil) {
 
 	apro_clear();
 
-	mil_gl_swap(mil, userdata->gl_area);
+	result = mil_gl_swap(mil, userdata->gl_area);
+	asys_log_result(__FILE__, "mil_gl_swap", result);
 }
 
 /*
@@ -315,7 +315,8 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 
 	mil.update = aga_update;
 
-	mil_ctx_new(&mil, &mil_opts, &main_data->argc, main_data->argv);
+	result = mil_ctx_new(&mil, &mil_opts, main_data);
+	if(result) return result;
 
 	mil_userdata.gl_area = aga_setup_main_window(&mil);
 	script_userdata.gl_area = mil_userdata.gl_area;

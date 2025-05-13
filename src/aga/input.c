@@ -5,7 +5,6 @@
 
 #include <aga/input.h>
 
-#include <mil/mil.h>
 #include <mil/translate.h>
 #include <mil/widget.h>
 

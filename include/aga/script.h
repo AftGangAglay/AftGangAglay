@@ -11,7 +11,7 @@
 
 #include <apro.h>
 
-#include <mil/mil.h>
+#include <mil/base.h>
 
 struct aga_settings;
 

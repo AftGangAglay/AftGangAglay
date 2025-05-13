@@ -14,7 +14,7 @@
 
 #include <asys/base.h>
 
-#include <mil/mil.h>
+#include <mil/base.h>
 
 #ifdef ASYS_WIN32
 # define AGA_KEY_MAX (0xFF)

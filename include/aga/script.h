@@ -38,35 +38,15 @@ struct aga_script_userdata {
 	apro_unit_t* dt;
 };
 
-struct aga_script_class {
-	void* class;
-
-	void* create_attr;
-	void* update_attr;
-	void* close_attr;
-};
-
-struct aga_script_instance {
-	struct aga_script_class* class;
-	void* object;
-
-	void* create_call;
-	void* update_call;
-	void* close_call;
-};
+struct py_object;
+struct py_module;
 
 struct aga_script_engine {
 	struct py* py;
 	struct py_env* env; /* TODO: This is temporary. */
 
-	void* global;
-	void* agan;
-};
-
-enum aga_script_instance_method {
-	AGA_SCRIPT_CREATE,
-	AGA_SCRIPT_UPDATE,
-	AGA_SCRIPT_CLOSE
+	struct py_object* global;
+	struct py_module* agan;
 };
 
 enum asys_result aga_script_engine_new(
@@ -75,25 +55,6 @@ enum asys_result aga_script_engine_new(
 
 enum asys_result aga_script_engine_delete(struct aga_script_engine*);
 
-/*
- * TODO: No need to abstract the main Python object interaction API now that we
- * 		 Have it cleaned up.
- */
-enum asys_result aga_script_engine_lookup(
-		struct aga_script_engine*, struct aga_script_class*, const char*);
-
 void aga_script_engine_trace(void);
-
-void* aga_script_pointer_new(void*);
-void* aga_script_pointer_get(void*);
-
-enum asys_result aga_script_instance_new(
-		struct aga_script_class*, struct aga_script_instance*);
-
-enum asys_result aga_script_instance_delete(struct aga_script_instance*);
-
-enum asys_result aga_script_instance_call(
-		struct aga_script_engine*, struct aga_script_instance*,
-		enum aga_script_instance_method);
 
 #endif

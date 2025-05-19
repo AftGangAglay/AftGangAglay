@@ -117,6 +117,30 @@ struct py_object* agan_packlist(
 	}
 }
 
+static const char* agan_object_type_name(const struct py_object* op) {
+	switch(op->type) {
+		default: return "object";
+
+		case PY_TYPE_TYPE: return "type";
+		case PY_TYPE_NONE: return "none";
+		case PY_TYPE_CLASS: return "class";
+		case PY_TYPE_CLASS_MEMBER: return "class_member";
+		case PY_TYPE_CLASS_METHOD: return "class_method";
+		case PY_TYPE_CODE: return "code";
+		case PY_TYPE_FRAME: return "frame";
+		case PY_TYPE_TRACEBACK: return "traceback";
+		case PY_TYPE_FUNC: return "func";
+		case PY_TYPE_METHOD: return "method";
+		case PY_TYPE_MODULE: return "module";
+		case PY_TYPE_TUPLE: return "tuple";
+		case PY_TYPE_LIST: return "list";
+		case PY_TYPE_STRING: return "string";
+		case PY_TYPE_DICT: return "dict";
+		case PY_TYPE_INT: return "int";
+		case PY_TYPE_FLOAT: return "float";
+	}
+}
+
 static enum asys_result agan_log_object(
 		struct py_object* op, asys_fixed_buffer_t* buffer, asys_bool_t top) {
 
@@ -134,7 +158,10 @@ static enum asys_result agan_log_object(
 
 	switch(op->type) {
 		default: {
-			result = asys_string_format(&inter, 0, "<object @%p>", (void*) op);
+			result = asys_string_format(
+					&inter, 0, "<%s @%p>",
+					agan_object_type_name(op), (void*) op);
+
 			if(result) return result;
 
 			asys_string_concatenate(*buffer, inter);
@@ -229,7 +256,6 @@ struct py_object* agan_log(
 
 	static asys_fixed_buffer_t buffer;
 
-	unsigned i;
 	const char* file;
 
 	(void) env;
@@ -246,17 +272,7 @@ struct py_object* agan_log(
 
 	file = py_string_get(env->current->code->filename);
 
-	if(py_is_varobject(args) && args->type != PY_TYPE_STRING) {
-		for(i = 0; i < py_varobject_size(args); ++i) {
-			if(args->type == PY_TYPE_LIST) {
-				agan_log_object(py_list_get(args, i), &buffer, ASYS_TRUE);
-			}
-			else if(args->type == PY_TYPE_TUPLE) {
-				agan_log_object(py_tuple_get(args, i), &buffer, ASYS_TRUE);
-			}
-		}
-	}
-	else agan_log_object(args, &buffer, ASYS_TRUE);
+	agan_log_object(args, &buffer, ASYS_TRUE);
 
 	asys_log(file, buffer);
 

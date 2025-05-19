@@ -272,7 +272,7 @@ static struct py_object* agan_setobjmdl(
 		return aga_arg_error("setobjmdl", "int and string");
 	}
 
-	obj = aga_script_pointer_get(objp);
+	obj = (void*) py_int_get(objp);
 	path = py_string_get(pathp);
 
 	result = agan_getobjconf(obj, &root);

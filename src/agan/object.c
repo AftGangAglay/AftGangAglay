@@ -571,7 +571,7 @@ struct py_object* agan_mkobj(
 		return py_error_set_nomem();
 	}
 
-	retval = aga_script_pointer_new(obj);
+	retval = py_int_new((py_value_t) obj);
 	v = (struct py_int*) retval;
 
 	obj->ind = objn++;
@@ -611,7 +611,7 @@ struct py_object* agan_mkobj(
 
 		asys_memory_free(obj->light_data);
 		py_object_decref(obj->transform);
-		asys_memory_free(aga_script_pointer_get(v));
+		asys_memory_free((void*) v->value);
 		py_object_decref(retval);
 
 		return 0;
@@ -632,7 +632,7 @@ struct py_object* agan_killobj(
 		return aga_arg_error("killobj", "int");
 	}
 
-	obj = aga_script_pointer_get(args);
+	obj = (void*) py_int_get(args);
 
 	glDeleteLists(obj->drawlist, 1);
 	if(aga_script_gl_err(__FILE__, "glDeleteLists")) return 0;
@@ -703,7 +703,8 @@ struct py_object* agan_inobj(
 
 	planar = !!py_int_get(planarp);
 
-	obj = aga_script_pointer_get(objp);
+	obj = (void*) py_int_get(objp);
+
 	asys_memory_copy(min, obj->min_extent, sizeof(min));
 	asys_memory_copy(max, obj->max_extent, sizeof(max));
 
@@ -846,7 +847,7 @@ struct py_object* agan_objconf(
 		return aga_arg_error("objconf", "int and list");
 	}
 
-	obj = aga_script_pointer_get(o);
+	obj = (void*) py_int_get(o);
 
 	result = agan_getobjconf(obj, &conf);
 	if(aga_script_err(__FILE__, "agan_getobjconf", result)) return 0;
@@ -918,7 +919,7 @@ struct py_object* agan_putobj(
 		return aga_arg_error("putobj", "int");
 	}
 
-	obj = aga_script_pointer_get(args);
+	obj = (void*) py_int_get(args);
 
 	glMatrixMode(GL_MODELVIEW);
 	if(aga_script_gl_err(__FILE__, "glMatrixMode")) return 0;
@@ -969,7 +970,7 @@ struct py_object* agan_objtrans(
 		return aga_arg_error("objtrans", "int");
 	}
 
-	obj = aga_script_pointer_get(args);
+	obj = (void*) py_int_get(args);
 
 	apro_stamp_end(APRO_SCRIPTGLUE_OBJTRANS);
 
@@ -990,7 +991,7 @@ struct py_object* agan_objind(
 		return aga_arg_error("agan_objind", "int");
 	}
 
-	obj = aga_script_pointer_get(args);
+	obj = (void*) py_int_get(args);
 
 	apro_stamp_end(APRO_SCRIPTGLUE_OBJTRANS);
 

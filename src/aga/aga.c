@@ -26,16 +26,19 @@
 
 #include <mil/widget.h>
 #include <mil/gl.h>
-/* TODO: Move out input translation somewhere else. */
 #include <mil/translate.h>
+
+#include <python/object/class.h>
+#include <python/object/dict.h>
+#include <python/evalops.h>
 
 struct aga_mil_userdata {
 	struct mil_drawing_area_input_storage input_storage;
 	mil_widget_t gl_area;
 
 	struct aga_script_engine* script_engine;
-	struct aga_script_class* script_class;
-	struct aga_script_instance* script_instance;
+	struct py_object* script_instance;
+	struct py_object* script_update;
 
 	struct aga_resource_pack* resource_pack;
 
@@ -72,10 +75,6 @@ static enum asys_result aga_put_default(void) {
 	return aga_render_text_format(0.05f, 0.2f, text_color, str2);
 }
 
-/*
- * TODO: Set dirty flag on pointer deltas and only reset if there was no input
- * 		 That frame.
- */
 static void aga_main_window_input(
 		mil_widget_t widget, struct mil_ctx* mil, void* data) {
 
@@ -86,10 +85,6 @@ static void aga_main_window_input(
 	(void) widget;
 
 	mil_get_input_data(mil, data, &input);
-
-	/*
-	 * TODO: Just send the event to script land and deprecate our input procs.
-	 */
 
 	aga_translate_mil_input(&input, userdata->input);
 }
@@ -117,9 +112,49 @@ static mil_widget_t aga_setup_main_window(struct mil_ctx* mil) {
 	return area;
 }
 
-static void aga_frame_zero(struct mil_ctx* mil) {
+static enum asys_result aga_instantiate_script(struct mil_ctx* mil) {
 	struct aga_mil_userdata* userdata = mil->user;
 
+	struct py_object* class;
+	struct py_object* instance;
+	struct py_object* method;
+
+	asys_log(__FILE__, "Instantiating game instance...");
+
+	class = py_dict_lookup(userdata->script_engine->global, "game");
+	if(!class) {
+		asys_log(__FILE__, "err: Script is missing `game' class");
+		return ASYS_RESULT_MISSING_KEY;
+	}
+
+	instance = py_class_member_new(class);
+	if(!instance) return ASYS_RESULT_OOM;
+
+	userdata->script_instance = instance;
+
+	method = py_class_member_get_attr(instance, "create");
+	if(!method) {
+		asys_log(__FILE__, "warn: `game' class has no `create' method");
+	}
+	else {
+		py_object_decref(py_call_function(
+				userdata->script_engine->env, method, 0));
+
+		py_object_decref(method);
+	}
+
+	userdata->script_update = py_class_member_get_attr(instance, "update");
+	if(!userdata->script_update) {
+		asys_log(__FILE__, "warn: `game' class has no `update' method");
+		return ASYS_RESULT_MISSING_KEY;
+	}
+
+	py_object_decref(class);
+
+	return ASYS_RESULT_OK;
+}
+
+static void aga_frame_zero(struct mil_ctx* mil) {
 	enum aga_draw_flags draw_flags = AGA_DRAW_BACKFACE | AGA_DRAW_FOG |
 										AGA_DRAW_TEXTURE | AGA_DRAW_LIGHTING |
 										AGA_DRAW_DEPTH | AGA_DRAW_FLAT;
@@ -139,23 +174,8 @@ static void aga_frame_zero(struct mil_ctx* mil) {
 	result = mil_gl_load_font(mil, userdata->gl_area, AGA_FONT_LIST_BASE);
 	asys_log_result(__FILE__, "mil_gl_load_font", result);
 
-	asys_log(__FILE__, "Instantiating game instance...");
-
-	result = aga_script_engine_lookup(
-			userdata->script_engine, userdata->script_class, "game");
-
-	asys_result_check(__FILE__, "aga_script_engine_lookup", result);
-
-	result = aga_script_instance_new(
-			userdata->script_class, userdata->script_instance);
-
-	asys_result_check(__FILE__, "aga_script_instance_new", result);
-
-	result = aga_script_instance_call(
-			userdata->script_engine, userdata->script_instance,
-			AGA_SCRIPT_CREATE);
-
-	asys_log_result(__FILE__, "aga_script_instance_call", result);
+	result = aga_instantiate_script(mil);
+	asys_log_result(__FILE__, "aga_instantiate_script", result);
 }
 
 static void aga_update(struct mil_ctx* mil) {
@@ -187,13 +207,10 @@ static void aga_update(struct mil_ctx* mil) {
 	{
 		apro_stamp_start(APRO_SCRIPT_UPDATE);
 		{
-			if(userdata->script_class->class) {
-				result = aga_script_instance_call(
-						userdata->script_engine, userdata->script_instance,
-						AGA_SCRIPT_UPDATE);
-
-				asys_log_result(
-						__FILE__, "aga_script_instance_call", result);
+			if(userdata->script_update) {
+				py_object_decref(py_call_function(
+						userdata->script_engine->env, userdata->script_update,
+						0));
 			}
 			else {
 				result = aga_put_default();
@@ -257,15 +274,13 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	struct aga_input_pack input = { 0 };
 
 	struct aga_script_engine script_engine;
-	struct aga_script_class class = { 0 };
-	struct aga_script_instance inst;
 
 	asys_bool_t die = ASYS_FALSE;
 	apro_unit_t dt = 0;
 
 	struct aga_graph prof = { 0 };
 
-	struct aga_script_userdata script_userdata;
+	struct aga_script_userdata script_userdata = { 0 };
 
 	script_userdata.opts = &opts;
 	script_userdata.sound_device = &snd;
@@ -278,8 +293,6 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	mil.user = &mil_userdata;
 
 	mil_userdata.script_engine = &script_engine;
-	mil_userdata.script_class = &class;
-	mil_userdata.script_instance = &inst;
 	mil_userdata.resource_pack = &pack;
 	mil_userdata.settings = &opts;
 	mil_userdata.sound_device = &snd;
@@ -387,14 +400,20 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	asys_log_result(__FILE__, "aga_render_flush", aga_render_flush());
 #endif
 
-	if(class.class) {
-		result = aga_script_instance_call(
-				&script_engine, &inst, AGA_SCRIPT_CLOSE);
+	if(mil_userdata.script_instance) {
+		struct py_object* method;
 
-		asys_log_result(__FILE__, "aga_script_instance_call", result);
+		py_object_decref(mil_userdata.script_update);
 
-		result = aga_script_instance_delete(&inst);
-		asys_log_result(__FILE__, "aga_script_instance_delete", result);
+		method = py_class_member_get_attr(
+				mil_userdata.script_instance, "close");
+
+		if(!method) {
+			asys_log(__FILE__, "warn: `game' class has no `close' method");
+		}
+
+		py_object_decref(py_call_function(script_engine.env, method, PY_NONE));
+		py_object_decref(method);
 	}
 
 	result = aga_script_engine_delete(&script_engine);

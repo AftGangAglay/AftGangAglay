@@ -24,6 +24,7 @@
 #include <asys/string.h>
 #include <asys/main.h>
 
+#include <mil/mil.h>
 #include <mil/widget.h>
 #include <mil/gl.h>
 #include <mil/translate.h>
@@ -155,6 +156,8 @@ static enum asys_result aga_instantiate_script(struct mil_ctx* mil) {
 }
 
 static void aga_frame_zero(struct mil_ctx* mil) {
+	struct aga_mil_userdata* userdata = mil->user;
+
 	enum aga_draw_flags draw_flags = AGA_DRAW_BACKFACE | AGA_DRAW_FOG |
 										AGA_DRAW_TEXTURE | AGA_DRAW_LIGHTING |
 										AGA_DRAW_DEPTH | AGA_DRAW_FLAT;
@@ -174,8 +177,10 @@ static void aga_frame_zero(struct mil_ctx* mil) {
 	result = mil_gl_load_font(mil, userdata->gl_area, AGA_FONT_LIST_BASE);
 	asys_log_result(__FILE__, "mil_gl_load_font", result);
 
-	result = aga_instantiate_script(mil);
-	asys_log_result(__FILE__, "aga_instantiate_script", result);
+	if(userdata->script_engine->global) {
+		result = aga_instantiate_script(mil);
+		asys_log_result(__FILE__, "aga_instantiate_script", result);
+	}
 }
 
 static void aga_update(struct mil_ctx* mil) {
@@ -388,6 +393,7 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 
 	asys_log(__FILE__, "Done!");
 
+	/* TODO: Store result. */
 	mil_start(&mil);
 
 	asys_log(__FILE__, "Tearing down...");

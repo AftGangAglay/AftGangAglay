@@ -9,6 +9,7 @@
 #include <asys/memory.h>
 #include <asys/log.h>
 
+#include <mil/mil.h>
 #include <mil/widget.h>
 #include <mil/gl.h>
 

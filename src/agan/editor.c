@@ -17,6 +17,7 @@
 #include <asys/string.h>
 #include <asys/stream.h>
 
+#include <mil/mil.h>
 #include <mil/widget.h>
 
 /*

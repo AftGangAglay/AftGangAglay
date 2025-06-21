@@ -79,7 +79,7 @@ static void aga_setbuttondown(struct aga_buttons* b, enum aga_button t) {
  * TODO: Attach winpack to all windows so poll can be window-independent?
  * 		 Current setup does not handle multiwindow well -- especially teardown.
  */
-static LRESULT FAR CALLBACK aga_winproc(
+static LRESULT FAR PASCAL aga_winproc(
 		HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param) {
 
 	struct aga_winproc_pack* pack;

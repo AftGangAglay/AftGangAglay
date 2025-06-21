@@ -5,16 +5,18 @@
 
 #include <aga/startup.h>
 #include <aga/pack.h>
-#include <aga/diagnostic.h>
 
 #include <asys/log.h>
 #include <asys/getopt.h>
 #include <asys/memory.h>
 #include <asys/main.h>
 #include <asys/string.h>
+#include <asys/file.h>
 
 enum asys_result aga_settings_new(
 		struct aga_settings* opts, struct asys_main_data* main_data) {
+
+	enum asys_result result;
 
 	if(!opts) return ASYS_RESULT_BAD_PARAM;
 	if(!main_data) return ASYS_RESULT_BAD_PARAM;
@@ -147,12 +149,8 @@ enum asys_result aga_settings_new(
 		break2:;
 	}
 
-	/* TODO: Fix this. */
-#ifdef AGA_HAVE_UNISTD
-	if(chdir(opts->chdir) == -1) {
-		(void) aga_error_system_path(__FILE__, "chdir", opts->chdir);
-	}
-#endif
+	result = asys_path_change(opts->chdir);
+	asys_log_result_path(__FILE__, "asys_path_change", opts->chdir, result);
 
 	return ASYS_RESULT_OK;
 }

@@ -8,6 +8,13 @@
 #include <string.h>
 #include <stdio.h>
 
+/*
+ * TODO: Windows needs either `clock' from `time.h' or `ftime' from
+ * 		 `sys/btime.h'.
+ */
+/*
+ * TODO: *nix-y implementation should use `getitimer' with `ITIMER_PROF'.
+ */
 #ifdef __has_include
 # if __has_include(<sys/time.h>)
 #  define APRO_HAVE_SYS_TIME

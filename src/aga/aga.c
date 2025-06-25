@@ -93,18 +93,16 @@ static void aga_main_window_input(
 static mil_widget_t aga_setup_main_window(struct mil_ctx* mil) {
 	struct aga_mil_userdata* userdata = mil->user;
 
-	mil_widget_t window, frame, area;
+	mil_widget_t window, area;
 
 	window = mil_widget(
 			mil, mil->settings.title, MIL_MAIN_WINDOW, mil->top, MIL_END);
-
-	frame = mil_widget(mil, "frame", MIL_FRAME, window, MIL_END);
 
 	userdata->input_storage.callback = aga_main_window_input;
 	userdata->input_storage.ctx = mil;
 
 	area = mil_widget(
-			mil, "gl_area", MIL_DRAWING_AREA, frame,
+			mil, "gl_area", MIL_DRAWING_AREA, window,
 			/* TODO: Resizing. */
 			/* MIL_DRAWING_AREA_RESIZE_CALLBACK, area_resize, */
 			MIL_DRAWING_AREA_INPUT_CALLBACK, &userdata->input_storage,

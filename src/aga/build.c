@@ -306,7 +306,7 @@ static enum asys_result aga_build_input_file(
 	aga_build_input_fn_t fn;
 	struct asys_stream in, out;
 
-	asys_bool_t older = ASYS_TRUE;
+	asys_bool_t older = ASYS_FALSE;
 
 	/*
 	 * Input kinds which are handled as "raw" need a special case when

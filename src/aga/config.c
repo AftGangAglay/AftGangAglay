@@ -647,7 +647,6 @@ enum asys_result aga_config_dump(
 	result = asys_stream_write_format(stream, "</root>\n");
 	if(result) return result;
 
-
 	return ASYS_RESULT_OK;
 #else
 	(void) root;

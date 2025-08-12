@@ -11,6 +11,7 @@
 #include <aga/startup.h>
 #include <aga/config.h>
 #include <aga/build.h>
+#include <aga/userdata.h>
 
 #include <asys/log.h>
 #include <asys/memory.h>
@@ -294,23 +295,86 @@ static struct py_object* agan_setobjmdl(
 
 	return py_object_incref(PY_NONE);
 }
+
+static struct py_object* agan_widget(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
+	struct mil_ctx* mil = AGA_GET_USERDATA(env)->mil;
+	struct aga_mil_userdata* userdata = mil->user;
+
+	const char* name;
+	struct py_object* name_object;
+
+	mil_widget_t parent;
+	struct py_object* parent_object;
+
+	enum mil_class class;
+	struct py_object* class_object;
+
+	mil_widget_t widget;
+	struct py_object* return_widget;
+
+	(void) self;
+
+	/* widget(string, int, int, ...) */
+	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
+			!aga_arg(&name_object, args, 0, PY_TYPE_STRING) ||
+			!aga_arg(&parent_object, args, 1, PY_TYPE_INT) ||
+			!aga_arg(&class_object, args, 2, PY_TYPE_INT)) {
+
+		return aga_arg_error("widget", "string, int, int...");
+	}
+
+	name = py_string_get(name_object);
+
+	parent = (mil_widget_t) py_int_get(parent_object);
+	if(!parent) parent = mil->top;
+
+	class = py_int_get(class_object);
+
+	switch(class) {
+		case MIL_DRAWING_AREA: {
+			 widget = userdata->gl_area = mil_widget(
+					mil, name, MIL_DRAWING_AREA, parent,
+					/* TODO: Resizing. */
+					/* MIL_DRAWING_AREA_RESIZE_CALLBACK, area_resize, */
+					MIL_DRAWING_AREA_INPUT_CALLBACK, &userdata->input_storage,
+					MIL_END);
+
+			break;
+		}
+
+		default: {
+			widget = mil_widget(mil, name, class, parent);
+			break;
+		}
+	}
+
+	return_widget = py_int_new((py_value_t) widget);
+	if(!return_widget) {
+		py_error_set_nomem();
+		return 0;
+	}
+
+	return return_widget;
+}
 #endif
 
 enum asys_result agan_ed_register(struct py_env* env) {
+	struct py_object* ed;
+
 #ifdef AGA_DEVBUILD
 # define aga_(name) { #name, agan_##name }
 	static const struct py_methodlist methods[] = {
 			aga_(killpack), aga_(mkpack), aga_(dumpobj), aga_(fdiag),
-			aga_(setobjmdl),
+			aga_(setobjmdl), aga_(widget),
 
 			{ 0, 0 }
 	};
 # undef aga_
-#endif
 
-	struct py_object* ed;
+	enum asys_result result;
 
-#ifdef AGA_DEVBUILD
 	/*
 	 * User is not meant to access `ed' directly as a module -- but as an attr
 	 * of `agan'.
@@ -319,6 +383,27 @@ enum asys_result agan_ed_register(struct py_env* env) {
 		aga_script_engine_trace();
 		return ASYS_RESULT_ERROR;
 	}
+
+# define aga_(class) \
+		do { \
+			if((result = aga_module_insert_int(ed, #class, MIL_##class))) { \
+				py_object_decref(ed); \
+				return result; \
+			} \
+		} while(0)
+
+	aga_(PUSH_BUTTON);
+	aga_(CASCADE_BUTTON);
+	aga_(MAIN_WINDOW);
+	aga_(WINDOW);
+	aga_(PANED);
+	aga_(MENUBAR);
+	aga_(ICON_CONTAINER);
+	aga_(AUTO);
+	aga_(PULLDOWN);
+	aga_(FRAME);
+	aga_(DRAWING_AREA);
+# undef aga_
 #else
 	(void) env;
 

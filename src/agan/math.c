@@ -25,11 +25,9 @@ enum asys_result agan_math_register(struct py_env* env) {
 
 	(void) env;
 
-	if((result = aga_insertfloat("PI", pi))) return result;
-
-	if((result = aga_insertfloat("RADS", pi / 180.0))) return result;
-
-	if((result = aga_insertfloat("E", e))) return result;
+	if((result = aga_insert_float("PI", pi))) return result;
+	if((result = aga_insert_float("RADS", pi / 180.0))) return result;
+	if((result = aga_insert_float("E", e))) return result;
 
 	return ASYS_RESULT_OK;
 }

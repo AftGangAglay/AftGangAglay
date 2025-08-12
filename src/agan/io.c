@@ -21,9 +21,9 @@ enum asys_result agan_io_register(struct py_env* env) {
 
 	(void) env;
 
-	if((result = aga_insertint("CLICK", AGA_BUTTON_CLICK))) return result;
-	if((result = aga_insertint("DOWN", AGA_BUTTON_DOWN))) return result;
-	if((result = aga_insertint("UP", AGA_BUTTON_UP))) return result;
+	if((result = aga_insert_int("CLICK", AGA_BUTTON_CLICK))) return result;
+	if((result = aga_insert_int("DOWN", AGA_BUTTON_DOWN))) return result;
+	if((result = aga_insert_int("UP", AGA_BUTTON_UP))) return result;
 
 	if((result = aga_setkeys())) {
 		aga_script_engine_trace();
@@ -201,7 +201,7 @@ static enum asys_result aga_setkeys(void) {
 	enum asys_result result;
 #define aga_(name, value) \
 	do { \
-		result = aga_insertint(name, value); \
+		result = aga_insert_int(name, value); \
 		if(result) return result; \
 	} while(0)
 #ifdef ASYS_WIN32

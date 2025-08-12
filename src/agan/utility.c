@@ -19,17 +19,17 @@ enum asys_result agan_misc_register(struct py_env* env) {
 
 	(void) env;
 
-	if((result = aga_insertstr("VERSION", AGA_VERSION))) return result;
+	if((result = aga_insert_string("VERSION", AGA_VERSION))) return result;
 
 #ifdef ASYS_WIN32
 	if((result = aga_insertstr("PLATFORM", "win32"))) return result;
 #else
-	if((result = aga_insertstr("PLATFORM", "x"))) return result;
+	if((result = aga_insert_string("PLATFORM", "x"))) return result;
 #endif
 
 	/* TODO: Var to detect dev builds. */
 #ifndef NDEBUG
-	if((result = aga_insertstr("MODE", "debug"))) return result;
+	if((result = aga_insert_string("MODE", "debug"))) return result;
 #else
 	if((result = aga_insertstr("MODE", "release"))) return result;
 #endif
@@ -39,7 +39,7 @@ enum asys_result agan_misc_register(struct py_env* env) {
 #ifdef _MSC_VER
 	if((result = aga_insertstr("CENV", "vc"))) return result;
 #elif defined(__GNUC__)
-	if((result = aga_insertstr("CENV", "gnu"))) return result;
+	if((result = aga_insert_string("CENV", "gnu"))) return result;
 #else
 	if((result = aga_insertstr("CENV", "std"))) return result;
 #endif

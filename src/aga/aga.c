@@ -1,11 +1,12 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2023, 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * Copyright (C) 2023-2025 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 /* TODO: Fuzz headless. */
 /* TODO: Test build input types individually. */
 
+#include <aga/userdata.h>
 #include <aga/sound.h>
 #include <aga/pack.h>
 #include <aga/midi.h>
@@ -32,27 +33,6 @@
 #include <python/object/class.h>
 #include <python/object/dict.h>
 #include <python/evalops.h>
-
-struct aga_mil_userdata {
-	struct mil_drawing_area_input_storage input_storage;
-	mil_widget_t gl_area;
-
-	struct aga_script_engine* script_engine;
-	struct py_object* script_instance;
-	struct py_object* script_update;
-
-	struct aga_resource_pack* resource_pack;
-
-	struct aga_sound_device* sound_device;
-
-	struct aga_settings* settings;
-
-	struct aga_graph* profile_graph;
-
-	struct aga_input_pack* input;
-
-	asys_bool_t frame_zero;
-};
 
 static enum asys_result aga_put_default(void) {
 	/*
@@ -98,9 +78,6 @@ static mil_widget_t aga_setup_main_window(struct mil_ctx* mil) {
 	window = mil_widget(
 			mil, mil->settings.title, MIL_MAIN_WINDOW, mil->top, MIL_END);
 
-	userdata->input_storage.callback = aga_main_window_input;
-	userdata->input_storage.ctx = mil;
-
 	area = mil_widget(
 			mil, "gl_area", MIL_DRAWING_AREA, window,
 			/* TODO: Resizing. */
@@ -111,27 +88,12 @@ static mil_widget_t aga_setup_main_window(struct mil_ctx* mil) {
 	return area;
 }
 
-static enum asys_result aga_instantiate_script(struct mil_ctx* mil) {
+static enum asys_result aga_setup_script(struct mil_ctx* mil) {
 	struct aga_mil_userdata* userdata = mil->user;
 
-	struct py_object* class;
-	struct py_object* instance;
 	struct py_object* method;
 
-	asys_log(__FILE__, "Instantiating game instance...");
-
-	class = py_dict_lookup(userdata->script_engine->global, "game");
-	if(!class) {
-		asys_log(__FILE__, "err: Script is missing `game' class");
-		return ASYS_RESULT_MISSING_KEY;
-	}
-
-	instance = py_class_member_new(class);
-	if(!instance) return ASYS_RESULT_OOM;
-
-	userdata->script_instance = instance;
-
-	method = py_class_member_get_attr(instance, "create");
+	method = py_class_member_get_attr(userdata->script_instance, "create");
 	if(!method) {
 		asys_log(__FILE__, "warn: `game' class has no `create' method");
 	}
@@ -142,13 +104,13 @@ static enum asys_result aga_instantiate_script(struct mil_ctx* mil) {
 		py_object_decref(method);
 	}
 
-	userdata->script_update = py_class_member_get_attr(instance, "update");
+	userdata->script_update = py_class_member_get_attr(
+			userdata->script_instance, "update");
+
 	if(!userdata->script_update) {
 		asys_log(__FILE__, "warn: `game' class has no `update' method");
 		return ASYS_RESULT_MISSING_KEY;
 	}
-
-	py_object_decref(class);
 
 	return ASYS_RESULT_OK;
 }
@@ -176,7 +138,7 @@ static void aga_frame_zero(struct mil_ctx* mil) {
 	asys_log_result(__FILE__, "mil_gl_load_font", result);
 
 	if(userdata->script_engine->global) {
-		result = aga_instantiate_script(mil);
+		result = aga_setup_script(mil);
 		asys_log_result(__FILE__, "aga_instantiate_script", result);
 	}
 }
@@ -269,7 +231,7 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	struct aga_sound_device snd;
 	struct aga_midi_device midi;
 
-	struct aga_mil_userdata mil_userdata;
+	struct aga_mil_userdata mil_userdata = { 0 };
 
 	struct mil_settings mil_opts;
 	struct mil_ctx mil;
@@ -334,17 +296,6 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	result = mil_ctx_new(&mil, &mil_opts, main_data);
 	if(result) return result;
 
-	mil_userdata.gl_area = aga_setup_main_window(&mil);
-	script_userdata.gl_area = mil_userdata.gl_area;
-
-	if(opts.profiler) {
-		result = aga_graph_new(&prof, &mil);
-		if(result) {
-			asys_result_check(__FILE__, "aga_graph_new", result);
-			opts.profiler = ASYS_FALSE;
-		}
-	}
-
 	if(opts.audio_enabled) {
 		if((result = aga_sound_device_new(&snd, opts.audio_buffer))) {
 			asys_log_result(__FILE__, "aga_sound_device_new", result);
@@ -387,6 +338,65 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 			&script_engine, opts.startup_script, &pack, opts.python_path,
 			&script_userdata);
 
+	asys_log(__FILE__, "Instantiating game instance...");
+	{
+		struct py_object* class = py_dict_lookup(script_engine.global, "game");
+		if(!class) {
+			asys_log(__FILE__, "err: Script is missing `game' class");
+			asys_log_result(
+					__FILE__, "py_dict_lookup", ASYS_RESULT_MISSING_KEY);
+		}
+		else {
+			mil_userdata.script_instance = py_class_member_new(class);
+			if(!mil_userdata.script_instance) {
+				asys_log_result(
+						__FILE__, "py_class_member_new", ASYS_RESULT_OOM);
+			}
+		}
+
+		py_object_decref(class);
+	}
+
+	asys_log(__FILE__, "Creating main window...");
+
+	mil_userdata.input_storage.callback = aga_main_window_input;
+	mil_userdata.input_storage.ctx = &mil;
+
+	if(mil_userdata.script_instance) {
+#ifdef AGA_DEVBUILD
+		struct py_object* method = py_class_member_get_attr(
+				mil_userdata.script_instance, "ui");
+
+		if(method) {
+			py_object_decref(py_call_function(
+					script_engine.env, method, 0));
+
+			py_object_decref(method);
+		}
+		else {
+			asys_log(
+					__FILE__,
+					"warn: `game' class has no `ui' method, using default "
+					"main window layout");
+		}
+#endif
+
+		if(!mil_userdata.gl_area) {
+			mil_userdata.gl_area = aga_setup_main_window(&mil);
+		}
+
+		script_userdata.gl_area = mil_userdata.gl_area;
+	}
+
+
+	if(opts.profiler) {
+		result = aga_graph_new(&prof, &mil);
+		if(result) {
+			asys_result_check(__FILE__, "aga_graph_new", result);
+			opts.profiler = ASYS_FALSE;
+		}
+	}
+
 	asys_log_result(__FILE__, "aga_script_engine_new", result);
 
 	asys_log(__FILE__, "Done!");
@@ -415,9 +425,10 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 		if(!method) {
 			asys_log(__FILE__, "warn: `game' class has no `close' method");
 		}
-
-		py_object_decref(py_call_function(script_engine.env, method, PY_NONE));
-		py_object_decref(method);
+		else {
+			py_object_decref(py_call_function(script_engine.env, method, 0));
+			py_object_decref(method);
+		}
 	}
 
 	result = aga_script_engine_delete(&script_engine);

@@ -38,32 +38,104 @@ const char* agan_conf_components[3] = { "Position", "Rotation", "Scale" };
 const char* agan_xyz[3] = { "X", "Y", "Z" };
 const char* agan_rgb[3] = { "R", "G", "B" };
 
-enum asys_result aga_insertstr(const char* key, const char* value) {
-	struct py_object* o;
+static enum asys_result agan_module_insert(
+		struct py_object* module, const char* key, struct py_object* value) {
 
-	if(!(o = py_string_new(value))) return ASYS_RESULT_OOM;
+	struct py_object* dict = ((struct py_module*) module)->attr;
 
-	if(py_dict_insert(agan_dict, key, o) == -1) return ASYS_RESULT_ERROR;
-
-	return ASYS_RESULT_OK;
-}
-
-enum asys_result aga_insertfloat(const char* key, double value) {
-	struct py_object* o;
-
-	if(!(o = py_float_new(value))) return ASYS_RESULT_OOM;
-
-	if(py_dict_insert(agan_dict, key, o) == -1) return ASYS_RESULT_ERROR;
+	int success = py_dict_insert(dict, key, value);
+	if(success == -1) return ASYS_RESULT_ERROR;
 
 	return ASYS_RESULT_OK;
 }
 
-enum asys_result aga_insertint(const char* key, py_value_t value) {
+enum asys_result aga_module_insert_int(
+		struct py_object* module, const char* key, py_value_t value) {
+
+	enum asys_result result;
+
+	struct py_object* integer = py_int_new(value);
+	if(!integer) return ASYS_RESULT_OOM;
+
+	result = agan_module_insert(module, key, integer);
+	if(result) {
+		py_object_decref(integer);
+		return result;
+	}
+
+	return ASYS_RESULT_OK;
+}
+
+
+enum asys_result aga_module_insert_string(
+		struct py_object* module, const char* key, const char* value) {
+
+	enum asys_result result;
+
+	struct py_object* string = py_string_new(value);
+	if(!string) return ASYS_RESULT_OOM;
+
+	result = agan_module_insert(module, key, string);
+	if(result) {
+		py_object_decref(string);
+		return result;
+	}
+
+	return ASYS_RESULT_OK;
+}
+
+enum asys_result aga_module_insert_float(
+		struct py_object* module, const char* key, double value) {
+
+	enum asys_result result;
+
+	struct py_object* decimal = py_float_new(value);
+	if(!decimal) return ASYS_RESULT_OOM;
+
+	result = agan_module_insert(module, key, decimal);
+	if(result) {
+		py_object_decref(decimal);
+		return result;
+	}
+
+	return ASYS_RESULT_OK;
+}
+
+enum asys_result aga_insert_int(const char* key, py_value_t value) {
 	struct py_object* o;
 
 	if(!(o = py_int_new(value))) return ASYS_RESULT_OOM;
 
-	if(py_dict_insert(agan_dict, key, o) == -1) return ASYS_RESULT_ERROR;
+	if(py_dict_insert(agan_dict, key, o) == -1) {
+		py_object_decref(o);
+		return ASYS_RESULT_ERROR;
+	}
+
+	return ASYS_RESULT_OK;
+}
+
+enum asys_result aga_insert_string(const char* key, const char* value) {
+	struct py_object* o;
+
+	if(!(o = py_string_new(value))) return ASYS_RESULT_OOM;
+
+	if(py_dict_insert(agan_dict, key, o) == -1) {
+		py_object_decref(o);
+		return ASYS_RESULT_ERROR;
+	}
+
+	return ASYS_RESULT_OK;
+}
+
+enum asys_result aga_insert_float(const char* key, double value) {
+	struct py_object* o;
+
+	if(!(o = py_float_new(value))) return ASYS_RESULT_OOM;
+
+	if(py_dict_insert(agan_dict, key, o) == -1) {
+		py_object_decref(o);
+		return ASYS_RESULT_ERROR;
+	}
 
 	return ASYS_RESULT_OK;
 }

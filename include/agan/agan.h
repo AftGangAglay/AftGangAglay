@@ -22,11 +22,18 @@ extern const char* agan_conf_components[3];
 extern const char* agan_xyz[3];
 extern const char* agan_rgb[3];
 
-enum asys_result aga_insertstr(const char*, const char*);
+enum asys_result aga_module_insert_int(
+		struct py_object*, const char*, py_value_t);
 
-enum asys_result aga_insertfloat(const char*, double);
+enum asys_result aga_module_insert_string(
+		struct py_object*, const char*, const char*);
 
-enum asys_result aga_insertint(const char*, py_value_t);
+enum asys_result aga_module_insert_float(
+		struct py_object*, const char*, double);
+
+enum asys_result aga_insert_int(const char*, py_value_t);
+enum asys_result aga_insert_string(const char*, const char*);
+enum asys_result aga_insert_float(const char*, double);
 
 enum asys_result aga_mkmod(struct py_env*, void**);
 

@@ -28,21 +28,23 @@ enum asys_result agan_draw_register(struct py_env* env) {
 
 	(void) env;
 
-	if((result = aga_insertint("BACKFACE", AGA_DRAW_BACKFACE))) return result;
-	if((result = aga_insertint("BLEND", AGA_DRAW_BLEND))) return result;
-	if((result = aga_insertint("FOG", AGA_DRAW_FOG))) return result;
-	if((result = aga_insertint("TEXTURE", AGA_DRAW_TEXTURE))) return result;
-	if((result = aga_insertint("LIGHTING", AGA_DRAW_LIGHTING))) return result;
-	if((result = aga_insertint("DEPTH", AGA_DRAW_DEPTH))) return result;
-	if((result = aga_insertint("SHADEFLAT", AGA_DRAW_FLAT))) return result;
-	if((result = aga_insertint("FIDELITY", AGA_DRAW_FIDELITY))) return result;
+	if((result = aga_insert_int("BACKFACE", AGA_DRAW_BACKFACE))) return result;
+	if((result = aga_insert_int("BLEND", AGA_DRAW_BLEND))) return result;
+	if((result = aga_insert_int("FOG", AGA_DRAW_FOG))) return result;
+	if((result = aga_insert_int("TEXTURE", AGA_DRAW_TEXTURE))) return result;
+	if((result = aga_insert_int("LIGHTING", AGA_DRAW_LIGHTING))) return result;
+	if((result = aga_insert_int("DEPTH", AGA_DRAW_DEPTH))) return result;
+	if((result = aga_insert_int("SHADEFLAT", AGA_DRAW_FLAT))) return result;
+	if((result = aga_insert_int("FIDELITY", AGA_DRAW_FIDELITY))) return result;
 
-	if((result = aga_insertint("FRONT", AGAN_SURFACE_FRONT))) return result;
-	if((result = aga_insertint("BACK", AGAN_SURFACE_BACK))) return result;
-	if((result = aga_insertint("STENCIL", AGAN_SURFACE_STENCIL))) {
+	if((result = aga_insert_int("FRONT", AGAN_SURFACE_FRONT))) return result;
+	if((result = aga_insert_int("BACK", AGAN_SURFACE_BACK))) return result;
+	if((result = aga_insert_int("STENCIL", AGAN_SURFACE_STENCIL))) {
 		return result;
 	}
-	if((result = aga_insertint("DEPTHBUF", AGAN_SURFACE_DEPTH))) return result;
+	if((result = aga_insert_int("DEPTHBUF", AGAN_SURFACE_DEPTH))) {
+		return result;
+	}
 
 	return ASYS_RESULT_OK;
 }

@@ -129,9 +129,7 @@ enum asys_result aga_script_engine_new(
 	result = aga_mkmod(eng->env, (void**) &eng->agan);
 	if(result) return result;
 
-	result = aga_script_compile(
-			eng->env, script, pack, (struct py_object**) &eng->global);
-
+	result = aga_script_compile(eng->env, script, pack, &eng->global);
 	if(result) return result;
 
 	return ASYS_RESULT_OK;

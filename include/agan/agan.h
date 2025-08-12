@@ -58,6 +58,9 @@ asys_bool_t aga_vararg_list_typed(
 asys_bool_t aga_arg(
 		struct py_object**, struct py_object*, asys_size_t, enum py_type);
 
+asys_bool_t aga_arg_func(
+		struct py_object**, struct py_object*, asys_size_t);
+
 asys_bool_t aga_vararg(
 		struct py_object**, struct py_object*, asys_size_t, enum py_type,
 		asys_size_t);

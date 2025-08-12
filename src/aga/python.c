@@ -79,6 +79,15 @@ asys_bool_t aga_arg(
 	return (*v = py_tuple_get(args, (unsigned) n)) && (*v)->type == type;
 }
 
+asys_bool_t aga_arg_func(
+		struct py_object** v, struct py_object* args, asys_size_t n) {
+
+	return (*v = py_tuple_get(args, (unsigned) n)) &&
+			((*v)->type == PY_TYPE_FUNC ||
+					(*v)->type == PY_TYPE_METHOD ||
+					(*v)->type == PY_TYPE_CLASS_METHOD);
+}
+
 asys_bool_t aga_vararg(
 		struct py_object** v, struct py_object* args, asys_size_t n,
 		enum py_type type, asys_size_t len) {

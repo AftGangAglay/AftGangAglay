@@ -30,6 +30,7 @@ struct aga_mil_userdata {
 	struct aga_sound_device* sound_device;
 
 	struct aga_settings* settings;
+	asys_bool_t* die;
 
 	struct aga_graph* profile_graph;
 

@@ -80,7 +80,7 @@ static asys_bool_t agan_mkobj_trans(
 
 			if(!(o = py_float_new(f))) {
 				py_error_set_nomem();
-				return 0;
+				return ASYS_TRUE;
 			}
 
 			py_list_set(l, j, o);
@@ -141,7 +141,7 @@ static asys_bool_t agan_mkobj_model(
 
 	/* TODO: Delete lists in error conditions. */
 	obj->drawlist = glGenLists(1);
-	if(aga_script_gl_err(__FILE__, "glGenLists")) return 0;
+	if(aga_script_gl_err(__FILE__, "glGenLists")) return ASYS_TRUE;
 
 #ifndef NDEBUG
 	mode = GL_COMPILE_AND_EXECUTE;
@@ -159,7 +159,7 @@ static asys_bool_t agan_mkobj_model(
 	 * 		 Draw.
 	 */
 	glNewList(obj->drawlist, mode);
-	if(aga_script_gl_err(__FILE__, "glNewList")) return 0;
+	if(aga_script_gl_err(__FILE__, "glNewList")) return ASYS_TRUE;
 
 	{
 		asys_bool_t do_mips, tex_filter;
@@ -167,6 +167,7 @@ static asys_bool_t agan_mkobj_model(
 
 		result = aga_config_lookup(
 				conf->children, &filter, 1, &v, AGA_INTEGER, ASYS_FALSE);
+
 		if(result) v = 1;
 		tex_filter = !!v;
 
@@ -222,6 +223,7 @@ static asys_bool_t agan_mkobj_model(
 
 			result = aga_config_lookup(
 					res->config, &width, 1, &w, AGA_INTEGER, ASYS_FALSE);
+
 			if(result) {
 				/* TODO: Default conf values as part of the API. */
 				asys_log(__FILE__, "warn: Texture `%s' is missing dimensions");
@@ -239,6 +241,7 @@ static asys_bool_t agan_mkobj_model(
 				gluBuild2DMipmaps(
 						GL_TEXTURE_2D, 4, (int) w, (int) h, GL_RGBA,
 						GL_UNSIGNED_BYTE, res->data);
+
 				/*
 				 * TODO: Script land can probably handle lots of GL errors like
 				 * 		 This relatively gracefully (i.e. allow the user code
@@ -306,7 +309,7 @@ static asys_bool_t agan_mkobj_model(
 			asys_memory_free(obj->modelpath);
 			if(!(obj->modelpath = asys_string_duplicate(model_path))) {
 				py_error_set_nomem();
-				return 0;
+				return ASYS_TRUE;
 			}
 #endif
 
@@ -455,6 +458,7 @@ static asys_bool_t agan_mkobj_light(
 
 				result = aga_config_lookup(
 						child, &comp, 1, &v, AGA_FLOAT, ASYS_FALSE);
+
 				if(result) (*col)[j] = 1.0f;
 				else (*col)[j] = (float) v;
 			}
@@ -469,6 +473,7 @@ static asys_bool_t agan_mkobj_light(
 
 				result = aga_config_lookup(
 						child, &comp, 1, &v, AGA_FLOAT, ASYS_FALSE);
+
 				(*col)[j] = result ? 1.0f : (float) v;
 			}
 
@@ -482,6 +487,7 @@ static asys_bool_t agan_mkobj_light(
 
 				result = aga_config_lookup(
 						child, &comp, 1, &v, AGA_FLOAT, ASYS_FALSE);
+
 				(*col)[j] = result ? 1.0f : (float) v;
 			}
 

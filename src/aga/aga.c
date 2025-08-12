@@ -214,6 +214,8 @@ static void aga_update(struct mil_ctx* mil) {
 
 	result = mil_gl_swap(mil, userdata->gl_area);
 	asys_log_result(__FILE__, "mil_gl_swap", result);
+
+	if(*userdata->die) mil_stop(mil);
 }
 
 /*
@@ -264,6 +266,7 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	mil_userdata.profile_graph = &prof;
 	mil_userdata.frame_zero = ASYS_TRUE;
 	mil_userdata.input = &input;
+	mil_userdata.die = &die;
 
 	asys_log(__FILE__, "Breathing in the chemicals...");
 

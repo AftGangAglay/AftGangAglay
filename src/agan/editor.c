@@ -21,6 +21,8 @@
 #include <mil/mil.h>
 #include <mil/widget.h>
 
+#include "agan/utility.h"
+
 /*
  * "Editor" functions are isolated here as they should not be callable in
  * Distribution. No well-behaved AGA application should be attempting to write
@@ -296,6 +298,19 @@ static struct py_object* agan_setobjmdl(
 	return py_object_incref(PY_NONE);
 }
 
+static void agan_push_button_activate(
+		mil_widget_t widget, struct mil_ctx* mil, void* data) {
+
+	struct aga_mil_userdata* userdata = mil->user;
+	struct py_object* callback = data;
+
+	(void) mil;
+
+	py_call_function(
+			userdata->script_engine->env, callback,
+			py_int_new((py_value_t) widget));
+}
+
 static struct py_object* agan_widget(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
@@ -339,6 +354,48 @@ static struct py_object* agan_widget(
 					/* TODO: Resizing. */
 					/* MIL_DRAWING_AREA_RESIZE_CALLBACK, area_resize, */
 					MIL_DRAWING_AREA_INPUT_CALLBACK, &userdata->input_storage,
+					MIL_END);
+
+			break;
+		}
+
+		case MIL_PUSH_BUTTON: {
+			struct py_object* callback;
+			struct mil_activate_storage* storage;
+
+			if(!aga_arg_func(&callback, args, 3)) {
+				return aga_arg_error("widget", "string, int, int, func");
+			}
+
+			storage = asys_memory_allocate(
+					sizeof(struct mil_activate_storage));
+
+			if(!storage) return py_error_set_nomem();
+
+			storage->ctx = mil;
+			storage->callback = agan_push_button_activate;
+			storage->userdata = py_object_incref(callback);
+
+			widget = mil_widget(
+					mil, name, MIL_CASCADE_BUTTON, parent,
+					MIL_ACTIVATE_CALLBACK, storage,
+					MIL_END);
+
+			break;
+		}
+
+		case MIL_CASCADE_BUTTON: {
+			mil_widget_t pulldown;
+			struct py_object* pulldown_object;
+			if(!aga_arg(&pulldown_object, args, 3, PY_TYPE_INT)) {
+				return aga_arg_error("widget", "string, int, int, int");
+			}
+
+			pulldown = (mil_widget_t) py_int_get(pulldown_object);
+
+			widget = mil_widget(
+					mil, name, MIL_CASCADE_BUTTON, parent,
+					MIL_CASCADE_MENU, pulldown,
 					MIL_END);
 
 			break;

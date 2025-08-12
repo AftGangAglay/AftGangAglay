@@ -114,7 +114,6 @@ void aga_translate_mil_input(
 		case MIL_INPUT_BUTTON: {
 			struct mil_button_input* button = &input->data.button;
 
-			enum aga_button_state state;
 			enum aga_button out_button;
 
 			switch(button->button) {
@@ -125,15 +124,12 @@ void aga_translate_mil_input(
 				case MIL_BUTTON_LEFT: out_button = AGA_BUTTON_LEFT; break;
 			}
 
-			/* TODO: Need to reimplement `AGA_BUTTON_DOWN' vs `CLICK'. */
-			switch(button->state) {
-				default: return;
-
-				case MIL_PRESSED: state = AGA_BUTTON_DOWN; break;
-				case MIL_RELEASED: state = AGA_BUTTON_UP; break;
+			if(button->state == MIL_PRESSED) {
+				out->buttons.states[out_button] = AGA_BUTTON_CLICK;
 			}
-
-			out->buttons.states[out_button] = state;
+			else {
+				out->buttons.states[out_button] = AGA_BUTTON_UP;
+			}
 
 			break;
 		}

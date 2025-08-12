@@ -151,6 +151,23 @@ static void aga_update(struct mil_ctx* mil) {
 
 	/* TODO: Fix more formal ref/obj tracing for devbuilds. */
 
+	/* Fixup legacy input mapping click vs. down. */
+	{
+		static struct aga_buttons buttons = { 0 };
+
+		asys_size_t i;
+		for(i = 0; i < ASYS_LENGTH(buttons.states); ++i) {
+			enum aga_button_state* state = &userdata->input->buttons.states[i];
+			if(*state == AGA_BUTTON_CLICK &&
+					buttons.states[i] == AGA_BUTTON_CLICK) {
+
+				*state = AGA_BUTTON_DOWN;
+			}
+
+			buttons.states[i] = *state;
+		}
+	}
+
 	result = mil_gl_context_widget(mil, userdata->gl_area);
 	asys_log_result(__FILE__, "mil_gl_context_widget", result);
 

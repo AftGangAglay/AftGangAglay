@@ -22,6 +22,7 @@ struct aga_input_pack;
 
 struct aga_sound_device;
 
+/* TODO: Unify `mil_userdata' and `script_userdata' */
 struct aga_script_userdata {
 	struct mil_ctx* mil;
 	mil_widget_t gl_area;

@@ -12,16 +12,15 @@
 #include <aga/config.h>
 #include <aga/build.h>
 #include <aga/userdata.h>
+#include <aga/input.h>
 
-#include <asys/log.h>
 #include <asys/memory.h>
 #include <asys/string.h>
 #include <asys/stream.h>
+#include <asys/log.h>
 
 #include <mil/mil.h>
 #include <mil/widget.h>
-
-#include "agan/utility.h"
 
 /*
  * "Editor" functions are isolated here as they should not be callable in
@@ -302,13 +301,16 @@ static void agan_push_button_activate(
 		mil_widget_t widget, struct mil_ctx* mil, void* data) {
 
 	struct aga_mil_userdata* userdata = mil->user;
-	struct py_object* callback = data;
 
-	(void) mil;
+	(void) data;
 
-	py_call_function(
-			userdata->script_engine->env, callback,
-			py_int_new((py_value_t) widget));
+	if(!userdata->ui_activate) return;
+
+	py_object_decref(py_call_function(
+			userdata->script_engine->env, userdata->ui_activate,
+			py_int_new((py_value_t) widget)));
+
+	if(py_error_occurred()) aga_script_engine_trace();
 }
 
 static struct py_object* agan_widget(
@@ -353,32 +355,30 @@ static struct py_object* agan_widget(
 					mil, name, MIL_DRAWING_AREA, parent,
 					/* TODO: Resizing. */
 					/* MIL_DRAWING_AREA_RESIZE_CALLBACK, area_resize, */
-					MIL_DRAWING_AREA_INPUT_CALLBACK, &userdata->input_storage,
+					MIL_DRAWING_AREA_INPUT_CALLBACK, aga_main_window_input,
 					MIL_END);
 
 			break;
 		}
 
+		case MIL_LABEL: {
+			ASYS_FALLTHROUGH;
+		}
+		/* FALLTHROUGH */
 		case MIL_PUSH_BUTTON: {
-			struct py_object* callback;
-			struct mil_activate_storage* storage;
+			const char* icon = 0;
+			struct py_object* icon_object;
 
-			if(!aga_arg_func(&callback, args, 3)) {
-				return aga_arg_error("widget", "string, int, int, func");
+			if(py_varobject_size(args) > 3) {
+				if(aga_arg(&icon_object, args, 3, PY_TYPE_STRING)) {
+					icon = py_string_get(icon_object);
+				}
 			}
 
-			storage = asys_memory_allocate(
-					sizeof(struct mil_activate_storage));
-
-			if(!storage) return py_error_set_nomem();
-
-			storage->ctx = mil;
-			storage->callback = agan_push_button_activate;
-			storage->userdata = py_object_incref(callback);
-
 			widget = mil_widget(
-					mil, name, MIL_CASCADE_BUTTON, parent,
-					MIL_ACTIVATE_CALLBACK, storage,
+					mil, name, class, parent,
+					MIL_ACTIVATE_CALLBACK, agan_push_button_activate,
+					MIL_LABEL_ICON, icon,
 					MIL_END);
 
 			break;
@@ -402,7 +402,7 @@ static struct py_object* agan_widget(
 		}
 
 		default: {
-			widget = mil_widget(mil, name, class, parent);
+			widget = mil_widget(mil, name, class, parent, MIL_END);
 			break;
 		}
 	}
@@ -415,6 +415,40 @@ static struct py_object* agan_widget(
 
 	return return_widget;
 }
+
+static struct py_object* agan_widgetsz(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
+	struct mil_ctx* mil = AGA_GET_USERDATA(env)->mil;
+
+	mil_widget_t widget;
+	struct py_object* widget_object;
+
+	py_value_t width;
+	struct py_object* width_object;
+
+	py_value_t height;
+	struct py_object* height_object;
+
+	(void) self;
+
+	/* widgetsz(int, int, int) */
+	if(!aga_arg_list(args, PY_TYPE_TUPLE) ||
+			!aga_arg(&widget_object, args, 0, PY_TYPE_INT) ||
+			!aga_arg(&width_object, args, 1, PY_TYPE_INT) ||
+			!aga_arg(&height_object, args, 2, PY_TYPE_INT)) {
+
+		return aga_arg_error("widget", "int, int, int");
+	}
+
+	widget = (mil_widget_t) py_int_get(widget_object);
+	width = py_int_get(width_object);
+	height = py_int_get(height_object);
+
+	mil_widget_set_size(mil, widget, width, height);
+
+	return py_object_incref(PY_NONE);
+}
 #endif
 
 enum asys_result agan_ed_register(struct py_env* env) {
@@ -424,7 +458,7 @@ enum asys_result agan_ed_register(struct py_env* env) {
 # define aga_(name) { #name, agan_##name }
 	static const struct py_methodlist methods[] = {
 			aga_(killpack), aga_(mkpack), aga_(dumpobj), aga_(fdiag),
-			aga_(setobjmdl), aga_(widget),
+			aga_(setobjmdl), aga_(widget), aga_(widgetsz),
 
 			{ 0, 0 }
 	};
@@ -458,6 +492,7 @@ enum asys_result agan_ed_register(struct py_env* env) {
 	aga_(ICON_CONTAINER);
 	aga_(AUTO);
 	aga_(PULLDOWN);
+	aga_(LABEL);
 	aga_(FRAME);
 	aga_(DRAWING_AREA);
 # undef aga_

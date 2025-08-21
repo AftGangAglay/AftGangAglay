@@ -70,4 +70,6 @@ void aga_wrap_pointer(
 
 void aga_translate_mil_input(struct mil_input_data*, struct aga_input_pack*);
 
+void aga_main_window_input(mil_widget_t, struct mil_ctx*, void*);
+
 #endif

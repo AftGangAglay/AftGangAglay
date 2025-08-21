@@ -909,6 +909,7 @@ static asys_bool_t agan_putobj_light(struct agan_lightdata* data) {
 	return ASYS_FALSE;
 }
 
+/* TODO: Add option to diagnose bloated objects with a time budget. */
 struct py_object* agan_putobj(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 

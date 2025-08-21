@@ -18,12 +18,16 @@ struct aga_input_pack;
 struct py_object;
 
 struct aga_mil_userdata {
-	struct mil_drawing_area_input_storage input_storage;
 	mil_widget_t gl_area;
 
 	struct aga_script_engine* script_engine;
 	struct py_object* script_instance;
 	struct py_object* script_update;
+
+#ifdef AGA_DEVBUILD
+	struct py_object* ui_instance;
+	struct py_object* ui_activate;
+#endif
 
 	struct aga_resource_pack* resource_pack;
 

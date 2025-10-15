@@ -60,6 +60,14 @@ void aga_wrap_pointer(
 				mil_widget_move_pointer(mil, widget, x, y);
 			}
 		}
+
+		if(pointer->dx > width / 2 || pointer->dx < -width / 2) {
+			pointer->dx = 0;
+		}
+
+		if(pointer->dy > height / 2 || pointer->dy < -height / 2) {
+			pointer->dy = 0;
+		}
 	}
 	else {
 		pointer->dx = 0;

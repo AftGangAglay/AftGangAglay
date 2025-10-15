@@ -56,7 +56,25 @@ struct py_object* agan_playsnd(
 
 	index = py_int_new((py_value_t) index_value);
 
-	apro_stamp_start(APRO_SCRIPTGLUE_PLAYSND);
+	apro_stamp_end(APRO_SCRIPTGLUE_PLAYSND);
 
 	return index;
+}
+
+struct py_object* agan_clrsnd(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
+	enum asys_result result;
+
+	(void) self;
+	(void) args;
+
+	apro_stamp_start(APRO_SCRIPTGLUE_CLRSND);
+
+	result = aga_sound_clear(AGA_GET_USERDATA(env)->sound_device);
+	if(aga_script_err(__FILE__, "aga_sound_clear", result)) return 0;
+
+	apro_stamp_end(APRO_SCRIPTGLUE_CLRSND);
+
+	return py_object_incref(PY_NONE);
 }

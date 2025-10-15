@@ -170,9 +170,10 @@ enum asys_result aga_mkmod(struct py_env* env, void** dict) {
 			aga_(bitand), aga_(bitshl), aga_(randnorm), aga_(bitor),
 
 			/* Audio */
-			aga_(playsnd),
+			aga_(playsnd), aga_(clrsnd),
 
-			{ 0, 0 } };
+			{ 0, 0 }
+	};
 #undef aga_
 
 	struct py_object* module = py_module_new_methods(env, "agan", methods);

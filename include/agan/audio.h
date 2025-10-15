@@ -13,4 +13,7 @@ enum asys_result agan_audio_register(struct py_env*);
 struct py_object* agan_playsnd(
 		struct py_env*, struct py_object*, struct py_object*);
 
+struct py_object* agan_clrsnd(
+		struct py_env*, struct py_object*, struct py_object*);
+
 #endif

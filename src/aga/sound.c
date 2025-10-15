@@ -253,3 +253,13 @@ enum asys_result aga_sound_play(
 
 	return ASYS_RESULT_OK;
 }
+
+enum asys_result aga_sound_clear(struct aga_sound_device* dev) {
+	if(!dev) return ASYS_RESULT_BAD_PARAM;
+
+	if(dev->streams) asys_memory_free(dev->streams);
+	dev->streams = 0;
+	dev->count = 0;
+
+	return ASYS_RESULT_OK;
+}

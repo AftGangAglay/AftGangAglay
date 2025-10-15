@@ -48,4 +48,6 @@ enum asys_result aga_sound_play(
 		struct aga_sound_device*, struct aga_resource*, asys_bool_t,
 		asys_size_t*);
 
+enum asys_result aga_sound_clear(struct aga_sound_device*);
+
 #endif

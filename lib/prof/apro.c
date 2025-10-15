@@ -132,6 +132,7 @@ const char* apro_section_name(enum apro_section section) {
 		case APRO_SCRIPTGLUE_RANDNORM: return "AGAN_RANDNORM";
 		case APRO_SCRIPTGLUE_BITOR: return "AGAN_BITOR";
 		case APRO_SCRIPTGLUE_PLAYSND: return "AGAN_PLAYSND";
+		case APRO_SCRIPTGLUE_CLRSND: return "AGAN_CLRSND";
 		case APRO_PUTOBJ_RISING: return "PUTOBJ_RISING";
 		case APRO_PUTOBJ_LIGHT: return "PUTOBJ_LIGHT";
 		case APRO_PUTOBJ_CALL: return "PUTOBJ_CALL";

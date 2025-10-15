@@ -137,7 +137,7 @@ static asys_bool_t aga_build_path_matches_kind(
 	};
 
 	/* TODO: `strcasecmp'? */
-	const char* ext = asys_string_find_const(path, '.');
+	const char* ext = asys_string_reverse_find_const(path, '.');
 	if(!ext || !asys_string_equal(ext, kind_exts[kind])) return ASYS_FALSE;
 
 	return ASYS_TRUE;

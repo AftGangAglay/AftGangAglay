@@ -313,10 +313,32 @@ static void agan_push_button_activate(
 	if(py_error_occurred()) aga_script_engine_trace();
 }
 
+static asys_bool_t agan_widget_dimension(
+		struct py_object* args, asys_size_t n,
+		py_value_t* width, py_value_t* height, const char* error) {
+
+	struct py_object* width_object;
+	struct py_object* height_object;
+
+	if(py_varobject_size(args) < n + 2 ||
+			!aga_arg(&width_object, args, n, PY_TYPE_INT) ||
+			!aga_arg(&height_object, args, n + 1, PY_TYPE_INT)) {
+
+		aga_arg_error("widget", error);
+		return ASYS_FALSE;
+	}
+
+	*width = py_int_get(width_object);
+	*height = py_int_get(height_object);
+
+	return ASYS_TRUE;
+}
+
 static struct py_object* agan_widget(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
 
 	struct mil_ctx* mil = AGA_GET_USERDATA(env)->mil;
+	struct aga_settings* opts = AGA_GET_USERDATA(env)->opts;
 	struct aga_mil_userdata* userdata = mil->user;
 
 	const char* name;
@@ -330,6 +352,10 @@ static struct py_object* agan_widget(
 
 	mil_widget_t widget;
 	struct py_object* return_widget;
+
+	py_value_t width, height;
+
+	mil_callback_t activate = agan_push_button_activate;
 
 	(void) self;
 
@@ -350,17 +376,44 @@ static struct py_object* agan_widget(
 	class = py_int_get(class_object);
 
 	switch(class) {
-		case MIL_DRAWING_AREA: {
-			 widget = userdata->gl_area = mil_widget(
-					mil, name, MIL_DRAWING_AREA, parent,
-					/* TODO: Resizing. */
-					/* MIL_DRAWING_AREA_RESIZE_CALLBACK, area_resize, */
-					MIL_DRAWING_AREA_INPUT_CALLBACK, aga_main_window_input,
+		case MIL_AUTO: {
+			if(!agan_widget_dimension(
+					args, 3, &width, &height, "string, int, int, int, int")) {
+
+				return 0;
+			}
+
+			widget = mil_widget(
+					mil, name, class, parent,
+					MIL_WIDTH, width,
+					MIL_HEIGHT, height,
 					MIL_END);
 
 			break;
 		}
 
+		case MIL_DRAWING_AREA: {
+			 widget = userdata->gl_area = mil_widget(
+					mil, name, class, parent,
+					/* TODO: Resizing. */
+					/* MIL_DRAWING_AREA_RESIZE_CALLBACK, area_resize, */
+					MIL_DRAWING_AREA_INPUT_CALLBACK, aga_main_window_input,
+					MIL_WIDTH, opts->width,
+					MIL_HEIGHT, opts->height,
+					MIL_END);
+
+			break;
+		}
+
+		case MIL_ICON: {
+			activate = 0;
+			ASYS_FALLTHROUGH;
+		}
+		/* FALLTHROUGH */
+		case MIL_ICON_BUTTON: {
+			ASYS_FALLTHROUGH;
+		}
+		/* FALLTHROUGH */
 		case MIL_LABEL: {
 			ASYS_FALLTHROUGH;
 		}
@@ -377,8 +430,38 @@ static struct py_object* agan_widget(
 
 			widget = mil_widget(
 					mil, name, class, parent,
-					MIL_ACTIVATE_CALLBACK, agan_push_button_activate,
+					MIL_ACTIVATE_CALLBACK, activate,
 					MIL_LABEL_ICON, icon,
+					MIL_END);
+
+			break;
+		}
+
+		case MIL_ICON_CONTAINER: {
+			enum mil_icon_layout layout;
+			struct py_object* layout_object;
+
+			if(py_varobject_size(args) < 4 ||
+					!aga_arg(&layout_object, args, 3, PY_TYPE_INT)) {
+
+				return aga_arg_error(
+						"widget", "string, int, int, int, int, int");
+			}
+
+			if(!agan_widget_dimension(
+					args, 4, &width, &height,
+					"string, int, int, int, int, int")) {
+
+				return 0;
+			}
+
+			layout = py_int_get(layout_object);
+
+			widget = mil_widget(
+					mil, name, class, parent,
+					MIL_ICON_LAYOUT, layout,
+					MIL_WIDTH, width,
+					MIL_HEIGHT, height,
 					MIL_END);
 
 			break;
@@ -387,6 +470,7 @@ static struct py_object* agan_widget(
 		case MIL_CASCADE_BUTTON: {
 			mil_widget_t pulldown;
 			struct py_object* pulldown_object;
+
 			if(!aga_arg(&pulldown_object, args, 3, PY_TYPE_INT)) {
 				return aga_arg_error("widget", "string, int, int, int");
 			}
@@ -394,7 +478,7 @@ static struct py_object* agan_widget(
 			pulldown = (mil_widget_t) py_int_get(pulldown_object);
 
 			widget = mil_widget(
-					mil, name, MIL_CASCADE_BUTTON, parent,
+					mil, name, class, parent,
 					MIL_CASCADE_MENU, pulldown,
 					MIL_END);
 
@@ -485,6 +569,7 @@ enum asys_result agan_ed_register(struct py_env* env) {
 
 	aga_(PUSH_BUTTON);
 	aga_(CASCADE_BUTTON);
+	aga_(ICON_BUTTON);
 	aga_(MAIN_WINDOW);
 	aga_(WINDOW);
 	aga_(PANED);
@@ -495,6 +580,12 @@ enum asys_result agan_ed_register(struct py_env* env) {
 	aga_(LABEL);
 	aga_(FRAME);
 	aga_(DRAWING_AREA);
+	aga_(ICON);
+	aga_(SEPARATOR);
+
+	aga_(ICON_TREE);
+	aga_(ICON_TABLE);
+	aga_(ICON_GRID);
 # undef aga_
 #else
 	(void) env;

@@ -60,6 +60,7 @@ struct agan_object {
 
 #ifdef AGA_DEVBUILD
 	char* modelpath;
+	char* texpath;
 #endif
 
 	asys_uint_t drawlist;

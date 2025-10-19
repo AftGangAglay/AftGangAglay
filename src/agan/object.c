@@ -311,6 +311,12 @@ asys_bool_t agan_mkobj_model(
 				py_error_set_nomem();
 				return ASYS_TRUE;
 			}
+
+			asys_memory_free(obj->texpath);
+			if(!(obj->texpath = asys_string_duplicate(texture_path))) {
+				py_error_set_nomem();
+				return ASYS_TRUE;
+			}
 #endif
 
 			result = aga_resource_pack_lookup(pack, model_path, &res);
@@ -647,7 +653,9 @@ struct py_object* agan_killobj(
 
 #ifdef AGA_DEVBUILD
 	asys_memory_free(obj->modelpath);
+	asys_memory_free(obj->texpath);
 #endif
+
 	asys_memory_free(obj);
 
 	apro_stamp_end(APRO_SCRIPTGLUE_KILLOBJ);

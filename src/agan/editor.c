@@ -181,21 +181,6 @@ static struct py_object* agan_dumpobj(
 		}
 	}
 
-	/* Update conf tree with current model path. */
-	{
-		static const char* model = "Model";
-
-		struct aga_config_node* n;
-
-		result = aga_config_lookup_check(node.children, &model, 1, &n);
-		if(aga_script_err(__FILE__, "aga_config_lookup_check", result)) {
-			return 0;
-		}
-
-		asys_memory_free(n->data.string);
-		n->data.string = asys_string_duplicate(obj->modelpath);
-	}
-
 	{
 		struct asys_stream stream;
 
@@ -249,10 +234,9 @@ static struct py_object* agan_fdiag(
 	return str;
 }
 
-static struct py_object* agan_setobjmdl(
-		struct py_env* env, struct py_object* self, struct py_object* args) {
-
-	static const char* model = "Model";
+static struct py_object* agan_setobj_render(
+		struct py_env* env, struct py_object* self, struct py_object* args,
+		const char* element, const char* name) {
 
 	struct aga_resource_pack* respack = AGA_GET_USERDATA(env)->resource_pack;
 
@@ -270,12 +254,12 @@ static struct py_object* agan_setobjmdl(
 	(void) env;
 	(void) self;
 
-	/* setobjmdl(int, string) */
+	/* setobj<>(int, string) */
 	if(!aga_vararg_list(args, PY_TYPE_TUPLE, 2) ||
 			!aga_arg(&objp, args, 0, PY_TYPE_INT) ||
 			!aga_arg(&pathp, args, 1, PY_TYPE_STRING)) {
 
-		return aga_arg_error("setobjmdl", "int and string");
+		return aga_arg_error(name, "int and string");
 	}
 
 	obj = (void*) py_int_get(objp);
@@ -285,12 +269,14 @@ static struct py_object* agan_setobjmdl(
 	if(aga_script_err(__FILE__, "agan_getobjconf", result)) return 0;
 
 	/* TODO: We really need to work out this whole root/non-root fiasco. */
-	result = aga_config_lookup_check(root.children, &model, 1, &node);
+	result = aga_config_lookup_check(root.children, &element, 1, &node);
 	if(aga_script_err(__FILE__, "aga_config_lookup_check", result)) return 0;
 
 	/*
 	 * TODO: We don't validate that the conf node is the correct type here nor
 	 * 		 Above.
+	 * TODO: Once `agan_getobjconf` retains the object tree this will persist
+	 *		 Between calls.
 	 */
 	asys_memory_free(node->data.string);
 	node->data.string = asys_string_duplicate(path);
@@ -303,7 +289,24 @@ static struct py_object* agan_setobjmdl(
 		return 0;
 	}
 
+	result = aga_config_delete(&root);
+	(void) aga_script_err(__FILE__, "aga_config_delete", result);
+	py_error_clear();
+
 	return py_object_incref(PY_NONE);
+}
+
+
+static struct py_object* agan_setobjmdl(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
+	return agan_setobj_render(env, self, args, "Model", "setobjmdl");
+}
+
+static struct py_object* agan_setobjtex(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
+	return agan_setobj_render(env, self, args, "Texture", "setobjtex");
 }
 
 static void agan_push_button_activate(
@@ -569,6 +572,7 @@ enum asys_result agan_ed_register(struct py_env* env) {
 	static const struct py_methodlist methods[] = {
 			aga_(killpack), aga_(mkpack), aga_(dumpobj), aga_(fdiag),
 			aga_(setobjmdl), aga_(widget), aga_(widgetsz), aga_(build),
+			aga_(setobjtex),
 
 			{ 0, 0 }
 	};

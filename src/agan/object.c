@@ -120,7 +120,7 @@ static void agan_mkobj_extent(
  * TODO: Object models should be able to specify a billboard texture for auto
  * 		 LOD -- especially when we have our zoning/distance culling system.
  */
-static asys_bool_t agan_mkobj_model(
+asys_bool_t agan_mkobj_model(
 		struct py_env* env, struct agan_object* obj,
 		struct aga_config_node* conf, struct aga_resource_pack* pack,
 		const char* objpath) {

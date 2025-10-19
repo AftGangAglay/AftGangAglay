@@ -15,6 +15,8 @@
  * The user.
  */
 
+struct aga_resource_pack;
+
 struct aga_vertex {
 	float col[4];
 	float uv[2];
@@ -68,6 +70,10 @@ struct agan_object {
 enum asys_result agan_getobjconf(struct agan_object*, struct aga_config_node*);
 
 enum asys_result agan_obj_register(struct py_env*);
+
+asys_bool_t agan_mkobj_model(
+		struct py_env*, struct agan_object*, struct aga_config_node*,
+		struct aga_resource_pack*, const char*);
 
 struct py_object* agan_mkobj(
 		struct py_env*, struct py_object*, struct py_object*);

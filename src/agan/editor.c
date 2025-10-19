@@ -21,6 +21,7 @@
 
 #include <mil/mil.h>
 #include <mil/widget.h>
+#include <mil/system.h>
 
 /*
  * "Editor" functions are isolated here as they should not be callable in
@@ -253,6 +254,8 @@ static struct py_object* agan_setobjmdl(
 
 	static const char* model = "Model";
 
+	struct aga_resource_pack* respack = AGA_GET_USERDATA(env)->resource_pack;
+
 	enum asys_result result;
 
 	struct aga_config_node root;
@@ -292,7 +295,13 @@ static struct py_object* agan_setobjmdl(
 	asys_memory_free(node->data.string);
 	node->data.string = asys_string_duplicate(path);
 
-	/* TODO: Soft reload object model here. Delete old drawlist etc. */
+	glDeleteLists(obj->drawlist, 1);
+	(void) mil_gl_result(__FILE__, "glDeleteLists");
+
+	if(agan_mkobj_model(env, obj, &root, respack, path)) {
+		aga_script_err(__FILE__, "agan_mkobj_model", ASYS_RESULT_ERROR);
+		return 0;
+	}
 
 	return py_object_incref(PY_NONE);
 }
@@ -533,6 +542,23 @@ static struct py_object* agan_widgetsz(
 
 	return py_object_incref(PY_NONE);
 }
+
+static struct py_object* agan_build(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
+	enum asys_result result;
+
+	struct aga_settings* opts = AGA_GET_USERDATA(env)->opts;
+
+	(void) self;
+	(void) args;
+
+	/* TODO: Allow configuring of build settings via. optional args. */
+	result = aga_build(opts);
+	if(aga_script_err(__FILE__, "aga_build", result)) return 0;
+
+	return py_object_incref(PY_NONE);
+}
 #endif
 
 enum asys_result agan_ed_register(struct py_env* env) {
@@ -542,7 +568,7 @@ enum asys_result agan_ed_register(struct py_env* env) {
 # define aga_(name) { #name, agan_##name }
 	static const struct py_methodlist methods[] = {
 			aga_(killpack), aga_(mkpack), aga_(dumpobj), aga_(fdiag),
-			aga_(setobjmdl), aga_(widget), aga_(widgetsz),
+			aga_(setobjmdl), aga_(widget), aga_(widgetsz), aga_(build),
 
 			{ 0, 0 }
 	};

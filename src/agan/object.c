@@ -557,7 +557,6 @@ struct py_object* agan_mkobj(
 	struct agan_object* obj;
 	struct py_int* v;
 	struct py_object* retval;
-	struct aga_config_node conf = { 0 };
 
 	struct asys_stream* stream;
 
@@ -600,23 +599,21 @@ struct py_object* agan_mkobj(
 	result = aga_resource_seek(obj->res, &stream);
 	if(aga_script_err(__FILE__, "aga_resource_seek", result)) goto cleanup;
 
-	result = aga_config_new(stream, obj->res->size, &conf);
+	result = aga_config_new(stream, obj->res->size, &obj->config);
 	if(aga_script_err(__FILE__, "aga_resource_stream", result)) goto cleanup;
 
-	if(agan_mkobj_trans(obj, &conf)) goto cleanup;
-	if(agan_mkobj_model(env, obj, &conf, pack, path)) goto cleanup;
-	if(agan_mkobj_light(obj, &conf)) goto cleanup;
-
-	result = aga_config_delete(&conf);
-	if(aga_script_err(__FILE__, "aga_config_delete", result)) goto cleanup;
+	if(agan_mkobj_trans(obj, &obj->config)) goto cleanup;
+	if(agan_mkobj_model(env, obj, &obj->config, pack, path)) goto cleanup;
+	if(agan_mkobj_light(obj, &obj->config)) goto cleanup;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_MKOBJ);
 
-	return (struct py_object*) retval;
+	return retval;
 
 	cleanup: {
 		asys_log_result(
-					__FILE__, "aga_config_delete", aga_config_delete(&conf));
+					__FILE__, "aga_config_delete",
+					aga_config_delete(&obj->config));
 
 		glDeleteLists(obj->drawlist, 1);
 		(void) mil_gl_result(__FILE__, "glDeleteLists");
@@ -817,36 +814,13 @@ struct py_object* agan_inobj(
 	return py_object_incref(retval);
 }
 
-/*
- * TODO: Avoid reloading conf for every call. We shouldn't permanently cache
- * 		 The config tree but it would be wise to selectively hold it for a
- * 		 Load/save period.
- */
-enum asys_result agan_getobjconf(
-		struct agan_object* obj, struct aga_config_node* node) {
-
-	struct asys_stream* stream;
-	enum asys_result result;
-
-	result = aga_resource_seek(obj->res, &stream);
-	if(aga_script_err(__FILE__, "aga_resource_seek", result)) return 0;
-
-	result = aga_config_new(stream, obj->res->size, node);
-	if(aga_script_err(__FILE__, "aga_config_new", result)) return 0;
-
-	return ASYS_RESULT_OK;
-}
-
 struct py_object* agan_objconf(
 		struct py_env* env, struct py_object* self, struct py_object* args) {
-
-	enum asys_result result;
 
 	struct py_object* o;
 	struct py_object* l;
 	struct py_object* retval;
 
-	struct aga_config_node conf;
 	struct agan_object* obj;
 
 	(void) env;
@@ -863,13 +837,7 @@ struct py_object* agan_objconf(
 
 	obj = (void*) py_int_get(o);
 
-	result = agan_getobjconf(obj, &conf);
-	if(aga_script_err(__FILE__, "agan_getobjconf", result)) return 0;
-
-	retval = agan_scriptconf(&conf, ASYS_TRUE, l);
-
-	result = aga_config_delete(&conf);
-	if(aga_script_err(__FILE__, "aga_config_delete", result)) return 0;
+	retval = agan_scriptconf(&obj->config, ASYS_TRUE, l);
 
 	apro_stamp_end(APRO_SCRIPTGLUE_OBJCONF);
 

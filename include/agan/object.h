@@ -8,6 +8,8 @@
 
 #include <agan/agan.h>
 
+#include <aga/config.h>
+
 /*
  * Defines the world-object type used by script glue. Game objects typically
  * Consist of a world-object and behaviours ascribed in script land. We should
@@ -58,6 +60,8 @@ struct agan_object {
 	struct agan_lightdata* light_data;
 	asys_uint_t ind;
 
+	struct aga_config_node config;
+
 #ifdef AGA_DEVBUILD
 	char* modelpath;
 	char* texpath;
@@ -67,8 +71,6 @@ struct agan_object {
 	float min_extent[3];
 	float max_extent[3];
 };
-
-enum asys_result agan_getobjconf(struct agan_object*, struct aga_config_node*);
 
 enum asys_result agan_obj_register(struct py_env*);
 

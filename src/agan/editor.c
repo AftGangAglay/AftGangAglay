@@ -118,7 +118,6 @@ static struct py_object* agan_dumpobj(
 	struct py_object* pathp;
 
 	struct agan_object* obj;
-	struct aga_config_node node;
 	const char* path;
 
 	(void) env;
@@ -134,9 +133,6 @@ static struct py_object* agan_dumpobj(
 
 	obj = (void*) py_int_get(objp);
 	path = py_string_get(pathp);
-
-	result = agan_getobjconf(obj, &node);
-	if(aga_script_err(__FILE__, "agan_getobjconf", result)) return 0;
 
 	/* Update conf tree with current transform data. */
 	/* TODO: This is copied from `mkobj_trans'. */
@@ -163,7 +159,7 @@ static struct py_object* agan_dumpobj(
 				elem[1] = agan_xyz[j];
 
 				result = aga_config_lookup_check(
-						node.children, elem, ASYS_LENGTH(elem), &n);
+						obj->config.children, elem, ASYS_LENGTH(elem), &n);
 
 				if(aga_script_err(
 						__FILE__, "aga_config_lookup_check", result)) {
@@ -188,16 +184,12 @@ static struct py_object* agan_dumpobj(
 		if(aga_script_err(__FILE__, "asys_stream_new", result)) return 0;
 
 		/* TODO: Leaky stream. */
-		result = aga_config_dump(node.children, &stream);
+		result = aga_config_dump(obj->config.children, &stream);
 		if(aga_script_err(__FILE__, "aga_config_dump", result)) return 0;
 
 		result = asys_stream_delete(&stream);
 		if(aga_script_err(__FILE__, "asys_stream_delete", result)) return 0;
 	}
-
-	/* TODO: Leaky conf.. */
-	result = aga_config_delete(&node);
-	if(aga_script_err(__FILE__, "aga_config_delete", result)) return 0;
 
 	return py_object_incref(PY_NONE);
 }
@@ -242,7 +234,6 @@ static struct py_object* agan_setobj_render(
 
 	enum asys_result result;
 
-	struct aga_config_node root;
 	struct aga_config_node* node;
 
 	struct py_object* objp;
@@ -265,18 +256,13 @@ static struct py_object* agan_setobj_render(
 	obj = (void*) py_int_get(objp);
 	path = py_string_get(pathp);
 
-	result = agan_getobjconf(obj, &root);
-	if(aga_script_err(__FILE__, "agan_getobjconf", result)) return 0;
-
 	/* TODO: We really need to work out this whole root/non-root fiasco. */
-	result = aga_config_lookup_check(root.children, &element, 1, &node);
+	result = aga_config_lookup_check(obj->config.children, &element, 1, &node);
 	if(aga_script_err(__FILE__, "aga_config_lookup_check", result)) return 0;
 
 	/*
 	 * TODO: We don't validate that the conf node is the correct type here nor
 	 * 		 Above.
-	 * TODO: Once `agan_getobjconf` retains the object tree this will persist
-	 *		 Between calls.
 	 */
 	asys_memory_free(node->data.string);
 	node->data.string = asys_string_duplicate(path);
@@ -284,14 +270,10 @@ static struct py_object* agan_setobj_render(
 	glDeleteLists(obj->drawlist, 1);
 	(void) mil_gl_result(__FILE__, "glDeleteLists");
 
-	if(agan_mkobj_model(env, obj, &root, respack, path)) {
+	if(agan_mkobj_model(env, obj, &obj->config, respack, path)) {
 		aga_script_err(__FILE__, "agan_mkobj_model", ASYS_RESULT_ERROR);
 		return 0;
 	}
-
-	result = aga_config_delete(&root);
-	(void) aga_script_err(__FILE__, "aga_config_delete", result);
-	py_error_clear();
 
 	return py_object_incref(PY_NONE);
 }

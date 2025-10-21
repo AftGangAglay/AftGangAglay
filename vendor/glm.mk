@@ -2,7 +2,7 @@
 # Copyright (C) 2025 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
 GLM = vendor$(SEP)glm$(SEP)
-GLM_INCLUDE = $(GLM)
+GLM_INCLUDE = vendor$(SEP)
 
 GLM_SRC = $(GLM)glm.c
 GLM_HDR = $(GLM)glm.h

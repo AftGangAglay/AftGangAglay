@@ -27,7 +27,7 @@
 /* TODO: For `struct vertex' definition -- move elsewhere. */
 # include <agan/object.h>
 
-#include <../../vendor/sgi-demos97/glm.h>
+#include <glm/glm.h>
 # include <tiffio.h>
 
 enum aga_file_kind {

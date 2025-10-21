@@ -1,6 +1,6 @@
 /*
- * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * SPDX-License-Identifier: X11
+ * Copyright (C) 2025 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #ifndef AGA_PACK_H
@@ -40,6 +40,12 @@ struct aga_resource {
 # define AGA_PACK_DEBUG
 #endif
 
+/*
+ * TODO: Support opening multiple resource packs for content packs, more
+ *		 Granular dev cycles etc.
+ *		 Local vs. global resource paths or just explicit "from pack X" with
+ *		 Resource-centric calls.
+ */
 struct aga_resource_pack {
 	struct asys_stream stream;
 	asys_size_t data_offset;

@@ -1,6 +1,6 @@
 /*
- * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * SPDX-License-Identifier: X11
+ * Copyright (C) 2025 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #include <aga/graph.h>
@@ -13,7 +13,13 @@
 #include <mil/widget.h>
 #include <mil/gl.h>
 
+/*
+ * TODO: Profiler should provide resource reference tracking, memory profiling
+ *		 And tracking for major, reused type allocation like conf trees to
+ *		 Diagnose leaks.
+ */
 enum asys_result aga_graph_new(struct aga_graph* graph, struct mil_ctx* mil) {
+/* TODO: Should be on for more than just devbuilds. */
 #ifdef AGA_DEVBUILD
 	if(!graph) return ASYS_RESULT_BAD_PARAM;
 

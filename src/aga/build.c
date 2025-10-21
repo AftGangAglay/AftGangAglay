@@ -1,6 +1,6 @@
 /*
- * SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+ * SPDX-License-Identifier: X11
+ * Copyright (C) 2025 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
 #define AGA_RAW_SUFFIX (".raw")
@@ -27,7 +27,7 @@
 /* TODO: For `struct vertex' definition -- move elsewhere. */
 # include <agan/object.h>
 
-# include <glm.h>
+#include <../../vendor/sgi-demos97/glm.h>
 # include <tiffio.h>
 
 enum aga_file_kind {

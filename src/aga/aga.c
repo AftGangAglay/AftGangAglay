@@ -1,5 +1,5 @@
 /*
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: X11
  * Copyright (C) 2023-2025 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 
@@ -318,6 +318,7 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	asys_log_result(__FILE__, "aga_settings_new", result);
 
 #ifdef AGA_DEVBUILD
+	/* TODO: Resource pack viewer/viz/decompilation */
 	if(opts.compile) {
 		result = aga_build(&opts);
 		asys_log_result(__FILE__, "aga_build", result);

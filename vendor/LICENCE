@@ -1,0 +1,57 @@
+			Vendored (3rd party) licence information.
+
+ALL CLAIMS WITH REGARDS TO LICENCE COMPATIBILITY ARE THE RESULT OF DUE
+DILLIGENCE BY THE AUTHOR. THE INFORMATION PROVIDED IS INTENDED FOR
+INFORMATIONAL PURPOSES ONLY. THE AUTHOR MAKES NO WARRANTY, GUARANTEE, OR
+REPRESENTATION AS TO THE ACCURACY, COMPLETENESS OR LEGAL EFFECT OF ANY
+STATEMENT REGARDING LICENCE COMPATIBILITY.
+
+YOU, THE USER, ACKNOWLEDGE THAT RELYING ON THIS INFORMATION IS SOLELY AT YOUR
+OWN RISK. YOU ARE RESPONSIBLE FOR INDEPENDENTLY VERIFYING THE COMPATIBILITY OF
+ANY LICENCES FOR YOUR SPECIFIC USE CASE.
+
+		Distribution notice.
+When distributing a program which makes use of AftGangAglay, the following
+files' contents must be accessible by the user of the program directly within
+the runtime.
+
+`vendor/libtiff/COPYRIGHT'
+`vendor/python/LICENCE'
+`vendor/www/Copyright.txt' and the stated required contents from
+`https://www.w3.org/copyright/software-license/'
+as well as the root copyright notice of AftGangAglay itself as found in the
+root `LICENCE' file.
+
+		GLM.
+GLM has an unknown licence status. Attempts have been made to determine the
+origin -- i.e. whether it was written by Nate Robins while interning at SGI --
+and terms of use of the program; including attempts to contact both Robins
+himself, the Scientific Computing and Imaging Institute at the University of
+Utah and associated developers (Mark J. Kilgard). We have made the tentative
+assumption that its use is permissible given the context of its broad
+distribution and use in demos. In the event further information is discovered,
+a licence will be placed in amendment to the archive repo, or its use will be
+discontinued if the terms prove incompatible.
+
+		libTIFF.
+libTIFF uses a variant of the MIT licence with an advertising clause, which
+is compatible with the terms of the MIT/X Consortium licence used by
+AftGangAglay.
+
+		Python.
+Python uses a bespoke licence, which is compatible with the terms of the
+MIT/X Consortium licence used by AftGangAglay.
+
+		libWWW.
+libWWW as-present within the repository does not contain the complete terms of
+use as were present during its window of distribution -- as the copyright
+notice defers "[t]he conditions for public domain and other access to the code"
+to "[the] distribution conditions of WWW code". However, in 1994 libWWW was
+re-licenced by the newly-established W3C under a permissive Open Source licence
+now referred to as the "W3C Software Notice and License" -- whose latest
+version can be found here: https://www.w3.org/copyright/software-license/. The
+library's use is assumed to fall under this relicence due to the nature of the
+external reference in the copyright notice.
+
+The "W3C Software Notice and License" is compatible with the terms of the
+MIT/X Consortium licence used by AftGangAglay.

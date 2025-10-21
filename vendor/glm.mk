@@ -1,8 +1,7 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2024 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+# SPDX-License-Identifier: X11
+# Copyright (C) 2025 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
-SGI = vendor$(SEP)sgi-demos97$(SEP)
-GLM = $(SGI)examples$(SEP)samples$(SEP)shadow$(SEP)
+GLM = vendor$(SEP)glm$(SEP)
 GLM_INCLUDE = $(GLM)
 
 GLM_SRC = $(GLM)glm.c

@@ -1,5 +1,5 @@
 /*
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * SPDX-License-Identifier: X11
  * Copyright (C) 2025 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
  */
 

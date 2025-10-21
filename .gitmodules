@@ -10,22 +10,16 @@
 	url = https://github.com/AftGangAglay/python0.9.1
 	shallow = true
 
-[submodule "vendor/sgi-demos97"]
-	path = vendor/sgi-demos97
+[submodule "vendor/glm"]
+	path = vendor/glm
 	branch = trunk
-	url = https://github.com/AftGangAglay/sgi-demos97
+	url = https://github.com/AftGangAglay/glm97
 	shallow = true
 
 [submodule "vendor/libtiff"]
 	path = vendor/libtiff
 	branch = trunk
 	url = https://github.com/AftGangAglay/libtiff3.4beta018
-	shallow = true
-
-[submodule "vendor/glibc"]
-	path = vendor/glibc
-	branch = trunk
-	url = https://github.com/AftGangAglay/glibc1.03
 	shallow = true
 
 [submodule "lib/asys"]

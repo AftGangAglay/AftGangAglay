@@ -589,7 +589,6 @@ enum asys_result agan_ed_register(struct py_env* env) {
 	aga_(ICON_CONTAINER);
 	aga_(AUTO);
 	aga_(PULLDOWN);
-	aga_(LABEL);
 	aga_(FRAME);
 	aga_(DRAWING_AREA);
 	aga_(ICON);

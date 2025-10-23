@@ -22,7 +22,7 @@ enum asys_result agan_misc_register(struct py_env* env) {
 	if((result = aga_insert_string("VERSION", AGA_VERSION))) return result;
 
 #ifdef ASYS_WIN32
-	if((result = aga_insertstr("PLATFORM", "win32"))) return result;
+	if((result = aga_insert_string("PLATFORM", "win32"))) return result;
 #else
 	if((result = aga_insert_string("PLATFORM", "x"))) return result;
 #endif

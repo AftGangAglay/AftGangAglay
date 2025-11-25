@@ -14,7 +14,7 @@ void aga_wrap_pointer(
 
 	if(pointer->dirty) {
 		/* TODO: Configurable. */
-		static const int edge_tolerance = 10;
+		static const int edge_tolerance = 24;
 
 		pointer->dirty = ASYS_FALSE;
 

@@ -428,7 +428,7 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 
 			if(py_error_occurred()) aga_script_engine_trace();
 		}
-		else {
+		else if(!method) {
 			asys_log(
 					__FILE__,
 					"warn: `ui' class has no `create' method, using default "

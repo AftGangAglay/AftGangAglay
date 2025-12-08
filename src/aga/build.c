@@ -713,7 +713,8 @@ static enum asys_result aga_build_iter(
 			asys_log_result(
 					__FILE__, "aga_build_iter::<callback>", result);
 
-			held_result = result;
+			/* TODO: How should build stages be handled as fatal/nonfatal. */
+			/*held_result = result;*/
 		}
 
 		asys_memory_free(path);

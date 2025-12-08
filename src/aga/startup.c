@@ -12,6 +12,7 @@
 #include <asys/main.h>
 #include <asys/string.h>
 #include <asys/file.h>
+#include <asys/error.h>
 
 enum asys_result aga_settings_new(
 		struct aga_settings* opts, struct asys_main_data* main_data) {
@@ -138,9 +139,9 @@ enum asys_result aga_settings_new(
 				case 'B': {
 #ifdef AGA_DEVBUILD
 					if(!opts->compile) goto help;
-#endif
 
 					opts->no_stamp = ASYS_TRUE;
+#endif
 
 					break;
 				}

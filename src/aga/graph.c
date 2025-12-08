@@ -62,8 +62,7 @@ enum asys_result aga_graph_new(struct aga_graph* graph, struct mil_ctx* mil) {
 	if(!graph->heights) return ASYS_RESULT_OOM;
 #else
 	(void) graph;
-	(void) env;
-	(void) main_data;
+	(void) mil;
 #endif
 
 	return ASYS_RESULT_OK;
@@ -78,7 +77,6 @@ enum asys_result aga_graph_delete(struct aga_graph* graph) {
 	asys_memory_free(graph->running);
 #else
 	(void) graph;
-	(void) env;
 #endif
 
 	return ASYS_RESULT_OK;
@@ -198,7 +196,7 @@ enum asys_result aga_graph_update(
 	return ASYS_RESULT_OK;
 #else
 	(void) graph;
-	(void) env;
+	(void) mil;
 
 	return ASYS_RESULT_OK;
 #endif

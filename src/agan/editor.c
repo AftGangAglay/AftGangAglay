@@ -369,6 +369,14 @@ static struct py_object* agan_widget(
 
 	class = py_int_get(class_object);
 
+	if(opts->verbose) {
+		asys_log(
+				__FILE__,
+				"trace: Adding widget `%s' of type `" ASYS_NATIVE_LONG_FORMAT
+				"' with parent `%p'",
+				name, class, parent);
+	}
+
 	switch(class) {
 		case MIL_AUTO: {
 			if(!agan_widget_dimension(

@@ -31,17 +31,17 @@ enum asys_result agan_misc_register(struct py_env* env) {
 #ifndef NDEBUG
 	if((result = aga_insert_string("MODE", "debug"))) return result;
 #else
-	if((result = aga_insertstr("MODE", "release"))) return result;
+	if((result = aga_insert_string("MODE", "release"))) return result;
 #endif
 
 	/* TODO: BSD-y builds some day -- `bmake' support etc. */
 	/* TODO: IRIX-y builds some day -- IRIX `make' support etc. */
 #ifdef _MSC_VER
-	if((result = aga_insertstr("CENV", "vc"))) return result;
+	if((result = aga_insert_string("CENV", "vc"))) return result;
 #elif defined(__GNUC__)
 	if((result = aga_insert_string("CENV", "gnu"))) return result;
 #else
-	if((result = aga_insertstr("CENV", "std"))) return result;
+	if((result = aga_insert_string("CENV", "std"))) return result;
 #endif
 
 	return ASYS_RESULT_OK;

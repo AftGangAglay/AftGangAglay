@@ -847,7 +847,12 @@ struct py_object* agan_objconf(
 static asys_bool_t agan_putobj_light(struct agan_lightdata* data) {
 	unsigned ind = GL_LIGHT0 + data->index;
 	float pos[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	pos[3] = data->directional ? 0.0f : 1.0f;
+
+	if(data->directional) {
+		pos[0] = data->direction[0];
+		pos[1] = data->direction[1];
+		pos[2] = data->direction[2];
+	}
 
 	glEnable(ind);
 	if(aga_script_gl_err(__FILE__, "glEnable")) return ASYS_TRUE;

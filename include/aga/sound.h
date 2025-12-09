@@ -30,6 +30,7 @@ struct aga_sound_device {
 	struct asys_stream device_stream;
 
 	asys_uchar_t* buffer;
+	asys_size_t blocked_last;
 	asys_uchar_t* scratch;
 
 	asys_size_t size;

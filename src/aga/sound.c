@@ -20,6 +20,7 @@ enum asys_result aga_sound_device_new(
 
 	dev->streams = 0;
 	dev->count = 0;
+	dev->blocked_last = ASYS_FALSE;
 
 	/*
 	 * Assume default open state is "8-bit, 8Khz, mono u-Law data" from SunOS
@@ -113,13 +114,16 @@ enum asys_result aga_sound_device_update(struct aga_sound_device* dev) {
 
 	if(!dev) return ASYS_RESULT_BAD_PARAM;
 
-	asys_memory_zero(dev->buffer, dev->size);
+	if(!dev->blocked_last) asys_memory_zero(dev->buffer, dev->size);
 
 	while(ASYS_TRUE) {
 		asys_size_t remainder = dev->size - total;
 		asys_size_t want = remainder > dev->size ? dev->size : remainder;
+		asys_size_t total_read = 0;
 
-		for(i = 0; i < dev->count; ++i) {
+		if(dev->blocked_last) want = dev->blocked_last;
+
+		for(i = 0; i < dev->count && !dev->blocked_last; ++i) {
 			struct aga_sound_stream* stream = &dev->streams[i];
 			struct asys_stream* fp;
 
@@ -147,10 +151,15 @@ enum asys_result aga_sound_device_update(struct aga_sound_device* dev) {
 
 			result = asys_stream_read(fp, &read_count, dev->scratch, want);
 			if(result) {
+				/*
+				 * TODO: This doesn't make any sense here -- resource streams
+				 *		 Shouldn't be expected to EOF at their end.
+				 */
 				if(result == ASYS_RESULT_EOF) eof = ASYS_TRUE;
 				else return result;
 			}
 
+			total_read += read_count;
 			stream->last_seek = read_count;
 			stream->offset += (asys_offset_t) read_count;
 
@@ -172,22 +181,30 @@ enum asys_result aga_sound_device_update(struct aga_sound_device* dev) {
 			}
 		}
 
+		if(!total_read && !dev->blocked_last) break;
+
 		{
 			asys_size_t seek_corrected, over, write_count;
 
+			dev->blocked_last = 0;
 			result = asys_stream_write(
 					&dev->device_stream, &write_count, dev->buffer, want);
 
 			if(result) {
 				if(result == ASYS_RESULT_BLOCKING) {
-					over = want;
+					dev->blocked_last = want;
+					break;
 				}
 				else return result;
+			}
+			else if(write_count == 0) {
+				dev->blocked_last = want;
+				break;
 			}
 			else over = want - write_count;
 
 			if(over) {
-				for (i = 0; i < dev->count; ++i) {
+				for(i = 0; i < dev->count; ++i) {
 					struct aga_sound_stream* stream = &dev->streams[i];
 
 					if(stream->done) {

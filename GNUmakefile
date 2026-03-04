@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: X11
-# Copyright (C) 2025 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
+# Copyright (C) 2025, 2026 Emily "TTG" Banerjee <prs.ttg+aga@pm.me>
 
 # TODO: Create a proper catalogue of build requirements.
 # TODO: BSD/Make, IRIX-y make etc. support?
@@ -18,12 +18,7 @@ else
 	SEP = /
 endif
 
-AR = ar
-STATIC = $(AR) -rc $@ $^
-
 override LDLIBS += -lm
-
-LINK = $(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 ifdef DEBUG
 	override CFLAGS += -g
@@ -42,8 +37,6 @@ endif
 ifdef MAINTAINER
 	override CFLAGS += -ansi -pedantic -pedantic-errors -Wall -W -Werror
 endif
-
-XQUARTZ_ROOT = /opt/X11
 
 ifdef WINDOWS
 	LIB =
@@ -66,6 +59,11 @@ else
 	override LDLIBS += -lGL -lGLU -lXm -lXt -lX11
 endif
 
+AR = ar
+STATIC = $(AR) -rc $@ $(filter %$(OBJ),$^)
+
+LINK = $(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+
 include lib/asys/asys.mk
 include lib/prof/apro.mk
 MIL_BASE = lib$(SEP)mil$(SEP)mil$(SEP)
@@ -84,6 +82,14 @@ override CFLAGS += -I$(MIL_INCLUDE)
 
 override CFLAGS += -Iinclude -Ivendor$(SEP)libtiff$(SEP) -Ivendor$(SEP)
 override CFLAGS += -DAGA_VERSION=\"$(VERSION)\"
+
+ifdef XQUARTZ
+	include build/xquartz.mk
+endif
+
+ifdef HOMEBREW
+	include build/homebrew.mk
+endif
 
 .SUFFIXES: $(OBJ)
 .c$(OBJ):

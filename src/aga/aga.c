@@ -388,27 +388,29 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 
 	asys_log_result(__FILE__, "aga_script_engine_new", result);
 
-	asys_log(__FILE__, "Instantiating game instance...");
-	result = aga_class_script_instance(
-			script_engine.global, "game", &mil_userdata.script_instance);
+    if(script_engine.global) {
+        asys_log(__FILE__, "Instantiating game instance...");
+        result = aga_class_script_instance(
+                script_engine.global, "game", &mil_userdata.script_instance);
 
-	asys_log_result(__FILE__, "aga_class_script_instance", result);
+        asys_log_result(__FILE__, "aga_class_script_instance", result);
 
 #ifdef AGA_DEVBUILD
-	result = aga_class_script_instance(
-			script_engine.global, "ui", &mil_userdata.ui_instance);
+        result = aga_class_script_instance(
+                script_engine.global, "ui", &mil_userdata.ui_instance);
 
-	asys_log_result(__FILE__, "aga_class_script_instance", result);
+        asys_log_result(__FILE__, "aga_class_script_instance", result);
 
-	if(!result) {
-		mil_userdata.ui_activate = py_class_member_get_attr(
-				mil_userdata.ui_instance, "activate");
+        if(!result) {
+            mil_userdata.ui_activate = py_class_member_get_attr(
+                    mil_userdata.ui_instance, "activate");
 
-		if(!mil_userdata.ui_activate) {
-			asys_log(__FILE__, "warn: `ui' class has no `activate' method");
-		}
-	}
+            if(!mil_userdata.ui_activate) {
+                asys_log(__FILE__, "warn: `ui' class has no `activate' method");
+            }
+        }
 #endif
+    }
 
 	asys_log(__FILE__, "Creating main window...");
 

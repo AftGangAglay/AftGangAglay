@@ -24,6 +24,7 @@
 #include <asys/error.h>
 #include <asys/string.h>
 #include <asys/main.h>
+#include <asys/control.h>
 
 #include <mil/mil.h>
 #include <mil/widget.h>
@@ -130,16 +131,18 @@ static void aga_frame_zero(struct mil_ctx* mil) {
 
 	const char* gl_version;
 
-	result = aga_renderer_string(&gl_version);
-	asys_log_result(__FILE__, "aga_renderer_string", result);
-	asys_log(
-			__FILE__, "Acquired GL context: %s",
-			gl_version ? gl_version : "<error>");
+	if(!userdata->settings->headless) {
+		result = aga_renderer_string(&gl_version);
+		asys_log_result(__FILE__, "aga_renderer_string", result);
+		asys_log(
+				__FILE__, "Acquired GL context: %s",
+				gl_version ? gl_version : "<error>");
 
-	asys_result_check(__FILE__, "aga_draw_set", aga_draw_set(draw_flags));
+		asys_result_check(__FILE__, "aga_draw_set", aga_draw_set(draw_flags));
 
-	result = mil_gl_load_font(mil, userdata->gl_area, AGA_FONT_LIST_BASE);
-	asys_log_result(__FILE__, "mil_gl_load_font", result);
+		result = mil_gl_load_font(mil, userdata->gl_area, AGA_FONT_LIST_BASE);
+		asys_log_result(__FILE__, "mil_gl_load_font", result);
+	}
 
 	if(userdata->script_engine->global) {
 		result = aga_setup_script(mil);
@@ -172,22 +175,26 @@ static void aga_update(struct mil_ctx* mil) {
 		}
 	}
 
-	result = mil_gl_context_widget(mil, userdata->gl_area);
-	asys_log_result(__FILE__, "mil_gl_context_widget", result);
+	if(!userdata->settings->headless) {
+		result = mil_gl_context_widget(mil, userdata->gl_area);
+		asys_log_result(__FILE__, "mil_gl_context_widget", result);
 
-	mil_widget_get_size(mil, userdata->gl_area, &width, &height);
+		mil_widget_get_size(mil, userdata->gl_area, &width, &height);
 
-	aga_wrap_pointer(
-			mil, userdata->gl_area, &userdata->input->pointer,
-			(int) width, (int) height);
+		aga_wrap_pointer(
+				mil, userdata->gl_area, &userdata->input->pointer,
+				(int) width, (int) height);
+	}
 
 	if(userdata->frame_zero) {
 		aga_frame_zero(mil);
 		userdata->frame_zero = ASYS_FALSE;
 	}
 
-	result = aga_render_area(0, 0, width, height);
-	asys_log_result(__FILE__, "aga_render_area", result);
+	if(!userdata->settings->headless) {
+		result = aga_render_area(0, 0, width, height);
+		asys_log_result(__FILE__, "aga_render_area", result);
+	}
 
 	apro_stamp_start(APRO_PRESWAP);
 	{
@@ -217,16 +224,18 @@ static void aga_update(struct mil_ctx* mil) {
 			asys_log_result(
 					__FILE__, "aga_resource_pack_sweep", result);
 
-			result = aga_sound_device_sweep(userdata->sound_device);
-			asys_log_result(
-					__FILE__, "aga_sound_device_sweep", result);
+			if(!userdata->settings->headless) {
+				result = aga_sound_device_sweep(userdata->sound_device);
+				asys_log_result(
+						__FILE__, "aga_sound_device_sweep", result);
+			}
 		}
 		apro_stamp_end(APRO_RES_SWEEP);
 	}
 	apro_stamp_end(APRO_PRESWAP);
 
 	apro_stamp_start(APRO_AUDIO_UPDATE);
-	if(userdata->settings->audio_enabled) {
+	if(userdata->settings->audio_enabled && !userdata->settings->headless) {
 		result = aga_sound_device_update(userdata->sound_device);
 		asys_log_result(
 				__FILE__, "aga_sound_device_update", result);
@@ -236,17 +245,19 @@ static void aga_update(struct mil_ctx* mil) {
 	/* TODO: This needs to be fixed. */
 	/* dt = (asys_size_t) apro_stamp_us(APRO_PRESWAP); */
 
-	if(userdata->settings->profiler) {
+	if(userdata->settings->profiler && !userdata->settings->headless) {
 		result = aga_graph_update(userdata->profile_graph, mil);
 		asys_log_result(__FILE__, "aga_graph_update", result);
 	}
 
 	apro_clear();
 
-	result = mil_gl_swap(mil, userdata->gl_area);
-	asys_log_result(__FILE__, "mil_gl_swap", result);
+	if(!userdata->settings->headless) {
+		result = mil_gl_swap(mil, userdata->gl_area);
+		asys_log_result(__FILE__, "mil_gl_swap", result);
+	}
 
-	if(*userdata->die) mil_stop(mil);
+	if(*userdata->die && !userdata->settings->headless) mil_stop(mil);
 }
 
 static enum asys_result aga_class_script_instance(
@@ -268,6 +279,14 @@ static enum asys_result aga_class_script_instance(
 	}
 
 	return ASYS_RESULT_OK;
+}
+
+static void aga_interrupt_handler(void* userdata) {
+	asys_clear_user_interrupt_handler();
+
+	*(asys_bool_t*) userdata = ASYS_TRUE;
+
+	asys_set_user_interrupt_handler(aga_interrupt_handler, userdata);
 }
 
 /*
@@ -349,10 +368,12 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 
 	mil.update = aga_update;
 
-	result = mil_ctx_new(&mil, &mil_opts, main_data);
-	if(result) return result;
+	if(!opts.headless) {
+		result = mil_ctx_new(&mil, &mil_opts, main_data);
+		if(result) return result;
+	}
 
-	if(opts.audio_enabled) {
+	if(opts.audio_enabled && !opts.headless) {
 		if((result = aga_sound_device_new(&snd, opts.audio_buffer))) {
 			asys_log_result(__FILE__, "aga_sound_device_new", result);
 			/* TODO: Separate "unavailable snd/midi" and user defined. */
@@ -404,32 +425,38 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
         asys_log_result(__FILE__, "aga_class_script_instance", result);
 
 #ifdef AGA_DEVBUILD
-        result = aga_class_script_instance(
-                script_engine.global, "ui", &mil_userdata.ui_instance);
+		if(!opts.headless) {
+    		result = aga_class_script_instance(
+	                script_engine.global, "ui", &mil_userdata.ui_instance);
 
-        asys_log_result(__FILE__, "aga_class_script_instance", result);
+	        asys_log_result(__FILE__, "aga_class_script_instance", result);
 
-        if(!result) {
-            mil_userdata.ui_activate = py_class_member_get_attr(
-                    mil_userdata.ui_instance, "activate");
+	        if(!result) {
+	            mil_userdata.ui_activate = py_class_member_get_attr(
+	                    mil_userdata.ui_instance, "activate");
 
-            if(!mil_userdata.ui_activate) {
-                asys_log(__FILE__, "warn: `ui' class has no `activate' method");
-            }
-        }
+	            if(!mil_userdata.ui_activate) {
+	                asys_log(
+	                		__FILE__,
+							"warn: `ui' class has no `activate' method");
+	            }
+	        }
+		}
 #endif
     }
 
-	asys_log(__FILE__, "Creating main window...");
-
-	{
+	if(!opts.headless) {
 #ifdef AGA_DEVBUILD
 		struct py_object* method;
+		asys_bool_t can_ui;
+#endif
 
-		asys_bool_t can_ui =
-				mil_userdata.ui_instance && (method = py_class_member_get_attr(
-						mil_userdata.ui_instance, "create"));
+		asys_log(__FILE__, "Creating main window...");
 
+#ifdef AGA_DEVBUILD
+		method = py_class_member_get_attr(mil_userdata.ui_instance, "create");
+
+		can_ui = mil_userdata.ui_instance && method;
 		if(can_ui) {
 			py_object_decref(py_call_function(
 					script_engine.env, method, mil_userdata.script_instance));
@@ -453,8 +480,8 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 		script_userdata.gl_area = mil_userdata.gl_area;
 	}
 
-
-	if(opts.profiler) {
+	/* TODO: Headless profiler. */
+	if(opts.profiler && !opts.headless) {
 		result = aga_graph_new(&prof, &mil);
 		if(result) {
 			asys_result_check(__FILE__, "aga_graph_new", result);
@@ -464,19 +491,33 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 
 	asys_log_result(__FILE__, "aga_script_engine_new", result);
 
+	asys_set_user_interrupt_handler(aga_interrupt_handler, &die);
+
 	asys_log(__FILE__, "Done!");
 
 	/* TODO: Store result. */
-	mil_start(&mil);
+	if(!opts.headless) {
+		mil_start(&mil);
+	}
+	else {
+		while(!die) {
+			aga_update(&mil);
+		}
+	}
 
 	asys_log(__FILE__, "Tearing down...");
 
-	mil_ctx_delete(&mil);
+	if(!opts.headless) {
+		mil_ctx_delete(&mil);
+	}
 
 	/* TODO: Add `asys' Apple OSX/OS9 detection. */
+	/* TODO: Move this out to mil. */
 #ifdef __APPLE__
-	/* Need to flush before shutdown to avoid NSGL dying */
-	asys_log_result(__FILE__, "aga_render_flush", aga_render_flush());
+	if(!opts.headless) {
+		/* Need to flush before shutdown to avoid NSGL dying */
+		asys_log_result(__FILE__, "aga_render_flush", aga_render_flush());
+	}
 #endif
 
 	if(mil_userdata.script_instance) {
@@ -501,7 +542,7 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	result = aga_script_engine_delete(&script_engine);
 	asys_log_result(__FILE__, "aga_script_engine_delete", result);
 
-	if(opts.audio_enabled) {
+	if(opts.audio_enabled && !opts.headless) {
 		result = aga_sound_device_delete(&snd);
 		asys_log_result(__FILE__, "aga_sound_device_delete", result);
 	}
@@ -509,7 +550,7 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 	result = aga_config_delete(&opts.config);
 	asys_log_result(__FILE__, "aga_config_delete", result);
 
-	if(opts.profiler) {
+	if(opts.profiler && !opts.headless) {
 		result = aga_graph_delete(&prof);
 		asys_log_result(__FILE__, "aga_window_delete", result);
 	}

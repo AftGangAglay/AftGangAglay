@@ -38,6 +38,7 @@ enum asys_result aga_settings_new(
 	opts->height = 480;
 	opts->title = "Aft Gang Aglay";
 	opts->mipmap_default = ASYS_FALSE;
+	opts->headless = ASYS_FALSE;
 	opts->fov = 90.0f;
 	opts->audio_enabled = ASYS_TRUE;
 	opts->version = AGA_VERSION;
@@ -47,9 +48,10 @@ enum asys_result aga_settings_new(
 	asys_memory_zero(&opts->config, sizeof(struct aga_config_node));
 
 	{
+		/* TODO: Descriptive help for parameters. */
 		static const char helpmsg[] =
 			"warn: usage:\n"
-			"\t%s [-f respack] [-A dsp] [-D display] [-C dir] [-p] [-v] [-h]"
+			"\t%s [-f respack] [-A dsp] [-D display] [-C dir] [-p] [-v] [-H] [-h]"
 #ifdef AGA_DEVBUILD
 			"\n\t%s -c [-f buildfile] [-C dir] [-B] [-v] [-h]"
 #endif
@@ -57,7 +59,7 @@ enum asys_result aga_settings_new(
 
 		int o;
 		while(1) {
-			o = getopt(main_data->argc, main_data->argv, "hcf:A:D:C:vpB");
+			o = getopt(main_data->argc, main_data->argv, "hcf:A:D:C:vpBH");
 			if(o == -1) break;
 
 			switch(o) {
@@ -115,16 +117,25 @@ enum asys_result aga_settings_new(
 					break;
 				}
 
-				case 'D': {
+			case 'D': {
 #ifdef AGA_DEVBUILD
-					if(opts->compile) goto help;
+				if(opts->compile) goto help;
 #endif
 
-					opts->display = optarg;
-					break;
-				}
+				opts->display = optarg;
+				break;
+			}
 
-				case 'C': {
+			case 'H': {
+#ifdef AGA_DEVBUILD
+				if(opts->compile) goto help;
+#endif
+
+				opts->headless = ASYS_TRUE;
+				break;
+			}
+
+			case 'C': {
 					opts->chdir = optarg;
 					break;
 				}

@@ -562,6 +562,7 @@ struct py_object* agan_mkobj(
 
 	const char* path;
 	struct aga_resource_pack* pack = AGA_GET_USERDATA(env)->resource_pack;
+	struct aga_settings* settings = AGA_GET_USERDATA(env)->opts;
 
 	/*
 	 * TODO: This is horrible (but only exists until we have an object registry
@@ -603,8 +604,10 @@ struct py_object* agan_mkobj(
 	if(aga_script_err(__FILE__, "aga_resource_stream", result)) goto cleanup;
 
 	if(agan_mkobj_trans(obj, &obj->config)) goto cleanup;
-	if(agan_mkobj_model(env, obj, &obj->config, pack, path)) goto cleanup;
-	if(agan_mkobj_light(obj, &obj->config)) goto cleanup;
+	if(!settings->headless) {
+		if(agan_mkobj_model(env, obj, &obj->config, pack, path)) goto cleanup;
+		if(agan_mkobj_light(obj, &obj->config)) goto cleanup;
+	}
 
 	apro_stamp_end(APRO_SCRIPTGLUE_MKOBJ);
 
@@ -615,8 +618,10 @@ struct py_object* agan_mkobj(
 					__FILE__, "aga_config_delete",
 					aga_config_delete(&obj->config));
 
-		glDeleteLists(obj->drawlist, 1);
-		(void) mil_gl_result(__FILE__, "glDeleteLists");
+		if(!settings->headless) {
+			glDeleteLists(obj->drawlist, 1);
+			(void) mil_gl_result(__FILE__, "glDeleteLists");
+		}
 
 		asys_memory_free(obj->light_data);
 		py_object_decref(obj->transform);
@@ -632,7 +637,8 @@ struct py_object* agan_killobj(
 
 	struct agan_object* obj;
 
-	(void) env;
+	struct aga_settings* settings = AGA_GET_USERDATA(env)->opts;
+
 	(void) self;
 
 	apro_stamp_start(APRO_SCRIPTGLUE_KILLOBJ);
@@ -643,8 +649,10 @@ struct py_object* agan_killobj(
 
 	obj = (void*) py_int_get(args);
 
-	glDeleteLists(obj->drawlist, 1);
-	if(aga_script_gl_err(__FILE__, "glDeleteLists")) return 0;
+	if(!settings->headless) {
+		glDeleteLists(obj->drawlist, 1);
+		if(aga_script_gl_err(__FILE__, "glDeleteLists")) return 0;
+	}
 
 	py_object_decref(obj->transform);
 

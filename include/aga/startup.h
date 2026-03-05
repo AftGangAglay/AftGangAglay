@@ -40,6 +40,7 @@ struct aga_settings {
 	asys_size_t height;
 
 	asys_bool_t mipmap_default;
+	asys_bool_t headless;
 
 	float fov;
 

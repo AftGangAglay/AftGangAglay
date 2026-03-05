@@ -78,30 +78,32 @@ struct py_object* agan_setcam(
 
 	b = !!py_int_get(mode);
 
-	mil_widget_get_size(mil, gl_area, &width, &height);
+	if(!opts->headless) {
+		mil_widget_get_size(mil, gl_area, &width, &height);
 
-	ar = (double) height / (double) width;
+		ar = (double) height / (double) width;
 
-	glMatrixMode(GL_PROJECTION);
-	if(aga_script_gl_err(__FILE__, "glMatrixMode")) return 0;
-	glLoadIdentity();
-	if(aga_script_gl_err(__FILE__, "glLoadIdentity")) return 0;
+		glMatrixMode(GL_PROJECTION);
+		if(aga_script_gl_err(__FILE__, "glMatrixMode")) return 0;
+		glLoadIdentity();
+		if(aga_script_gl_err(__FILE__, "glLoadIdentity")) return 0;
 
-	if(b) {
-		/* TODO: Parameterized FOV. */
-		gluPerspective(opts->fov, 1.0 / ar, 0.1, 10000.0);
-		if(aga_script_gl_err(__FILE__, "gluPerspective")) return 0;
+		if(b) {
+			/* TODO: Parameterized FOV. */
+			gluPerspective(opts->fov, 1.0 / ar, 0.1, 10000.0);
+			if(aga_script_gl_err(__FILE__, "gluPerspective")) return 0;
+		}
+		else {
+			glOrtho(-1.0, 1.0, -ar, ar, 0.001, 1.0);
+			if(aga_script_gl_err(__FILE__, "glOrtho")) return 0;
+		}
+
+		glMatrixMode(GL_MODELVIEW);
+		if(aga_script_gl_err(__FILE__, "glMatrixMode")) return 0;
+		glLoadIdentity();
+		if(aga_script_gl_err(__FILE__, "glLoadIdentity")) return 0;
+		if(agan_settransmat(t, ASYS_TRUE)) return 0;
 	}
-	else {
-		glOrtho(-1.0, 1.0, -ar, ar, 0.001, 1.0);
-		if(aga_script_gl_err(__FILE__, "glOrtho")) return 0;
-	}
-
-	glMatrixMode(GL_MODELVIEW);
-	if(aga_script_gl_err(__FILE__, "glMatrixMode")) return 0;
-	glLoadIdentity();
-	if(aga_script_gl_err(__FILE__, "glLoadIdentity")) return 0;
-	if(agan_settransmat(t, ASYS_TRUE)) return 0;
 
 	apro_stamp_end(APRO_SCRIPTGLUE_SETCAM);
 

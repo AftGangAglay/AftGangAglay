@@ -7,9 +7,9 @@
 #include <aga/pack.h>
 
 #include <asys/base.h>
-#include <asys/log.h>
 #include <asys/memory.h>
 #include <asys/error.h>
+#include <asys/math.h>
 
 enum asys_result aga_sound_device_new(
 		struct aga_sound_device* dev, asys_size_t size) {
@@ -149,14 +149,16 @@ enum asys_result aga_sound_device_update(struct aga_sound_device* dev) {
 			result = asys_stream_seek(fp, ASYS_SEEK_CURRENT, stream->offset);
 			if(result) return result;
 
-			result = asys_stream_read(fp, &read_count, dev->scratch, want);
+			result = asys_stream_read(
+				fp, &read_count, dev->scratch,
+				ASYS_MIN(want, stream->resource->size - stream->offset));
+
 			if(result) {
-				/*
-				 * TODO: This doesn't make any sense here -- resource streams
-				 *		 Shouldn't be expected to EOF at their end.
-				 */
 				if(result == ASYS_RESULT_EOF) eof = ASYS_TRUE;
 				else return result;
+			}
+			else if(read_count >= stream->resource->size - stream->offset) {
+				eof = ASYS_TRUE;
 			}
 
 			total_read += read_count;
@@ -164,7 +166,7 @@ enum asys_result aga_sound_device_update(struct aga_sound_device* dev) {
 			stream->offset += (asys_offset_t) read_count;
 
 			for(j = 0; j < read_count; ++j) {
-				static const double smax = (double) 0xFF;
+				static const double smax = 0xFF;
 
 				double v = aga_sound_clip(
 						dev->buffer[j] / smax, dev->scratch[j] / smax);
@@ -195,13 +197,16 @@ enum asys_result aga_sound_device_update(struct aga_sound_device* dev) {
 					dev->blocked_last = want;
 					break;
 				}
-				else return result;
+
+				return result;
 			}
-			else if(write_count == 0) {
+
+			if(write_count == 0) {
 				dev->blocked_last = want;
 				break;
 			}
-			else over = want - write_count;
+
+			over = want - write_count;
 
 			if(over) {
 				for(i = 0; i < dev->count; ++i) {
@@ -235,6 +240,28 @@ enum asys_result aga_sound_device_update(struct aga_sound_device* dev) {
 	return ASYS_RESULT_OK;
 }
 
+enum asys_result aga_sound_device_sweep(struct aga_sound_device* dev) {
+	asys_size_t i, j;
+
+	if(!dev) return ASYS_RESULT_BAD_PARAM;
+
+	for(i = 0; i < dev->count;) {
+		if(!dev->streams[i++].done) continue;
+
+		--dev->count;
+		for(j = i; j < dev->count; ++j) {
+			dev->streams[j] = dev->streams[j + 1];
+		}
+
+		dev->streams = asys_memory_reallocate_safe(
+				dev->streams, dev->count * sizeof(struct aga_sound_stream));
+
+		--i;
+	}
+
+	return ASYS_RESULT_OK;
+}
+
 enum asys_result aga_sound_play(
 		struct aga_sound_device* dev, struct aga_resource* res,
 		asys_bool_t loop, asys_size_t* ind) {
@@ -261,11 +288,6 @@ enum asys_result aga_sound_play(
 	asys_memory_zero(stream, sizeof(struct aga_sound_stream));
 
 	stream->resource = res;
-
-	/*
-	 * TODO: Looping streams are broken at the moment. Are we relying on
-	 * 		 Stream EOF?
-	 */
 	stream->loop = loop;
 
 	return ASYS_RESULT_OK;

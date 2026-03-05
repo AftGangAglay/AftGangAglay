@@ -43,6 +43,7 @@ enum asys_result aga_sound_device_new(struct aga_sound_device*, asys_size_t);
 enum asys_result aga_sound_device_delete(struct aga_sound_device*);
 
 enum asys_result aga_sound_device_update(struct aga_sound_device*);
+enum asys_result aga_sound_device_sweep(struct aga_sound_device*);
 
 /* Start a new sound stream into the device */
 enum asys_result aga_sound_play(

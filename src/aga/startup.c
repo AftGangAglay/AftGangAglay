@@ -68,7 +68,9 @@ enum asys_result aga_settings_new(
 				{
 					const char* program = main_data->argv[0];
 					asys_log(__FILE__, helpmsg, program, program);
-					goto break2;
+
+					asys_result_fatal(
+							__FILE__, "aga_settings_new", ASYS_RESULT_OK);
 				}
 
 				case 'c': {
@@ -147,7 +149,6 @@ enum asys_result aga_settings_new(
 				}
 			}
 		}
-		break2:;
 	}
 
 	result = asys_path_change(opts->chdir);

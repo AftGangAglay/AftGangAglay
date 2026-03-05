@@ -207,11 +207,19 @@ static void aga_update(struct mil_ctx* mil) {
 		}
 		apro_stamp_end(APRO_SCRIPT_UPDATE);
 
+		/*
+		 * TODO: Delay this to only trigger every N frames -- user
+		 *		 Configurable.
+		 */
 		apro_stamp_start(APRO_RES_SWEEP);
 		{
 			result = aga_resource_pack_sweep(userdata->resource_pack);
 			asys_log_result(
 					__FILE__, "aga_resource_pack_sweep", result);
+
+			result = aga_sound_device_sweep(userdata->sound_device);
+			asys_log_result(
+					__FILE__, "aga_sound_device_sweep", result);
 		}
 		apro_stamp_end(APRO_RES_SWEEP);
 	}

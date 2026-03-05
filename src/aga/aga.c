@@ -31,6 +31,7 @@
 #include <mil/gl.h>
 #include <mil/translate.h>
 
+#include <python/serialization.h>
 #include <python/object.h>
 #include <python/object/class.h>
 #include <python/object/dict.h>
@@ -146,7 +147,24 @@ static void aga_frame_zero(struct mil_ctx* mil) {
 
 	if(userdata->script_engine->global) {
 		result = aga_setup_script(mil);
-		asys_log_result(__FILE__, "aga_instantiate_script", result);
+		asys_log_result(__FILE__, "aga_setup_script", result);
+	}
+
+	if(userdata->script_engine->global) {
+		static const char test_path[] = "test.pyser";
+		struct asys_stream stream;
+
+		result = asys_stream_new_write(&stream, test_path);
+		asys_result_check_path(
+				__FILE__, "asys_stream_new_write", test_path, result);
+
+		result = py_object_serialize(
+				userdata->script_instance, &stream, PY_SERIALIZE_BINARY);
+
+		asys_result_check(__FILE__, "py_object_serialize", result);
+
+		result = asys_stream_delete(&stream);
+		asys_result_check(__FILE__, "asys_stream_delete", result);
 	}
 }
 
@@ -489,9 +507,8 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 		}
 	}
 
-	asys_log_result(__FILE__, "aga_script_engine_new", result);
-
-	asys_set_user_interrupt_handler(aga_interrupt_handler, &die);
+	result = asys_set_user_interrupt_handler(aga_interrupt_handler, &die);
+	asys_result_check(__FILE__, "asys_set_user_interrupt_handler", result);
 
 	asys_log(__FILE__, "Done!");
 

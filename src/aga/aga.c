@@ -165,6 +165,18 @@ static void aga_frame_zero(struct mil_ctx* mil) {
 
 		result = asys_stream_delete(&stream);
 		asys_result_check(__FILE__, "asys_stream_delete", result);
+
+		result = asys_stream_new(&stream, test_path);
+		asys_result_check_path(
+				__FILE__, "asys_stream_new", test_path, result);
+
+		result = py_object_deserialize(
+				&userdata->script_instance, &stream, PY_SERIALIZE_BINARY);
+
+		asys_result_check(__FILE__, "py_object_deserialize", result);
+
+		result = asys_stream_delete(&stream);
+		asys_result_check(__FILE__, "asys_stream_delete", result);
 	}
 }
 

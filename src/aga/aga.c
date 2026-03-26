@@ -484,7 +484,10 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 		asys_log(__FILE__, "Creating main window...");
 
 #ifdef AGA_DEVBUILD
-		method = py_class_member_get_attr(mil_userdata.ui_instance, "create");
+		if(mil_userdata.ui_instance) {
+			method = py_class_member_get_attr(
+					mil_userdata.ui_instance, "create");
+		}
 
 		can_ui = mil_userdata.ui_instance && method;
 		if(can_ui) {

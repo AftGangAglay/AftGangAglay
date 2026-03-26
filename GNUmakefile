@@ -56,7 +56,7 @@ else
 	EXE =
 	A = .a
 
-	override LDLIBS += -lGL -lGLU -lXm -lXt -lX11
+	override LDLIBS += -lGL -lGLU -lXt -lX11
 endif
 
 AR = ar
@@ -85,10 +85,26 @@ override CFLAGS += -DAGA_VERSION=\"$(VERSION)\"
 
 ifdef XQUARTZ
 	include build/xquartz.mk
+else
+	ifndef WINDOWS
+		MOTIF = 1
+	endif
 endif
 
 ifdef HOMEBREW
 	include build/homebrew.mk
+endif
+
+ifdef MOTIF
+	GLW_BASE = lib$(SEP)mil$(SEP)vendor$(SEP)glw$(SEP)
+	include lib/mil/vendor/glw/glw.mk
+
+	override CFLAGS += -DMIL_MOTIF -I$(GLW_INCLUDE)
+	override LDLIBS += -lXm
+else
+	ifndef WINDOWS
+		override LDLIBS += -lXaw
+	endif
 endif
 
 .SUFFIXES: $(OBJ)
@@ -101,9 +117,9 @@ all: $(AGA_OUT)
 
 .PHONY: clean
 .PHONY: clean_asys clean_apro clean_mil
-.PHONY: clean_python clean_www clean_glm clean_tiff
+.PHONY: clean_python clean_www clean_glm clean_tiff clean_glw
 .PHONY: clean_aga
 
 clean: clean_asys clean_apro clean_mil
-clean: clean_python clean_www clean_glm clean_tiff
+clean: clean_python clean_www clean_glm clean_tiff clean_glw
 clean: clean_aga

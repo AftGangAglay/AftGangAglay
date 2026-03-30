@@ -529,6 +529,13 @@ enum asys_result asys_main(struct asys_main_data* main_data) {
 
 	/* TODO: Store result. */
 	if(!opts.headless) {
+		/*
+		 * TODO: Async-ify app loop.
+		while(XtAppPending(app)) {
+			XtAppNextEvent(app, &event);
+			XtDispatchEvent(&event);
+		}
+		 */
 		mil_start(&mil);
 	}
 	else {

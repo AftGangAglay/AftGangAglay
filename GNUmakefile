@@ -83,16 +83,12 @@ override CFLAGS += -I$(MIL_INCLUDE)
 override CFLAGS += -Iinclude -Ivendor$(SEP)libtiff$(SEP) -Ivendor$(SEP)
 override CFLAGS += -DAGA_VERSION=\"$(VERSION)\"
 
-ifdef XQUARTZ
-	include build/xquartz.mk
-else
-	ifndef WINDOWS
-		MOTIF = 1
-	endif
-endif
-
 ifdef HOMEBREW
 	include build/homebrew.mk
+endif
+
+ifndef WINDOWS
+	MOTIF = 1
 endif
 
 ifdef MOTIF

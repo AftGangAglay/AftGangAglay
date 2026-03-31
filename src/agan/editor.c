@@ -18,6 +18,7 @@
 #include <asys/string.h>
 #include <asys/stream.h>
 #include <asys/log.h>
+#include <asys/file.h>
 
 #include <mil/mil.h>
 #include <mil/widget.h>
@@ -552,6 +553,26 @@ static struct py_object* agan_build(
 
 	return py_object_incref(PY_NONE);
 }
+
+
+static struct py_object* agan_delfile(
+		struct py_env* env, struct py_object* self, struct py_object* args) {
+
+	enum asys_result result;
+
+	(void) env;
+	(void) self;
+	(void) args;
+
+	if(!aga_arg_list(args, PY_TYPE_STRING)) {
+		return aga_arg_error("delfile", "string");
+	}
+
+	result = asys_path_remove(py_string_get(args));
+	if(aga_script_err(__FILE__, "asys_path_remove", result)) return 0;
+
+	return py_object_incref(PY_NONE);
+}
 #endif
 
 enum asys_result agan_ed_register(struct py_env* env) {
@@ -562,7 +583,7 @@ enum asys_result agan_ed_register(struct py_env* env) {
 	static const struct py_methodlist methods[] = {
 			aga_(killpack), aga_(mkpack), aga_(dumpobj), aga_(fdiag),
 			aga_(setobjmdl), aga_(widget), aga_(widgetsz), aga_(build),
-			aga_(setobjtex),
+			aga_(setobjtex), aga_(delfile),
 
 			{ 0, 0 }
 	};
